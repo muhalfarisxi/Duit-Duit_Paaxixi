@@ -12,6 +12,8 @@ from zoneinfo import ZoneInfo
 SOURCE = "https://trends.google.com/trending/rss?geo=ID"
 OUT = Path("quote-mingguan.json")
 FALLBACK = [
+    "Kalau lagu Bernadya bisa di-repeat, pengeluaranmu juga wajib di-review, Alfa. 🎧",
+    "Jangan cuma omon-omon soal hemat, buktiin lewat catatan, Alfa. 😎",
     "Dompet boleh lowkey, pencatatan harus highkey. 💸",
     "Yang sat-set boleh jajan, yang smart tetap catat. ✍️",
     "Budget aman adalah green flag paling nyata. 💙",
@@ -21,6 +23,63 @@ FALLBACK = [
     "Payday datang, budgeting jangan menghilang. 😎",
     "Plot twist terbaik: akhir bulan saldo masih aman. 💰",
 ]
+# Penyebutan nama figur hanya dipilih saat nama tersebut benar-benar muncul di
+# judul topik populer RSS. Kalimatnya humor orisinal, bukan kutipan sang figur.
+FIGURES = {
+    "Bernadya": (r"\bbernadya\b", [
+        "Kalau lagu Bernadya bisa di-repeat, pengeluaranmu juga wajib di-review, Alfa. 🎧",
+        "Dengerin Bernadya boleh baper, tapi jangan baper pas cek saldo ya, Alfa. 😭💸",
+    ]),
+    "Hindia": (r"\b(?:hindia|baskara putra)\b", [
+        "Lagu Hindia boleh keras, alarm budget kamu jangan di-mute, Alfa. 🎸",
+        "Hindia buat playlist, kamu buat catatan pengeluaran. Sama-sama on point. 🎶",
+    ]),
+    "JKT48": (r"\bjkt\s*48\b", [
+        "Idola boleh JKT48, tapi angka transaksi jangan cuma jadi misteri, Alfa. 💙",
+        "Oshi boleh banyak, tapi pos anggaran tetap harus jelas. ✨",
+    ]),
+    "NIKI": (r"\b(?:niki|nicole zefanya)\b", [
+        "Dengerin NIKI boleh mellow, saldo jangan dibiarkan mellow. 🎧",
+        "NIKI di playlist, catatan keuangan di checklist. Gas, Alfa. 🧾",
+    ]),
+    "Raisa": (r"\braisa\b", [
+        "Raisa boleh bikin jatuh hati, jangan biarkan flash sale bikin jatuh saldo. 🎤",
+        "Nyanyi bareng Raisa boleh, nyesel lihat saldo jangan. Catat dulu. 💸",
+    ]),
+    "Taylor Swift": (r"\btaylor\s+swift\b", [
+        "Era boleh berganti ala Taylor Swift, kebiasaan catat uang tetap konsisten, Alfa. ✨",
+        "Swifties boleh all out, budgeting tetap jangan out of sight. 💿",
+    ]),
+    "BLACKPINK": (r"\bblackpink\b", [
+        "BLACKPINK in your area, tapi budget juga harus in your radar, Alfa. 🎀",
+        "Comeback boleh ditunggu, tagihan jangan sampai tiba-tiba muncul. 💸",
+    ]),
+    "BTS": (r"\bbts\b", [
+        "BTS boleh jadi favorit, tapi jangan bikin budget jadi plot twist. 💜",
+        "ARMY boleh solid, pencatatanmu harus sama solidnya. 🧾",
+    ]),
+    "Bruno Mars": (r"\bbruno\s+mars\b", [
+        "Bruno Mars boleh bikin joget, angka pengeluaran jangan ikut loncat nggak jelas. 🕺",
+        "24K Magic boleh di playlist, uang asli tetap harus dicatat, Alfa. 💸",
+    ]),
+    "Sal Priadi": (r"\bsal\s+priadi\b", [
+        "Kata-kata Sal Priadi boleh puitis, angka transaksi tetap harus realistis. 🎶",
+        "Playlist Sal Priadi boleh mendalam, catatan keuangan jangan tenggelam. 💙",
+    ]),
+    "Mahalini": (r"\bmahalini\b", [
+        "Lagu Mahalini boleh bikin galau, jangan sampai saldo ikut galau, Alfa. 🎶",
+        "Yang mahal cuma namanya Mahalini, belanja tetap sesuai budget ya. 😌",
+    ]),
+    "Lyodra": (r"\blyodra\b", [
+        "Nada Lyodra boleh tinggi, pengeluaran jangan sampai setinggi itu, Alfa. 🎤",
+        "Vokal boleh powerful kayak Lyodra, kontrol dompet juga harus kuat. 💪",
+    ]),
+    "Prabowo": (r"\bprabowo\b", [
+        "Prabowo lagi dibahas? Alfa jangan cuma omon-omon soal hemat—langsung catat. 💸",
+        "Kalau Prabowo jadi topik, dompet Alfa tetap butuh aksi, bukan sekadar wacana. 😎",
+    ]),
+}
+
 # Jangan menampilkan judul berita/tren mentah: hanya kelompokkan tema yang relevan.
 THEMES = {
     "Belanja & Promo": (
@@ -78,13 +137,23 @@ def main():
     except Exception as exc:
         print(f"Tidak bisa membaca tren; gunakan quote cadangan: {exc}")
 
+    # Figur yang benar-benar disebut dalam judul tren diprioritaskan.
+    figure_hits = Counter()
+    for title in titles:
+        for figure, (pattern, _) in FIGURES.items():
+            if re.search(pattern, title, re.IGNORECASE):
+                figure_hits[figure] += 1
+
     counts = Counter()
     for title in titles:
         for theme, (pattern, _) in THEMES.items():
             if re.search(pattern, title, re.IGNORECASE):
                 counts[theme] += 1
-    is_trending = bool(counts)
-    if is_trending:
+    is_trending = bool(figure_hits or counts)
+    if figure_hits:
+        theme = figure_hits.most_common(1)[0][0]
+        quotes = FIGURES[theme][1]
+    elif counts:
         theme = counts.most_common(1)[0][0]
         quotes = THEMES[theme][1]
     else:

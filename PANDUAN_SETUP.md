@@ -50,3 +50,14 @@ Unggah **empat file ini** ke root repo GitHub: `index.html`, `cloud.js`, `fireba
 - Untuk mengubah nama atau kelompok suatu pos, klik **Edit** di sebelah posnya; kode kategori tetap dipertahankan supaya riwayat transaksi dan anggaran tidak terputus.
 - Klik **Hapus** hanya untuk pos yang belum dipakai transaksi/pemindahan atau memiliki anggaran aktif. Pos yang sudah digunakan sengaja tidak bisa dihapus agar catatan historis aman.
 - Semua perubahan data yang dibuat setelah sinkronisasi siap tersimpan melalui mekanisme Firebase yang sudah dipakai website.
+
+## Kelompok Pengeluaran Fleksibel (Pembaruan)
+- Buka **Anggaran Bulanan → Kelola Kelompok Pengeluaran**.
+- Isi **Nama Kelompok** dan pilih **Warna Kelompok**, kemudian klik **Tambah Kelompok**.
+- Klik **Edit** untuk mengubah nama/warna kelompok yang sudah ada. Semua kategori/pos di kelompok itu otomatis mengikuti nama baru; ID kategori serta riwayat transaksi/anggaran tetap sama.
+- Klik **Hapus** hanya setelah semua pos di kelompok itu dipindahkan ke kelompok lain. Minimal satu kelompok harus tetap ada.
+- Pada tabel **Atur Batas Tiap Kategori**, klik **＋ Tambah Pos** untuk mengisi kelompok baru, atau edit kategori untuk memindahkannya.
+- Kelompok akan otomatis muncul di input transaksi, pie chart komposisi pengeluaran, serta sinkronisasi cloud.
+- Struktur `expenseGroups: [{id,name,color}]` disimpan bersama data keuangan di Firestore (`users/<uid>/arus/meta`) dan ikut diekspor ke cadangan JSON.
+- File cadangan dan data Firestore versi sebelumnya yang belum memiliki `expenseGroups` tetap didukung; kelompok asal akan dibuat otomatis tanpa menghapus data.
+- Arsip laporan lama adalah *snapshot*, sehingga nama kelompok pada laporan yang sudah diarsipkan tetap merekam kondisi saat laporan dibuat.

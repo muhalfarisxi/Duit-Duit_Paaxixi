@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#102a4e">
 <title>Duit-Duit Paaxixi | Catatan Keuangan Pribadi</title>
+<link rel="icon" type="image/png" sizes="64x64" href="./favicon-paaxixi.png?v=2">
+<link rel="apple-touch-icon" href="./profil-paaxixi.png?v=2">
+<meta name="application-name" content="Duit-Duit Paaxixi">
+<meta property="og:image" content="https://muhalfarisxi.github.io/Duit-Duit_Paaxixi/profil-paaxixi.png">
 <style>
 :root{--navy:#102a4e;--navy2:#173d6c;--teal:#2563eb;--mint:#e7f0ff;--bg:#f4f7fc;--white:#fff;--text:#182e50;--muted:#7a8ba6;--line:#e1eaf7;--amber:#b87718;--rose:#c55150;--purple:#7770c2;--shadow:0 12px 38px rgba(22,57,112,.07)}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.48 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}a{color:var(--teal)}
@@ -31,12 +35,19 @@
 .table input[data-rupiah]{width:125px;max-width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 10px;color:var(--text);background:#fff}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #4f8af6;outline-offset:2px}
 ::selection{background:#c8dcff;color:#142e55}
+.brand-avatar{width:43px;height:43px;object-fit:cover;display:block;border:2px solid #dbe9ff;border-radius:12px;background:#fff;flex:none}
+.welcome-panel{background:linear-gradient(120deg,#102a4e 0%,#173d6c 65%,#235aa0 100%);color:#fff;border-radius:19px;padding:18px 23px;display:flex;align-items:center;gap:22px;margin:12px 0 20px;box-shadow:0 14px 36px rgba(16,42,78,.12);border:1px solid #2d527f}
+.welcome-avatar{width:100px;height:100px;object-fit:contain;background:#fff;border-radius:17px;padding:4px;flex:none}
+.welcome-panel h2{margin:0 0 7px;font-size:clamp(19px,2.1vw,26px);line-height:1.25}
+.welcome-panel p{margin:0;color:#deebff;font-size:13px;line-height:1.6}
+.welcome-eyebrow{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#b5d4ff;font-weight:800;margin-bottom:5px}
+@media(max-width:520px){.welcome-panel{gap:12px;padding:14px;margin-top:6px}.welcome-avatar{width:72px;height:72px;border-radius:12px}.welcome-panel h2{font-size:19px}.welcome-panel p{font-size:12px}}
 </style>
 </head>
 <body>
 <div class="app">
 <aside class="sidebar">
-  <div class="brand"><span class="brandmark">💸</span><span class="brand-text">Duit-Duit<small>Paaxixi</small></span></div>
+  <div class="brand"><img class="brandmark brand-avatar" src="./favicon-paaxixi.png?v=2" width="43" height="43" alt="Maskot Duit-Duit Paaxixi" loading="eager"><span class="brand-text">Duit-Duit<small>Paaxixi</small></span></div>
   <div class="s-label">MENU UTAMA</div><nav class="nav" id="side-nav">
   <button type="button" data-nav="dashboard"><span class="nav-icon">◫</span> Dashboard</button>
   <button type="button" data-nav="transactions"><span class="nav-icon">⇄</span> Transaksi Harian</button>
@@ -135,9 +146,16 @@ const selectAcc=(name,selected='',exclude='')=>`<select class="field" name="${h(
 function toast(msg,bad=false){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(bad?' bad':'');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.className='toast',4000)}
 function labelNav(){const titles={dashboard:['Dashboard Keuangan','Ringkasan utama untuk bulan yang dipilih.'],transactions:['Transaksi Harian','Tambah, edit, dan hapus pengeluaran, pemasukan, atau transfer.'],review:['Tinjau Pengeluaran','Telusuri rincian berdasarkan tanggal ataupun kategori.'],budgets:['Anggaran Bulanan','Tetapkan batas dan alihkan sisa antar pos.'],debts:['Utang & Piutang','Pantau pinjaman dan pembayaran.'],reports:['Arsip Laporan','Simpan snapshot laporan tiap bulan, cetak atau ekspor.'],accounts:['Rekening, Kategori & Sinkronisasi','Kelola rekening, kategori, login cloud, dan cadangan.']};const item=titles[ui.view];document.getElementById('page-title').textContent=item[0];document.getElementById('page-subtitle').textContent=item[1];document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
 function render(){labelNav();let el=document.getElementById('content');el.innerHTML=({dashboard:renderDash,transactions:renderTx,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])();}
+function welcomeBlock(){
+ const now=new Date(),hour=now.getHours();
+ const greeting=hour>=4&&hour<11?'Pagi':hour>=11&&hour<15?'Siang':hour>=15&&hour<18?'Sore':'Malam';
+ const emoji=greeting==='Pagi'?'☀️':greeting==='Siang'?'🌤️':greeting==='Sore'?'🌇':'🌙';
+ const day=new Intl.DateTimeFormat('id-ID',{weekday:'long'}).format(now);
+ return `<section class="welcome-panel" aria-label="Sambutan harian"><img class="welcome-avatar" src="./profil-paaxixi.png?v=2" width="100" height="100" alt="Logo profil Duit-Duit Paaxixi"><div><div class="welcome-eyebrow">DUIT-DUIT PAAXIXI · ${day}</div><h2>Selamat ${greeting}, Alfa! ${emoji}</h2><p>Di hari ${day} ini, apa yang kamu transaksikan? Catat di sini, Alfa! 💸</p></div></section>`;
+}
 function renderDash(){let all=monthly(),exp=totalType('expense'),inc=totalType('income'),bt=budgetTotal(),accountBalances=balances(),kas=Object.values(accountBalances).reduce((s,x)=>s+x,0),sumGroups=GROUPS.map(g=>({...g,total:expenses().filter(c=>c.group===g.name).reduce((s,c)=>s+spentByCat(c.id),0)})),biggest=expenses().map(c=>({...c,spent:spentByCat(c.id)})).filter(c=>c.spent>0).sort((a,b)=>b.spent-a.spent),alert=expenses().filter(c=>hasBudget(c.id)&&status(c.id).s!=='ok').sort((a,b)=>({danger:0,warn:1}[status(a.id).s]||2)-({danger:0,warn:1}[status(b.id).s]||2)),budgets=expenses().filter(c=>hasBudget(c.id)).sort((a,b)=>pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1))),bySource=incomes().map(c=>({...c,amount:all.filter(t=>t.type==='income'&&t.categoryId===c.id).reduce((s,t)=>s+num(t.amount),0)})).filter(c=>c.amount>0).sort((a,b)=>b.amount-a.amount),debt=totalsDebt();
 let start=0;const slices=sumGroups.map(g=>{let end=start+(exp?g.total/exp*100:0),str=`${g.color} ${start}% ${end}%`;start=end;return str}).join(', ');
-return `${all.length===0?`<div class="callout"><span>✦</span><div><strong>Mulai catatan pertamamu.</strong> Dashboard akan otomatis terisi. Mau melihat simulasi lebih dulu? <button class="btn sm" type="button" data-action="demo" style="margin-left:7px">Isi data contoh</button></div></div>`:''}
+return `${welcomeBlock()}${all.length===0?`<div class="callout"><span>✦</span><div><strong>Mulai catatan pertamamu.</strong> Dashboard akan otomatis terisi. Mau melihat simulasi lebih dulu? <button class="btn sm" type="button" data-action="demo" style="margin-left:7px">Isi data contoh</button></div></div>`:''}
 <div class="grid kpis">
 ${metricCard('Pemasukan Bulan Ini',inc,'↑','green','Transaksi pemasukan')}${metricCard('Pengeluaran Bulan Ini',exp,'↓','red','Transaksi pengeluaran')}${metricCard('Sisa Anggaran',bt>0?bt-budgetUsed():0,'◴',bt>0&&bt-budgetUsed()<0?'red':'green',bt>0?`Dari total ${money(bt)}`:'Belum ada anggaran')}${metricCard('Total Saldo Rekening',kas,'▤',kas<0?'red':'blue','Saldo seluruh rekening, sepanjang waktu')}
 </div>

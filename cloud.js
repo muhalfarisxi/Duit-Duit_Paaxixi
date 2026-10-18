@@ -16,7 +16,7 @@ if (!configured) {
     let detach=null,ready=false,currentUID=null,remoteParts={},lastData=null,writePromise=Promise.resolve(),working=false,requestedSeq=0;
     const copy=v=>JSON.parse(JSON.stringify(v));
     const split=data=>{
-      const parts={meta:{version:2,accounts:data.accounts,categories:data.categories,expenseGroups:data.expenseGroups,budgets:data.budgets,budgetMoves:data.budgetMoves,debts:data.debts}};
+      const parts={meta:{version:2,accounts:data.accounts,categories:data.categories,...(Array.isArray(data.expenseGroups)?{expenseGroups:data.expenseGroups}:{}),budgets:data.budgets,budgetMoves:data.budgetMoves,debts:data.debts}};
       for(const t of data.transactions||[]){const key='month_'+String(t.date).slice(0,7); (parts[key]??={transactions:[]}).transactions.push(t)}
       for(const [m,r] of Object.entries(data.reports||{}))parts['report_'+m]={report:r};
       return parts;

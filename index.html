@@ -213,7 +213,7 @@ const expenseGroups=()=>db.expenseGroups;
 const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],debts:[],reports:{}});
 function load(){try{let v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.accounts)&&Array.isArray(v.categories)&&Array.isArray(v.transactions)&&Array.isArray(v.debts)&&v.budgets&&Array.isArray(v.budgetMoves))return normalizeExpenseGroups(v);}catch(e){}return fresh()}
 let db=load();db.reports=db.reports||{};
-let ui={view:'dashboard',month:currentMonth(),txType:'expense',txFilter:'all',debtFilter:'open',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'month',open:false},reviewMode:'date',reviewDate:'',reviewCategory:'',reportMonth:currentMonth()};
+let ui={view:'dashboard',month:currentMonth(),txType:'expense',txFilter:'all',debtFilter:'open',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'month',trendFrom:'',trendTo:'',trendLabels:true,open:false},reviewMode:'date',reviewDate:'',reviewCategory:'',reportMonth:currentMonth()};
 let cloud={configured:false,signedIn:false,ready:false,email:'',busy:false,error:'',empty:false,pendingDecision:false};
 function syncBadge(){let b=document.getElementById('cloud-status');if(!b)return;
  b.className='cloud-state'+(cloud.signedIn&&cloud.ready&&!cloud.pendingDecision?' online':cloud.busy?' wait':'');
@@ -571,7 +571,9 @@ function trendChartSVG(rows,entries){
 function renderTrendPanel(){
  const c=ui.comp,periods=trendPeriods(),mode=periods.mode;
  const categoryIds=new Set(analysisCategories().map(x=>x.id));
- const filtered=db.transactions.filter(t=>t.type==='expense'&&categoryIds.has(t.categoryId)&&t.date>=periods.range.from.slice(0,4)+(mode==='year'?'-01-01':mode==='month'?'-01':'')&&t.date<=periods.range.to+(mode==='year'?'-12-31':mode==='month'?'-31':''));
+ const rangeStart=periods.range.from+(mode==='year'?'-01-01':mode==='month'?'-01':'');
+ const rangeEnd=periods.range.to+(mode==='year'?'-12-31':mode==='month'?'-31':'');
+ const filtered=db.transactions.filter(t=>t.type==='expense'&&categoryIds.has(t.categoryId)&&t.date>=rangeStart&&t.date<=rangeEnd);
  const rows=periods.keys.map(key=>{
   const tx=filtered.filter(t=>trendRowTransaction(t,key,mode));
   return {key,tx,count:tx.length,total:tx.reduce((sum,t)=>sum+num(t.amount),0)};
@@ -791,9 +793,12 @@ document.addEventListener('click',async e=>{let x=e.target.closest('button');if(
 if(x.dataset.compAction){
  const cmd=x.dataset.compAction;
  if(cmd==='toggle'){ui.comp.open=!ui.comp.open;}
- if(cmd==='reset'){ui.comp={preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'month',open:true};}
- if(cmd==='all-groups'){ui.comp.groups=null;ui.comp.groupsOpen=true;ui.comp.categoriesOpen=document.getElementById('comp-category-list')?.open||false;}
- if(cmd==='all-categories'){ui.comp.categories=null;ui.comp.categoriesOpen=true;ui.comp.groupsOpen=document.getElementById('comp-group-list')?.open||false;}
+ if(cmd==='reset'){ui.comp={preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'month',trendFrom:'',trendTo:'',trendLabels:true,open:true};}
+ if(cmd==='all-groups'){ui.comp.groups=null;ui.comp.categories=null;}
+ if(cmd==='clear-groups'){ui.comp.groups=[];ui.comp.categories=null;}
+ if(cmd==='all-categories'){ui.comp.categories=null;}
+ if(cmd==='clear-categories'){ui.comp.categories=[];}
+ if(cmd==='trend-default'){ui.comp.trendFrom='';ui.comp.trendTo='';}
  render();return;
 }
 if(x.dataset.nav){setView(x.dataset.nav);return}if(x.dataset.txtype){ui.txType=x.dataset.txtype;render();return}
@@ -874,7 +879,20 @@ if(x.id==='comp-preset'){
  render();return;
 }
 if(x.id==='comp-breakdown'){ui.comp.breakdown=x.value==='category'?'category':'group';render();return;}
-if(x.id==='comp-trend-mode'){ui.comp.trend=x.value==='year'?'year':'month';render();return;}
+if(x.id==='comp-trend-mode'){
+ ui.comp.trend=['day','month','year'].includes(x.value)?x.value:'month';
+ ui.comp.trendFrom='';ui.comp.trendTo='';render();return;
+}
+if(x.id==='trend-labels'){ui.comp.trendLabels=x.checked;render();return;}
+if(x.id==='trend-start'||x.id==='trend-end'){
+ const key=x.id==='trend-start'?'trendFrom':'trendTo';
+ const kind=ui.comp.trend,regexp=kind==='day'?/^\\d{4}-\\d{2}-\\d{2}$/:kind==='month'?/^\\d{4}-\\d{2}$/:/^\\d{4}$/;
+ const entered=String(x.value||'');
+ if(!regexp.test(entered)||(kind==='year'&&(Number(entered)<1900||Number(entered)>2200))){toast('Masukkan rentang periode yang valid.',true);render();return;}
+ const current=trendRange(),from=key==='trendFrom'?entered:current.from,to=key==='trendTo'?entered:current.to;
+ if(from>to){toast('Periode awal tidak boleh melebihi periode akhir.',true);render();return;}
+ ui.comp[key]=entered;render();return;
+}
 if(x.id==='comp-start'||x.id==='comp-end'){
  const key=x.id==='comp-start'?'from':'to',alternate=key==='from'?'to':'from';
  if(!x.value)return toast('Tanggal harus diisi.',true);
@@ -883,7 +901,7 @@ if(x.id==='comp-start'||x.id==='comp-end'){
  }
  ui.comp[key]=x.value;render();return;
 }
-if(x.id==='month-input'){let next=x.value||currentMonth(),prev=ui.month;if(next>prev&&db.transactions.some(t=>t.date.slice(0,7)===prev)&&!db.reports[prev]&&confirm('Bulan '+monthFmt(prev)+' belum diarsipkan. Simpan laporan bulan ini sebelum berpindah?')){db.reports[prev]=buildReport(prev);save();toast('Arsip '+monthFmt(prev)+' disimpan.')}ui.month=next;ui.txEditId=null;ui.moveEditId=null;ui.comp.preset='month';ui.comp.from='';ui.comp.to='';render()}
+if(x.id==='month-input'){let next=x.value||currentMonth(),prev=ui.month;if(next>prev&&db.transactions.some(t=>t.date.slice(0,7)===prev)&&!db.reports[prev]&&confirm('Bulan '+monthFmt(prev)+' belum diarsipkan. Simpan laporan bulan ini sebelum berpindah?')){db.reports[prev]=buildReport(prev);save();toast('Arsip '+monthFmt(prev)+' disimpan.')}ui.month=next;ui.txEditId=null;ui.moveEditId=null;ui.comp.preset='month';ui.comp.from='';ui.comp.to='';ui.comp.trendFrom='';ui.comp.trendTo='';render()}
 if(x.id==='report-month'){ui.month=x.value||currentMonth();render()}
 if(x.id==='tx-filter'){ui.txFilter=x.value;render()}if(x.id==='debt-filter'){ui.debtFilter=x.value;render()}
 if(x.id==='review-date'){ui.reviewDate=x.value;render()}if(x.id==='review-category'){ui.reviewCategory=x.value;render()}

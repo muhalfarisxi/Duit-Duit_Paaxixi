@@ -105,6 +105,23 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .trend-up{color:#b94b35;font-weight:750}
 .trend-down{color:#14836f;font-weight:750}
 @media(max-width:640px){.comp-fields,.trend-notes{grid-template-columns:1fr}.comp-filter-toggle{padding:7px 9px;font-size:11px}.trend-panel{margin-top:15px}.comp-controls{padding:11px}}
+
+/* Filter berurutan: periode → kelompok → pos → tampilan */
+.comp-controls{display:flex;flex-direction:column;gap:11px}
+.comp-stage{display:flex;gap:11px;border:1px solid #dce8fa;background:#fff;border-radius:13px;padding:12px}
+.comp-step{display:grid;place-items:center;flex:none;width:25px;height:25px;border-radius:50%;background:#2563eb;color:#fff;font-size:12px;font-weight:800}
+.comp-stage-body{flex:1;min-width:0}
+.comp-stage h4{font-size:13px;font-weight:800;color:#163c73;margin:3px 0 8px}
+.comp-stage .comp-tiny{margin:0 0 9px}
+.comp-stage details{border:1px solid #dbe6f7;border-radius:9px;padding:9px 11px;background:#f7faff}
+.comp-stage summary{cursor:pointer;font-size:12px;font-weight:700;color:#203e6c}
+.comp-check-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));max-height:225px;gap:2px 12px}
+.comp-check-grid label{min-width:0;display:flex;align-items:flex-start;gap:8px}
+.comp-check-grid label>span{min-width:0;overflow-wrap:anywhere;line-height:1.4}
+.comp-check-grid small{display:block;font-size:10px;color:#71849d}
+.comp-list-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.comp-list-actions .btn:disabled{opacity:.48;cursor:not-allowed}
+.comp-stage .comp-fields{grid-template-columns:repeat(auto-fit,minmax(145px,1fr))}
 </style>
 </head>
 <body>
@@ -381,33 +398,44 @@ function analysisEntries(transactions){
  return items.filter(item=>item.value>0).sort((a,b)=>b.value-a.value);
 }
 function renderCompositionControls(){
- const c=ui.comp,dates=analysisDates(),groupCount=analysisGroups().length,catCount=analysisCategories().length;
- const groupList=expenseGroups(),catList=expenses();
+ const c=ui.comp,groupList=expenseGroups(),visibleGroups=analysisGroups();
+ const groupNames=new Set(visibleGroups.map(g=>g.name));
+ const catList=expenses().filter(cat=>groupNames.has(cat.group));
+ const chosenCats=analysisCategories();
+ const titleCount=(set,total)=>set===null?'Semua':set.length===0?'Tidak Ada':set.length+' dari '+total;
+ const listGroups=groupList.map(g=>`<label><input type="checkbox" data-comp-group="${h(g.id)}" ${c.groups===null||c.groups.includes(g.id)?'checked':''}><span>${pickSymbol(g.name,g.name)} ${h(g.name)}</span></label>`).join('');
+ const listCategories=catList.map(item=>`<label><input type="checkbox" data-comp-category="${h(item.id)}" ${c.categories===null||c.categories.includes(item.id)?'checked':''}><span>${pickSymbol(item.label,item.group)} ${h(item.label)}<small>${h(item.group)}</small></span></label>`).join('');
  return `<div class="comp-controls">
-  <div class="comp-fields">
-   <label>Periode Pengeluaran<select id="comp-preset">
-    <option value="month" ${c.preset==='month'?'selected':''}>Bulan Terpilih (Default)</option>
-    <option value="range" ${c.preset==='range'?'selected':''}>Rentang Tanggal Bebas</option>
-    <option value="all" ${c.preset==='all'?'selected':''}>Semua Tanggal Tercatat</option>
-   </select></label>
-   <label>Rincian Berdasarkan<select id="comp-breakdown">
-    <option value="group" ${c.breakdown==='group'?'selected':''}>Kelompok Pengeluaran</option>
-    <option value="category" ${c.breakdown==='category'?'selected':''}>Pos / Kategori Pengeluaran</option>
-   </select></label>
-   ${c.preset==='range'? `<label>Tanggal Mulai<input id="comp-start" type="date" value="${h(c.from||monthBounds(ui.month).from)}"></label>
-    <label>Tanggal Selesai<input id="comp-end" type="date" value="${h(c.to||monthBounds(ui.month).to)}"></label>`:''}
-  </div>
-  <div class="comp-choice">
-   <details id="comp-group-list" ${c.groupsOpen?'open':''}><summary>Kelompok: ${c.groups===null?'Semua':groupCount+' Dipilih'}</summary>
-    <div class="comp-checks">${groupList.map(g=>`<label><input type="checkbox" data-comp-group="${h(g.id)}" ${c.groups===null||c.groups.includes(g.id)?'checked':''}> ${pickSymbol(g.name,g.name)} ${h(g.name)}</label>`).join('')}</div>
-    <button type="button" class="btn sm" data-comp-action="all-groups">Pilih Semua Kelompok</button>
+  <div class="comp-stage"><div class="comp-step">1</div><div class="comp-stage-body">
+   <h4>Periode Pengeluaran</h4>
+   <div class="comp-fields">
+    <label>Pilih Rentang<select id="comp-preset">
+      <option value="month" ${c.preset==='month'?'selected':''}>Kumulatif Bulan Terpilih (Default)</option>
+      <option value="range" ${c.preset==='range'?'selected':''}>Rentang Tanggal Bebas</option>
+      <option value="all" ${c.preset==='all'?'selected':''}>Semua Tanggal Tercatat</option>
+    </select></label>
+    ${c.preset==='range'?`<label>Mulai Tanggal<input id="comp-start" type="date" value="${h(c.from||monthBounds(ui.month).from)}"></label><label>Sampai Tanggal<input id="comp-end" type="date" value="${h(c.to||monthBounds(ui.month).to)}"></label>`:''}
+   </div>
+  </div></div>
+  <div class="comp-stage"><div class="comp-step">2</div><div class="comp-stage-body">
+   <h4>Kelompok Pengeluaran</h4><p class="comp-tiny">Pilih satu atau beberapa kelompok lebih dahulu.</p>
+   <details id="comp-group-list" open><summary>${titleCount(c.groups,groupList.length)} Kelompok Dipilih</summary>
+    <div class="comp-checks comp-check-grid">${listGroups||'<span class="comp-empty">Belum Ada Kelompok</span>'}</div>
    </details>
-   <details id="comp-category-list" ${c.categoriesOpen?'open':''}><summary>Pos: ${c.categories===null?'Semua':catCount+' Dipilih'}</summary>
-    <div class="comp-checks">${catList.map(cat=>`<label><input type="checkbox" data-comp-category="${h(cat.id)}" ${c.categories===null||c.categories.includes(cat.id)?'checked':''}> ${pickSymbol(cat.label,cat.group)} ${h(cat.label)} <small>· ${h(cat.group)}</small></label>`).join('')}</div>
-    <button type="button" class="btn sm" data-comp-action="all-categories">Pilih Semua Pos</button>
+   <div class="comp-list-actions"><button type="button" class="btn sm" data-comp-action="all-groups">✓ Pilih Semua</button><button type="button" class="btn sm" data-comp-action="clear-groups">✕ Hapus Semua</button></div>
+  </div></div>
+  <div class="comp-stage"><div class="comp-step">3</div><div class="comp-stage-body">
+   <h4>Pos Pengeluaran</h4><p class="comp-tiny">Daftar pos otomatis mengikuti kelompok di atas.</p>
+   <details id="comp-category-list" open><summary>${catList.length===0?'Tidak Ada Pos':titleCount(c.categories,catList.length)+' Pos Dipilih'}</summary>
+    <div class="comp-checks comp-check-grid">${listCategories||'<span class="comp-empty">Pilih Kelompok Agar Pos Muncul</span>'}</div>
    </details>
-  </div>
-  <div class="comp-choice"><button type="button" class="btn sm" data-comp-action="reset">↺ Reset Filter</button><span class="comp-tiny">Filter hanya mengubah tampilan analisis, bukan data transaksi atau anggaran.</span></div>
+   <div class="comp-list-actions"><button type="button" class="btn sm" data-comp-action="all-categories" ${catList.length?'':'disabled'}>✓ Pilih Semua</button><button type="button" class="btn sm" data-comp-action="clear-categories" ${catList.length?'':'disabled'}>✕ Hapus Semua</button></div>
+  </div></div>
+  <div class="comp-stage"><div class="comp-step">4</div><div class="comp-stage-body"><h4>Tampilkan Analisis</h4>
+   <div class="comp-fields"><label>Komposisi Berdasarkan<select id="comp-breakdown"><option value="group" ${c.breakdown==='group'?'selected':''}>Kelompok Pengeluaran</option><option value="category" ${c.breakdown==='category'?'selected':''}>Pos / Kategori Pengeluaran</option></select></label></div>
+  </div></div>
+  <div class="comp-list-actions"><button type="button" class="btn sm" data-comp-action="reset">↺ Kembalikan Filter Default</button></div>
+  <p class="comp-tiny">Filter komposisi tidak mengubah transaksi, anggaran, atau laporan tersimpan.</p>
  </div>`;
 }
 function renderComposition(){

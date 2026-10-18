@@ -211,7 +211,7 @@ function pickSymbol(name='',group=''){
  if(text.includes(' living lain ')||text.includes(' lain lainnya '))return '🧩';
  return '💠';
 }
-const symbolBadge=(name,group='',small=false)=>\`<span class="category-symbol\${small?' compact':''}" aria-hidden="true">\${pickSymbol(name,group)}</span>\`;
+const symbolBadge=(name,group='',small=false)=>`<span class="category-symbol${small?' compact':''}" aria-hidden="true">${pickSymbol(name,group)}</span>`;
 
 const selectAcc=(name,selected='',exclude='')=>`<select class="field" name="${h(name)}" required>${db.accounts.filter(a=>a.id!==exclude).map(a=>`<option value="${h(a.id)}" ${selected===a.id?'selected':''}>${h(a.name)}</option>`).join('')}</select>`;
 function toast(msg,bad=false){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(bad?' bad':'');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.className='toast',4000)}

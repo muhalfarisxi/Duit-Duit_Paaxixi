@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Quote Gen Z Duit-Duit Paaxixi; tema dari Google Trends Indonesia, quote orisinal."""
 import json
+import os
 import re
+from urllib.parse import urlencode
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -120,6 +122,43 @@ THEMES = {
     ),
 }
 
+def fetch_tiktok_titles():
+    """Gunakan API resmi TikTok jika dua GitHub Actions Secrets sudah tersedia."""
+    token = os.environ.get("TIKTOK_ACCESS_TOKEN", "").strip()
+    advertiser_id = os.environ.get("TIKTOK_ADVERTISER_ID", "").strip()
+    if not token or not advertiser_id:
+        print("API TikTok belum dikonfigurasi; memakai Google Trends sebagai fallback.")
+        return []
+    query = urlencode({
+        "discovery_type": "HASHTAG",
+        "advertiser_id": advertiser_id,
+        "country_code": "ID",
+        "date_range": "7DAY",
+        "category_name": "ALL",
+    })
+    url = "https://business-api.tiktok.com/open_api/v1.3/discovery/trending_list/?" + query
+    req = Request(url, headers={"Access-Token": token, "Accept": "application/json"})
+    try:
+        with urlopen(req, timeout=20) as response:
+            payload = json.loads(response.read(1000000))
+        if payload.get("code") != 0:
+            raise RuntimeError("TikTok Business API menolak permintaan tren")
+        data = payload.get("data") or {}
+        filters = data.get("filter_info") or {}
+        if filters.get("country_code", "ID") != "ID":
+            raise RuntimeError("Data TikTok tidak sesuai wilayah Indonesia")
+        names = []
+        for item in data.get("list", []):
+            name = item.get("hashtag_name")
+            if isinstance(name, str) and name.strip():
+                names.append(name.strip().lstrip("#"))
+        print(f"TikTok API: {len(names)} hashtag populer untuk Indonesia.")
+        return names
+    except Exception as exc:
+        print(f"TikTok API gagal dibaca; menggunakan sumber cadangan: {type(exc).__name__}")
+        return []
+
+
 def fetch_titles():
     req = Request(SOURCE, headers={"User-Agent": "Mozilla/5.0 (compatible; Paaxixi-Weekly-Quotes/1.0)"})
     with urlopen(req, timeout=15) as response:
@@ -130,12 +169,15 @@ def main():
     now = datetime.now(ZoneInfo("Asia/Jakarta"))
     year, week, _ = now.isocalendar()
     idx = year * 53 + week
-    titles = []
-    try:
-        titles = fetch_titles()
-        print(f"Google Trends: {len(titles)} pencarian populer.")
-    except Exception as exc:
-        print(f"Tidak bisa membaca tren; gunakan quote cadangan: {exc}")
+    titles = fetch_tiktok_titles()
+    trend_source = "TikTok Business API (Indonesia)" if titles else None
+    if not titles:
+        try:
+            titles = fetch_titles()
+            trend_source = "Google Trends Indonesia" if titles else None
+            print(f"Google Trends: {len(titles)} pencarian populer.")
+        except Exception as exc:
+            print(f"Tidak bisa membaca tren; gunakan quote cadangan: {type(exc).__name__}")
 
     # Figur yang benar-benar disebut dalam judul tren diprioritaskan.
     figure_hits = Counter()
@@ -164,7 +206,8 @@ def main():
         "theme": theme,
         "quote": quotes[idx % len(quotes)],
         "is_trending": is_trending,
-        "source_url": SOURCE if is_trending else None,
+        "source_url": ("https://ads.tiktok.com/business/creativecenter/hashtag/find" if trend_source == "TikTok Business API (Indonesia)" else SOURCE) if is_trending else None,
+        "trend_source": trend_source if is_trending else None,
         "note": "Quote orisinal; tema terinspirasi pencarian populer, bukan kutipan viral.",
     }
     OUT.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

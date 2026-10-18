@@ -1,9 +1,10 @@
 {
   "week": "2026-W43",
-  "updated_at": "2026-10-19T06:30:00+07:00",
-  "theme": "Gen Z & Budgeting",
-  "quote": "Kalau lagu Bernadya bisa di-repeat, pengeluaranmu juga wajib di-review, Alfa. 🎧",
-  "is_trending": false,
-  "source_url": null,
-  "note": "Contoh referensi pop culture sebagai quote orisinal. Nama ini tidak dinyatakan sedang trending."
+  "updated_at": "2026-10-19T06:47:38+07:00",
+  "theme": "Olahraga",
+  "quote": "Skor boleh naik-turun, saldo jangan tanpa pantauan. ⚽",
+  "is_trending": true,
+  "source_url": "https://trends.google.com/trending/rss?geo=ID",
+  "trend_source": "Google Trends Indonesia",
+  "note": "Quote orisinal; tema terinspirasi pencarian populer, bukan kutipan viral."
 }

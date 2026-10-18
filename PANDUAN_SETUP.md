@@ -32,3 +32,21 @@ Unggah **empat file ini** ke root repo GitHub: `index.html`, `cloud.js`, `fireba
 - Bila akun Google login benar tetapi muncul `Missing or insufficient permissions`, periksa apakah rules telah dipublish, pengguna login, dan konfigurasi project sesuai.
 - Jika login Google tidak berhasil dengan pesan `auth/unauthorized-domain`, tambahkan domain GitHub Pages pada Firebase Authentication → Settings → Authorized domains.
 - Label internal `arus` dalam jalur database tidak perlu diubah; itu hanya nama struktur yang dipakai aplikasi.
+
+
+## Quotes Berbasis Keuangan & Tren Populer
+- Dashboard membuat insight dari transaksi **di browser pengguna**: anggaran yang melewati batas, yang menipis, pemasukan vs pengeluaran, dan kategori paling besar.
+- Insight itu digabung dengan quote Gen Z dari `quote-mingguan.json`. **Angka, kategori, dan rincian keuangan tidak pernah dikirim ke TikTok/Google Trends**.
+- GitHub Actions memperbarui quote mingguan secara otomatis (jadwal sekitar Senin 06.30 WIB), mengambil tema dari **Google Trends Indonesia** jika tersedia. Bila gagal, pakai quote cadangan.
+- Integrasi tren resmi **TikTok Indonesia** tersedia sebagai pilihan, tetapi **belum aktif** sampai API terotorisasi. Jika memiliki akses TikTok Business API, simpan kredensial pada repository **Settings → Secrets and variables → Actions → Repository secrets**:
+  - `TIKTOK_ACCESS_TOKEN`
+  - `TIKTOK_ADVERTISER_ID`
+- **Jangan pernah** menulis token/kredensial di `index.html`, `quote-mingguan.json`, atau chat. Ketika dua secret sudah tersedia, skrip akan mencoba `discovery/trending_list/` untuk hashtag populer wilayah `ID`, dan otomatis fallback ke Google Trends bila akses gagal.
+- Tokoh/artis hanya disebut bila cocok dengan tema dari sumber tren yang benar-benar terbaca. Quote merupakan kalimat **orisinal**, bukan pernyataan atau kutipan resmi tokoh tersebut.
+
+## Kelola Pos Anggaran Langsung Dari Website
+- Buka **Anggaran Bulanan** untuk mengedit pagu tiap kategori dan klik **Simpan Anggaran**.
+- Pada bagian kelompok **LIVING FIX**, **PLAYING**, dan **LIVING LAIN**, klik **＋ Tambah Pos**.
+- Untuk mengubah nama atau kelompok suatu pos, klik **Edit** di sebelah posnya; kode kategori tetap dipertahankan supaya riwayat transaksi dan anggaran tidak terputus.
+- Klik **Hapus** hanya untuk pos yang belum dipakai transaksi/pemindahan atau memiliki anggaran aktif. Pos yang sudah digunakan sengaja tidak bisa dihapus agar catatan historis aman.
+- Semua perubahan data yang dibuat setelah sinkronisasi siap tersimpan melalui mekanisme Firebase yang sudah dipakai website.

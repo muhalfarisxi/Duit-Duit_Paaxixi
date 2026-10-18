@@ -690,6 +690,14 @@ async function importJSON(file){if(!file)return;try{if(file.size>3*1024*1024)thr
 document.addEventListener('submit',e=>{if(e.target.closest('form')){e.preventDefault();handleForm(e.target)}});
 function goEditTx(id){let t=db.transactions.find(t=>t.id===id);if(!t)return;ui.txEditId=id;ui.txType=t.type;ui.month=t.date.slice(0,7);setView('transactions');document.getElementById('tx-entry')?.scrollIntoView({behavior:'smooth',block:'start'})}
 document.addEventListener('click',async e=>{let x=e.target.closest('button');if(!x)return;
+if(x.dataset.compAction){
+ const cmd=x.dataset.compAction;
+ if(cmd==='toggle'){ui.comp.open=!ui.comp.open;}
+ if(cmd==='reset'){ui.comp={preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'month',open:true};}
+ if(cmd==='all-groups'){ui.comp.groups=null;ui.comp.groupsOpen=true;ui.comp.categoriesOpen=document.getElementById('comp-category-list')?.open||false;}
+ if(cmd==='all-categories'){ui.comp.categories=null;ui.comp.categoriesOpen=true;ui.comp.groupsOpen=document.getElementById('comp-group-list')?.open||false;}
+ render();return;
+}
 if(x.dataset.nav){setView(x.dataset.nav);return}if(x.dataset.txtype){ui.txType=x.dataset.txtype;render();return}
 if(x.dataset.reviewMode){ui.reviewMode=x.dataset.reviewMode;render();return}
 if(x.dataset.editTx){goEditTx(x.dataset.editTx);return}
@@ -744,7 +752,40 @@ if(a==='cloud-logout'){if(window.ARUS_CLOUD)try{await window.ARUS_CLOUD.logout()
 if(a==='cloud-empty'){if(!window.ARUS_CLOUD||!cloud.ready)return toast('Cloud belum siap.',true);if(confirm('Mulai cloud baru tanpa transaksi lokal? Data lokal masih dapat diekspor sebagai cadangan.'))try{db=fresh();cloud.pendingDecision=false;await window.ARUS_CLOUD.replace(db);cloud.empty=false;save();setView('dashboard');toast('Cloud baru siap dipakai.')}catch(e){cloud.pendingDecision=true;showError(e)}}
 if(a==='cloud-upload'){if(!window.ARUS_CLOUD||!cloud.ready)return toast('Cloud belum siap.',true);if(confirm('PERHATIAN: Timpa seluruh data CLOUD dengan salinan browser saat ini? Ini mengganti data tersinkron di HP dan laptop. Pastikan sudah mencadangkan JSON!'))try{cloud.busy=true;syncBadge();await window.ARUS_CLOUD.replace(db);cloud.pendingDecision=false;cloud.empty=false;cloud.busy=false;syncBadge();toast('Data berhasil diunggah ke cloud.')}catch(e){cloud.busy=false;showError(e)}}
 return;}});
-document.addEventListener('change',e=>{let x=e.target;if(x.id==='month-input'){let next=x.value||currentMonth(),prev=ui.month;if(next>prev&&db.transactions.some(t=>t.date.slice(0,7)===prev)&&!db.reports[prev]&&confirm('Bulan '+monthFmt(prev)+' belum diarsipkan. Simpan laporan bulan ini sebelum berpindah?')){db.reports[prev]=buildReport(prev);save();toast('Arsip '+monthFmt(prev)+' disimpan.')}ui.month=next;ui.txEditId=null;ui.moveEditId=null;render()}
+document.addEventListener('change',e=>{let x=e.target;
+if(x.matches('[data-comp-group],[data-comp-category]')){
+ const isGroup=x.hasAttribute('data-comp-group');
+ const all=isGroup?expenseGroups().map(g=>g.id):expenses().map(c=>c.id);
+ const value=isGroup?x.dataset.compGroup:x.dataset.compCategory;
+ const key=isGroup?'groups':'categories',old=ui.comp[key];
+ let selected=old===null?all.slice():old.filter(id=>all.includes(id));
+ selected=x.checked?[...new Set([...selected,value])]:selected.filter(id=>id!==value);
+ ui.comp[key]=selected.length===all.length?null:selected;
+ ui.comp.groupsOpen=document.getElementById('comp-group-list')?.open||false;
+ ui.comp.categoriesOpen=document.getElementById('comp-category-list')?.open||false;
+ if(isGroup){ui.comp.groupsOpen=true;ui.comp.categories=null;}
+ else ui.comp.categoriesOpen=true;
+ render();return;
+}
+if(x.id==='comp-preset'){
+ ui.comp.preset=['month','range','all'].includes(x.value)?x.value:'month';
+ if(ui.comp.preset==='range'){
+  ui.comp.from=ui.comp.from||monthBounds(ui.month).from;
+  ui.comp.to=ui.comp.to||monthBounds(ui.month).to;
+ }
+ render();return;
+}
+if(x.id==='comp-breakdown'){ui.comp.breakdown=x.value==='category'?'category':'group';render();return;}
+if(x.id==='comp-trend-mode'){ui.comp.trend=x.value==='year'?'year':'month';render();return;}
+if(x.id==='comp-start'||x.id==='comp-end'){
+ const key=x.id==='comp-start'?'from':'to',alternate=key==='from'?'to':'from';
+ if(!x.value)return toast('Tanggal harus diisi.',true);
+ if((key==='from'&&x.value>ui.comp[alternate])||(key==='to'&&x.value<ui.comp[alternate])){
+  toast('Tanggal mulai tidak boleh melewati tanggal selesai.',true);render();return;
+ }
+ ui.comp[key]=x.value;render();return;
+}
+if(x.id==='month-input'){let next=x.value||currentMonth(),prev=ui.month;if(next>prev&&db.transactions.some(t=>t.date.slice(0,7)===prev)&&!db.reports[prev]&&confirm('Bulan '+monthFmt(prev)+' belum diarsipkan. Simpan laporan bulan ini sebelum berpindah?')){db.reports[prev]=buildReport(prev);save();toast('Arsip '+monthFmt(prev)+' disimpan.')}ui.month=next;ui.txEditId=null;ui.moveEditId=null;ui.comp.preset='month';ui.comp.from='';ui.comp.to='';render()}
 if(x.id==='report-month'){ui.month=x.value||currentMonth();render()}
 if(x.id==='tx-filter'){ui.txFilter=x.value;render()}if(x.id==='debt-filter'){ui.debtFilter=x.value;render()}
 if(x.id==='review-date'){ui.reviewDate=x.value;render()}if(x.id==='review-category'){ui.reviewCategory=x.value;render()}

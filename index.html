@@ -886,7 +886,7 @@ if(x.id==='comp-trend-mode'){
 if(x.id==='trend-labels'){ui.comp.trendLabels=x.checked;render();return;}
 if(x.id==='trend-start'||x.id==='trend-end'){
  const key=x.id==='trend-start'?'trendFrom':'trendTo';
- const kind=ui.comp.trend,regexp=kind==='day'?/^\\d{4}-\\d{2}-\\d{2}$/:kind==='month'?/^\\d{4}-\\d{2}$/:/^\\d{4}$/;
+ const kind=ui.comp.trend,regexp=kind==='day'?/^\d{4}-\d{2}-\d{2}$/:kind==='month'?/^\d{4}-\d{2}$/:/^\d{4}$/;
  const entered=String(x.value||'');
  if(!regexp.test(entered)||(kind==='year'&&(Number(entered)<1900||Number(entered)>2200))){toast('Masukkan rentang periode yang valid.',true);render();return;}
  const current=trendRange(),from=key==='trendFrom'?entered:current.from,to=key==='trendTo'?entered:current.to;

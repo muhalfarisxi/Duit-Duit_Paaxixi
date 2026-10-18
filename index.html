@@ -43,12 +43,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .welcome-eyebrow{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#b5d4ff;font-weight:800;margin-bottom:5px}
 @media(max-width:520px){.welcome-panel{gap:12px;padding:14px;margin-top:6px}.welcome-avatar{width:72px;height:72px;border-radius:12px}.welcome-panel h2{font-size:19px}.welcome-panel p{font-size:12px}}
 
-/* Sambutan & kutipan Gen Z mingguan */
+/* Quote disatukan dengan sambutan, tanpa kotak atau label. */
 .welcome-copy{flex:1;min-width:0}
-.weekly-quote{margin-top:13px;padding:11px 13px;border:1px solid rgba(219,233,255,.25);background:rgba(233,242,255,.12);border-radius:11px}
-.weekly-quote-label{display:block;color:#b8d8ff;font-size:10px;font-weight:800;letter-spacing:.5px;margin-bottom:5px}
-.weekly-quote p{color:#fff;font-size:13px;font-weight:700;line-height:1.5;margin:0}
-@media(max-width:520px){.weekly-quote{margin-top:10px;padding:9px 10px}.weekly-quote p{font-size:12px}.welcome-eyebrow{letter-spacing:.25px;line-height:1.4}}
+.welcome-quote{color:#deebff;font-size:14px;font-weight:500;line-height:1.6;margin:4px 0 0}
+@media(max-width:520px){.welcome-quote{font-size:12px;line-height:1.5}.welcome-eyebrow{letter-spacing:.25px;line-height:1.4}}
 </style>
 </head>
 <body>
@@ -154,6 +152,8 @@ function toast(msg,bad=false){const t=document.getElementById('toast');t.textCon
 function labelNav(){const titles={dashboard:['Dashboard Keuangan','Ringkasan utama untuk bulan yang dipilih.'],transactions:['Transaksi Harian','Tambah, edit, dan hapus pengeluaran, pemasukan, atau transfer.'],review:['Tinjau Pengeluaran','Telusuri rincian berdasarkan tanggal ataupun kategori.'],budgets:['Anggaran Bulanan','Tetapkan batas dan alihkan sisa antar pos.'],debts:['Utang & Piutang','Pantau pinjaman dan pembayaran.'],reports:['Arsip Laporan','Simpan snapshot laporan tiap bulan, cetak atau ekspor.'],accounts:['Rekening, Kategori & Sinkronisasi','Kelola rekening, kategori, login cloud, dan cadangan.']};const item=titles[ui.view];document.getElementById('page-title').textContent=item[0];document.getElementById('page-subtitle').textContent=item[1];document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
 function render(){labelNav();let el=document.getElementById('content');el.innerHTML=({dashboard:renderDash,transactions:renderTx,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])();}
 const QUOTES_GEN_Z=[
+ 'Kalau lagu Bernadya bisa di-repeat, pengeluaranmu juga wajib di-review, Alfa. 🎧',
+ 'Jangan cuma omon-omon soal hemat, buktiin lewat catatan, Alfa. 😎',
  'Dompet boleh lowkey, pencatatan harus highkey. 💸',
  'Yang sat-set boleh jajan, yang smart tetap catat. ✍️',
  'Budget aman adalah green flag paling nyata. 💙',
@@ -197,8 +197,7 @@ function welcomeBlock(){
  const emoji=greeting==='Pagi'?'☀️':greeting==='Siang'?'🌤️':greeting==='Sore'?'🌇':'🌙';
  const tanggal=new Intl.DateTimeFormat('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(now);
  const konten=kutipanMingguan();
- const sumber=konten.is_trending?'Terinspirasi Tren Pencarian':'Quote Gen Z Minggu Ini';
- return `<section class="welcome-panel" aria-label="Sambutan harian"><img class="welcome-avatar" src="./profil-paaxixi.png?v=2" width="100" height="100" alt="Logo profil Duit-Duit Paaxixi"><div class="welcome-copy"><div class="welcome-eyebrow">${h(tanggal)} · DUIT-DUIT PAAXIXI</div><h2>Selamat ${greeting}, Alfa! ${emoji}</h2><div class="weekly-quote"><span class="weekly-quote-label">✨ ${sumber}${konten.is_trending?' · '+h(konten.theme):''}</span><p>“${h(konten.quote)}”</p></div></div></section>`;
+ return `<section class="welcome-panel" aria-label="Sambutan harian"><img class="welcome-avatar" src="./profil-paaxixi.png?v=2" width="100" height="100" alt="Logo profil Duit-Duit Paaxixi"><div class="welcome-copy"><div class="welcome-eyebrow">${h(tanggal)} · DUIT-DUIT PAAXIXI</div><h2>Selamat ${greeting}, Alfa! ${emoji}</h2><p class="welcome-quote">${h(konten.quote)}</p></div></section>`;
 }
 function renderDash(){let all=monthly(),exp=totalType('expense'),inc=totalType('income'),bt=budgetTotal(),accountBalances=balances(),kas=Object.values(accountBalances).reduce((s,x)=>s+x,0),sumGroups=GROUPS.map(g=>({...g,total:expenses().filter(c=>c.group===g.name).reduce((s,c)=>s+spentByCat(c.id),0)})),biggest=expenses().map(c=>({...c,spent:spentByCat(c.id)})).filter(c=>c.spent>0).sort((a,b)=>b.spent-a.spent),alert=expenses().filter(c=>hasBudget(c.id)&&status(c.id).s!=='ok').sort((a,b)=>({danger:0,warn:1}[status(a.id).s]||2)-({danger:0,warn:1}[status(b.id).s]||2)),budgets=expenses().filter(c=>hasBudget(c.id)).sort((a,b)=>pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1))),bySource=incomes().map(c=>({...c,amount:all.filter(t=>t.type==='income'&&t.categoryId===c.id).reduce((s,t)=>s+num(t.amount),0)})).filter(c=>c.amount>0).sort((a,b)=>b.amount-a.amount),debt=totalsDebt();
 let start=0;const slices=sumGroups.map(g=>{let end=start+(exp?g.total/exp*100:0),str=`${g.color} ${start}% ${end}%`;start=end;return str}).join(', ');

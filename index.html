@@ -42,6 +42,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .welcome-panel p{margin:0;color:#deebff;font-size:13px;line-height:1.6}
 .welcome-eyebrow{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#b5d4ff;font-weight:800;margin-bottom:5px}
 @media(max-width:520px){.welcome-panel{gap:12px;padding:14px;margin-top:6px}.welcome-avatar{width:72px;height:72px;border-radius:12px}.welcome-panel h2{font-size:19px}.welcome-panel p{font-size:12px}}
+
+/* Sambutan & kutipan Gen Z mingguan */
+.welcome-copy{flex:1;min-width:0}
+.weekly-quote{margin-top:13px;padding:11px 13px;border:1px solid rgba(219,233,255,.25);background:rgba(233,242,255,.12);border-radius:11px}
+.weekly-quote-label{display:block;color:#b8d8ff;font-size:10px;font-weight:800;letter-spacing:.5px;margin-bottom:5px}
+.weekly-quote p{color:#fff;font-size:13px;font-weight:700;line-height:1.5;margin:0}
+@media(max-width:520px){.weekly-quote{margin-top:10px;padding:9px 10px}.weekly-quote p{font-size:12px}.welcome-eyebrow{letter-spacing:.25px;line-height:1.4}}
 </style>
 </head>
 <body>
@@ -146,12 +153,53 @@ const selectAcc=(name,selected='',exclude='')=>`<select class="field" name="${h(
 function toast(msg,bad=false){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(bad?' bad':'');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.className='toast',4000)}
 function labelNav(){const titles={dashboard:['Dashboard Keuangan','Ringkasan utama untuk bulan yang dipilih.'],transactions:['Transaksi Harian','Tambah, edit, dan hapus pengeluaran, pemasukan, atau transfer.'],review:['Tinjau Pengeluaran','Telusuri rincian berdasarkan tanggal ataupun kategori.'],budgets:['Anggaran Bulanan','Tetapkan batas dan alihkan sisa antar pos.'],debts:['Utang & Piutang','Pantau pinjaman dan pembayaran.'],reports:['Arsip Laporan','Simpan snapshot laporan tiap bulan, cetak atau ekspor.'],accounts:['Rekening, Kategori & Sinkronisasi','Kelola rekening, kategori, login cloud, dan cadangan.']};const item=titles[ui.view];document.getElementById('page-title').textContent=item[0];document.getElementById('page-subtitle').textContent=item[1];document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
 function render(){labelNav();let el=document.getElementById('content');el.innerHTML=({dashboard:renderDash,transactions:renderTx,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])();}
+const QUOTES_GEN_Z=[
+ 'Dompet boleh lowkey, pencatatan harus highkey. 💸',
+ 'Yang sat-set boleh jajan, yang smart tetap catat. ✍️',
+ 'Budget aman adalah green flag paling nyata. 💙',
+ 'Self-reward sah, asal nggak bikin dompet overthinking. 🫶',
+ 'Bukan pelit, lagi dalam era financial glow up. ✨',
+ 'Saldo jangan cuma di-feeling, cek realitanya di sini. 👀',
+ 'Biar nggak cuma vibes, semua transaksi wajib ada receipts-nya. 🧾',
+ 'Payday datang, budgeting jangan menghilang. 😎',
+ 'Jajan secukupnya, tenang sepanjang bulannya. 🍵',
+ 'Plot twist terbaik: akhir bulan saldo masih aman. 💰'
+];
+let quoteMingguan=null;
+function idMinggu(date=new Date()){
+ const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));
+ d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7));
+ const y=d.getUTCFullYear();
+ const w=Math.ceil((((d-new Date(Date.UTC(y,0,1)))/86400000)+1)/7);
+ return y+'-W'+String(w).padStart(2,'0');
+}
+function kutipanMingguan(){
+ const minggu=idMinggu();
+ if(quoteMingguan?.week===minggu)return quoteMingguan;
+ const nomor=Number(minggu.slice(0,4))*53+Number(minggu.slice(-2));
+ return {week:minggu,quote:QUOTES_GEN_Z[nomor%QUOTES_GEN_Z.length],theme:'Gen Z & Budgeting',is_trending:false};
+}
+async function muatQuoteMingguan(){
+ try{
+  const minggu=idMinggu();
+  const url='https://raw.githubusercontent.com/muhalfarisxi/Duit-Duit_Paaxixi/main/quote-mingguan.json?minggu='+encodeURIComponent(minggu);
+  const res=await fetch(url,{cache:'no-store'});
+  if(!res.ok)throw new Error('Quote mingguan belum tersedia');
+  const data=await res.json();
+  if(data?.week!==minggu||typeof data.quote!=='string'||data.quote.length>190)return;
+  quoteMingguan={week:data.week,quote:data.quote,theme:typeof data.theme==='string'?data.theme.slice(0,40):'Gen Z & Budgeting',is_trending:data.is_trending===true};
+  if(ui.view==='dashboard')render();
+ }catch(err){console.info('Quote cadangan dipakai:',err.message)}
+}
 function welcomeBlock(){
  const now=new Date(),hour=now.getHours();
  const greeting=hour>=4&&hour<11?'Pagi':hour>=11&&hour<15?'Siang':hour>=15&&hour<18?'Sore':'Malam';
  const emoji=greeting==='Pagi'?'☀️':greeting==='Siang'?'🌤️':greeting==='Sore'?'🌇':'🌙';
  const day=new Intl.DateTimeFormat('id-ID',{weekday:'long'}).format(now);
- return `<section class="welcome-panel" aria-label="Sambutan harian"><img class="welcome-avatar" src="./profil-paaxixi.png?v=2" width="100" height="100" alt="Logo profil Duit-Duit Paaxixi"><div><div class="welcome-eyebrow">DUIT-DUIT PAAXIXI · ${day}</div><h2>Selamat ${greeting}, Alfa! ${emoji}</h2><p>Di hari ${day} ini, apa yang kamu transaksikan? Catat di sini, Alfa! 💸</p></div></section>`;
+ const tanggal=new Intl.DateTimeFormat('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(now);
+ const konten=kutipanMingguan();
+ const sumber=konten.is_trending?'Terinspirasi Tren Pencarian':'Quote Gen Z Minggu Ini';
+ return `<section class="welcome-panel" aria-label="Sambutan harian"><img class="welcome-avatar" src="./profil-paaxixi.png?v=2" width="100" height="100" alt="Logo profil Duit-Duit Paaxixi"><div class="welcome-copy"><div class="welcome-eyebrow">${h(tanggal)} · DUIT-DUIT PAAXIXI</div><h2>Selamat ${greeting}, Alfa! ${emoji}</h2><p>Di hari ${day} ini, apa yang kamu transaksikan? Catat di sini, Alfa! 💸</p><div class="weekly-quote"><span class="weekly-quote-label">✨ ${sumber}${konten.is_trending?' · '+h(konten.theme):''}</span><p>“${h(konten.quote)}”</p></div></div></section>`;
 }
 function renderDash(){let all=monthly(),exp=totalType('expense'),inc=totalType('income'),bt=budgetTotal(),accountBalances=balances(),kas=Object.values(accountBalances).reduce((s,x)=>s+x,0),sumGroups=GROUPS.map(g=>({...g,total:expenses().filter(c=>c.group===g.name).reduce((s,c)=>s+spentByCat(c.id),0)})),biggest=expenses().map(c=>({...c,spent:spentByCat(c.id)})).filter(c=>c.spent>0).sort((a,b)=>b.spent-a.spent),alert=expenses().filter(c=>hasBudget(c.id)&&status(c.id).s!=='ok').sort((a,b)=>({danger:0,warn:1}[status(a.id).s]||2)-({danger:0,warn:1}[status(b.id).s]||2)),budgets=expenses().filter(c=>hasBudget(c.id)).sort((a,b)=>pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1))),bySource=incomes().map(c=>({...c,amount:all.filter(t=>t.type==='income'&&t.categoryId===c.id).reduce((s,t)=>s+num(t.amount),0)})).filter(c=>c.amount>0).sort((a,b)=>b.amount-a.amount),debt=totalsDebt();
 let start=0;const slices=sumGroups.map(g=>{let end=start+(exp?g.total/exp*100:0),str=`${g.color} ${start}% ${end}%`;start=end;return str}).join(', ');
@@ -306,7 +354,7 @@ if(x.id==='tx-filter'){ui.txFilter=x.value;render()}if(x.id==='debt-filter'){ui.
 if(x.id==='review-date'){ui.reviewDate=x.value;render()}if(x.id==='review-category'){ui.reviewCategory=x.value;render()}
 if(x.id==='tx-group'){let cs=(ui.txType==='expense'?expenses():incomes()).filter(c=>c.group===x.value);let sel=document.getElementById('tx-category');if(sel)sel.innerHTML=cs.map(c=>`<option value="${h(c.id)}">${h(c.label)}</option>`).join('')}
 if(x.id==='new-cat-kind'){let sel=document.getElementById('new-cat-group');sel.innerHTML=(x.value==='income'?['BPS','Fastlink','Lainnya']:GROUPS.map(g=>g.name)).map(g=>`<option value="${h(g)}">${h(g)}</option>`).join('')}});
-document.getElementById('top-add').addEventListener('click',()=>{ui.txEditId=null;ui.txType='expense';setView('transactions')});document.getElementById('cloud-status').addEventListener('click',()=>setView('accounts'));document.getElementById('import-file').addEventListener('change',e=>importJSON(e.target.files?.[0]));render();
+document.getElementById('top-add').addEventListener('click',()=>{ui.txEditId=null;ui.txType='expense';setView('transactions')});document.getElementById('cloud-status').addEventListener('click',()=>setView('accounts'));document.getElementById('import-file').addEventListener('change',e=>importJSON(e.target.files?.[0]));render();void muatQuoteMingguan();
 
 })();
 </script>

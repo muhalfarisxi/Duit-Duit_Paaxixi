@@ -57,6 +57,53 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .alert-item.red-alert .category-symbol{background:transparent}
 .legend-left .symbol-line{gap:8px}
 @media(max-width:520px){.category-symbol{width:29px;height:29px}.category-symbol.compact{width:23px;height:23px;font-size:14px}}
+
+/* Filter komposisi dan perbandingan historis -- seluruhnya presentasional. */
+.comp-header{display:flex;gap:10px;align-items:start;justify-content:space-between}
+.comp-filter-toggle{white-space:nowrap}
+.comp-controls{margin:0 0 18px;padding:15px;background:#f2f6fe;border:1px solid #dce8fb;border-radius:15px}
+.comp-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.comp-fields label{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:12px;color:#435a7b}
+.comp-fields input,.comp-fields select{border:1px solid #d1dff0;border-radius:10px;background:white;color:var(--text);padding:10px;min-width:0;width:100%;font:inherit}
+.comp-choice{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}
+.comp-choice details{flex:1;min-width:175px;background:#fff;border:1px solid #d6e3f6;border-radius:11px;padding:9px 11px}
+.comp-choice summary{cursor:pointer;font-size:12px;font-weight:750;list-style:revert}
+.comp-checks{max-height:180px;overflow-y:auto;padding-top:7px}
+.comp-checks label{display:flex;align-items:center;gap:7px;padding:5px 0;font-size:12px}
+.comp-checks input{accent-color:#2563eb;width:15px;height:15px}
+.comp-tiny{color:#71849d;font-size:11px;margin:9px 0 0;line-height:1.5}
+.comp-summary{color:#6a82a4;font-size:12px;margin:4px 0 0}
+.comp-empty{padding:18px;text-align:center;color:#71849d;font-size:13px}
+.comp-donut-legend{max-height:305px;overflow-y:auto;padding-right:3px}
+.comp-legend-row{display:flex;align-items:center;justify-content:space-between;gap:9px}
+.comp-insight{margin-top:15px}
+.trend-panel{margin:16px 0 18px}
+.trend-settings{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.trend-settings label{font-size:12px;font-weight:750;color:#607699}
+.trend-settings select{font:inherit;padding:8px 11px;background:white;color:var(--text);border:1px solid #dae6f8;border-radius:10px}
+.trend-scroll{width:100%;overflow-x:auto;padding:6px 0 10px}
+.trend-graph{min-width:540px;display:flex;align-items:flex-end;gap:10px;padding:8px 3px 2px;border-bottom:1px solid #dce7f7}
+.trend-column{min-width:0;flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.trend-bars{height:155px;width:min(100%,56px);display:flex;align-items:flex-end;justify-content:center;position:relative}
+.trend-stack{width:100%;display:flex;flex-direction:column-reverse;overflow:hidden;border-radius:7px 7px 0 0;min-height:2px}
+.trend-block{flex:none;min-height:0}
+.trend-no-data{width:100%;height:3px;background:#e5eefa;border-radius:5px}
+.trend-column strong{font-size:11px;color:#253e69;white-space:nowrap}
+.trend-column small{font-size:11px;color:#7790ae}
+.trend-keys{display:flex;gap:8px 18px;flex-wrap:wrap;margin:12px 0}
+.trend-key{display:flex;align-items:center;gap:7px;font-size:12px;color:#50688b}
+.trend-key .dot{flex:none}
+.trend-notes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}
+.trend-note{background:#f3f7ff;padding:13px;border:1px solid #e0eafa;border-radius:13px;font-size:12px;color:#314e75;line-height:1.55}
+.trend-note strong{display:block;font-size:13px;color:#173d6c;margin-bottom:5px}
+.trend-table-wrap{overflow-x:auto;margin-top:9px}
+.trend-table{width:100%;border-collapse:collapse;font-size:12px}
+.trend-table th,.trend-table td{text-align:left;white-space:nowrap;padding:10px 11px;border-bottom:1px solid #e5edf8}
+.trend-table th{color:#627b9d;font-weight:800}
+.trend-table td:last-child,.trend-table th:last-child{text-align:right}
+.trend-up{color:#b94b35;font-weight:750}
+.trend-down{color:#14836f;font-weight:750}
+@media(max-width:640px){.comp-fields,.trend-notes{grid-template-columns:1fr}.comp-filter-toggle{padding:7px 9px;font-size:11px}.trend-panel{margin-top:15px}.comp-controls{padding:11px}}
 </style>
 </head>
 <body>
@@ -132,7 +179,7 @@ const expenseGroups=()=>db.expenseGroups;
 const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],debts:[],reports:{}});
 function load(){try{let v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.accounts)&&Array.isArray(v.categories)&&Array.isArray(v.transactions)&&Array.isArray(v.debts)&&v.budgets&&Array.isArray(v.budgetMoves))return normalizeExpenseGroups(v);}catch(e){}return fresh()}
 let db=load();db.reports=db.reports||{};
-let ui={view:'dashboard',month:currentMonth(),txType:'expense',txFilter:'all',debtFilter:'open',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,reviewMode:'date',reviewDate:'',reviewCategory:'',reportMonth:currentMonth()};
+let ui={view:'dashboard',month:currentMonth(),txType:'expense',txFilter:'all',debtFilter:'open',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'month',open:false},reviewMode:'date',reviewDate:'',reviewCategory:'',reportMonth:currentMonth()};
 let cloud={configured:false,signedIn:false,ready:false,email:'',busy:false,error:'',empty:false,pendingDecision:false};
 function syncBadge(){let b=document.getElementById('cloud-status');if(!b)return;
  b.className='cloud-state'+(cloud.signedIn&&cloud.ready&&!cloud.pendingDecision?' online':cloud.busy?' wait':'');
@@ -287,13 +334,109 @@ function welcomeBlock(){
  const info=insightKeuanganBulanan();
  return `<section class="welcome-panel" aria-label="Sambutan harian"><img class="welcome-avatar" src="./profil-paaxixi.png?v=2" width="100" height="100" alt="Logo profil Duit-Duit Paaxixi"><div class="welcome-copy"><div class="welcome-eyebrow">${h(tanggal)} · DUIT-DUIT PAAXIXI</div><h2>Selamat ${greeting}, Alfa! ${emoji}</h2><p class="welcome-quote">${h(konten.quote)}${info?' '+h(info):''}</p></div></section>`;
 }
+
+/* ---------- Analisis Pengeluaran: hanya membaca data transaksi ---------- */
+const ANALYTICS_COLORS=['#2563eb','#38a8ed','#7c73df','#16a4b8','#f4a05c','#a465ce','#3b9b86','#e57b99','#86a248','#738da9'];
+const dateISO=(date)=>date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+function monthBounds(month){
+ const [year,m]=month.split('-').map(Number);
+ return {from:month+'-01',to:dateISO(new Date(year,m,0))};
+}
+function analysisDates(){
+ const c=ui.comp,base=monthBounds(ui.month);
+ if(c.preset==='month')return {...base,title:monthFmt(ui.month)};
+ if(c.preset==='range')return {from:c.from||base.from,to:c.to||base.to,title:'Rentang Tanggal'};
+ const dates=db.transactions.filter(t=>t.type==='expense').map(t=>t.date).filter(t=>/^\d{4}-\d{2}-\d{2}$/.test(t)).sort();
+ if(!dates.length)return {...base,title:'Semua Data'};
+ return {from:dates[0],to:dates[dates.length-1],title:'Semua Data'};
+}
+function analysisGroups(){
+ const selected=ui.comp.groups;
+ return expenseGroups().filter(g=>selected===null||selected.includes(g.id));
+}
+function analysisCategories(){
+ const names=new Set(analysisGroups().map(g=>g.name));
+ const selected=ui.comp.categories;
+ return expenses().filter(c=>names.has(c.group)&&(selected===null||selected.includes(c.id)));
+}
+function expenseSelection(){
+ const ids=new Set(analysisCategories().map(c=>c.id));
+ const dates=analysisDates();
+ const transactions=db.transactions.filter(t=>t.type==='expense'&&ids.has(t.categoryId)&&t.date>=dates.from&&t.date<=dates.to);
+ return {transactions,dates,categories:analysisCategories(),groups:analysisGroups()};
+}
+function analysisEntries(transactions){
+ const current=ui.comp.breakdown;
+ const groups=new Map(expenseGroups().map(g=>[g.name,g]));
+ let items=[];
+ if(current==='group'){
+  items=analysisGroups().map(g=>({id:g.id,label:g.name,icon:pickSymbol(g.name,g.name),color:g.color,
+    value:transactions.reduce((sum,t)=>sum+(cat(t.categoryId)?.group===g.name?num(t.amount):0),0)}));
+ }else{
+  items=analysisCategories().map(c=>({id:c.id,label:c.label,icon:pickSymbol(c.label,c.group),
+    color:ANALYTICS_COLORS[expenses().findIndex(e=>e.id===c.id)%ANALYTICS_COLORS.length],
+    value:transactions.reduce((sum,t)=>sum+(t.categoryId===c.id?num(t.amount):0),0)}));
+ }
+ return items.filter(item=>item.value>0).sort((a,b)=>b.value-a.value);
+}
+function renderCompositionControls(){
+ const c=ui.comp,dates=analysisDates(),groupCount=analysisGroups().length,catCount=analysisCategories().length;
+ const groupList=expenseGroups(),catList=expenses();
+ return `<div class="comp-controls">
+  <div class="comp-fields">
+   <label>Periode Pengeluaran<select id="comp-preset">
+    <option value="month" ${c.preset==='month'?'selected':''}>Bulan Terpilih (Default)</option>
+    <option value="range" ${c.preset==='range'?'selected':''}>Rentang Tanggal Bebas</option>
+    <option value="all" ${c.preset==='all'?'selected':''}>Semua Tanggal Tercatat</option>
+   </select></label>
+   <label>Rincian Berdasarkan<select id="comp-breakdown">
+    <option value="group" ${c.breakdown==='group'?'selected':''}>Kelompok Pengeluaran</option>
+    <option value="category" ${c.breakdown==='category'?'selected':''}>Pos / Kategori Pengeluaran</option>
+   </select></label>
+   ${c.preset==='range'? `<label>Tanggal Mulai<input id="comp-start" type="date" value="${h(c.from||monthBounds(ui.month).from)}"></label>
+    <label>Tanggal Selesai<input id="comp-end" type="date" value="${h(c.to||monthBounds(ui.month).to)}"></label>`:''}
+  </div>
+  <div class="comp-choice">
+   <details id="comp-group-list" ${c.groupsOpen?'open':''}><summary>Kelompok: ${c.groups===null?'Semua':groupCount+' Dipilih'}</summary>
+    <div class="comp-checks">${groupList.map(g=>`<label><input type="checkbox" data-comp-group="${h(g.id)}" ${c.groups===null||c.groups.includes(g.id)?'checked':''}> ${pickSymbol(g.name,g.name)} ${h(g.name)}</label>`).join('')}</div>
+    <button type="button" class="btn sm" data-comp-action="all-groups">Pilih Semua Kelompok</button>
+   </details>
+   <details id="comp-category-list" ${c.categoriesOpen?'open':''}><summary>Pos: ${c.categories===null?'Semua':catCount+' Dipilih'}</summary>
+    <div class="comp-checks">${catList.map(cat=>`<label><input type="checkbox" data-comp-category="${h(cat.id)}" ${c.categories===null||c.categories.includes(cat.id)?'checked':''}> ${pickSymbol(cat.label,cat.group)} ${h(cat.label)} <small>· ${h(cat.group)}</small></label>`).join('')}</div>
+    <button type="button" class="btn sm" data-comp-action="all-categories">Pilih Semua Pos</button>
+   </details>
+  </div>
+  <div class="comp-choice"><button type="button" class="btn sm" data-comp-action="reset">↺ Reset Filter</button><span class="comp-tiny">Filter hanya mengubah tampilan analisis, bukan data transaksi atau anggaran.</span></div>
+ </div>`;
+}
+function renderComposition(){
+ const selected=expenseSelection(),rows=analysisEntries(selected.transactions),total=selected.transactions.reduce((sum,t)=>sum+num(t.amount),0),dates=selected.dates;
+ let cursor=0;
+ const gradient=rows.map((item,i)=>{
+  const until=i===rows.length-1?100:cursor+item.value/total*100,seg=item.color+' '+cursor.toFixed(4)+'% '+until.toFixed(4)+'%';
+  cursor=until;return seg;
+ }).join(', ');
+ const topCats=selected.categories.map(c=>({c,total:selected.transactions.filter(t=>t.categoryId===c.id).reduce((sum,t)=>sum+num(t.amount),0)})).filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
+ const range=dates.from===dates.to?dateFmt(dates.from):dateFmt(dates.from)+' – '+dateFmt(dates.to);
+ return `<section class="card" id="composition-card">
+ <div class="card-head comp-header"><div><h3>Komposisi Pengeluaran</h3><p>${h(ui.comp.breakdown==='group'?'Per Kelompok':'Per Pos')} • ${h(dates.title)}</p><div class="comp-summary">${h(range)} · ${selected.transactions.length} Transaksi</div></div>
+  <button type="button" class="btn sm comp-filter-toggle" data-comp-action="toggle" aria-expanded="${ui.comp.open?'true':'false'}">⚙ ${ui.comp.open?'Tutup Filter':'Atur Analisis'}</button>
+ </div>
+ ${ui.comp.open?renderCompositionControls():''}
+ ${total>0?`<div class="distribution"><div class="donut" style="background:conic-gradient(${gradient})"><div class="donut-middle"><span>Total Keluar</span>${shortMoney(total)}</div></div>
+ <div class="legend comp-donut-legend">${rows.map(item=>`<div class="legend-row"><div class="legend-left"><span class="dot" style="background:${h(item.color)}"></span><div class="symbol-line"><span class="category-symbol compact" aria-hidden="true">${item.icon}</span><div class="symbol-text"><div style="font-weight:750">${h(item.label)}</div><small>${money(item.value)}</small></div></div></div><strong>${pct(item.value,total)}%</strong></div>`).join('')}</div></div>
+ ${topCats.length?`<div class="insight comp-insight"><strong>↗ Paling Besar: ${pickSymbol(topCats[0].c.label,topCats[0].c.group)} ${h(topCats[0].c.label)} (${pct(topCats[0].total,total)}%)</strong><p>Paling Kecil: ${pickSymbol(topCats[topCats.length-1].c.label,topCats[topCats.length-1].c.group)} ${h(topCats[topCats.length-1].c.label)} (${pct(topCats[topCats.length-1].total,total)}%) Dari Total Pengeluaran Terfilter.</p></div>`:''}`:
+ `<div class="comp-empty">Belum Ada Pengeluaran Yang Cocok Dengan Filter. Coba Rentang Tanggal Atau Pos Lain.</div>`}
+ </section>`;
+}
+
 function renderDash(){let all=monthly(),exp=totalType('expense'),inc=totalType('income'),bt=budgetTotal(),accountBalances=balances(),kas=Object.values(accountBalances).reduce((s,x)=>s+x,0),sumGroups=expenseGroups().map(g=>({...g,total:expenses().filter(c=>c.group===g.name).reduce((s,c)=>s+spentByCat(c.id),0)})),biggest=expenses().map(c=>({...c,spent:spentByCat(c.id)})).filter(c=>c.spent>0).sort((a,b)=>b.spent-a.spent),alert=expenses().filter(c=>hasBudget(c.id)&&status(c.id).s!=='ok').sort((a,b)=>({danger:0,warn:1}[status(a.id).s]||2)-({danger:0,warn:1}[status(b.id).s]||2)),budgets=expenses().filter(c=>hasBudget(c.id)).sort((a,b)=>pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1))),bySource=incomes().map(c=>({...c,amount:all.filter(t=>t.type==='income'&&t.categoryId===c.id).reduce((s,t)=>s+num(t.amount),0)})).filter(c=>c.amount>0).sort((a,b)=>b.amount-a.amount),debt=totalsDebt();
 let start=0;const slices=sumGroups.map(g=>{let end=start+(exp?g.total/exp*100:0),str=`${g.color} ${start}% ${end}%`;start=end;return str}).join(', ');
 return `${welcomeBlock()}${all.length===0?`<div class="callout"><span>✦</span><div><strong>Mulai catatan pertamamu.</strong> Dashboard akan otomatis terisi. Mau melihat simulasi lebih dulu? <button class="btn sm" type="button" data-action="demo" style="margin-left:7px">Isi data contoh</button></div></div>`:''}
 <div class="grid kpis">
 ${metricCard('Pemasukan Bulan Ini',inc,'↑','green','Transaksi Pemasukan')}${metricCard('Pengeluaran Bulan Ini',exp,'↓','red','Transaksi Pengeluaran')}${metricCard('Sisa Anggaran',bt>0?bt-budgetUsed():0,'◴',bt>0&&bt-budgetUsed()<0?'red':'green',bt>0?`Dari Total ${money(bt)}`:'Belum Ada Anggaran')}${metricCard('Total Saldo Rekening',kas,'▤',kas<0?'red':'blue','Saldo Seluruh Rekening, Sepanjang Waktu')}
 </div>
-<div class="grid layout-2"><section class="card"><div class="card-head"><div><h3>Komposisi Pengeluaran</h3><p>Per Kelompok • ${h(monthFmt(ui.month))}</p></div><span class="card-icon">◴</span></div>${exp?`<div class="distribution"><div class="donut" style="background:conic-gradient(${slices})"><div class="donut-middle"><span>Total Keluar</span>${shortMoney(exp)}</div></div><div class="legend">${sumGroups.map(g=>`<div class="legend-row"><div class="legend-left"><span class="dot" style="background:${h(g.color)}"></span><div class="symbol-line">${symbolBadge(g.name,g.name,true)}<div class="symbol-text"><div style="font-weight:750">${h(g.name)}</div><small>${money(g.total)}</small></div></div></div><strong>${pct(g.total,exp)}%</strong></div>`).join('')}</div></div>${biggest.length?`<div class="insight"><strong>↗ Paling Besar: ${pickSymbol(biggest[0].label,biggest[0].group)} ${h(biggest[0].label)} (${pct(biggest[0].spent,exp)}%)</strong><p>Paling Kecil: ${pickSymbol(biggest[biggest.length-1].label,biggest[biggest.length-1].group)} ${h(biggest[biggest.length-1].label)} (${pct(biggest[biggest.length-1].spent,exp)}%) Dari Total Pengeluaran Tercatat.</p></div>`:''}`:empty('◴','Belum Ada Pengeluaran','Catat pengeluaran agar distribusinya muncul.')}</section>
+<div class="grid layout-2">${renderComposition()}
 <section class="card"><div class="card-head"><div><h3>Peringatan Anggaran</h3><p>Pos Yang Menipis Atau Sudah Melebihi Batas</p></div>${pill(alert.length?'warn':'ok',`${alert.length} Pos Perlu Perhatian`)}</div>${alert.length?`<div class="alert-list">${alert.slice(0,5).map(c=>{let st=status(c.id),left=effectiveBudget(c.id)-spentByCat(c.id);return `<div class="alert-item ${st.s==='danger'?'red-alert':''}"><span class="mini-num">${symbolBadge(c.label,c.group)}</span><div style="flex:1"><strong>${h(c.label)} — ${st.label}</strong><p>${left<0?'Melebihi '+money(-left):'Sisa Hanya '+money(left)} Dari ${money(effectiveBudget(c.id))}</p></div></div>`}).join('')}</div><button type="button" class="btn sm full" style="margin-top:16px" data-nav="budgets">Kelola / Alihkan Anggaran →</button>`:empty('✓','Tidak Ada Peringatan',bt?'Semua pos beranggaran masih aman.':'Atur anggaran per kategori agar peringatan dapat muncul.',`<button data-nav="budgets" class="btn sm">Atur anggaran</button>`)}</section></div>
 <div class="grid layout-2"><section class="card"><div class="card-head"><div><h3>Penggunaan Anggaran</h3><p>Pos Dengan Persentase Pemakaian Tertinggi</p></div><button data-nav="budgets" class="btn sm ghost">Lihat Semua ↗</button></div>${budgets.length?`<div class="budget-list">${budgets.slice(0,5).map(c=>budgetProgress(c)).join('')}</div>`:empty('◎','Anggaran Belum Disusun','Kamu dapat memberi batas pengeluaran tiap kategori untuk setiap bulan.')}</section>
 <section class="card"><div class="card-head"><div><h3>Asal Pemasukan</h3><p>Sumber Pendapatan Bulan Berjalan</p></div></div>${bySource.length?bySource.slice(0,7).map(c=>`<div class="stat-pair"><span>${h(c.label)} <span style="color:#8a9bb3">• ${pct(c.amount,inc)}%</span></span><strong>${money(c.amount)}</strong></div>`).join(''):empty('↗','Belum Ada Pemasukan','Misalnya dividen Fastlink, gaji atau tukin BPS.')}

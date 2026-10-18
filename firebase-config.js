@@ -2,7 +2,7 @@
 // Jangan pernah menaruh service account, password, atau data keuangan di repo publik.
 // Firestore Security Rules harus dipublish sebelum memasukkan transaksi nyata.
 window.ARUS_FIREBASE_CONFIG = {
-  apiKey: 'AIzaSyBhgKrSQDWdVB2vq6HZ0y0sPixXLReVfas',
+  apiKey: 'AIzaSyBhgKrSQDWdVB2vq6HZ0y0sPixXlReVfas',
   authDomain: 'duit-duit-paaxixi.firebaseapp.com',
   projectId: 'duit-duit-paaxixi',
   storageBucket: 'duit-duit-paaxixi.firebasestorage.app',

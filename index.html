@@ -516,6 +516,17 @@ function renderTrendPanel(){
    }
  }
 
+ let indication='Belum cukup catatan pengeluaran berurutan untuk mendeteksi pola. Lengkapi transaksi tiap periode agar analisis lebih akurat.';
+ const third=rows[rows.length-3];
+ if(comparable&&!isPartial&&third&&third.total>0&&last.total>previous.total&&previous.total>third.total){
+   indication='Pengeluaran meningkat dalam tiga periode berturut-turut. Coba periksa rincian pos yang mengalami kenaikan.';
+ }else if(comparable&&!isPartial&&last.total>previous.total*1.3&&(last.total-previous.total)>=50000){
+   indication='Indikasi lonjakan: Total pengeluaran naik lebih dari 30% dengan kenaikan minimal Rp50.000 dibanding periode sebelumnya. Cek transaksi penyebabnya.';
+ }else if(entries.length&&allTotal>0&&entries[0].value/allTotal>=.5){
+   indication='Konsentrasi pengeluaran: '+entries[0].icon+' '+h(entries[0].label)+' menyumbang '+pct(entries[0].value,allTotal)+'% pada rentang perbandingan. Ini indikasi awal, bukan bukti pemborosan.';
+ }else if(comparable){
+   indication='Pengeluaran dapat dibandingkan antardua periode. Tidak ada pola lonjakan yang melewati batas indikasi saat ini.';
+ }
  const matrixHead=primary.map(item=>`<th>${item.icon} ${h(item.label)}</th>`).join('');
  const matrixRows=rows.map((row,i)=>{
   const known=primary.map(item=>itemAmount(row.tx,item)),knownTotal=known.reduce((sum,value)=>sum+value,0),before=rows[i-1];
@@ -542,7 +553,7 @@ function renderTrendPanel(){
      </select></div></div>
    ${allTotal>0?`<div class="trend-scroll"><div class="trend-graph" role="img" aria-label="Grafik tren pengeluaran per ${c.trend==='month'?'bulan':'tahun'}" style="min-width:${Math.max(540,rows.length*66)}px">${periodHtml}</div></div><div class="trend-keys">${legend}</div>`:
     '<div class="comp-empty">Belum Ada Data Pengeluaran Dalam Periode Perbandingan Ini.</div>'}
-   <div class="trend-notes"><div class="trend-note"><strong>📊 Perubahan Antarperiode</strong>${firstInsight}</div><div class="trend-note"><strong>🔎 Insight Kelompok / Pos</strong>${secondInsight}</div></div>
+   <div class="trend-notes"><div class="trend-note"><strong>📊 Perubahan Antarperiode</strong>${firstInsight}</div><div class="trend-note"><strong>🔎 Insight Kelompok / Pos</strong>${secondInsight}</div><div class="trend-note" style="grid-column:1/-1"><strong>🚦 Indikasi Otomatis</strong>${indication}</div></div>
    <div class="trend-table-wrap"><table class="trend-table"><thead><tr><th>Periode</th><th>Total Pengeluaran</th><th>Kontributor Terbesar</th><th>Perubahan</th></tr></thead><tbody>${tableRows}</tbody></table></div>
    <h4 style="margin:22px 0 7px">Rincian Per ${groupMode?'Kelompok':'Pos'}</h4>
    <p class="comp-tiny">Bandingkan nominal masing-masing ${groupMode?'kelompok':'pos'} dari satu periode ke periode lain. Geser tabel jika kolomnya banyak.</p>

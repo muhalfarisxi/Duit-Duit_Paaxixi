@@ -430,6 +430,111 @@ function renderComposition(){
  </section>`;
 }
 
+
+/* Grafik historis: total dan komponen menurut kategori/kelompok terpilih. */
+function timelinePeriods(){
+ const mode=ui.comp.trend,dates=analysisDates(),maxCount=mode==='month'?24:12;
+ const ym=key=>{const [year,month]=key.split('-').map(Number);return year*12+month-1;};
+ const toMonth=serial=>{const year=Math.floor(serial/12),month=serial%12+1;return year+'-'+String(month).padStart(2,'0');};
+ let start,end;
+ if(mode==='month'){
+  end=ym(ui.month);
+  start=end-11;
+  if(ui.comp.preset!=='month'){
+    start=ym(dates.from.slice(0,7));end=ym(dates.to.slice(0,7));
+  }
+ }else{
+  end=Number(ui.month.slice(0,4));start=end-5;
+  if(ui.comp.preset!=='month'){
+    start=Number(dates.from.slice(0,4));end=Number(dates.to.slice(0,4));
+  }
+ }
+ if(end<start){const swap=start;start=end;end=swap;}
+ const trimmed=end-start+1>maxCount;
+ if(trimmed)start=end-maxCount+1;
+ const keys=[];
+ for(let n=start;n<=end;n++)keys.push(mode==='month'?toMonth(n):String(n));
+ return {keys,trimmed,mode,dates};
+}
+function renderTrendPanel(){
+ const c=ui.comp,periods=timelinePeriods(),categoryIds=new Set(analysisCategories().map(cat=>cat.id));
+ const rows=periods.keys.map(key=>{
+  const tx=db.transactions.filter(t=>t.type==='expense'&&categoryIds.has(t.categoryId)&&
+    (c.trend==='month'?t.date.startsWith(key):t.date.slice(0,4)===key)&&
+    (c.preset!=='range'||t.date>=periods.dates.from&&t.date<=periods.dates.to));
+  return {key,tx,total:tx.reduce((sum,t)=>sum+num(t.amount),0)};
+ });
+ const whole=rows.flatMap(row=>row.tx);
+ const entries=analysisEntries(whole);
+ const primary=entries.slice(0,6),allTotal=whole.reduce((sum,t)=>sum+num(t.amount),0),max=Math.max(1,...rows.map(row=>row.total));
+ const groupMode=c.breakdown==='group';
+ const itemAmount=(tx,entry)=>tx.reduce((sum,t)=>{
+  const category=cat(t.categoryId);
+  const matches=groupMode?category?.group===entry.label:t.categoryId===entry.id;
+  return sum+(matches?num(t.amount):0);
+ },0);
+ const keyText=key=>c.trend==='year'?key:new Date(Number(key.slice(0,4)),Number(key.slice(5,7))-1,1).toLocaleDateString('id-ID',{month:'short',year:'2-digit'});
+ const colorOther='#b8c6dd';
+ const periodHtml=rows.map(row=>{
+  const height=155*(row.total/max);
+  const parts=primary.map(item=>({color:item.color,value:itemAmount(row.tx,item)})).filter(part=>part.value>0);
+  const sum=parts.reduce((tot,part)=>tot+part.value,0),other=row.total-sum;
+  if(other>0.00001)parts.push({color:colorOther,value:other});
+  return `<div class="trend-column" title="${h(keyText(row.key))} · ${money(row.total)}">
+   <div class="trend-bars">${row.total>0?
+    `<div class="trend-stack" style="height:${Math.max(3,height)}px">${parts.map(part=>`<div class="trend-block" style="height:${part.value/row.total*100}%;background:${h(part.color)}"></div>`).join('')}</div>`:
+    '<div class="trend-no-data" aria-label="Tidak ada catatan pengeluaran"></div>'}</div>
+   <strong>${h(keyText(row.key))}</strong><small>${row.total?shortMoney(row.total):'—'}</small>
+  </div>`;
+ }).join('');
+ const legend=primary.map(item=>`<div class="trend-key"><span class="dot" style="background:${h(item.color)}"></span>${item.icon} ${h(item.label)}</div>`).join('')+
+ (entries.length>6?`<div class="trend-key"><span class="dot" style="background:${colorOther}"></span>Pos Lainnya</div>`:'');
+ const valid=rows.filter(row=>row.total>0);
+ const last=rows[rows.length-1],previous=rows[rows.length-2];
+ const isPartial=c.preset==='range'||
+  (c.trend==='month'&&last?.key===currentMonth()&&dateISO(new Date())<monthBounds(currentMonth()).to)||
+  (c.trend==='year'&&last?.key===String(new Date().getFullYear()));
+ const comparable=!!last&&!!previous&&last.total>0&&previous.total>0;
+ let firstInsight;
+ if(comparable){
+   const difference=last.total-previous.total;
+   const change=(Math.abs(difference)/previous.total*100).toLocaleString('id-ID',{maximumFractionDigits:1});
+   firstInsight=difference===0?'Pengeluaran kedua periode sama besar: '+money(last.total)+'.':
+    'Pengeluaran '+h(keyText(last.key))+' '+(difference>0?'naik':'turun')+' '+change+'% ('+money(Math.abs(difference))+') dibanding '+h(keyText(previous.key))+'.';
+   if(isPartial)firstInsight+=' Ini perbandingan sementara karena rentang/periode belum lengkap.';
+ }else{
+   firstInsight='Perbandingan perubahan membutuhkan pengeluaran tercatat pada dua periode berurutan. Periode kosong tidak otomatis berarti pengeluaran Rp0.';
+ }
+ let secondInsight='Belum ada rincian pos yang bisa dianalisis pada rentang ini.';
+ if(entries.length){
+   const top=entries[0];
+   secondInsight=(groupMode?'Kelompok':'Pos')+' terbesar pada data perbandingan: '+top.icon+' '+h(top.label)+' — '+money(top.value)+' ('+pct(top.value,allTotal)+'% dari total).';
+   if(comparable){
+    const deltas=entries.map(item=>({...item,delta:itemAmount(last.tx,item)-itemAmount(previous.tx,item)})).sort((a,b)=>b.delta-a.delta);
+    if(deltas[0]?.delta>0)secondInsight+=' Kenaikan nominal terbesar: '+deltas[0].icon+' '+h(deltas[0].label)+' (+'+money(deltas[0].delta)+').';
+   }
+ }
+ const tableRows=rows.map((row,i)=>{
+   const prev=rows[i-1],hasCompare=prev&&prev.total>0&&row.total>0,delta=hasCompare?(row.total-prev.total)/prev.total*100:null;
+   const topInRow=entries.map(item=>({...item,value:itemAmount(row.tx,item)})).filter(item=>item.value>0).sort((a,b)=>b.value-a.value)[0];
+   return `<tr><td>${h(keyText(row.key))}</td><td>${row.total?money(row.total):'—'}</td>
+    <td>${topInRow?topInRow.icon+' '+h(topInRow.label):'Tidak Ada Catatan'}</td>
+    <td class="${delta===null?'':delta>0?'trend-up':delta<0?'trend-down':''}">${delta===null?'—':(delta>0?'↑ +':delta<0?'↓ ':'→ ')+Math.abs(delta).toLocaleString('id-ID',{maximumFractionDigits:1})+'%'}</td></tr>`;
+ }).join('');
+ return `<section class="card trend-panel" id="trend-analysis">
+   <div class="card-head"><div><h3>Tren & Perbandingan Pengeluaran</h3><p>Riwayat ${h(groupMode?'Kelompok':'Pos')} • Mengikuti Filter Di Komposisi Pengeluaran</p></div>
+     <div class="trend-settings"><label for="comp-trend-mode">Bandingkan</label><select id="comp-trend-mode">
+       <option value="month" ${c.trend==='month'?'selected':''}>Antarbulan</option>
+       <option value="year" ${c.trend==='year'?'selected':''}>Antartahun</option>
+     </select></div></div>
+   ${allTotal>0?`<div class="trend-scroll"><div class="trend-graph" role="img" aria-label="Grafik tren pengeluaran per ${c.trend==='month'?'bulan':'tahun'}" style="min-width:${Math.max(540,rows.length*66)}px">${periodHtml}</div></div><div class="trend-keys">${legend}</div>`:
+    '<div class="comp-empty">Belum Ada Data Pengeluaran Dalam Periode Perbandingan Ini.</div>'}
+   <div class="trend-notes"><div class="trend-note"><strong>📊 Perubahan Antarperiode</strong>${firstInsight}</div><div class="trend-note"><strong>🔎 Insight Kelompok / Pos</strong>${secondInsight}</div></div>
+   <div class="trend-table-wrap"><table class="trend-table"><thead><tr><th>Periode</th><th>Total Pengeluaran</th><th>Kontributor Terbesar</th><th>Perubahan</th></tr></thead><tbody>${tableRows}</tbody></table></div>
+   <p class="comp-tiny">${periods.trimmed?'Hanya '+rows.length+' periode terakhir yang ditampilkan. Persempit rentang untuk melihat periode lebih lama. ':''}Angka berasal dari transaksi yang dicatat. Rentang tanggal parsial dan bulan/tahun berjalan belum tentu sebanding dengan periode penuh. Perubahan kelompok/pos mengikuti klasifikasi kategori saat ini.</p>
+ </section>`;
+}
+
 function renderDash(){let all=monthly(),exp=totalType('expense'),inc=totalType('income'),bt=budgetTotal(),accountBalances=balances(),kas=Object.values(accountBalances).reduce((s,x)=>s+x,0),sumGroups=expenseGroups().map(g=>({...g,total:expenses().filter(c=>c.group===g.name).reduce((s,c)=>s+spentByCat(c.id),0)})),biggest=expenses().map(c=>({...c,spent:spentByCat(c.id)})).filter(c=>c.spent>0).sort((a,b)=>b.spent-a.spent),alert=expenses().filter(c=>hasBudget(c.id)&&status(c.id).s!=='ok').sort((a,b)=>({danger:0,warn:1}[status(a.id).s]||2)-({danger:0,warn:1}[status(b.id).s]||2)),budgets=expenses().filter(c=>hasBudget(c.id)).sort((a,b)=>pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1))),bySource=incomes().map(c=>({...c,amount:all.filter(t=>t.type==='income'&&t.categoryId===c.id).reduce((s,t)=>s+num(t.amount),0)})).filter(c=>c.amount>0).sort((a,b)=>b.amount-a.amount),debt=totalsDebt();
 let start=0;const slices=sumGroups.map(g=>{let end=start+(exp?g.total/exp*100:0),str=`${g.color} ${start}% ${end}%`;start=end;return str}).join(', ');
 return `${welcomeBlock()}${all.length===0?`<div class="callout"><span>✦</span><div><strong>Mulai catatan pertamamu.</strong> Dashboard akan otomatis terisi. Mau melihat simulasi lebih dulu? <button class="btn sm" type="button" data-action="demo" style="margin-left:7px">Isi data contoh</button></div></div>`:''}
@@ -438,6 +543,7 @@ ${metricCard('Pemasukan Bulan Ini',inc,'↑','green','Transaksi Pemasukan')}${me
 </div>
 <div class="grid layout-2">${renderComposition()}
 <section class="card"><div class="card-head"><div><h3>Peringatan Anggaran</h3><p>Pos Yang Menipis Atau Sudah Melebihi Batas</p></div>${pill(alert.length?'warn':'ok',`${alert.length} Pos Perlu Perhatian`)}</div>${alert.length?`<div class="alert-list">${alert.slice(0,5).map(c=>{let st=status(c.id),left=effectiveBudget(c.id)-spentByCat(c.id);return `<div class="alert-item ${st.s==='danger'?'red-alert':''}"><span class="mini-num">${symbolBadge(c.label,c.group)}</span><div style="flex:1"><strong>${h(c.label)} — ${st.label}</strong><p>${left<0?'Melebihi '+money(-left):'Sisa Hanya '+money(left)} Dari ${money(effectiveBudget(c.id))}</p></div></div>`}).join('')}</div><button type="button" class="btn sm full" style="margin-top:16px" data-nav="budgets">Kelola / Alihkan Anggaran →</button>`:empty('✓','Tidak Ada Peringatan',bt?'Semua pos beranggaran masih aman.':'Atur anggaran per kategori agar peringatan dapat muncul.',`<button data-nav="budgets" class="btn sm">Atur anggaran</button>`)}</section></div>
+${renderTrendPanel()}
 <div class="grid layout-2"><section class="card"><div class="card-head"><div><h3>Penggunaan Anggaran</h3><p>Pos Dengan Persentase Pemakaian Tertinggi</p></div><button data-nav="budgets" class="btn sm ghost">Lihat Semua ↗</button></div>${budgets.length?`<div class="budget-list">${budgets.slice(0,5).map(c=>budgetProgress(c)).join('')}</div>`:empty('◎','Anggaran Belum Disusun','Kamu dapat memberi batas pengeluaran tiap kategori untuk setiap bulan.')}</section>
 <section class="card"><div class="card-head"><div><h3>Asal Pemasukan</h3><p>Sumber Pendapatan Bulan Berjalan</p></div></div>${bySource.length?bySource.slice(0,7).map(c=>`<div class="stat-pair"><span>${h(c.label)} <span style="color:#8a9bb3">• ${pct(c.amount,inc)}%</span></span><strong>${money(c.amount)}</strong></div>`).join(''):empty('↗','Belum Ada Pemasukan','Misalnya dividen Fastlink, gaji atau tukin BPS.')}
 <div class="linebreak"></div><div class="stat-pair"><span>Piutang Belum Kembali</span><strong class="green">${money(debt.receivable)}</strong></div><div class="stat-pair"><span>Utang Belum Dilunasi</span><strong class="red">${money(debt.payable)}</strong></div><button class="btn sm full" data-nav="debts">Lihat Utang & Piutang</button></section></div>

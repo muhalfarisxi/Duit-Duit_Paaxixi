@@ -1,0 +1,38 @@
+name: Perbarui Quote Mingguan Duit-Duit Paaxixi
+
+on:
+  schedule:
+    # Senin sekitar 06.30 WIB (Minggu 23.30 UTC)
+    - cron: "30 23 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: quote-mingguan-paaxixi
+  cancel-in-progress: false
+
+jobs:
+  perbarui:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ambil kode
+        uses: actions/checkout@v4
+      - name: Siapkan Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Susun quote mingguan
+        run: python scripts/update_weekly_quote.py
+      - name: Simpan hasil jika berubah
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add quote-mingguan.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Perbarui quote mingguan Paaxixi"
+            git push
+          else
+            echo "Quote sudah mutakhir."
+          fi

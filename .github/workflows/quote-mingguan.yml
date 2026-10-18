@@ -24,6 +24,9 @@ jobs:
         with:
           python-version: "3.11"
       - name: Susun quote mingguan
+        env:
+          TIKTOK_ACCESS_TOKEN: ${{ secrets.TIKTOK_ACCESS_TOKEN }}
+          TIKTOK_ADVERTISER_ID: ${{ secrets.TIKTOK_ADVERTISER_ID }}
         run: python scripts/update_weekly_quote.py
       - name: Simpan hasil jika berubah
         run: |

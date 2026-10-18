@@ -59,6 +59,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 @media(max-width:520px){.category-symbol{width:29px;height:29px}.category-symbol.compact{width:23px;height:23px;font-size:14px}}
 
 /* Filter komposisi dan perbandingan historis -- seluruhnya presentasional. */
+.comp-dashboard-grid{align-items:start}
 .comp-header{display:flex;gap:10px;align-items:start;justify-content:space-between}
 .comp-filter-toggle{white-space:nowrap}
 .comp-controls{margin:0 0 18px;padding:15px;background:#f2f6fe;border:1px solid #dce8fb;border-radius:15px}
@@ -555,7 +556,7 @@ return `${welcomeBlock()}${all.length===0?`<div class="callout"><span>✦</span>
 <div class="grid kpis">
 ${metricCard('Pemasukan Bulan Ini',inc,'↑','green','Transaksi Pemasukan')}${metricCard('Pengeluaran Bulan Ini',exp,'↓','red','Transaksi Pengeluaran')}${metricCard('Sisa Anggaran',bt>0?bt-budgetUsed():0,'◴',bt>0&&bt-budgetUsed()<0?'red':'green',bt>0?`Dari Total ${money(bt)}`:'Belum Ada Anggaran')}${metricCard('Total Saldo Rekening',kas,'▤',kas<0?'red':'blue','Saldo Seluruh Rekening, Sepanjang Waktu')}
 </div>
-<div class="grid layout-2">${renderComposition()}
+<div class="grid layout-2 comp-dashboard-grid">${renderComposition()}
 <section class="card"><div class="card-head"><div><h3>Peringatan Anggaran</h3><p>Pos Yang Menipis Atau Sudah Melebihi Batas</p></div>${pill(alert.length?'warn':'ok',`${alert.length} Pos Perlu Perhatian`)}</div>${alert.length?`<div class="alert-list">${alert.slice(0,5).map(c=>{let st=status(c.id),left=effectiveBudget(c.id)-spentByCat(c.id);return `<div class="alert-item ${st.s==='danger'?'red-alert':''}"><span class="mini-num">${symbolBadge(c.label,c.group)}</span><div style="flex:1"><strong>${h(c.label)} — ${st.label}</strong><p>${left<0?'Melebihi '+money(-left):'Sisa Hanya '+money(left)} Dari ${money(effectiveBudget(c.id))}</p></div></div>`}).join('')}</div><button type="button" class="btn sm full" style="margin-top:16px" data-nav="budgets">Kelola / Alihkan Anggaran →</button>`:empty('✓','Tidak Ada Peringatan',bt?'Semua pos beranggaran masih aman.':'Atur anggaran per kategori agar peringatan dapat muncul.',`<button data-nav="budgets" class="btn sm">Atur anggaran</button>`)}</section></div>
 ${renderTrendPanel()}
 <div class="grid layout-2"><section class="card"><div class="card-head"><div><h3>Penggunaan Anggaran</h3><p>Pos Dengan Persentase Pemakaian Tertinggi</p></div><button data-nav="budgets" class="btn sm ghost">Lihat Semua ↗</button></div>${budgets.length?`<div class="budget-list">${budgets.slice(0,5).map(c=>budgetProgress(c)).join('')}</div>`:empty('◎','Anggaran Belum Disusun','Kamu dapat memberi batas pengeluaran tiap kategori untuk setiap bulan.')}</section>

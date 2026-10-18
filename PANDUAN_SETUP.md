@@ -63,16 +63,16 @@ Unggah **empat file ini** ke root repo GitHub: `index.html`, `cloud.js`, `fireba
 - Arsip laporan lama adalah *snapshot*, sehingga nama kelompok pada laporan yang sudah diarsipkan tetap merekam kondisi saat laporan dibuat.
 
 
-## Dashboard Analisis Dinamis (Kumulatif, Filter, dan Tren)
-- Buka **Dashboard → Komposisi Pengeluaran → ⚙ Atur Analisis**.
-- **Default** adalah akumulasi semua transaksi **pengeluaran pada bulan yang dipilih** di bagian atas website; pencatatan saldo, anggaran, dan laporan tidak berubah saat filter analisis diganti.
-- **Periode Pengeluaran**: Bulan Terpilih (default), Rentang Tanggal Bebas (inklusif), atau Semua Tanggal Tercatat. Ganti tanggal mulai dan akhir melalui date picker.
-- **Rincian Berdasarkan**: Kelompok Pengeluaran atau Pos/Kategori. Kelompok dan pos ditampilkan dengan nama serta ikon otomatis.
-- Buka **Kelompok** atau **Pos** untuk mencentang lebih dari satu kategori sekaligus, atau klik **Pilih Semua** dan **Reset Filter**. Penyaringan kelompok dan pos diterapkan bersama (irisan/AND).
-- Grafik donat dan insight terbesar/terkecil mengikuti tanggal dan pos yang terpilih. Persentase dihitung terhadap **pengeluaran yang lolos filter**, bukan keseluruhan bulan apabila filter aktif.
-- Di bawah grafik terdapat **Tren & Perbandingan Pengeluaran**. Pilih **Antarbulan** atau **Antartahun** untuk melihat grafik bertumpuk (*stacked bar*), ringkasan kenaikan/penurunan, kontribusi terbesar, tabel total per periode, serta matriks nominal tiap kelompok/pos berikut perubahan persentasenya.
-- Saat filter default bulan aktif, perbandingan menampilkan hingga **12 bulan terakhir** atau **6 tahun terakhir** relatif terhadap bulan terpilih. Saat memilih rentang tanggal/semua data, grafik membatasi hingga **24 bulan** atau **12 tahun terakhir** dalam cakupan; rentang dapat diubah untuk melihat periode lama.
-- Tanda `—` berarti **belum ada catatan pengeluaran** dalam filter itu; **bukan bukti pengeluaran sebenarnya nol**. Persentase naik/turun dihitung hanya jika dua periode berurutan sama-sama mencatat pengeluaran.
-- **Periode parsial** (bulan berjalan atau rentang tanggal yang tidak mencakup sebulan penuh) diberi catatan supaya tidak keliru dianggap sebagai perbandingan final.
-- Semua analisis dihitung di browser dari riwayat transaksi yang sama (sudah tersinkron lewat Firebase). Tidak ada request data transaksi ke pihak ketiga atau koleksi Firestore baru untuk grafik ini.
-- Perubahan nama atau kelompok kategori berlaku pada analisis historis berdasarkan klasifikasi **saat ini**. Arsip laporan yang sudah disimpan tetap merupakan snapshot terpisah.
+## Dashboard Analisis Dinamis (Kumulatif, Filter, dan Trendline)
+- Buka **Dashboard → Komposisi Pengeluaran → ⚙ Atur Analisis**. Defaultnya adalah akumulasi pengeluaran pada bulan di bagian atas website.
+- Filter ditata berurutan: **(1) Periode Pengeluaran → (2) Kelompok Pengeluaran → (3) Pos Pengeluaran → (4) Tampilan Komposisi**.
+- Kelompok dan pos mendukung **Pilih Semua** serta **Hapus Semua**. Daftar pos hanya berisi pos dari kelompok yang masih dipilih; saat kelompok diganti, pilihan pos diatur ulang menjadi semua pos yang terlihat.
+- Periode komposisi bisa berupa bulan terpilih, rentang tanggal bebas, atau seluruh tanggal yang tercatat. Persentase diagram donat dihitung dari transaksi yang masuk filter.
+- Bagian **Tren & Perbandingan Pengeluaran** menggunakan **grafik garis** dengan titik dan label nominal. Pilih jenis perbandingan **Antartanggal (Harian), Antarbulan (Bulanan), atau Antartahun (Tahunan)**. Setiap jenis memiliki input **Dari** dan **Sampai** sendiri.
+- Pengaturan rentang tren **independen** dari periode donat, namun tetap mengikuti pilihan kelompok/pos. Defaultnya 14 hari, 12 bulan, atau 5 tahun terakhir relatif terhadap bulan terpilih; tombol **Rentang Default** mengembalikan pengaturan tersebut.
+- Label nominal titik ditampilkan secara default; centang **Tampilkan Label Nominal Di Titik Grafik** bisa dimatikan untuk grafik lebih bersih. Untuk rentang panjang, label diberi jarak agar tidak bertumpuk. Arahkan kursor atau sentuh titik untuk melihat nominal lengkap.
+- Garis **Total Pengeluaran** menjadi garis utama. Garis tambahan menunjukkan kelompok/pos terbesar agar tren penyumbang utama terlihat. Laporan mencakup perubahan antarperiode, kontributor utama, dan indikasi lonjakan (>30% sekaligus minimum Rp50.000), kenaikan 3 periode berturut-turut, atau konsentrasi >=50%.
+- Tabel rincian angka **tidak ditampilkan terus-menerus**; buka **Lihat Rincian Angka Per Periode** jika perlu. Supaya performa HP tetap stabil, grafik dibatasi maksimum 60 hari, 36 bulan, atau 20 tahun terakhir dari rentang yang dipilih dan memberikan keterangan bila rentang dipangkas.
+- Periode tanpa transaksi tidak otomatis dianggap nol aktual; perbandingan persen hanya dibuat bila kedua periode punya transaksi dan periode pembanding positif. Periode berjalan ditandai belum lengkap.
+- Filter ini hanya memengaruhi analisis; transaksi, saldo, anggaran, arsip laporan, dan sinkronisasi Firestore tetap seperti sebelumnya. Perubahan nama/kelompok pos di masa depan akan tercermin pada pengelompokan riwayat analisis berdasarkan kategori saat ini.
+

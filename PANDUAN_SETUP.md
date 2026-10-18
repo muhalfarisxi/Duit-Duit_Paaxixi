@@ -61,3 +61,18 @@ Unggah **empat file ini** ke root repo GitHub: `index.html`, `cloud.js`, `fireba
 - Struktur `expenseGroups: [{id,name,color}]` disimpan bersama data keuangan di Firestore (`users/<uid>/arus/meta`) dan ikut diekspor ke cadangan JSON.
 - File cadangan dan data Firestore versi sebelumnya yang belum memiliki `expenseGroups` tetap didukung; kelompok asal akan dibuat otomatis tanpa menghapus data.
 - Arsip laporan lama adalah *snapshot*, sehingga nama kelompok pada laporan yang sudah diarsipkan tetap merekam kondisi saat laporan dibuat.
+
+
+## Dashboard Analisis Dinamis (Kumulatif, Filter, dan Tren)
+- Buka **Dashboard → Komposisi Pengeluaran → ⚙ Atur Analisis**.
+- **Default** adalah akumulasi semua transaksi **pengeluaran pada bulan yang dipilih** di bagian atas website; pencatatan saldo, anggaran, dan laporan tidak berubah saat filter analisis diganti.
+- **Periode Pengeluaran**: Bulan Terpilih (default), Rentang Tanggal Bebas (inklusif), atau Semua Tanggal Tercatat. Ganti tanggal mulai dan akhir melalui date picker.
+- **Rincian Berdasarkan**: Kelompok Pengeluaran atau Pos/Kategori. Kelompok dan pos ditampilkan dengan nama serta ikon otomatis.
+- Buka **Kelompok** atau **Pos** untuk mencentang lebih dari satu kategori sekaligus, atau klik **Pilih Semua** dan **Reset Filter**. Penyaringan kelompok dan pos diterapkan bersama (irisan/AND).
+- Grafik donat dan insight terbesar/terkecil mengikuti tanggal dan pos yang terpilih. Persentase dihitung terhadap **pengeluaran yang lolos filter**, bukan keseluruhan bulan apabila filter aktif.
+- Di bawah grafik terdapat **Tren & Perbandingan Pengeluaran**. Pilih **Antarbulan** atau **Antartahun** untuk melihat grafik bertumpuk (*stacked bar*), ringkasan kenaikan/penurunan, kontribusi terbesar, tabel total per periode, serta matriks nominal tiap kelompok/pos berikut perubahan persentasenya.
+- Saat filter default bulan aktif, perbandingan menampilkan hingga **12 bulan terakhir** atau **6 tahun terakhir** relatif terhadap bulan terpilih. Saat memilih rentang tanggal/semua data, grafik membatasi hingga **24 bulan** atau **12 tahun terakhir** dalam cakupan; rentang dapat diubah untuk melihat periode lama.
+- Tanda `—` berarti **belum ada catatan pengeluaran** dalam filter itu; **bukan bukti pengeluaran sebenarnya nol**. Persentase naik/turun dihitung hanya jika dua periode berurutan sama-sama mencatat pengeluaran.
+- **Periode parsial** (bulan berjalan atau rentang tanggal yang tidak mencakup sebulan penuh) diberi catatan supaya tidak keliru dianggap sebagai perbandingan final.
+- Semua analisis dihitung di browser dari riwayat transaksi yang sama (sudah tersinkron lewat Firebase). Tidak ada request data transaksi ke pihak ketiga atau koleksi Firestore baru untuk grafik ini.
+- Perubahan nama atau kelompok kategori berlaku pada analisis historis berdasarkan klasifikasi **saat ini**. Arsip laporan yang sudah disimpan tetap merupakan snapshot terpisah.

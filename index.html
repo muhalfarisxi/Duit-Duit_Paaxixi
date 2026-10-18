@@ -276,20 +276,20 @@ ${fields.length?fields.map(key=>{let ts=filtered.filter(t=>(ui.reviewMode==='dat
 
 function expenseGroupManager(){
  const group=expenseGroups().find(g=>g.id===ui.expenseGroupEditId);
- return \`<section class="card" id="expense-group-manager" style="margin-bottom:16px">
+ return `<section class="card" id="expense-group-manager" style="margin-bottom:16px">
  <div class="card-head"><div><h3>Kelola Kelompok Pengeluaran</h3><p>Tambah, Ubah Nama, Ganti Warna, Atau Hapus Kelompok Pengeluaran.</p></div><span class="card-icon">▦</span></div>
- <form id="expense-group-form"><input type="hidden" name="editId" value="\${h(group?.id||'')}">
-  <div class="form-grid"><div class="form-field"><label class="field-label">Nama Kelompok</label><input class="field" maxlength="45" name="name" placeholder="Misalnya: Tabungan & Investasi" value="\${h(group?.name||'')}" required></div>
-  <div class="form-field"><label class="field-label">Warna Kelompok</label><input class="field" type="color" name="color" value="\${h(group?.color||GROUP_COLORS[expenseGroups().length%GROUP_COLORS.length])}" aria-label="Pilih Warna Kelompok" style="min-height:44px;padding:5px"></div></div>
-  <div class="form-actions"><button class="btn primary" type="submit">\${group?'✓ Simpan Perubahan':'＋ Tambah Kelompok'}</button>\${group?'<button type="button" class="btn" data-action="cancel-expense-group">Batal Edit</button>':''}</div>
+ <form id="expense-group-form"><input type="hidden" name="editId" value="${h(group?.id||'')}">
+  <div class="form-grid"><div class="form-field"><label class="field-label">Nama Kelompok</label><input class="field" maxlength="45" name="name" placeholder="Misalnya: Tabungan & Investasi" value="${h(group?.name||'')}" required></div>
+  <div class="form-field"><label class="field-label">Warna Kelompok</label><input class="field" type="color" name="color" value="${h(group?.color||GROUP_COLORS[expenseGroups().length%GROUP_COLORS.length])}" aria-label="Pilih Warna Kelompok" style="min-height:44px;padding:5px"></div></div>
+  <div class="form-actions"><button class="btn primary" type="submit">${group?'✓ Simpan Perubahan':'＋ Tambah Kelompok'}</button>${group?'<button type="button" class="btn" data-action="cancel-expense-group">Batal Edit</button>':''}</div>
  </form>
- <div class="inline-cards" style="margin-top:18px">\${expenseGroups().map(g=>{
+ <div class="inline-cards" style="margin-top:18px">${expenseGroups().map(g=>{
    const count=expenses().filter(c=>c.group===g.name).length;
-   return \`<div class="inline-line"><div style="display:flex;align-items:center;gap:10px;min-width:0"><span class="dot" style="background:\${h(g.color)};height:14px;width:14px"></span><div style="min-width:0"><strong>\${h(g.name)}</strong><small>\${count} Pos Pengeluaran</small></div></div>
-   <div class="action-buttons"><button type="button" class="btn sm" data-edit-expense-group="\${h(g.id)}">Edit</button><button type="button" class="btn sm danger" data-delete-expense-group="\${h(g.id)}">Hapus</button></div></div>\`;
+   return `<div class="inline-line"><div style="display:flex;align-items:center;gap:10px;min-width:0"><span class="dot" style="background:${h(g.color)};height:14px;width:14px"></span><div style="min-width:0"><strong>${h(g.name)}</strong><small>${count} Pos Pengeluaran</small></div></div>
+   <div class="action-buttons"><button type="button" class="btn sm" data-edit-expense-group="${h(g.id)}">Edit</button><button type="button" class="btn sm danger" data-delete-expense-group="${h(g.id)}">Hapus</button></div></div>`;
   }).join('')}</div>
  <div class="tip" style="margin-top:14px">Mengganti nama kelompok otomatis memperbarui kelompok semua pos di dalamnya, tanpa menghapus transaksi dan anggaran. Pindahkan pos terlebih dahulu jika ingin menghapus kelompok.</div>
- </section>\`;
+ </section>`;
 }
 function budgetCategoryEditor(){
  const edit=cat(ui.budgetCategoryEditId),group=edit?.group||ui.budgetCategoryGroup;

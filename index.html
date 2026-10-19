@@ -419,6 +419,15 @@ body:has(.review-modal-backdrop){overflow:hidden}
 .review-income-visual .review-group-total.green{color:#168348}
 .review-income-visual .review-bar-numbers strong.green{color:#168348}
 @media(max-width:600px){.review-type-switch{gap:8px;margin:10px 0 16px}.review-type-button{padding:12px 7px;font-size:12px}}
+
+/* #029 Kalender: legend atas dan petunjuk klik yang mudah dilihat */
+.tx-calendar-section .tx-cal-legend{display:flex;align-items:center;flex-wrap:wrap;gap:8px 18px;margin:3px 0 11px}
+.tx-calendar-section .tx-cal-legend>.green,.tx-calendar-section .tx-cal-legend>.red{font-weight:850;font-size:14px}
+.tx-calendar-section .tx-cal-legend .tx-cal-summary-note{font-size:11px;font-weight:500}
+.tx-calendar-tip{display:flex;gap:9px;align-items:center;margin:0 0 17px;padding:10px 13px;border-radius:10px;border:1px solid #f4dfb0;background:#fff8eb;color:#915e0f;font-size:13px;line-height:1.5}
+.tx-calendar-tip strong{font-weight:750}
+.tx-calendar-tip-icon{display:grid;place-items:center;width:21px;height:21px;border-radius:50%;background:#ebac33;color:#fff;flex:none;font-size:13px;font-weight:900}
+@media(max-width:640px){.tx-calendar-section .tx-cal-legend{gap:5px 12px}.tx-calendar-section .tx-cal-legend>.green,.tx-calendar-section .tx-cal-legend>.red{font-size:12px}.tx-calendar-tip{font-size:12px;padding:9px 10px}}
 </style>
 </head>
 <body>
@@ -1159,12 +1168,17 @@ function renderTransactionCalendar(){
  }).join('');
  const totals=transactionDayTotals(transactions);
  return `<section class="card tx-calendar-section">
-  <div class="card-head"><div><h3>Kalender Transaksi · ${h(monthFmt(ui.month))}</h3><p>Hijau = Uang Masuk, Merah = Uang Keluar. Klik tanggal untuk melihat dan mengedit transaksi.</p></div>
+  <div class="card-head"><div><h3>Kalender Transaksi · ${h(monthFmt(ui.month))}</h3></div>
    <button type="button" class="btn sm" data-review-all>☷ Lihat Semua Transaksi</button>
   </div>
+  <div class="tx-cal-summary tx-cal-legend" aria-label="Ringkasan uang masuk dan uang keluar bulan ini">
+   <span class="green">↑ Masuk ${money(totals.income)}</span>
+   <span class="red">↓ Keluar ${money(totals.expense)}</span>
+   <span class="tx-cal-summary-note">Transfer antar rekening tidak masuk total.</span>
+  </div>
+  <p class="tx-calendar-tip"><span class="tx-calendar-tip-icon" aria-hidden="true">!</span><strong>Klik tanggal pada kalender untuk melihat rincian dan mengedit transaksi.</strong></p>
   <div class="review-cal-head">${labels.map(day=>`<span>${day}</span>`).join('')}</div>
   <div class="review-calendar tx-calendar-grid">${spacers}${cells}</div>
-  <div class="tx-cal-summary"><span class="green">↑ Masuk ${money(totals.income)}</span><span class="red">↓ Keluar ${money(totals.expense)}</span><span class="tx-cal-summary-note">Transfer antar rekening tidak masuk total.</span></div>
  </section>`;
 }
 function reviewChartCategories(){

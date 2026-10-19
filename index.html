@@ -348,7 +348,19 @@ const symbolBadge=(name,group='',small=false)=>`<span class="category-symbol${sm
 
 const selectAcc=(name,selected='',exclude='')=>`<select class="field" name="${h(name)}" required>${db.accounts.filter(a=>a.id!==exclude).map(a=>`<option value="${h(a.id)}" ${selected===a.id?'selected':''}>${h(a.name)}</option>`).join('')}</select>`;
 function toast(msg,bad=false){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(bad?' bad':'');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.className='toast',4000)}
-function labelNav(){const titles={dashboard:['Dashboard Keuangan','Ringkasan Utama Untuk Bulan Yang Dipilih.'],transactions:['Transaksi Harian','Tambah, Edit, Dan Hapus Pengeluaran, Pemasukan, Atau Transfer.'],review:['Tinjau Pengeluaran','Telusuri Rincian Berdasarkan Tanggal Ataupun Kategori.'],budgets:['Anggaran Bulanan','Tetapkan Batas Dan Alihkan Sisa Antar Pos.'],debts:['Utang & Piutang','Pantau Pinjaman Dan Pembayaran.'],reports:['Arsip Laporan','Simpan Snapshot Laporan Tiap Bulan, Cetak Atau Ekspor.'],accounts:['Rekening, Kategori & Sinkronisasi','Kelola Rekening, Kategori, Login Cloud, Dan Cadangan.']};const item=titles[ui.view];document.getElementById('page-title').textContent=item[0];document.getElementById('page-subtitle').textContent=item[1];document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
+// Weton untuk tanggal kalender WIB (Asia/Jakarta). Acuan: 19-10-2026 = Senin Wage.
+// Pasaran bersiklus 5 hari: Legi, Pahing, Pon, Wage, Kliwon.
+function tanggalWetonWIB(date=new Date()){
+ const parts=Object.fromEntries(new Intl.DateTimeFormat('id-ID',{
+  timeZone:'Asia/Jakarta',weekday:'long',day:'numeric',month:'long',year:'numeric'
+ }).formatToParts(date).filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));
+ const year=Number(parts.year),month=Number(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Jakarta',month:'numeric'}).format(date)),day=Number(parts.day);
+ const days=Math.round((Date.UTC(year,month-1,day)-Date.UTC(2026,9,19))/86400000);
+ const pasaran=['Legi','Pahing','Pon','Wage','Kliwon'];
+ const index=((3+days)%5+5)%5;
+ return parts.weekday+' '+pasaran[index]+', '+day+' '+parts.month+' '+year;
+}
+function labelNav(){const titles={dashboard:['Dashboard Keuangan','Ringkasan Utama Untuk Bulan Yang Dipilih.'],transactions:['Transaksi Harian','Tambah, Edit, Dan Hapus Pengeluaran, Pemasukan, Atau Transfer.'],review:['Tinjau Pengeluaran','Telusuri Rincian Berdasarkan Tanggal Ataupun Kategori.'],budgets:['Anggaran Bulanan','Tetapkan Batas Dan Alihkan Sisa Antar Pos.'],debts:['Utang & Piutang','Pantau Pinjaman Dan Pembayaran.'],reports:['Arsip Laporan','Simpan Snapshot Laporan Tiap Bulan, Cetak Atau Ekspor.'],accounts:['Rekening, Kategori & Sinkronisasi','Kelola Rekening, Kategori, Login Cloud, Dan Cadangan.']};const item=titles[ui.view];document.getElementById('page-title').textContent=item[0];document.getElementById('page-subtitle').textContent=ui.view==='dashboard'?tanggalWetonWIB():item[1];document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
 function render(){
  const prev=document.querySelector('.comp-popover');
  const oldKind=prev?.dataset?.compPopup,oldScroll=prev?.querySelector('.comp-popover-items')?.scrollTop||0;
@@ -1035,6 +1047,18 @@ if(x.id==='review-date'){ui.reviewDate=x.value;render()}if(x.id==='review-catego
 if(x.id==='tx-group'){let cs=(ui.txType==='expense'?expenses():incomes()).filter(c=>c.group===x.value);let sel=document.getElementById('tx-category');if(sel)sel.innerHTML=cs.map(c=>`<option value="${h(c.id)}">${pickSymbol(c.label,c.group)} ${h(c.label)}</option>`).join('')}
 if(x.id==='new-cat-kind'){let sel=document.getElementById('new-cat-group');sel.innerHTML=(x.value==='income'?['BPS','Fastlink','Lainnya']:expenseGroups().map(g=>g.name)).map(g=>`<option value="${h(g)}">${pickSymbol(g,g)} ${h(g)}</option>`).join('')}});
 document.getElementById('top-add').addEventListener('click',()=>{ui.txEditId=null;ui.txType='expense';setView('transactions')});document.getElementById('cloud-status').addEventListener('click',()=>setView('accounts'));document.getElementById('import-file').addEventListener('change',e=>importJSON(e.target.files?.[0]));render();document.querySelector('.welcome-modal-close')?.focus({preventScroll:true});void muatQuoteMingguan();
+// Tanggal dashboard mengikuti hari WIB meski tab dibiarkan terbuka sampai hari berikutnya.
+setInterval(()=>{
+ if(ui.view!=='dashboard')return;
+ const el=document.getElementById('page-subtitle'),updated=tanggalWetonWIB();
+ if(el&&el.textContent!==updated)el.textContent=updated;
+},60000);
+document.addEventListener('visibilitychange',()=>{
+ if(!document.hidden&&ui.view==='dashboard'){
+  const el=document.getElementById('page-subtitle');
+  if(el)el.textContent=tanggalWetonWIB();
+ }
+});
 
 })();
 </script>

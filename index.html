@@ -731,6 +731,76 @@ body:has(.review-modal-backdrop){overflow:hidden}
  .focus-card .metric.focus-value,.focus-card .focus-card-icon,
  .budget-alert-exclamation,.budget-alert-exclamation::after{animation:none!important}
 }
+
+/* #035 Dashboard: keempat KPI dapat dibuka dalam pop-up ringkas. */
+.kpi-detail-trigger{display:block;text-align:left;width:100%;cursor:pointer;font:inherit;color:var(--text);appearance:none;-webkit-appearance:none}
+.kpi-detail-trigger .row-between{display:flex}
+.kpi-detail-trigger .metric,.kpi-detail-trigger .metric-sub{display:block}
+.kpi-detail-trigger .metric{width:max-content;max-width:100%;text-align:left}
+.kpi-hint{display:inline-flex;align-items:center;gap:4px;margin-top:11px;font-size:10px;font-weight:650;color:#7390b7;opacity:.9}
+.kpi-hint span{transition:transform .2s}
+.kpi-detail-trigger:hover .kpi-hint span{transform:translate(2px,-2px)}
+.kpi-detail-trigger:hover{border-color:#9ebce8}
+.kpi-detail-trigger:focus-visible{outline:3px solid #377ce2;outline-offset:3px}
+.kpi-modal-content{background:#fff}
+.kpi-summary-box{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:14px 16px 18px;padding:14px 16px;border-radius:12px;background:#f1f6ff;color:#224773;font-size:13px;font-weight:650}
+.kpi-summary-box strong{font-size:17px;font-weight:900}
+.kpi-summary-income{background:#f1fbf5}
+.kpi-summary-expense{background:#fff3f5}
+.kpi-summary-budget{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.kpi-summary-budget span{display:flex;flex-direction:column;gap:6px;color:#6d809e;font-size:11px}
+.kpi-summary-budget b{font-size:15px;color:#173e72}
+.kpi-summary-budget span.green b{color:#1c8b65}
+.kpi-summary-budget span.red b{color:#cd4c57}
+.kpi-date-group summary{gap:10px}
+.kpi-date-group summary>strong{font-size:14px}
+.kpi-detail-note{margin:10px 17px 15px;font-size:11px;color:#7487a2;line-height:1.5}
+.kpi-detail-rows{margin:12px 16px;display:grid;gap:10px}
+.kpi-detail-row{padding:14px;border:1px solid #dfebfa;border-radius:13px;background:#fbfdff}
+.kpi-detail-row-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.kpi-detail-row-head .symbol-line{display:flex;align-items:center;gap:9px;min-width:0}
+.kpi-detail-row-head .symbol-line strong{font-size:13px}
+.kpi-detail-row-head .symbol-line small{display:block;color:#7e90aa;font-size:11px;margin-top:3px}
+.kpi-budget-cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0 10px}
+.kpi-budget-cols span{display:flex;flex-direction:column;gap:5px;font-size:11px;color:#7184a2}
+.kpi-budget-cols strong{color:#173e72;font-size:12px}
+.kpi-budget-cols strong.green{color:#16845b}
+.kpi-budget-cols strong.red{color:#c94857}
+.kpi-budget-track{height:7px;background:#e8f0fd;border-radius:7px;overflow:hidden}
+.kpi-budget-track>span{display:block;background:#3975d6;border-radius:7px;height:100%}
+.kpi-budget-track>span.over{background:#cc5966}
+.kpi-modal-actions{display:flex;justify-content:flex-end;margin:15px 17px 3px}
+.kpi-balance-intro{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;margin:14px 16px;background:#edf4ff;border-radius:12px;color:#284a78;font-size:13px}
+.kpi-balance-intro strong{font-size:18px}
+.kpi-account-detail{border:1px solid #dfe9f7;border-radius:13px;overflow:hidden;background:#fff}
+.kpi-account-detail summary{list-style:none;cursor:pointer;padding:13px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.kpi-account-detail summary::-webkit-details-marker{display:none}
+.kpi-account-detail summary:hover{background:#f5f9ff}
+.kpi-account-name{display:flex;align-items:center;gap:9px;min-width:0}
+.kpi-account-name strong{font-size:13px}
+.kpi-account-name small{display:block;font-size:11px;color:#8193aa;margin-top:2px}
+.kpi-account-symbol{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:#e9f2ff;color:#2563b9;font-size:17px}
+.kpi-account-balance{font-weight:850;font-size:13px;white-space:nowrap}
+.kpi-account-balance span{font-size:16px;color:#7895c0;margin-left:4px}
+.kpi-account-detail[open] .kpi-account-balance span{display:inline-block;transform:rotate(180deg)}
+.kpi-account-breakdown{display:grid;gap:8px;padding:11px 14px 14px;background:#f7faff;border-top:1px solid #e3ebf7}
+.kpi-account-breakdown>div{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;color:#667d9f}
+.kpi-account-breakdown strong{font-weight:800;color:#18385f}
+.kpi-account-breakdown strong.red{color:#c34a56}
+.kpi-account-breakdown strong.green{color:#168d58}
+.kpi-account-breakdown strong.blue{color:#2a61bc}
+.kpi-account-breakdown .kpi-account-final{border-top:1px solid #dfe8f5;padding-top:8px;font-weight:850}
+@media(max-width:640px){
+ .kpi-detail-trigger{padding:14px}
+ .kpi-hint{font-size:9px;margin-top:7px}
+ .kpi-summary-budget{grid-template-columns:1fr;gap:10px}
+ .kpi-summary-budget span{flex-direction:row;justify-content:space-between}
+ .kpi-budget-cols{gap:5px}
+ .kpi-budget-cols strong{font-size:11px}
+ .kpi-balance-intro strong{font-size:15px}
+ .kpi-account-balance{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){.kpi-detail-trigger .kpi-hint span{transition:none!important;transform:none!important}}
 </style>
 </head>
 <body>
@@ -1398,16 +1468,137 @@ ${renderTrendPanel()}
 <div class="grid layout-2"><section class="card"><div class="card-head"><div><h3>Penggunaan Anggaran</h3><p>Pos Dengan Persentase Pemakaian Tertinggi</p></div><button data-nav="budgets" class="btn sm ghost">Lihat Semua ↗</button></div>${budgets.length?`<div class="budget-list">${budgets.slice(0,5).map(c=>budgetProgress(c)).join('')}</div>`:empty('◎','Anggaran Belum Disusun','Kamu dapat memberi batas pengeluaran tiap kategori untuk setiap bulan.')}</section>
 <section class="card"><div class="card-head"><div><h3>Asal Pemasukan</h3><p>Sumber Pendapatan Bulan Berjalan</p></div></div>${bySource.length?bySource.slice(0,7).map(c=>`<div class="stat-pair"><span>${h(c.label)} <span style="color:#8a9bb3">• ${pct(c.amount,inc)}%</span></span><strong>${money(c.amount)}</strong></div>`).join(''):empty('↗','Belum Ada Pemasukan','Misalnya dividen Fastlink, gaji atau tukin BPS.')}
 <div class="linebreak"></div><div class="stat-pair"><span>Piutang Belum Kembali</span><strong class="green">${money(debt.receivable)}</strong></div><div class="stat-pair"><span>Utang Belum Dilunasi</span><strong class="red">${money(debt.payable)}</strong></div><button class="btn sm full" data-nav="debts">Lihat Utang & Piutang</button></section></div>
-<section class="card"><div class="card-head"><div><h3>Transaksi Terbaru</h3><p>Aktivitas Terakhir Pada ${h(monthFmt(ui.month))}</p></div><div class="action-buttons"><button class="btn sm ghost" data-nav="transactions">Semua Transaksi →</button><button class="btn sm" data-nav="reports">Arsip Bulan →</button></div></div>${all.length?all.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt?.localeCompare(a.createdAt||'')||0).slice(0,6).map(txRow).join(''):empty('⇄','Belum Ada Transaksi','Klik “Catat transaksi” untuk membuat catatan baru.')}</section>`}
+<section class="card"><div class="card-head"><div><h3>Transaksi Terbaru</h3><p>Aktivitas Terakhir Pada ${h(monthFmt(ui.month))}</p></div><div class="action-buttons"><button class="btn sm ghost" data-nav="transactions">Semua Transaksi →</button><button class="btn sm" data-nav="reports">Arsip Bulan →</button></div></div>${all.length?all.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt?.localeCompare(a.createdAt||'')||0).slice(0,6).map(txRow).join(''):empty('⇄','Belum Ada Transaksi','Klik “Catat transaksi” untuk membuat catatan baru.')}</section>${renderDashboardKpiPopup()}`}
+
+/* #035 Rincian interaktif kartu Dashboard; semuanya memakai sumber data yang sama. */
+function kpiDailyBreakdown(transactions,type){
+ const dates=[...new Set(transactions.map(t=>t.date))].sort().reverse();
+ return dates.map(date=>{
+  const selected=transactions.filter(t=>t.date===date).sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  const sum=selected.reduce((n,t)=>n+num(t.amount),0),income=type==='income';
+  return `<details class="review-block kpi-date-group" open>
+   <summary><span>${dateFmt(date)} <span class="review-meta">· ${selected.length} Transaksi</span></span>
+    <strong class="${income?'green':'red'}">${income?'+':'−'}${money(sum)}</strong></summary>
+   ${selected.map(transactionCalendarItem).join('')}
+  </details>`;
+ }).join('');
+}
+function kpiBudgetBreakdown(){
+ const budgeted=expenses().filter(c=>hasBudget(c.id)).map(c=>{
+  const amount=effectiveBudget(c.id),used=spentByCat(c.id),remaining=amount-used;
+  return {c,amount,used,remaining,st:status(c.id)};
+ }).sort((a,b)=>a.remaining-b.remaining||a.c.label.localeCompare(b.c.label,'id'));
+ const total=budgetTotal(),used=budgetUsed(),remaining=total>0?total-used:0;
+ const overview=`<div class="kpi-summary-box kpi-summary-budget">
+  <span>Total Anggaran <b>${money(total)}</b></span>
+  <span>Sudah Terpakai <b>${money(used)}</b></span>
+  <span class="${remaining<0?'red':'green'}">Sisa Anggaran <b>${money(remaining)}</b></span>
+ </div>`;
+ if(!budgeted.length)return overview+'<div class="review-modal-empty">Belum Ada Pos Dengan Anggaran Bulan Ini.</div>';
+ const details=budgeted.map(row=>{
+  const percent=row.amount>0?Math.max(0,Math.min(100,100*row.used/row.amount)):100;
+  return `<div class="kpi-detail-row">
+   <div class="kpi-detail-row-head"><div class="symbol-line">${symbolBadge(row.c.label,row.c.group,true)}<span><strong>${h(row.c.label)}</strong><small>${h(row.c.group)}</small></span></div>
+    ${pill(row.st.s,row.st.label)}</div>
+   <div class="kpi-budget-cols">
+    <span>Anggaran <strong>${money(row.amount)}</strong></span>
+    <span>Terpakai <strong>${money(row.used)}</strong></span>
+    <span>Sisa <strong class="${row.remaining<0?'red':'green'}">${money(row.remaining)}</strong></span>
+   </div>
+   <div class="kpi-budget-track"><span class="${row.remaining<0?'over':''}" style="width:${percent.toFixed(2)}%"></span></div>
+  </div>`;
+ }).join('');
+ return overview+'<p class="kpi-detail-note">Hanya pos yang memiliki anggaran yang masuk perhitungan Sisa Anggaran. Pengeluaran tanpa anggaran tetap tercatat di laporan pengeluaran.</p>'
+  +'<div class="kpi-detail-rows">'+details+'</div><div class="kpi-modal-actions"><button type="button" class="btn sm" data-nav="budgets">Kelola / Alihkan Anggaran →</button></div>';
+}
+function kpiBalanceBreakdown(){
+ const current=balances();
+ const accounts=[...db.accounts.map(a=>({id:a.id,name:a.name,type:a.type,opening:num(a.opening)}))];
+ for(const id of Object.keys(current))if(!accounts.some(a=>a.id===id))accounts.push({id,name:'Rekening Tidak Dikenal',type:'Referensi Lama',opening:0});
+ const details=accounts.map(a=>{
+  const tx=db.transactions.reduce((tot,t)=>{
+   const amt=num(t.amount);
+   if(t.type==='income'&&t.accountId===a.id)tot.inc+=amt;
+   if(t.type==='expense'&&t.accountId===a.id)tot.exp+=amt;
+   if(t.type==='transfer'&&t.accountId===a.id)tot.out+=amt;
+   if(t.type==='transfer'&&t.toAccountId===a.id)tot.ins+=amt;
+   return tot;
+  },{inc:0,exp:0,ins:0,out:0});
+  const debtEffect=db.debts.reduce((n,d)=>{
+   const sign=d.type==='receivable'?-1:1;
+   let v=n+(d.accountId===a.id?sign*num(d.amount):0);
+   for(const settlement of d.settlements||[])if(settlement.accountId===a.id)v-=sign*num(settlement.amount);
+   return v;
+  },0);
+  return {...a,...tx,debtEffect,balance:num(current[a.id])};
+ }).sort((a,b)=>b.balance-a.balance||a.name.localeCompare(b.name,'id'));
+ const total=Object.values(current).reduce((n,v)=>n+num(v),0);
+ if(!details.length)return '<div class="review-modal-empty">Belum Ada Rekening Yang Dicatat.</div>';
+ return `<div class="kpi-balance-intro"><span>Total Semua Rekening</span><strong class="${total<0?'red':'blue'}">${money(total)}</strong></div>
+ <div class="kpi-detail-rows">${details.map(row=>`<details class="kpi-account-detail">
+   <summary><span class="kpi-account-name"><span class="kpi-account-symbol">▤</span><span><strong>${h(row.name)}</strong><small>${h(row.type||'Rekening')}</small></span></span>
+    <span class="kpi-account-balance ${row.balance<0?'red':'blue'}">${money(row.balance)} <span aria-hidden="true">⌄</span></span></summary>
+   <div class="kpi-account-breakdown">
+    <div><span>Saldo Awal</span><strong>${money(row.opening)}</strong></div>
+    <div><span>Pemasukan</span><strong class="green">+${money(row.inc)}</strong></div>
+    <div><span>Pengeluaran</span><strong class="red">−${money(row.exp)}</strong></div>
+    <div><span>Transfer Masuk</span><strong class="green">+${money(row.ins)}</strong></div>
+    <div><span>Transfer Keluar</span><strong class="red">−${money(row.out)}</strong></div>
+    <div><span>Pergerakan Utang/Piutang</span><strong class="${row.debtEffect<0?'red':'blue'}">${row.debtEffect>=0?'+':'−'}${money(Math.abs(row.debtEffect))}</strong></div>
+    <div class="kpi-account-final"><span>Saldo Akhir</span><strong class="${row.balance<0?'red':'blue'}">${money(row.balance)}</strong></div>
+   </div></details>`).join('')}</div>
+  <p class="kpi-detail-note">Saldo seluruh waktu dihitung dari saldo awal, pemasukan, pengeluaran, transfer antar rekening, serta pencairan dan pelunasan utang/piutang. Ganti bulan tidak mengubah total ini.</p>
+  <div class="kpi-modal-actions"><button type="button" class="btn sm" data-nav="accounts">Kelola Rekening →</button></div>`;
+}
+function renderDashboardKpiPopup(){
+ const popup=ui.reviewPopup;if(ui.view!=='dashboard'||popup?.type!=='dashboard-kpi')return '';
+ const key=popup.key;
+ let title='',description='',content='';
+ if(key==='income'||key==='expense'){
+  const name=key==='income'?'Pemasukan':'Pengeluaran',income=key==='income';
+  const tx=monthly().filter(t=>t.type===key).sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
+  title='Rincian '+name+' · '+monthFmt(ui.month);
+  const total=tx.reduce((n,t)=>n+num(t.amount),0);
+  description=tx.length+' Transaksi · '+money(total);
+  content=`<div class="kpi-summary-box ${income?'kpi-summary-income':'kpi-summary-expense'}">
+   <span>Total ${name}</span><strong class="${income?'green':'red'}">${money(total)}</strong></div>`
+    +(tx.length?kpiDailyBreakdown(tx,key):'<div class="review-modal-empty">Belum Ada Transaksi '+name+' Di Bulan Ini.</div>');
+ }else if(key==='budget'){
+  title='Rincian Sisa Anggaran · '+monthFmt(ui.month);
+  description='Anggaran, Pemakaian, Dan Sisa Per Pos';
+  content=kpiBudgetBreakdown();
+ }else if(key==='balance'){
+  title='Rincian Total Saldo Rekening';
+  description='Saldo Semua Rekening · Sepanjang Waktu';
+  content=kpiBalanceBreakdown();
+ }else return '';
+ return `<div class="review-modal-backdrop kpi-modal-backdrop" id="review-modal-backdrop">
+  <div class="review-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="review-modal-title" aria-describedby="review-modal-subtitle">
+   <div class="review-modal-top"><div><h3 id="review-modal-title">${h(title)}</h3><p id="review-modal-subtitle">${h(description)}</p></div>
+    <button type="button" class="review-modal-close" data-review-close aria-label="Tutup Rincian">✕</button></div>
+   <div class="review-modal-content kpi-modal-content">${content}</div>
+  </div></div>`;
+}
 function metricCard(label,value,icon,color,sub){
  const flow=label==='Pemasukan Bulan Ini'?'income':label==='Pengeluaran Bulan Ini'?'expense':'';
  const focus=label==='Sisa Anggaran'?'budget':label==='Total Saldo Rekening'?'balance':'';
  const focusClass=focus?'focus-card focus-card-'+focus+(color==='red'?' is-negative':''):'';
- const highlighted=flow||focus;
- return `<section class="card ${flow?'cashflow-card cashflow-card-'+flow:''} ${focusClass}">
-  <div class="row-between"><div class="metric-label">${label}</div><span class="card-icon ${focus?'focus-card-icon':''}" style="width:31px;height:31px">${icon}</span></div>
-  <div class="metric ${color} ${flow?'cashflow-number cashflow-number-'+flow:''} ${focus?'focus-value focus-value-'+focus:''}">${money(value)}</div>
-  <div class="metric-sub">${sub}</div></section>`;
+ const cls='card '+(flow?'cashflow-card cashflow-card-'+flow:'')+' '+focusClass;
+ const amountClass='metric '+color+' '+(flow?'cashflow-number cashflow-number-'+flow:'')+' '+(focus?'focus-value focus-value-'+focus:'');
+ if(flow||focus){
+  const key=flow||focus;
+  return `<button type="button" class="${cls} kpi-detail-trigger" data-dashboard-kpi="${key}"
+    aria-haspopup="dialog" aria-label="Lihat rincian ${h(label)}: ${money(value)}">
+   <span class="row-between"><span class="metric-label">${label}</span><span class="card-icon ${focus?'focus-card-icon':''}" style="width:31px;height:31px">${icon}</span></span>
+   <span class="${amountClass}">${money(value)}</span>
+   <span class="metric-sub">${sub}</span>
+   <span class="kpi-hint" aria-hidden="true">Klik untuk melihat rincian <span>↗</span></span>
+  </button>`;
+ }
+ return `<section class="${cls}">
+  <div class="row-between"><div class="metric-label">${label}</div><span class="card-icon" style="width:31px;height:31px">${icon}</span></div>
+  <div class="${amountClass}">${money(value)}</div><div class="metric-sub">${sub}</div>
+ </section>`;
 }
 function budgetProgress(c){let b=effectiveBudget(c.id),spent=spentByCat(c.id),st=status(c.id);return `<div><div class="progress-head"><div class="symbol-line">${symbolBadge(c.label,c.group,true)}<div class="symbol-text"><strong>${h(c.label)}</strong><div class="tiny">${money(spent)} / ${money(b)}</div></div></div>${pill(st.s,st.label)}</div><div class="track ${st.s==='danger'?'danger':st.s==='warn'?'warn':''}"><div style="width:${Math.max(0,Math.min(100,pct(spent,Math.max(b,1))))}%"></div></div></div>`}
 function txRow(t){let detail=t.type==='transfer'?`${acc(t.accountId)?.name||'Rekening dihapus'} → ${acc(t.toAccountId)?.name||'Rekening dihapus'}`:`${cat(t.categoryId)?.label||'Kategori dihapus'} · ${acc(t.accountId)?.name||'Rekening dihapus'}`;return `<div class="list-item"><div><div class="list-title">${t.type==='transfer'?'🔁':pickSymbol(cat(t.categoryId)?.label,cat(t.categoryId)?.group)} ${h(t.title|| (t.type==='transfer'?'Transfer antar rekening':cat(t.categoryId)?.label||'Transaksi'))}</div><div class="list-sub">${dateFmt(t.date)} · ${h(detail)}</div></div><div class="amount ${t.type==='expense'?'red':t.type==='income'?'green':'blue'}">${t.type==='expense'?'−':t.type==='income'?'+':'⇄ '}${money(t.amount)}</div></div>`}
@@ -1641,9 +1832,11 @@ function renderReviewPopup(){
 }
 function dismissReviewPopup(){
  if(!ui.reviewPopup)return;
+ const previous=ui.reviewPopup;
  ui.reviewPopup=null;
  render();
- document.querySelector('[data-review-day], [data-review-select], [data-review-all]')?.focus({preventScroll:true});
+ if(previous.type==='dashboard-kpi')document.querySelector('[data-dashboard-kpi="'+previous.key+'"]')?.focus({preventScroll:true});
+ else document.querySelector('[data-review-day], [data-review-select], [data-review-all]')?.focus({preventScroll:true});
 }
 function renderReview(){
  const kind=ui.reviewType==='income'?'Pemasukan':'Pengeluaran';
@@ -1935,6 +2128,11 @@ if(x.dataset.compAction){
  if(cmd==='clear-categories'){ui.comp.categories=[];}
  if(cmd==='trend-default'){ui.comp.trendFrom='';ui.comp.trendTo='';}
  render();return;
+}
+if(x.dataset.dashboardKpi){
+ if(!['income','expense','budget','balance'].includes(x.dataset.dashboardKpi))return;
+ ui.reviewPopup={type:'dashboard-kpi',key:x.dataset.dashboardKpi};
+ render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});return;
 }
 if(x.dataset.nav){setView(x.dataset.nav);return}if(x.dataset.txtype){ui.txType=x.dataset.txtype;render();return}
 if(x.dataset.reviewType){

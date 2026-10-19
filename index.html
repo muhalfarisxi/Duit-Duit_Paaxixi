@@ -446,12 +446,114 @@ body:has(.review-modal-backdrop){overflow:hidden}
  .tx-cal-pasaran{font-size:8px;font-weight:600}
  .tx-cal-date-head{flex-wrap:wrap;gap:1px 4px}
 }
+
+/* #032 Logo doodle animasi: stiker Rp, efek tulisan tangan, per-huruf hopping. */
+.paaxixi-doodle{
+  position:relative;isolation:isolate;
+  font-family:"Comic Sans MS","Segoe Print","Trebuchet MS",system-ui,cursive;
+  font-weight:900;text-transform:none;letter-spacing:0;
+}
+.paaxixi-word{display:inline-flex;align-items:center;white-space:nowrap;line-height:1.22}
+.paaxixi-letter{
+  display:inline-block;position:relative;transform-origin:center 82%;
+  transform:rotate(var(--paaxixi-angle,0deg));
+  animation:paaxixi-letter-dance var(--paaxixi-duration,8s) ease-in-out var(--paaxixi-delay,0s) infinite;
+  will-change:transform;
+}
+.paaxixi-doodle-sidebar{
+  display:inline-flex;flex-direction:column;align-items:flex-start;justify-content:center;
+  width:max-content;max-width:145px;min-width:0;gap:0;padding:3px 9px 3px 1px;
+  overflow:visible;
+}
+.paaxixi-doodle-sidebar .paaxixi-main-word{
+  color:#fff;font-size:17px;font-weight:950;letter-spacing:-.7px;
+  text-shadow:-1px 1px 0 #2f5b99,1px 2px 0 #17365e,2px 3px 0 #071e3b;
+  -webkit-text-stroke:.25px #c8e1ff;
+}
+.paaxixi-doodle-sidebar .paaxixi-sub-word{
+  margin-top:0;color:#addbff;font-size:15px;letter-spacing:.05px;
+  text-shadow:1px 2px 0 #061d3d;
+  text-decoration:underline;text-decoration-style:wavy;text-decoration-color:#ffd66a;
+  text-decoration-thickness:1px;text-underline-offset:3px;
+}
+.paaxixi-flying-money{
+  position:absolute;right:-11px;top:-13px;font-size:17px;line-height:1;
+  animation:paaxixi-money-float 8.2s ease-in-out -1.8s infinite;
+  pointer-events:none;
+}
+.paaxixi-side-star{
+  position:absolute;right:-13px;bottom:-7px;color:#ffd86e;font-size:15px;
+  text-shadow:0 1px 1px #102a4e;
+  animation:paaxixi-spark 6.6s ease-in-out -2s infinite;pointer-events:none;
+}
+.paaxixi-doodle-kicker{
+  display:inline-flex;flex-wrap:nowrap;align-items:center;gap:7px;
+  width:max-content;max-width:100%;padding:5px 10px 5px 6px;margin:1px 0 5px;
+  color:#2356a0!important;background:#e8f3ff;border:1.5px solid #b9d6ff;
+  border-radius:12px 10px 13px 10px;box-shadow:2px 3px 0 #cee3ff;
+  transform:rotate(-.65deg);
+}
+.paaxixi-doodle-kicker .paaxixi-word{
+  font-size:13px;letter-spacing:-.5px;text-transform:none;
+  text-shadow:1px 1px 0 #fff,-1px 0 0 #d9eaff;
+}
+.paaxixi-doodle-kicker .paaxixi-word:nth-of-type(3){color:#8061be}
+.paaxixi-coin{
+  display:grid;place-items:center;flex:none;width:24px;height:24px;
+  border:1.5px dashed #fef0a7;border-radius:50%;
+  color:#65410a;font:900 11px/1 "Trebuchet MS",system-ui,sans-serif;
+  background:linear-gradient(145deg,#fff1a0,#f9bd50);
+  box-shadow:1px 2px 0 #d9a33e;
+  animation:paaxixi-coin-flip 9.4s ease-in-out -2s infinite;
+}
+.paaxixi-kicker-spark{
+  flex:none;color:#e6ac2e;font-size:17px;line-height:1;
+  animation:paaxixi-spark 5.7s ease-in-out -2.8s infinite;
+}
+@keyframes paaxixi-letter-dance{
+  0%,67%,100%{transform:translateY(0) rotate(var(--paaxixi-angle,0deg)) scale(1)}
+  71%{transform:translateY(-3px) rotate(calc(var(--paaxixi-angle,0deg) - 6deg)) scale(1.09)}
+  75%{transform:translateY(0) rotate(calc(var(--paaxixi-angle,0deg) + 4deg)) scale(.98)}
+  79%{transform:translateY(-1px) rotate(var(--paaxixi-angle,0deg)) scale(1.01)}
+  83%{transform:translateY(0) rotate(var(--paaxixi-angle,0deg)) scale(1)}
+}
+@keyframes paaxixi-coin-flip{
+  0%,72%,100%{transform:rotate(8deg) scale(1)}
+  79%{transform:rotate(368deg) scale(1.08)}
+  84%{transform:rotate(368deg) scale(1)}
+}
+@keyframes paaxixi-money-float{
+  0%,68%,100%{transform:translate(0,0) rotate(-10deg)}
+  77%{transform:translate(2px,-5px) rotate(13deg)}
+  84%{transform:translate(-1px,-2px) rotate(-7deg)}
+}
+@keyframes paaxixi-spark{
+  0%,68%,100%{opacity:.7;transform:scale(.8) rotate(0)}
+  74%{opacity:1;transform:scale(1.3) rotate(35deg)}
+  81%{opacity:.8;transform:scale(.88) rotate(7deg)}
+}
+@media(max-width:520px){
+  .paaxixi-doodle-kicker{gap:5px;padding:4px 7px 4px 5px;margin-bottom:6px}
+  .paaxixi-doodle-kicker .paaxixi-word{font-size:11.5px}
+  .paaxixi-coin{width:21px;height:21px;font-size:10px}
+  .paaxixi-kicker-spark{font-size:14px}
+}
+@media(prefers-reduced-motion:reduce){
+  .paaxixi-doodle .paaxixi-letter,.paaxixi-flying-money,.paaxixi-side-star,
+  .paaxixi-coin,.paaxixi-kicker-spark{animation:none!important;transform:none!important;will-change:auto}
+}
 </style>
 </head>
 <body>
 <div class="app">
 <aside class="sidebar">
-  <div class="brand"><img class="brandmark brand-avatar" src="./favicon-paaxixi.png?v=2" width="43" height="43" alt="Maskot Duit-Duit Paaxixi" loading="eager"><span class="brand-text">Duit-Duit<small>Paaxixi</small></span></div>
+  <div class="brand"><img class="brandmark brand-avatar" src="./favicon-paaxixi.png?v=2" width="43" height="43" alt="Maskot Duit-Duit Paaxixi" loading="eager">
+    <span class="brand-text paaxixi-doodle paaxixi-doodle-sidebar" role="img" aria-label="Duit-Duit Paaxixi">
+      <span class="paaxixi-word paaxixi-main-word" data-paaxixi-letters>Duit-Duit</span>
+      <span class="paaxixi-word paaxixi-sub-word" data-paaxixi-letters>Paaxixi</span>
+      <span class="paaxixi-flying-money" aria-hidden="true">💸</span>
+      <span class="paaxixi-side-star" aria-hidden="true">✦</span>
+    </span></div>
   <div class="s-label">MENU UTAMA</div><nav class="nav" id="side-nav">
   <button type="button" data-nav="dashboard"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg></span> Dashboard</button>
   <button type="button" data-nav="transactions"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 4-4 4 4 4M4 8h16M16 20l4-4-4-4M20 16H4"/></svg></span> Transaksi Harian</button>
@@ -463,7 +565,12 @@ body:has(.review-modal-backdrop){overflow:hidden}
   <div class="sidebar-bottom"><strong>Paaxixi Cloud</strong><p>Sinkronisasi online setelah login Firebase. Backup data tetap disarankan.</p></div>
 </aside>
 <main class="main">
-  <header class="topbar"><div><div class="page-eyebrow">DUIT-DUIT PAAXIXI</div><h1 class="page-title" id="page-title">Dashboard Keuangan</h1><div class="tiny" id="page-subtitle">Pantau arus uangmu dalam satu tempat.</div></div><div class="top-controls"><button class="cloud-state" id="cloud-status" type="button" title="Status sinkronisasi">◯ Mode lokal</button><label class="month-pill">▦ <input id="month-input" type="month" aria-label="Pilih bulan laporan"></label><button class="btn primary" type="button" id="top-add">＋ Catat transaksi</button></div></header>
+  <header class="topbar"><div><div class="page-eyebrow paaxixi-doodle paaxixi-doodle-kicker" role="img" aria-label="Duit-Duit Paaxixi">
+      <span class="paaxixi-coin" aria-hidden="true">Rp</span>
+      <span class="paaxixi-word" data-paaxixi-letters>Duit-Duit</span>
+      <span class="paaxixi-word" data-paaxixi-letters>Paaxixi</span>
+      <span class="paaxixi-kicker-spark" aria-hidden="true">✦</span>
+    </div><h1 class="page-title" id="page-title">Dashboard Keuangan</h1><div class="tiny" id="page-subtitle">Pantau arus uangmu dalam satu tempat.</div></div><div class="top-controls"><button class="cloud-state" id="cloud-status" type="button" title="Status sinkronisasi">◯ Mode lokal</button><label class="month-pill">▦ <input id="month-input" type="month" aria-label="Pilih bulan laporan"></label><button class="btn primary" type="button" id="top-add">＋ Catat transaksi</button></div></header>
   <div class="content" id="content"></div>
   <div class="footer-note">Duit-Duit Paaxixi • Keuangan pribadi • Arsip bulanan & cadangan JSON • Aktifkan Firebase untuk sinkronisasi HP/laptop</div>
 </main>
@@ -1772,6 +1879,28 @@ document.addEventListener('visibilitychange',()=>{
  }
 });
 
+})();
+</script>
+<script>
+/* Brand doodle: bagi teks menjadi huruf yang menari dengan waktu berbeda.
+   Tidak mengubah data transaksi, Firebase, atau menu. */
+(()=>{
+ const tilt=[-4,2,-2,4,-1,3,-3,1,4,-2];
+ document.querySelectorAll('[data-paaxixi-letters]').forEach((word,wordIndex)=>{
+  const original=word.textContent||'';
+  const fragment=document.createDocumentFragment();
+  Array.from(original).forEach((char,i)=>{
+   const letter=document.createElement('span');
+   letter.className='paaxixi-letter';
+   letter.textContent=char;
+   const seed=i+wordIndex*13;
+   letter.style.setProperty('--paaxixi-angle',tilt[seed%tilt.length]+'deg');
+   letter.style.setProperty('--paaxixi-duration',(7.4+(seed%7)*.55)+'s');
+   letter.style.setProperty('--paaxixi-delay',(-.33*(seed%17)-.9)+'s');
+   fragment.appendChild(letter);
+  });
+  word.replaceChildren(fragment);
+ });
 })();
 </script>
 <script src="firebase-config.js"></script>

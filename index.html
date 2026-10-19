@@ -1051,126 +1051,187 @@ body:has(.review-modal-backdrop){overflow:hidden}
  .welcome-modal-backdrop,.welcome-modal,.welcome-greeting-weather{animation:none!important}
 }
 
-/* #039 Popup sambutan transparan, dengan sorotan teks yang tetap terbaca. */
-/* Dashboard tetap terlihat; tidak ada kotak biru atau lapisan gelap/blur layar. */
+/* #040 Pop-up sambutan: hanya teks berkaca, logo jatuh dan memantul. */
+/* Dashboard tetap terlihat; tanpa kartu biru besar dan tanpa tabrakan teks dengan KPI. */
 .welcome-modal-backdrop{
- background:transparent;
- backdrop-filter:none;-webkit-backdrop-filter:none;
+ background:rgba(255,255,255,.035);
+ backdrop-filter:blur(1.5px);-webkit-backdrop-filter:blur(1.5px);
 }
 .welcome-modal{
- width:min(850px,100%);
- background:transparent;border:0;border-radius:0;
- box-shadow:none;overflow:visible;isolation:isolate;
+ width:min(820px,100%);margin:auto;overflow:visible;
+ background:transparent;border:0;border-radius:0;box-shadow:none;
+ isolation:isolate;
 }
 .welcome-modal .welcome-panel.welcome-panel-animated{
+ position:relative;display:flex;flex-direction:column;align-items:center;
+ justify-content:center;gap:16px;min-height:0;
+ padding:28px 48px 36px;
  background:transparent;border:0;border-radius:0;box-shadow:none;
- color:#102a4e;padding:27px 42px 36px;
+ color:#102a4e;text-align:center;
 }
-.welcome-modal .welcome-copy{position:relative}
-.welcome-modal .welcome-eyebrow{
- color:#245187;font-weight:900;letter-spacing:1.25px;
- text-shadow:0 1px 0 #fff,0 0 13px #fff,0 3px 12px rgba(255,255,255,.9);
- animation:paaxixi-date-reveal .65s ease-out .32s both;
+/* Logo jatuh dari atas dengan dua pantulan mengecil lalu bergerak pelan. */
+.welcome-modal .welcome-mascot-scene{
+ position:relative;flex:none;width:170px;height:148px;
+ display:grid;place-items:end center;isolation:isolate;
 }
-.welcome-modal .welcome-copy h2{
- position:relative;isolation:isolate;
- color:#102b50;font-weight:900;letter-spacing:-.8px;
- -webkit-text-stroke:.25px rgba(255,255,255,.65);
- text-shadow:0 2px 0 rgba(255,255,255,.98),
-  0 0 15px rgba(255,255,255,.98),
-  0 6px 23px rgba(15,48,95,.19);
- animation:paaxixi-title-reveal .75s cubic-bezier(.19,.86,.28,1.2) .42s both,
-  paaxixi-title-focus 5.6s ease-in-out 1.45s infinite;
+.welcome-modal .welcome-mascot-enter{
+ position:relative;z-index:2;display:block;
+ animation:paaxixi-logo-drop-bounce 1.65s cubic-bezier(.2,.72,.24,1) both;
+ will-change:transform,opacity;
 }
-.welcome-modal .welcome-copy h2::after{
- content:"";position:absolute;bottom:-11px;left:50%;z-index:-1;
- width:min(220px,55%);height:4px;border-radius:999px;
- background:linear-gradient(90deg,transparent,#4e93ee 28%,#1756ad 50%,#4e93ee 72%,transparent);
- transform:translateX(-50%);pointer-events:none;
- box-shadow:0 0 14px rgba(63,133,234,.38);
- animation:paaxixi-underline-breathe 4s ease-in-out 1.2s infinite;
-}
-.welcome-modal .welcome-quote{
- max-width:740px;margin:13px auto 0;padding:0;
- background:transparent;border:0;
- color:#173759;font-weight:750;line-height:1.75;
- text-shadow:0 1px 0 #fff,0 0 11px rgba(255,255,255,.98),
-  0 2px 19px rgba(255,255,255,.88);
- animation:paaxixi-quote-reveal .8s ease-out .56s both;
+.welcome-modal .welcome-mascot-bob{
+ display:block;transform-origin:center bottom;
+ animation:paaxixi-logo-idle-bounce 3.6s ease-in-out 1.65s infinite;
 }
 .welcome-modal .welcome-avatar{
- box-shadow:0 12px 28px rgba(12,43,91,.18),
-  0 0 0 5px rgba(255,255,255,.28);
+ display:block;width:120px;height:120px;object-fit:contain;
+ padding:5px;background:#fff;border:4px solid #fff;border-radius:26px;
+ box-shadow:0 13px 30px rgba(15,44,87,.22),0 0 0 5px rgba(255,255,255,.3);
 }
-.welcome-scene-spark{
- color:#e5a73e;
- text-shadow:0 0 8px #fff,0 0 12px rgba(255,193,86,.5);
+.welcome-modal .welcome-mascot-wave{animation-delay:1.62s}
+.welcome-modal .welcome-scene-spark{color:#dfa640;text-shadow:0 0 9px #fff,0 0 12px #ffcf80}
+/* Setiap unsur teks memiliki alas kaca sendiri, bukan kotak besar memenuhi layar. */
+.welcome-modal .welcome-copy{
+ position:relative;width:100%;max-width:740px;min-width:0;flex:unset;
+ display:flex;flex-direction:column;align-items:center;gap:12px;
+ animation:paaxixi-welcome-copy-in .65s ease-out .32s both;
+}
+.welcome-modal .welcome-eyebrow{
+ display:inline-block;max-width:100%;margin:0;padding:9px 15px;
+ border-radius:999px;
+ background:rgba(255,255,255,.94);
+ border:1px solid rgba(176,201,234,.78);
+ box-shadow:0 6px 19px rgba(13,48,95,.12);
+ color:#214a80;font-size:clamp(10px,1.65vw,12px);font-weight:900;
+ letter-spacing:1.05px;line-height:1.45;
+ text-shadow:none;
+ animation:paaxixi-date-reveal .68s ease-out .4s both;
+}
+.welcome-modal .welcome-copy h2{
+ position:relative;isolation:isolate;display:flex;
+ justify-content:center;align-items:center;flex-wrap:wrap;
+ gap:8px;max-width:100%;margin:0;padding:13px 22px;
+ border-radius:19px;background:rgba(255,255,255,.95);
+ border:1px solid rgba(173,202,239,.82);
+ box-shadow:0 12px 30px rgba(13,48,95,.16),0 0 0 4px rgba(255,255,255,.15);
+ color:#12345d;font-size:clamp(23px,3.4vw,36px);
+ line-height:1.25;font-weight:900;letter-spacing:-.5px;
+ -webkit-text-stroke:0;text-shadow:none;
+ animation:paaxixi-title-reveal .7s cubic-bezier(.18,.85,.3,1.16) .5s both,
+   paaxixi-title-focus 4.4s ease-in-out 1.5s infinite;
+}
+.welcome-modal .welcome-copy h2::after{
+ content:"";position:absolute;z-index:-1;bottom:-8px;left:50%;
+ width:min(200px,56%);height:4px;border-radius:999px;
+ background:linear-gradient(90deg,transparent,#5194e9,#2867c4,#5194e9,transparent);
+ box-shadow:0 0 12px rgba(45,108,207,.28);
+ transform:translateX(-50%);
+ animation:paaxixi-underline-breathe 4s ease-in-out 1.4s infinite;
+ pointer-events:none;
+}
+.welcome-modal .welcome-quote{
+ display:block;width:fit-content;max-width:100%;
+ margin:2px auto 0;padding:14px 19px;border-radius:17px;
+ background:rgba(255,255,255,.94);
+ border:1px solid rgba(176,201,234,.78);
+ box-shadow:0 9px 25px rgba(13,48,95,.13);
+ color:#1d426b;font-size:clamp(13px,1.55vw,16px);
+ font-weight:750;line-height:1.65;text-shadow:none;
+ overflow-wrap:break-word;
+ animation:paaxixi-quote-reveal .75s ease-out .68s both;
 }
 .welcome-modal .welcome-modal-close{
- z-index:10;top:8px;right:8px;width:44px;height:44px;
- background:rgba(255,255,255,.89);border:1.5px solid rgba(29,75,134,.35);
- border-radius:15px;color:#153967;font-size:22px;font-weight:500;
- backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
- box-shadow:0 4px 18px rgba(15,48,92,.18);
- transition:transform .2s ease,background .2s ease,box-shadow .2s ease;
+ position:absolute;z-index:10;top:0;right:0;width:42px;height:42px;
+ background:rgba(255,255,255,.96);border:1.5px solid #a9c4e8;
+ border-radius:14px;color:#173b68;font-size:21px;line-height:1;
+ box-shadow:0 6px 18px rgba(14,48,90,.2);
+ transition:transform .22s ease,background .22s ease,box-shadow .22s ease;
 }
 .welcome-modal .welcome-modal-close:hover{
- background:#fff;transform:rotate(90deg) scale(1.06);
- box-shadow:0 6px 22px rgba(15,48,92,.24);
+ background:#fff;transform:rotate(90deg) scale(1.05);
+ box-shadow:0 9px 24px rgba(14,48,90,.24);
 }
 .welcome-modal .welcome-modal-close:focus-visible{
  outline:3px solid #286fe5;outline-offset:3px;
 }
+@keyframes paaxixi-logo-drop-bounce{
+ 0%{opacity:0;transform:translateY(-58vh) rotate(-7deg) scale(.92)}
+ 34%{opacity:1;transform:translateY(0) rotate(2deg) scale(1.08,.88)}
+ 47%{transform:translateY(-49px) rotate(-3deg) scale(.98,1.03)}
+ 62%{transform:translateY(0) rotate(1deg) scale(1.045,.95)}
+ 73%{transform:translateY(-19px) rotate(-1deg) scale(1,1)}
+ 85%{transform:translateY(0) rotate(0) scale(1.018,.985)}
+ 92%{transform:translateY(-6px) scale(1)}
+ 100%{opacity:1;transform:translateY(0) rotate(0) scale(1)}
+}
+@keyframes paaxixi-logo-idle-bounce{
+ 0%,100%{transform:translateY(0) rotate(0)}
+ 48%{transform:translateY(-6px) rotate(-1deg)}
+ 60%{transform:translateY(-5px) rotate(1deg)}
+}
 @keyframes paaxixi-date-reveal{
- from{opacity:0;transform:translateY(10px);letter-spacing:2px}
- to{opacity:1;transform:translateY(0);letter-spacing:1.25px}
+ from{opacity:0;transform:translateY(10px)}
+ to{opacity:1;transform:translateY(0)}
 }
 @keyframes paaxixi-title-reveal{
- from{opacity:0;transform:translateY(17px) scale(.94)}
+ from{opacity:0;transform:translateY(18px) scale(.94)}
  to{opacity:1;transform:translateY(0) scale(1)}
 }
 @keyframes paaxixi-title-focus{
- 0%,100%{filter:drop-shadow(0 0 0 transparent)}
- 48%,53%{filter:drop-shadow(0 0 7px rgba(71,142,239,.45))}
+ 0%,100%{box-shadow:0 12px 30px rgba(13,48,95,.16),0 0 0 4px rgba(255,255,255,.15)}
+ 50%{box-shadow:0 13px 31px rgba(13,48,95,.2),0 0 0 6px rgba(73,137,225,.17)}
 }
 @keyframes paaxixi-underline-breathe{
- 0%,100%{opacity:.56;scale:.76 1}
- 50%{opacity:1;scale:1 1}
+ 0%,100%{opacity:.5;transform:translateX(-50%) scaleX(.72)}
+ 50%{opacity:1;transform:translateX(-50%) scaleX(1)}
 }
 @keyframes paaxixi-quote-reveal{
  from{opacity:0;transform:translateY(12px)}
  to{opacity:1;transform:translateY(0)}
 }
 @media(max-width:600px){
+ .welcome-modal{width:min(100%,390px)}
  .welcome-modal .welcome-panel.welcome-panel-animated{
-  gap:12px;padding:24px 16px 30px;
+  gap:13px;padding:24px 8px 26px;
  }
- .welcome-modal .welcome-eyebrow{letter-spacing:.4px}
+ .welcome-modal .welcome-mascot-scene{width:148px;height:130px}
+ .welcome-modal .welcome-avatar{width:102px;height:102px;border-radius:21px}
+ .welcome-modal .welcome-mascot-wave{top:12px;right:1px;font-size:25px}
+ .welcome-modal .welcome-scene-cloud{right:12px;font-size:19px}
+ .welcome-modal .welcome-copy{gap:9px}
+ .welcome-modal .welcome-eyebrow{
+  padding:8px 10px;font-size:9px;letter-spacing:.35px;
+ }
  .welcome-modal .welcome-copy h2{
-  font-size:clamp(21px,5.8vw,28px);letter-spacing:-.35px;
+  padding:11px 13px;font-size:clamp(21px,6.3vw,28px);
+  line-height:1.25;letter-spacing:-.45px;border-radius:16px;
  }
- .welcome-modal .welcome-copy h2::after{bottom:-8px;height:3px}
  .welcome-modal .welcome-quote{
-  font-size:clamp(12px,3.35vw,14px);line-height:1.6;margin-top:12px;
+  margin-top:2px;padding:12px 13px;
+  font-size:clamp(12px,3.45vw,14px);line-height:1.55;border-radius:15px;
  }
- .welcome-modal .welcome-modal-close{top:2px;right:2px;width:38px;height:38px}
+ .welcome-modal .welcome-modal-close{
+  top:-3px;right:-3px;width:39px;height:39px;
+ }
 }
-/* Jika pengguna meminta kontras lebih tinggi, latar hanya di sekitar teks. */
 @media(prefers-contrast:more){
- .welcome-modal .welcome-eyebrow,.welcome-modal .welcome-copy h2,
- .welcome-modal .welcome-quote{
-  background:rgba(255,255,255,.93);border-radius:12px;
-  padding:5px 9px;box-decoration-break:clone;-webkit-box-decoration-break:clone;
+ .welcome-modal .welcome-eyebrow,.welcome-modal .welcome-copy h2,.welcome-modal .welcome-quote{
+  background:#fff;border:2px solid #235aab;
  }
 }
 @media(prefers-reduced-motion:reduce){
+ .welcome-modal-backdrop,.welcome-modal,.welcome-modal .welcome-copy,
+ .welcome-modal .welcome-mascot-enter,.welcome-modal .welcome-mascot-bob,
+ .welcome-modal .welcome-mascot-wave,.welcome-modal .welcome-scene-spark,
+ .welcome-modal .welcome-scene-cloud,.welcome-modal .welcome-greeting-weather,
  .welcome-modal .welcome-eyebrow,.welcome-modal .welcome-copy h2,
- .welcome-modal .welcome-quote,.welcome-modal .welcome-copy h2::after{
-  animation:none!important;transform:none!important;filter:none!important;
+ .welcome-modal .welcome-copy h2::after,.welcome-modal .welcome-quote{
+  animation:none!important;transition:none!important;filter:none!important;
  }
  .welcome-modal .welcome-copy h2::after{transform:translateX(-50%)!important}
  .welcome-modal .welcome-modal-close:hover{transform:none}
 }
+
 </style>
 </head>
 <body>

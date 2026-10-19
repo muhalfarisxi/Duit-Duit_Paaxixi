@@ -81,7 +81,7 @@ Unggah **empat file ini** ke root repo GitHub: `index.html`, `cloud.js`, `fireba
 
 ## Popup Tambah / Edit Kelompok dan Pos Pengeluaran
 - Pada menu **Anggaran Bulanan → Kelola Kelompok Pengeluaran**, klik **＋ Tambah Kelompok** atau **Edit** untuk membuka popup kecil.
-- Kelompok: cukup isi nama dan pilih warna. Popup menyediakan **Simpan Perubahan/Tambah Kelompok**, **Batal**, dan **✕**.
+- Kelompok: isi nama lalu pilih salah satu **5 warna kurasi tema navy**: Royal, Langit, Lavender, Toska, atau Rose (klik swatch lingkaran, tidak ada input HEX bebas). Jika membuat kelompok baru, warna default otomatis memakai warna palet yang paling jarang dipakai. Jika kelompok lama memakai warna di luar palet, warna lama tetap dipertahankan selama belum memilih pengganti. Popup menyediakan **Simpan Perubahan/Tambah Kelompok**, **Batal**, dan **✕**.
 - Pada tabel **Atur Batas Tiap Kategori**, klik **＋ Tambah Pos** pada kelompok yang sesuai, tombol global **＋ Tambah Pos**, atau **Edit** pada baris pos. Popup memungkinkan mengubah nama dan kelompok tanpa mengganti ID pos.
 - Menekan **Esc** atau mengeklik area gelap di luar formulir juga menutup popup.
 - **Ikon kategori** dalam popup mengikuti nama pos/kelompok yang diketik.

@@ -214,6 +214,23 @@ body:has(.welcome-modal-backdrop){overflow:hidden}
 body:has(.finance-editor-backdrop){overflow:hidden}
 @media(max-width:520px){.finance-editor-backdrop{padding:12px}.finance-editor-heading{padding:16px 15px 13px}.finance-editor-form{padding:15px;gap:13px}.finance-editor-dialog{border-radius:16px}.finance-editor-actions .btn{padding:9px 11px}}
 @media(prefers-reduced-motion:reduce){.finance-editor-backdrop{backdrop-filter:none}}
+
+/* Palet 5 warna tetap: konsisten navy, tanpa input HEX atau pemilih warna bebas */
+.finance-color-set{margin:0;padding:0;border:0;min-width:0}
+.finance-color-set legend{display:block;color:#315078;font-size:12px;font-weight:750;padding:0;margin-bottom:10px}
+.finance-color-set legend small{color:#8293ad;font-size:11px;font-weight:500}
+.finance-color-options{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+.finance-color-option{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;min-width:0;border:1px solid #e2eaf8;border-radius:12px;padding:9px 4px 7px;background:#f8fbff;transition:border-color .15s,background .15s,transform .15s}
+.finance-color-option:hover{border-color:#a8c4f2;background:#eff5ff}
+.finance-color-option input{position:absolute;width:100%;height:100%;inset:0;margin:0;opacity:0;cursor:pointer}
+.finance-color-option input:focus-visible+.finance-color-swatch{outline:3px solid #164ea7;outline-offset:3px}
+.finance-color-option:has(input:checked){border-color:#2b65cf;background:#eaf2ff;box-shadow:0 0 0 1px #2b65cf}
+.finance-color-swatch{width:34px;height:34px;display:grid;place-items:center;background:var(--swatch);border-radius:50%;border:2px solid rgba(255,255,255,.85);box-shadow:0 1px 5px #173d7020;pointer-events:none}
+.finance-color-check{color:#fff;font-size:16px;font-weight:900;opacity:0;text-shadow:0 1px 2px #0005;pointer-events:none}
+.finance-color-option input:checked+.finance-color-swatch .finance-color-check{opacity:1}
+.finance-color-name{font-size:10px;font-weight:650;color:#52698d;line-height:1.3;text-align:center;pointer-events:none}
+.finance-color-legacy{margin:10px 0 0;font-size:11px;color:#7185a4;line-height:1.45}
+@media(max-width:430px){.finance-color-options{gap:5px}.finance-color-option{padding:9px 2px 7px}.finance-color-swatch{width:28px;height:28px}.finance-color-name{font-size:10px}}
 </style>
 </head>
 <body>
@@ -249,7 +266,18 @@ body:has(.finance-editor-backdrop){overflow:hidden}
 (()=>{'use strict';
 const KEY='arus-prototype-v1';
 const DEFAULT_GROUPS=[{id:'group-living-fix',name:'LIVING FIX',color:'#2563eb'},{id:'group-playing',name:'PLAYING',color:'#38a8ed'},{id:'group-living-lain',name:'LIVING LAIN',color:'#7c73df'}];
-const GROUP_COLORS=['#2563eb','#38a8ed','#7c73df','#10a5a5','#ec8a3c','#ab64c8','#4990d0'];
+const GROUP_PALETTE=[
+ {value:'#2563eb',name:'Royal'},
+ {value:'#38a8ed',name:'Langit'},
+ {value:'#7c73df',name:'Lavender'},
+ {value:'#10a5a5',name:'Toska'},
+ {value:'#cf7d9d',name:'Rose'}
+];
+const GROUP_COLORS=GROUP_PALETTE.map(item=>item.value);
+function suggestedGroupColor(){
+ const occupied=expenseGroups().map(group=>String(group.color||'').toLowerCase());
+ return GROUP_PALETTE.slice().sort((a,b)=>occupied.filter(x=>x===a.value).length-occupied.filter(x=>x===b.value).length)[0].value;
+}
 const INIT_CATS=[
 ['Tempat Tinggal','LIVING FIX','expense'],['Makan-Minum','LIVING FIX','expense'],['Transportasi','LIVING FIX','expense'],['Laundry','LIVING FIX','expense'],['Keluarga','LIVING FIX','expense'],['Infaq','LIVING FIX','expense'],
 ['Jajan-Jajan','PLAYING','expense'],['Rawat Diri','PLAYING','expense'],['Self Reward','PLAYING','expense'],
@@ -823,7 +851,15 @@ function financeEditorMarkup(kind){
  const icon=isGroup?pickSymbol(item?.name||'Kelompok'):pickSymbol(item?.label||'Pos',selectedGroup);
  const fields=isGroup?`<input type="hidden" name="editId" value="${h(item?.id||'')}">
   <label class="editor-field"><span>Nama Kelompok</span><input class="field" name="name" maxlength="45" required data-editor-focus data-icon-source placeholder="Contoh: Kebutuhan Pokok" value="${h(item?.name||'')}"></label>
-  <label class="editor-field"><span>Warna Kelompok</span><span class="editor-color-field"><input name="color" type="color" value="${h(item?.color||GROUP_COLORS[expenseGroups().length%GROUP_COLORS.length])}" aria-label="Warna Kelompok"><span>Pilih Warna Kelompok</span></span></label>`:
+  <fieldset class="finance-color-set"><legend>Warna Kelompok <small>· Pilih 1 dari 5 warna</small></legend>
+   <input type="hidden" name="color" data-finance-color-value value="${h(item?.color||suggestedGroupColor())}">
+   <div class="finance-color-options" role="radiogroup" aria-label="Warna Kelompok">${GROUP_PALETTE.map(p=>`<label class="finance-color-option" title="${h(p.name)}">
+    <input type="radio" name="paletteColor" value="${h(p.value)}" data-finance-swatch ${(item?.color||suggestedGroupColor()).toLowerCase()===p.value?'checked':''}>
+    <span class="finance-color-swatch" style="--swatch:${p.value}"><span class="finance-color-check" aria-hidden="true">✓</span></span>
+    <span class="finance-color-name">${h(p.name)}</span>
+   </label>`).join('')}</div>
+   ${item?.color&&!GROUP_PALETTE.some(p=>p.value===item.color.toLowerCase())?'<p class="finance-color-legacy">Warna lama tetap digunakan sampai kamu memilih warna baru.</p>':''}
+  </fieldset>`:
   `<input type="hidden" name="editId" value="${h(item?.id||'')}"><input type="hidden" name="kind" value="expense">
   <label class="editor-field"><span>Nama Pos Pengeluaran</span><input class="field" name="label" maxlength="70" required data-editor-focus data-icon-source placeholder="Contoh: Belanja Bulanan" value="${h(item?.label||'')}"></label>
   <label class="editor-field"><span>Kelompok Pengeluaran</span><select class="field" name="group" data-editor-group required>${expenseGroups().map(g=>`<option value="${h(g.name)}" ${selectedGroup===g.name?'selected':''}>${pickSymbol(g.name,g.name)} ${h(g.name)}</option>`).join('')}</select></label>`;
@@ -954,6 +990,7 @@ if(id==='expense-group-form'){
   const editId=String(f.get('editId')||''),old=expenseGroups().find(g=>g.id===editId);
   const name=String(f.get('name')||'').trim().replace(/\s+/g,' ').slice(0,45),color=String(f.get('color')||'');
   if(!name||!/^#[\da-fA-F]{6}$/.test(color))return toast('Nama atau warna kelompok tidak valid.',true);
+  if(!GROUP_PALETTE.some(p=>p.value===color.toLowerCase())&&!(old&&old.color.toLowerCase()===color.toLowerCase()))return toast('Pilih salah satu dari 5 warna yang tersedia.',true);
   if(expenseGroups().some(g=>g.id!==editId&&g.name.toLocaleLowerCase('id-ID')===name.toLocaleLowerCase('id-ID')))return toast('Nama kelompok sudah ada.',true);
   if(editId&&!old)return toast('Kelompok yang diedit tidak ditemukan. Coba muat ulang.',true);
   if(old){const previous=old.name;old.name=name;old.color=color;if(previous!==name)db.categories.forEach(c=>{if(c.kind==='expense'&&c.group===previous)c.group=name});}
@@ -1088,6 +1125,11 @@ if(a==='cloud-empty'){if(!window.ARUS_CLOUD||!cloud.ready)return toast('Cloud be
 if(a==='cloud-upload'){if(!window.ARUS_CLOUD||!cloud.ready)return toast('Cloud belum siap.',true);if(confirm('PERHATIAN: Timpa seluruh data CLOUD dengan salinan browser saat ini? Ini mengganti data tersinkron di HP dan laptop. Pastikan sudah mencadangkan JSON!'))try{cloud.busy=true;syncBadge();await window.ARUS_CLOUD.replace(db);cloud.pendingDecision=false;cloud.empty=false;cloud.busy=false;syncBadge();toast('Data berhasil diunggah ke cloud.')}catch(e){cloud.busy=false;showError(e)}}
 return;}});
 document.addEventListener('change',e=>{let x=e.target;
+ if(x.matches?.('#finance-editor-backdrop [data-finance-swatch]')){
+  const hidden=document.querySelector('#finance-editor-backdrop [data-finance-color-value]');
+  if(hidden)hidden.value=x.value;
+  return;
+ }
  if(x.matches?.('#finance-editor-backdrop [data-editor-group]')){
   const icon=document.getElementById('finance-editor-symbol');
   if(icon)icon.textContent=pickSymbol(document.querySelector('#finance-editor-backdrop [data-icon-source]')?.value||'',x.value);

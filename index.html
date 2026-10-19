@@ -1340,6 +1340,38 @@ body:has(.review-modal-backdrop){overflow:hidden}
 @media(max-width:600px){.debt-quick-totals{margin:11px;gap:7px}.debt-quick-totals>div{padding:10px}.debt-quick-totals strong{font-size:clamp(14px,3.9vw,18px)}.debt-quick-tabs{margin:0 11px 12px}.debt-quick-tabs button{font-size:11px;padding:7px 10px}.debt-quick-section{margin:0 11px 14px}.debt-quick-entry>summary{padding:11px}.debt-quick-amounts{gap:5px}.debt-quick-amounts b{font-size:11px}.debt-quick-explain{margin:11px}.debt-quick-action{margin:13px 11px}.debt-quick-action button{width:100%}}
 @media(prefers-reduced-motion:reduce){.debt-quick-track span{animation:none}.debt-quick-expand>span{transition:none}}
 
+
+/* #045 Popup cicilan per catatan utang dan piutang */
+.repay-popup-backdrop{position:fixed;inset:0;z-index:1120;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;background:rgba(9,27,57,.65);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);animation:repay-pop-fade .2s ease-out}
+.repay-popup-dialog{display:flex;flex-direction:column;width:min(580px,100%);max-height:calc(100dvh - 32px);margin:auto;overflow:hidden;background:#fff;border:1px solid #dce8fb;border-radius:20px;box-shadow:0 24px 76px rgba(9,36,71,.3);animation:repay-pop-enter .25s ease-out}
+.repay-popup-head{display:flex;align-items:center;gap:12px;padding:19px 20px;border-bottom:1px solid #e3ecf8;flex:none}
+.repay-popup-head>div{flex:1;min-width:0}.repay-popup-head h3{margin:0;font-size:18px;font-weight:900;color:#173f74;line-height:1.3}
+.repay-popup-head p{font-size:12px;color:#7186a3;margin:5px 0 0;overflow-wrap:anywhere}
+.repay-popup-emoji{display:grid;place-items:center;width:42px;height:42px;flex:none;border-radius:12px;background:#eaf2ff;color:#2867b9;font-size:22px}
+.repay-popup-close{width:36px;height:36px;flex:none;display:grid;place-items:center;border:1px solid #dce8f8;border-radius:9px;background:#f1f6ff;color:#305987;font-size:18px;cursor:pointer}
+.repay-popup-close:hover{background:#e0eafd}
+.repay-popup-content{padding:18px 20px 20px;overflow-y:auto;overscroll-behavior:contain}
+.repay-popup-totals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.repay-popup-totals>div{background:#f0f5ff;border:1px solid #e1ebfa;border-radius:12px;padding:13px}
+.repay-popup-totals span{display:block;font-size:11px;color:#7285a2}
+.repay-popup-totals strong{display:block;color:#173e70;font-size:clamp(15px,2vw,20px);font-weight:900;margin-top:5px;overflow-wrap:anywhere}
+.repay-popup-totals strong.red{color:#c84955}.repay-popup-totals strong.green{color:#13835b}
+.repay-popup-help{margin:12px 0 17px;padding:10px 12px;border-radius:10px;background:#f7faff;color:#557397;font-size:12px;line-height:1.5}
+.repay-popup-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px}
+.repay-popup-fields .form-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.repay-popup-fields .field{width:100%;min-width:0;box-sizing:border-box}
+.repay-popup-account{grid-column:1/-1}
+.repay-popup-limit{font-size:11px;color:#7889a3}
+.repay-popup-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}
+.repay-popup-actions .btn{min-height:41px}
+.repay-popup-dialog :is(button,input,select):focus-visible{outline:3px solid #2c72dc;outline-offset:2px}
+body:has(.repay-popup-backdrop){overflow:hidden}
+@keyframes repay-pop-fade{from{opacity:0}to{opacity:1}}
+@keyframes repay-pop-enter{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:600px){.repay-popup-backdrop{padding:10px}.repay-popup-dialog{max-height:calc(100dvh - 20px);border-radius:16px}.repay-popup-head{gap:9px;padding:14px}.repay-popup-head h3{font-size:16px}.repay-popup-emoji{width:37px;height:37px}.repay-popup-content{padding:13px}.repay-popup-totals>div{padding:11px}.repay-popup-fields{grid-template-columns:1fr;gap:12px}.repay-popup-account{grid-column:auto}.repay-popup-actions{display:grid;grid-template-columns:1fr 1fr}.repay-popup-actions .btn{padding:10px 6px;font-size:12px;white-space:normal}}
+@media(prefers-reduced-motion:reduce){.repay-popup-backdrop,.repay-popup-dialog{animation:none!important}}
+@media print{.repay-popup-backdrop{display:none!important}}
+
 </style>
 </head>
 <body>
@@ -2733,10 +2765,75 @@ function renderBudgets(){let bt=budgetTotal(),bu=budgetUsed(),moveLog=db.budgetM
 ${expenseGroupManager()}<div class="card" style="margin-bottom:16px"><div class="card-head"><div><h3>Atur Batas Tiap Kategori</h3><p>Anggaran dasar untuk ${h(monthFmt(ui.month))}. Masukkan 0 untuk pos yang belum dialokasikan.</p></div><button class="btn sm primary" type="button" data-add-budget-category="">＋ Tambah Pos</button></div><form id="budget-form"><div class="table-scroll"><table class="table"><thead><tr><th>Pos Pengeluaran</th><th>Anggaran Dasar</th><th>Anggaran Efektif</th><th>Terpakai</th><th>Sisa / Status</th></tr></thead><tbody>${expenseGroups().map(g=>`<tr><td colspan="5" class="group-heading"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><span class="symbol-line">${symbolBadge(g.name,g.name,true)}${h(g.name)}</span><div class="action-buttons"><button class="btn sm" type="button" data-edit-expense-group="${h(g.id)}">✎ Edit Kelompok</button><button class="btn sm" type="button" data-add-budget-category="${h(g.name)}">＋ Tambah Pos</button></div></div></td></tr>${expenses().filter(c=>c.group===g.name).map(c=>{let ef=effectiveBudget(c.id),spent=spentByCat(c.id),st=status(c.id);return `<tr><td><div class="symbol-line">${symbolBadge(c.label,c.group,true)}<strong>${h(c.label)}</strong></div><div class="action-buttons" style="justify-content:flex-start;margin-top:6px"><button class="btn sm" type="button" data-edit-budget-category="${h(c.id)}" aria-label="Edit pos ${h(c.label)}">Edit</button><button class="btn sm danger" type="button" data-delete-category="${h(c.id)}" aria-label="Hapus pos ${h(c.label)}">Hapus</button></div></td><td><input aria-label="Anggaran ${h(c.label)}" type="text" inputmode="decimal" data-rupiah="1" data-budget-id="${h(c.id)}" value="${fmtAmount(baseBudget(c.id))}"></td><td>${money(ef)}</td><td>${money(spent)}</td><td>${hasBudget(c.id)?`<strong class="${st.s==='danger'?'red':st.s==='warn'?'orange':'green'}">${money(ef-spent)}</strong><div class="track ${st.s==='danger'?'danger':st.s==='warn'?'warn':''}"><div style="width:${Math.min(100,Math.max(0,pct(spent,Math.max(ef,1))))}%"></div></div>${pill(st.s,st.label)}`:'<span class="tiny">Belum dianggarkan</span>'}</td></tr>`}).join('')}`).join('')}</tbody></table></div><div class="form-actions"><button type="submit" class="btn primary">Simpan Anggaran ${h(monthFmt(ui.month))}</button></div></form></div>
 <div class="grid layout-equal"><section class="card"><div class="card-head"><div><h3>Alihkan Sisa Anggaran</h3><p>Misalnya Dari Self Reward Ke Makan-Minum</p></div></div><form id="move-budget-form"><input type="hidden" name="editId" value="${h(ui.moveEditId||'')}"><div class="form-grid"><div class="form-field"><label class="field-label">Dari Pos Yang Masih Ada Sisa</label><select class="field" name="from" required>${withBalance.concat(ui.moveEditId?expenses().filter(c=>c.id===db.budgetMoves.find(m=>m.id===ui.moveEditId)?.from&&!withBalance.some(x=>x.id===c.id)):[]).map(c=>`<option value="${h(c.id)}" ${ui.moveEditId&&db.budgetMoves.find(m=>m.id===ui.moveEditId)?.from===c.id?'selected':''}>${h(c.label)} (${money(effectiveBudget(c.id)-spentByCat(c.id))})</option>`).join('')}</select></div><div class="form-field"><label class="field-label">Ke Pos Yang Membutuhkan</label><select class="field" name="to" required>${ui.moveEditId?expenses().map(c=>`<option value="${h(c.id)}" ${db.budgetMoves.find(m=>m.id===ui.moveEditId)?.to===c.id?'selected':''}>${h(c.group)} • ${h(c.label)}</option>`).join(''):options}</select></div><div class="form-field full"><label class="field-label">Jumlah Anggaran Yang Dialihkan (Rp)</label><input class="field" name="amount" type="text" inputmode="decimal" data-rupiah="1" placeholder="50.000" value="${ui.moveEditId?fmtAmount(db.budgetMoves.find(m=>m.id===ui.moveEditId)?.amount):''}" required></div></div><div class="form-actions"><button type="submit" class="btn teal full" ${!withBalance.length?'disabled':''}>${ui.moveEditId?'✓ Simpan alih anggaran':'↗ Alihkan Anggaran'}</button>${ui.moveEditId?'<button type="button" class="btn" data-action="cancel-move-edit">Batal</button>':''}</div></form><div class="tip" style="margin-top:15px">Pengalihan hanya mengubah pagu antar kategori, tidak mengurangi saldo rekening dan tidak membuat transaksi pengeluaran baru.</div></section>
 <section class="card"><div class="card-head"><div><h3>Riwayat Alih Anggaran</h3><p>${h(monthFmt(ui.month))}</p></div></div>${moveLog.length?moveLog.map(m=>`<div class="list-item"><div><div class="list-title">${h(cat(m.from)?.label||'?')} → ${h(cat(m.to)?.label||'?')}</div><div class="list-sub">${dateFmt(m.date)}</div></div><div><div class="amount blue">${money(m.amount)}</div><div class="action-buttons"><button class="btn sm" data-edit-move="${h(m.id)}">Edit</button><button class="btn sm danger" data-delete-move="${h(m.id)}">Hapus</button></div></div></div>`).join(''):empty('◴','Belum ada pemindahan','Sisa anggaran bisa dipindahkan untuk menutup pos lain yang menipis.')}</section></div>`}
-function renderDebts(){const totals=totalsDebt(),active=db.debts.filter(d=>ui.debtFilter==='all'||(ui.debtFilter==='open'?debtBalance(d)>0:debtBalance(d)===0)).sort((a,b)=>b.date.localeCompare(a.date));let chosen=db.debts.find(d=>d.id===ui.debtSelected),open=chosen&&(debtBalance(chosen)>0||!!ui.repayEditId);return `<div class="grid layout-equal"><section class="card"><div class="card-head"><div><h3>Ringkasan Utang & Piutang</h3><p>Saldo Yang Belum Lunas, Sepanjang Waktu</p></div></div><div class="stat-pair"><span>Piutang (Uang Kamu Dipinjam Orang)</span><strong class="green">${money(totals.receivable)}</strong></div><div class="stat-pair"><span>Utang (Kamu Meminjam Uang)</span><strong class="red">${money(totals.payable)}</strong></div><div class="linebreak"></div><p class="tiny">Pencairan pinjaman dan pembayaran cicilan memengaruhi saldo rekening, tetapi tidak masuk grafik pemasukan/pengeluaran.</p></section>
+function renderDebts(){const totals=totalsDebt(),active=db.debts.filter(d=>ui.debtFilter==='all'||(ui.debtFilter==='open'?debtBalance(d)>0:debtBalance(d)===0)).sort((a,b)=>b.date.localeCompare(a.date));return `<div class="grid layout-equal"><section class="card"><div class="card-head"><div><h3>Ringkasan Utang & Piutang</h3><p>Saldo Yang Belum Lunas, Sepanjang Waktu</p></div></div><div class="stat-pair"><span>Piutang (Uang Kamu Dipinjam Orang)</span><strong class="green">${money(totals.receivable)}</strong></div><div class="stat-pair"><span>Utang (Kamu Meminjam Uang)</span><strong class="red">${money(totals.payable)}</strong></div><div class="linebreak"></div><p class="tiny">Pencairan pinjaman dan pembayaran cicilan memengaruhi saldo rekening, tetapi tidak masuk grafik pemasukan/pengeluaran.</p></section>
 <section class="card"><div class="card-head"><div><h3>Catat Utang / Piutang Baru</h3><p>Otomatis menyesuaikan saldo rekening</p></div></div><form id="debt-form"><input type="hidden" name="editId" value="${h(ui.debtEditId||'')}"><div class="form-grid"><div class="form-field"><label class="field-label">Jenis</label><select class="field" name="type"><option value="receivable" ${db.debts.find(d=>d.id===ui.debtEditId)?.type==='receivable'?'selected':''}>Piutang — saya meminjamkan</option><option value="payable" ${db.debts.find(d=>d.id===ui.debtEditId)?.type==='payable'?'selected':''}>Utang — saya meminjam</option></select></div><div class="form-field"><label class="field-label">Tanggal</label><input class="field" type="date" name="date" value="${db.debts.find(d=>d.id===ui.debtEditId)?.date||today()}" required></div><div class="form-field"><label class="field-label">Nama Orang / Pihak</label><input class="field" name="person" maxlength="100" placeholder="Nama peminjam / pemberi" value="${h(db.debts.find(d=>d.id===ui.debtEditId)?.person||'')}" required></div><div class="form-field"><label class="field-label">Jumlah (Rp)</label><input class="field" type="text" inputmode="decimal" data-rupiah="1" name="amount" value="${ui.debtEditId?fmtAmount(db.debts.find(d=>d.id===ui.debtEditId)?.amount):''}" required></div><div class="form-field full"><label class="field-label">Rekening Uang Keluar / Masuk</label>${selectAcc('accountId',db.debts.find(d=>d.id===ui.debtEditId)?.accountId||'')}</div><div class="form-field full"><label class="field-label">Catatan (Opsional)</label><input class="field" name="note" maxlength="300" value="${h(db.debts.find(d=>d.id===ui.debtEditId)?.note||'')}" placeholder="Contoh: Jatuh tempo akhir bulan"></div></div><div class="form-actions"><button type="submit" class="btn teal">${ui.debtEditId?'✓ Simpan perubahan':'＋ Simpan catatan utang / piutang'}</button>${ui.debtEditId?'<button class="btn" type="button" data-action="cancel-edit-debt">Batal</button>':''}</div></form></section></div>
-${open?`<section class="card" id="repay-panel" style="margin-bottom:16px;border:1px solid #bfd5fa"><div class="card-head"><div><h3>Catat Pembayaran: ${h(chosen.person)}</h3><p>Sisa ${money(debtBalance(chosen))} • ${chosen.type==='receivable'?'Uang diterima dari peminjam':'Pembayaran utang ke pemberi pinjaman'}</p></div><button class="btn sm" data-action="close-repay">Tutup</button></div><form id="repay-form"><input type="hidden" name="debtId" value="${h(chosen.id)}"><input type="hidden" name="editId" value="${h(ui.repayEditId||'')}"><div class="form-grid"><div class="form-field"><label class="field-label">Tanggal Pembayaran</label><input class="field" type="date" name="date" required value="${chosen.settlements.find(x=>x.id===ui.repayEditId)?.date||today()}"></div><div class="form-field"><label class="field-label">Jumlah Pembayaran (Rp)</label><input class="field" type="text" inputmode="decimal" data-rupiah="1" name="amount" required value="${fmtAmount(chosen.settlements.find(x=>x.id===ui.repayEditId)?.amount||debtBalance(chosen))}"></div><div class="form-field full"><label class="field-label">${chosen.type==='receivable'?'Masuk Ke Rekening':'Dibayar Dari Rekening'}</label>${selectAcc('accountId',chosen.settlements.find(x=>x.id===ui.repayEditId)?.accountId||'')}</div></div><div class="form-actions"><button class="btn primary" type="submit">${ui.repayEditId?'Simpan Perubahan Cicilan':'Simpan Pembayaran / Cicilan'}</button></div></form></section>`:''}
-<section class="card"><div class="card-head"><div><h3>Daftar Pinjaman</h3><p>Pantau pelunasan penuh maupun sebagian</p></div><select class="select-sm" id="debt-filter"><option value="open" ${ui.debtFilter==='open'?'selected':''}>Belum Lunas</option><option value="closed" ${ui.debtFilter==='closed'?'selected':''}>Sudah Lunas</option><option value="all" ${ui.debtFilter==='all'?'selected':''}>Semua</option></select></div>${active.length?active.map(d=>`<div class="debt-row"><div class="row-between"><div><div class="debt-title">${h(d.person)} ${pill(d.type==='receivable'?'ok':'warn',d.type==='receivable'?'Piutang':'Utang')}</div><div class="debt-detail">${dateFmt(d.date)} • ${h(acc(d.accountId)?.name||'Rekening tidak ada')} ${d.note?'• '+h(d.note):''}</div></div><strong>${money(debtBalance(d))}</strong></div><div class="track" style="margin-top:12px"><div style="width:${pct(d.amount-debtBalance(d),d.amount)}%"></div></div><div class="row-between" style="margin-top:9px"><span class="tiny">Terbayar ${money(d.amount-debtBalance(d))} dari ${money(d.amount)}</span><div style="display:flex;gap:6px">${debtBalance(d)>0?`<button class="btn sm" type="button" data-repay="${h(d.id)}">＋ Catat cicilan</button>`:`${pill('ok','Lunas')}`}<button class="btn sm" type="button" data-edit-debt="${h(d.id)}">Edit</button>${(d.settlements||[]).length===0?`<button class="btn sm danger" type="button" data-delete-debt="${h(d.id)}">Hapus</button>`:''}</div></div>${(d.settlements||[]).length?`<details style="margin-top:9px"><summary class="tiny" style="cursor:pointer">Lihat ${(d.settlements||[]).length} pembayaran</summary>${d.settlements.map(s=>`<div class="list-sub" style="padding:5px 10px">${dateFmt(s.date)} • ${money(s.amount)} • ${h(acc(s.accountId)?.name||'?')} <button class="btn sm" data-edit-repay="${h(d.id)}|${h(s.id)}">Edit</button> <button class="btn sm danger" data-delete-repay="${h(d.id)}|${h(s.id)}">Hapus</button></div>`).join('')}</details>`:''}</div>`).join(''):empty('◈','Belum Ada Catatan','Tidak ada pinjaman sesuai filter yang dipilih.')}</section>`}
+
+<section class="card"><div class="card-head"><div><h3>Daftar Pinjaman</h3><p>Pantau pelunasan penuh maupun sebagian</p></div><select class="select-sm" id="debt-filter"><option value="open" ${ui.debtFilter==='open'?'selected':''}>Belum Lunas</option><option value="closed" ${ui.debtFilter==='closed'?'selected':''}>Sudah Lunas</option><option value="all" ${ui.debtFilter==='all'?'selected':''}>Semua</option></select></div>${active.length?active.map(d=>`<div class="debt-row"><div class="row-between"><div><div class="debt-title">${h(d.person)} ${pill(d.type==='receivable'?'ok':'warn',d.type==='receivable'?'Piutang':'Utang')}</div><div class="debt-detail">${dateFmt(d.date)} • ${h(acc(d.accountId)?.name||'Rekening tidak ada')} ${d.note?'• '+h(d.note):''}</div></div><strong>${money(debtBalance(d))}</strong></div><div class="track" style="margin-top:12px"><div style="width:${pct(d.amount-debtBalance(d),d.amount)}%"></div></div><div class="row-between" style="margin-top:9px"><span class="tiny">Terbayar ${money(d.amount-debtBalance(d))} dari ${money(d.amount)}</span><div style="display:flex;gap:6px">${debtBalance(d)>0?`<button class="btn sm" type="button" data-repay="${h(d.id)}">＋ Catat cicilan</button>`:`${pill('ok','Lunas')}`}<button class="btn sm" type="button" data-edit-debt="${h(d.id)}">Edit</button>${(d.settlements||[]).length===0?`<button class="btn sm danger" type="button" data-delete-debt="${h(d.id)}">Hapus</button>`:''}</div></div>${(d.settlements||[]).length?`<details style="margin-top:9px"><summary class="tiny" style="cursor:pointer">Lihat ${(d.settlements||[]).length} pembayaran</summary>${d.settlements.map(s=>`<div class="list-sub" style="padding:5px 10px">${dateFmt(s.date)} • ${money(s.amount)} • ${h(acc(s.accountId)?.name||'?')} <button class="btn sm" data-edit-repay="${h(d.id)}|${h(s.id)}">Edit</button> <button class="btn sm danger" data-delete-repay="${h(d.id)}|${h(s.id)}">Hapus</button></div>`).join('')}</details>`:''}</div>`).join(''):empty('◈','Belum Ada Catatan','Tidak ada pinjaman sesuai filter yang dipilih.')}</section>${renderRepayPopup()}`}
+/* #045 Pembayaran cicilan dalam modal per catatan */
+function renderRepayPopup(){
+ if(ui.view!=='debts'||!ui.debtSelected)return '';
+ const debt=db.debts.find(d=>d.id===ui.debtSelected);
+ if(!debt)return '';
+ const payment=ui.repayEditId?(debt.settlements||[]).find(p=>p.id===ui.repayEditId):null;
+ if(ui.repayEditId&&!payment)return '';
+ const remaining=debtBalance(debt);
+ if(remaining<=0&&!payment)return '';
+ const editing=!!payment;
+ const max=remaining+(payment?num(payment.amount):0);
+ return `<div class="repay-popup-backdrop" id="repay-popup-backdrop">
+  <div class="repay-popup-dialog" role="dialog" aria-modal="true" aria-labelledby="repay-popup-heading" aria-describedby="repay-popup-desc">
+   <div class="repay-popup-head">
+    <span class="repay-popup-emoji" aria-hidden="true">${debt.type==='receivable'?'↗':'↙'}</span>
+    <div><h3 id="repay-popup-heading">${editing?'Edit Pembayaran':'Catat Pembayaran / Cicilan'}</h3>
+     <p id="repay-popup-desc">${h(debt.person)} · ${debt.type==='receivable'?'Piutang':'Utang'}</p></div>
+    <button type="button" class="repay-popup-close" data-close-repay-popup aria-label="Tutup pembayaran">✕</button>
+   </div>
+   <div class="repay-popup-content">
+    <div class="repay-popup-totals">
+     <div><span>Nominal Awal</span><strong>${money(debt.amount)}</strong></div>
+     <div><span>Sisa Belum Lunas</span><strong class="${remaining>0&&debt.type==='payable'?'red':'green'}">${money(remaining)}</strong></div>
+    </div>
+    <p class="repay-popup-help">${debt.type==='receivable'?'Uang diterima dari peminjam.':'Uang dibayarkan ke pemberi pinjaman.'} ${editing?'Perubahan nominal akan memperbarui sisa pinjaman.':'Isi cicilan sebagian atau lunasi seluruh sisa.'}</p>
+    <form id="repay-form" class="repay-popup-form">
+     <input type="hidden" name="debtId" value="${h(debt.id)}">
+     <input type="hidden" name="editId" value="${h(payment?.id||'')}">
+     <div class="repay-popup-fields">
+      <div class="form-field"><label class="field-label" for="repay-date">Tanggal Pembayaran</label>
+       <input class="field" id="repay-date" type="date" name="date" required value="${h(payment?.date||today())}"></div>
+      <div class="form-field"><label class="field-label" for="repay-amount">Jumlah Pembayaran (Rp)</label>
+       <input class="field" id="repay-amount" type="text" inputmode="decimal" data-rupiah="1" name="amount" required value="${fmtAmount(payment?num(payment.amount):remaining)}" aria-describedby="repay-max" data-repay-focus>
+       <small id="repay-max" class="repay-popup-limit">Maksimal ${money(max)}${editing?' termasuk pembayaran yang diedit':''}</small></div>
+      <div class="form-field repay-popup-account"><label class="field-label">${debt.type==='receivable'?'Masuk Ke Rekening':'Dibayar Dari Rekening'}</label>
+       ${selectAcc('accountId',payment?.accountId||'')}</div>
+     </div>
+     <div class="repay-popup-actions">
+      <button type="button" class="btn" data-close-repay-popup>Batal</button>
+      <button type="submit" class="btn primary">${editing?'Simpan Perubahan Cicilan':'Simpan Pembayaran / Cicilan'}</button>
+     </div>
+    </form>
+   </div>
+  </div>
+ </div>`;
+}
+function openRepayPopup(debtId,paymentId=null){
+ const d=db.debts.find(item=>item.id===debtId);
+ if(!d)return toast('Catatan utang/piutang tidak ditemukan.',true);
+ if(paymentId&&!(d.settlements||[]).some(p=>p.id===paymentId))return toast('Pembayaran tidak ditemukan.',true);
+ if(!paymentId&&debtBalance(d)<=0)return toast('Catatan ini sudah lunas.',true);
+ ui.debtSelected=debtId;ui.repayEditId=paymentId;
+ render();document.querySelector('[data-repay-focus]')?.focus({preventScroll:true});
+}
+function dismissRepayPopup(){
+ if(!ui.debtSelected)return;
+ const id=ui.debtSelected,pid=ui.repayEditId;
+ ui.debtSelected=null;ui.repayEditId=null;render();
+ if(pid){
+  const prior=[...document.querySelectorAll('[data-edit-repay]')].find(x=>x.dataset.editRepay===id+'|'+pid);
+  if(prior){const parent=prior.closest('details');if(parent)parent.open=true;prior.focus({preventScroll:true});return}
+ }
+ const button=[...document.querySelectorAll('[data-repay]')].find(x=>x.dataset.repay===id);
+ (button||document.getElementById('debt-filter'))?.focus({preventScroll:true});
+}
 function renderAccounts(){let bal=balances(),total=Object.values(bal).reduce((s,n)=>s+n,0),aEdit=db.accounts.find(a=>a.id===ui.accountEditId),cEdit=db.categories.find(c=>c.id===ui.categoryEditId);
 return `<section class="card" style="margin-bottom:16px"><div class="card-head"><div><h3>Sinkronisasi Cloud • HP & Laptop</h3><p>Login dengan akun Firebase yang sama di kedua perangkat untuk pembaruan otomatis.</p></div><span class="card-icon">☁</span></div>
 <div class="callout"><span>ⓘ</span><div>${cloud.signedIn?(cloud.pendingDecision?'Cloud belum berisi data. Browser ini memiliki catatan lokal. Pilih Unggah data lokal atau Mulai cloud baru (kosong).':cloud.ready?'Login: <strong>'+h(cloud.email)+'</strong> • Sinkronisasi otomatis aktif.': 'Sedang membaca data cloud. Tunggu sebelum melakukan perubahan.'):cloud.configured?'Konfigurasi Firebase terpasang. Silakan login untuk mengaktifkan sinkronisasi.':'Sinkronisasi BELUM aktif karena konfigurasi Firebase belum diisi. Data sekarang hanya tersimpan di browser.'}</div></div>
@@ -2863,6 +2960,19 @@ document.addEventListener('pointerdown',event=>{
  if(ui.comp.menu&&!event.target.closest('.comp-picker'))dismissCompositionPopup();
 });
 document.addEventListener('keydown',event=>{
+ if(ui.view==='debts'&&ui.debtSelected&&document.getElementById('repay-popup-backdrop')){
+  if(event.key==='Escape'){event.preventDefault();dismissRepayPopup();return;}
+  if(event.key==='Tab'){
+   const dlg=document.querySelector('.repay-popup-dialog');
+   const focusable=[...(dlg?.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled)')||[])].filter(el=>el.getClientRects().length);
+   if(focusable.length){
+    const first=focusable[0],last=focusable[focusable.length-1];
+    if(event.shiftKey&&(document.activeElement===first||!dlg.contains(document.activeElement))){event.preventDefault();last.focus()}
+    else if(!event.shiftKey&&(document.activeElement===last||!dlg.contains(document.activeElement))){event.preventDefault();first.focus()}
+   }
+  }
+  return;
+ }
  if(ui.reviewPopup){
   if(event.key==='Escape'){event.preventDefault();dismissReviewPopup();return;}
   if(event.key==='Tab'){
@@ -2898,7 +3008,8 @@ document.addEventListener('keydown',event=>{
  if(event.key==='Escape'&&ui.comp.menu){const kind=ui.comp.menu;dismissCompositionPopup();document.querySelector('[data-comp-menu="'+kind+'"].comp-popup-trigger')?.focus();}
 });
 document.addEventListener('click',async e=>{
- if(e.target.closest('[data-review-close]')||e.target.id==='review-modal-backdrop'){dismissReviewPopup();return;}
+ if(e.target.closest('[data-close-repay-popup]')||e.target.id==='repay-popup-backdrop'){dismissRepayPopup();return;}
+  if(e.target.closest('[data-review-close]')||e.target.id==='review-modal-backdrop'){dismissReviewPopup();return;}
  if(e.target.closest('[data-close-finance-editor]')||e.target.id==='finance-editor-backdrop'){closeFinanceEditor();return;}
  if(e.target.closest('[data-close-welcome]')||e.target.id==='welcome-modal-backdrop'){dismissWelcome();return;}
  const trendPoint=e.target.closest('[data-trend-point]');
@@ -2974,7 +3085,7 @@ if(x.hasAttribute('data-add-expense-group')){openFinanceEditor('group');return;}
  if(x.hasAttribute('data-add-budget-category')){openFinanceEditor('pos',null,x.dataset.addBudgetCategory);return;}
  if(x.dataset.editBudgetCategory){openFinanceEditor('pos',x.dataset.editBudgetCategory);return;}
 if(x.dataset.editMove){ui.moveEditId=x.dataset.editMove;render();return}
-if(x.dataset.editRepay){let [id,pid]=x.dataset.editRepay.split('|');ui.debtSelected=id;ui.repayEditId=pid;render();document.getElementById('repay-panel')?.scrollIntoView({behavior:'smooth'});return}
+if(x.dataset.editRepay){let [id,pid]=x.dataset.editRepay.split('|');openRepayPopup(id,pid);return}
 if(x.dataset.openReport){ui.reportMonth=x.dataset.openReport;setView('reports');document.getElementById('print-area')?.scrollIntoView({behavior:'smooth'});return}
 if(x.dataset.deleteReport){let m=x.dataset.deleteReport;if(confirm('Hapus arsip '+monthFmt(m)+'? Transaksi asli tetap aman.')){delete db.reports[m];if(ui.reportMonth===m)ui.reportMonth=Object.keys(db.reports).sort().reverse()[0]||ui.month;save();render();toast('Arsip dihapus, transaksi tetap ada.')}return}
 if(x.dataset.deleteTx){let t=db.transactions.find(t=>t.id===x.dataset.deleteTx);if(t&&confirm('Hapus transaksi "'+t.title+'"?')){db.transactions=db.transactions.filter(z=>z.id!==t.id);if(ui.txEditId===t.id)ui.txEditId=null;save();render();toast('Transaksi dihapus.')}return}
@@ -2983,7 +3094,7 @@ if(x.dataset.deleteRepay){let [id,pid]=x.dataset.deleteRepay.split('|'),d=db.deb
 if(x.dataset.deleteDebt){let d=db.debts.find(d=>d.id===x.dataset.deleteDebt);if(d&&(d.settlements||[]).length===0&&confirm('Hapus catatan pinjaman dengan '+d.person+'?')){db.debts=db.debts.filter(v=>v.id!==d.id);ui.debtEditId=null;save();render();toast('Pinjaman dihapus.')}return}
 if(x.dataset.deleteCategory){let id=x.dataset.deleteCategory;if(db.transactions.some(t=>t.categoryId===id)||db.budgetMoves.some(t=>t.from===id||t.to===id)||Object.keys(db.budgets).some(k=>k.endsWith('|'+id)&&num(db.budgets[k])!==0))return toast('Kategori masih digunakan transaksi/anggaran. Ubah atau hapus rujukannya dahulu.',true);if(confirm('Hapus kategori '+cat(id)?.label+'?')){db.categories=db.categories.filter(c=>c.id!==id);save();render();toast('Kategori dihapus.')}return}
 if(x.dataset.deleteAccount){let id=x.dataset.deleteAccount;if(db.accounts.length===1)return toast('Harus ada setidaknya satu rekening.',true);if(db.transactions.some(t=>t.accountId===id||t.toAccountId===id)||db.debts.some(d=>d.accountId===id||(d.settlements||[]).some(s=>s.accountId===id)))return toast('Rekening sudah dipakai transaksi/pinjaman dan tidak dapat dihapus.',true);if(confirm('Hapus rekening yang belum digunakan ini?')){db.accounts=db.accounts.filter(a=>a.id!==id);save();render();toast('Rekening dihapus.')}return}
-if(x.dataset.repay){ui.debtSelected=x.dataset.repay;ui.repayEditId=null;render();document.getElementById('repay-panel')?.scrollIntoView({behavior:'smooth',block:'start'});return}
+if(x.dataset.repay){openRepayPopup(x.dataset.repay);return}
 if(x.dataset.action){let a=x.dataset.action;
 if(cloud.pendingDecision&&!['cloud-upload','cloud-empty','cloud-logout','export','export-precloud'].includes(a))return toast('Cloud kosong. Putuskan dahulu apakah akan mengunggah data lokal atau mulai dari kosong.',true);
 if(a==='demo')demo();if(a==='export')exportJSON();if(a==='export-precloud'){let old=localStorage.getItem('arus-cadangan-sebelum-cloud');if(old)downloadFile('Duit-Duit-Paaxixi-cadangan-sebelum-cloud.json',old,'application/json');}if(a==='import')document.getElementById('import-file').click();
@@ -2991,7 +3102,7 @@ if(a==='cancel-expense-group'||a==='cancel-budget-category'){closeFinanceEditor(
  if(a==='cancel-edit-tx'){ui.txEditId=null;render()}if(a==='cancel-edit-debt'){ui.debtEditId=null;render()}if(a==='cancel-account-edit'){ui.accountEditId=null;render()}if(a==='cancel-category-edit'){ui.categoryEditId=null;render()}if(a==='cancel-move-edit'){ui.moveEditId=null;render()}
 if(a==='reset'&&confirm('HAPUS seluruh transaksi, anggaran, pinjaman, arsip laporan, dan rekening'+(cloud.signedIn?' pada SEMUA PERANGKAT tersinkron':' di browser ini')+'? Tindakan ini tidak dapat dibatalkan tanpa file cadangan.')){db=fresh();save();ui.debtSelected=null;ui.txEditId=null;setView('dashboard');toast('Data dibersihkan.')}
 if(a==='new-transfer'){ui.txEditId=null;ui.txType='transfer';setView('transactions')}
-if(a==='close-repay'){ui.debtSelected=null;ui.repayEditId=null;render()}
+if(a==='close-repay'){dismissRepayPopup();return}
 if(a==='save-report')saveReport();if(a==='print-report'&&db.reports[ui.reportMonth])window.print();
 if(a==='csv-report'){let r=db.reports[ui.reportMonth];if(r)downloadFile('Duit-Duit-Paaxixi-laporan-'+ui.reportMonth+'.csv',asCSV(r.transactions),'text/csv;charset=utf-8')}
 if(a==='csv-review'){let tx=monthly().filter(t=>t.type===ui.reviewType);downloadFile('Duit-Duit-Paaxixi-'+(ui.reviewType==='income'?'pemasukan':'pengeluaran')+'-'+ui.month+'.csv',asCSV(tx),'text/csv;charset=utf-8')}

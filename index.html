@@ -900,6 +900,156 @@ body:has(.review-modal-backdrop){overflow:hidden}
 .trend-insight-action .trend-insight-symbol{background:#dceafd;color:#195ab8}
 .trend-insight-check .trend-insight-symbol{background:#fff0d4;color:#ac711c}
 @media(max-width:640px){.trend-financial-insight{padding:10px}.trend-insight-entry{padding:9px;gap:8px}.trend-insight-entry p{font-size:11px}}
+
+/* #038 Sambutan hidup: maskot masuk dari kanan, dadah, dan cuaca dinamis. */
+.welcome-modal-backdrop{animation:paaxixi-welcome-backdrop-in .45s ease-out both}
+.welcome-modal{animation:paaxixi-welcome-enter .7s cubic-bezier(.2,.8,.23,1.04) both;overflow:hidden}
+.welcome-modal .welcome-panel.welcome-panel-animated{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ gap:14px;text-align:center;padding:27px 50px 32px;min-height:0;
+ background:linear-gradient(130deg,#122e54 0%,#1b477f 61%,#265a9a 100%);
+}
+.welcome-modal .welcome-copy{
+ width:100%;max-width:740px;min-width:0;flex:unset;
+ animation:paaxixi-welcome-copy-in .7s ease-out .25s both;
+}
+.welcome-modal .welcome-eyebrow{
+ margin:0 0 6px;font-size:11px;letter-spacing:1.2px;color:#bcd9ff;
+}
+.welcome-modal .welcome-copy h2{
+ display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:7px;
+ font-size:clamp(23px,3.3vw,35px);line-height:1.2;margin:0 0 8px;color:#fff;
+}
+.welcome-modal .welcome-quote{
+ max-width:730px;margin:0 auto;font-size:clamp(13px,1.55vw,16px);
+ font-weight:590;line-height:1.65;color:#e1eeff;
+}
+.welcome-mascot-scene{
+ position:relative;width:170px;height:143px;display:grid;
+ place-items:end center;isolation:isolate;flex:none;
+}
+.welcome-mascot-enter{
+ position:relative;display:block;z-index:2;
+ animation:paaxixi-mascot-walk-in .98s cubic-bezier(.17,.88,.31,1.1) both;
+}
+.welcome-mascot-bob{
+ display:block;transform-origin:50% 90%;
+ animation:paaxixi-mascot-dadah 5.3s ease-in-out 1.1s infinite;
+}
+.welcome-modal .welcome-avatar{
+ display:block;width:121px;height:121px;object-fit:contain;
+ padding:5px;background:#fff;border:4px solid #fff;
+ border-radius:25px;box-shadow:0 8px 23px rgba(2,16,36,.28);
+}
+.welcome-mascot-wave{
+ position:absolute;z-index:3;top:19px;right:4px;
+ font-size:28px;line-height:1;transform-origin:18% 90%;
+ filter:drop-shadow(0 2px 2px rgba(3,23,51,.3));
+ animation:paaxixi-hand-wave 5.3s ease-in-out 1.2s infinite;
+ pointer-events:none;
+}
+.welcome-scene-spark{
+ position:absolute;z-index:1;color:#ffe19a;line-height:1;pointer-events:none;
+ text-shadow:0 0 6px rgba(255,224,142,.33);
+ animation:paaxixi-spark-float 4.9s ease-in-out infinite;
+}
+.welcome-scene-spark-a{top:16px;left:8px;font-size:23px}
+.welcome-scene-spark-b{bottom:24px;right:0;font-size:19px;animation-delay:-2s}
+.welcome-scene-cloud{
+ position:absolute;z-index:3;top:0;right:16px;font-size:22px;
+ animation:paaxixi-cloud-drift 5.5s ease-in-out infinite;pointer-events:none;
+}
+.welcome-greeting-weather{
+ display:inline-block;transform-origin:50% 50%;
+ filter:drop-shadow(0 0 4px rgba(255,220,131,.18));
+ animation:paaxixi-weather-sway 5.4s ease-in-out infinite;
+}
+.welcome-weather-day{animation:paaxixi-sun-turn 12s linear infinite}
+.welcome-weather-sunset{animation:paaxixi-weather-sway 5.2s ease-in-out infinite}
+.welcome-weather-night{
+ animation:paaxixi-moon-glow 5.5s ease-in-out infinite;
+ filter:drop-shadow(0 0 5px rgba(245,245,197,.3));
+}
+.welcome-modal .welcome-modal-close{
+ z-index:8;top:12px;right:12px;width:39px;height:39px;
+ border:1px solid rgba(255,255,255,.5);border-radius:12px;
+ background:rgba(255,255,255,.13);
+}
+.welcome-modal .welcome-modal-close:hover{background:rgba(255,255,255,.24)}
+@keyframes paaxixi-welcome-backdrop-in{
+ from{opacity:0}to{opacity:1}
+}
+@keyframes paaxixi-welcome-enter{
+ from{opacity:0;transform:translateY(24px) scale(.97)}
+ to{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes paaxixi-welcome-copy-in{
+ from{opacity:0;transform:translateY(10px)}
+ to{opacity:1;transform:translateY(0)}
+}
+@keyframes paaxixi-mascot-walk-in{
+ 0%{opacity:0;transform:translate(95px,14px) rotate(8deg)}
+ 70%{opacity:1;transform:translate(-6px,-3px) rotate(-4deg)}
+ 100%{opacity:1;transform:translate(0,0) rotate(0)}
+}
+@keyframes paaxixi-mascot-dadah{
+ 0%,40%,64%,100%{transform:translateY(0) rotate(0)}
+ 45%{transform:translateY(-5px) rotate(-4deg)}
+ 49%{transform:translateY(-2px) rotate(4deg)}
+ 54%{transform:translateY(-5px) rotate(-3deg)}
+ 59%{transform:translateY(0) rotate(0)}
+}
+@keyframes paaxixi-hand-wave{
+ 0%,35%,66%,100%{transform:rotate(-12deg)}
+ 43%{transform:rotate(25deg)}
+ 48%{transform:rotate(-24deg)}
+ 53%{transform:rotate(25deg)}
+ 58%{transform:rotate(-17deg)}
+}
+@keyframes paaxixi-spark-float{
+ 0%,100%{transform:translateY(0) rotate(0);opacity:.75}
+ 50%{transform:translateY(-5px) rotate(22deg);opacity:1}
+}
+@keyframes paaxixi-cloud-drift{
+ 0%,100%{transform:translateX(-3px) translateY(0)}
+ 50%{transform:translateX(8px) translateY(-4px)}
+}
+@keyframes paaxixi-sun-turn{
+ from{transform:rotate(0deg)}to{transform:rotate(360deg)}
+}
+@keyframes paaxixi-weather-sway{
+ 0%,100%{transform:translateY(0) rotate(-3deg)}
+ 50%{transform:translateY(-3px) rotate(3deg)}
+}
+@keyframes paaxixi-moon-glow{
+ 0%,100%{transform:rotate(-8deg) scale(1);filter:drop-shadow(0 0 2px rgba(248,239,173,.22))}
+ 50%{transform:rotate(6deg) scale(1.08);filter:drop-shadow(0 0 10px rgba(248,239,173,.5))}
+}
+@media(max-width:600px){
+ .welcome-modal .welcome-panel.welcome-panel-animated{
+  align-items:center;gap:12px;text-align:center;padding:25px 18px 24px;
+ }
+ .welcome-mascot-scene{width:145px;height:118px}
+ .welcome-modal .welcome-avatar{width:100px;height:100px;border-radius:19px}
+ .welcome-mascot-wave{font-size:24px;top:15px;right:0}
+ .welcome-scene-spark-a{top:11px;font-size:20px}
+ .welcome-scene-spark-b{bottom:21px;font-size:17px}
+ .welcome-scene-cloud{font-size:19px}
+ .welcome-modal .welcome-eyebrow{font-size:9px;letter-spacing:.5px;padding:0}
+ .welcome-modal .welcome-copy h2{font-size:clamp(21px,5.8vw,27px);line-height:1.25;margin-bottom:6px}
+ .welcome-modal .welcome-quote{font-size:13px;line-height:1.55}
+ .welcome-modal .welcome-modal-close{width:34px;height:34px;top:9px;right:9px}
+}
+@media(prefers-reduced-motion:reduce){
+ .welcome-modal-backdrop,.welcome-modal,.welcome-modal .welcome-copy,
+ .welcome-mascot-enter,.welcome-mascot-bob,.welcome-mascot-wave,
+ .welcome-scene-spark,.welcome-scene-cloud,.welcome-greeting-weather{
+  animation:none!important;transform:none!important;transition:none!important;
+ }
+}
+@media print{
+ .welcome-modal-backdrop,.welcome-modal,.welcome-greeting-weather{animation:none!important}
+}
 </style>
 </head>
 <body>
@@ -1271,13 +1421,31 @@ function insightKeuanganBulanan(){
  return '';
 }
 function welcomeBlock(){
- const now=new Date(),hour=now.getHours();
+ // Gunakan WIB agar sapaan dan tanggal konsisten di HP maupun laptop.
+ const now=new Date(),hour=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Jakarta',hour:'2-digit',hourCycle:'h23'}).format(now));
  const greeting=hour>=4&&hour<11?'Pagi':hour>=11&&hour<15?'Siang':hour>=15&&hour<18?'Sore':'Malam';
+ const weather=greeting==='Malam'?'night':greeting==='Sore'?'sunset':'day';
  const emoji=greeting==='Pagi'?'☀️':greeting==='Siang'?'🌤️':greeting==='Sore'?'🌇':'🌙';
- const tanggal=new Intl.DateTimeFormat('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(now);
- const konten=kutipanMingguan();
- const info=insightKeuanganBulanan();
- return `<section class="welcome-panel" aria-label="Sambutan harian"><img class="welcome-avatar" src="./profil-paaxixi.png?v=2" width="100" height="100" alt="Logo profil Duit-Duit Paaxixi"><div class="welcome-copy"><div class="welcome-eyebrow">${h(tanggal)} · DUIT-DUIT PAAXIXI</div><h2 id="welcome-popup-heading">Selamat ${greeting}, Alfa! ${emoji}</h2><p id="welcome-popup-quote" class="welcome-quote">${h(konten.quote)}${info?' '+h(info):''}</p></div></section>`;
+ const tanggal=new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(now);
+ const konten=kutipanMingguan(),info=insightKeuanganBulanan();
+ return `<section class="welcome-panel welcome-panel-animated" aria-label="Sambutan harian">
+  <div class="welcome-mascot-scene">
+   <span class="welcome-scene-spark welcome-scene-spark-a" aria-hidden="true">✦</span>
+   <span class="welcome-scene-spark welcome-scene-spark-b" aria-hidden="true">✧</span>
+   <span class="welcome-mascot-enter"><span class="welcome-mascot-bob">
+    <img class="welcome-avatar" src="./profil-paaxixi.png?v=2" width="128" height="128" alt="Logo profil Duit-Duit Paaxixi">
+   </span></span>
+   <span class="welcome-mascot-wave" aria-hidden="true">👋</span>
+   <span class="welcome-scene-cloud" aria-hidden="true">${weather==='night'?'✦':'☁️'}</span>
+  </div>
+  <div class="welcome-copy">
+   <div class="welcome-eyebrow">${h(tanggal)} · DUIT-DUIT PAAXIXI</div>
+   <h2 id="welcome-popup-heading">Selamat ${greeting}, Alfa!
+    <span class="welcome-greeting-weather welcome-weather-${weather}" role="img" aria-label="${greeting}">${emoji}</span>
+   </h2>
+   <p id="welcome-popup-quote" class="welcome-quote">${h(konten.quote)}${info?' '+h(info):''}</p>
+  </div>
+ </section>`;
 }
 
 /* ---------- Analisis Pengeluaran: hanya membaca data transaksi ---------- */

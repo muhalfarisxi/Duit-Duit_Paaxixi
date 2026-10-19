@@ -542,6 +542,90 @@ body:has(.review-modal-backdrop){overflow:hidden}
   .paaxixi-doodle .paaxixi-letter,.paaxixi-flying-money,.paaxixi-side-star,
   .paaxixi-coin,.paaxixi-kicker-spark{animation:none!important;transform:none!important;will-change:auto}
 }
+
+/* #033 Dynamic icons + cashflow amount highlights (navy-friendly, staggered). */
+.category-symbol{
+ transform-origin:50% 75%;
+ animation:paaxixi-symbol-hop 8.6s ease-in-out -1.4s infinite;
+}
+.review-group:nth-child(3n+1) .category-symbol,
+.legend-row:nth-child(3n+1) .category-symbol,
+.inline-line:nth-child(3n+1) .category-symbol{
+ animation-duration:9.2s;animation-delay:-3.1s;
+}
+.review-group:nth-child(3n+2) .category-symbol,
+.review-bar-select:nth-child(3n+2) .category-symbol,
+.legend-row:nth-child(3n+2) .category-symbol,
+.inline-line:nth-child(3n+2) .category-symbol{
+ animation-duration:10.4s;animation-delay:-5.2s;
+}
+.review-group:nth-child(3n) .category-symbol,
+.review-bar-select:nth-child(3n) .category-symbol,
+.legend-row:nth-child(3n) .category-symbol,
+.inline-line:nth-child(3n) .category-symbol{
+ animation-duration:11.3s;animation-delay:-7.1s;
+}
+.review-group-toggle:hover .category-symbol,
+.review-bar-select:hover .category-symbol,
+.inline-line:hover .category-symbol{
+ animation:paaxixi-symbol-hover .48s ease-out 1 both;
+}
+@keyframes paaxixi-symbol-hop{
+ 0%,66%,84%,100%{transform:translateY(0) rotate(0deg) scale(1)}
+ 70%{transform:translateY(-3px) rotate(-9deg) scale(1.10)}
+ 74%{transform:translateY(0) rotate(6deg) scale(.98)}
+ 78%{transform:translateY(-1px) rotate(-3deg) scale(1.04)}
+}
+@keyframes paaxixi-symbol-hover{
+ 0%{transform:translateY(0) rotate(0) scale(1)}
+ 50%{transform:translateY(-3px) rotate(-8deg) scale(1.14)}
+ 100%{transform:translateY(0) rotate(0) scale(1)}
+}
+/* Cashflow totals pulse in place, with a gentle border glow for KPI cards. */
+.cashflow-card{
+ position:relative;
+ isolation:isolate;
+ overflow:hidden;
+ border-color:var(--line);
+ animation:paaxixi-card-gleam 10s ease-in-out infinite;
+}
+.cashflow-card-income{--cashflow-aura:rgba(31,157,91,.17);--cashflow-outline:rgba(33,151,82,.34);animation-delay:-2s}
+.cashflow-card-expense{--cashflow-aura:rgba(207,67,80,.15);--cashflow-outline:rgba(209,78,88,.34);animation-delay:-5.5s}
+.cashflow-card .card-icon{transition:transform .25s ease}
+.cashflow-card:hover .card-icon{transform:translateY(-2px) scale(1.08)}
+.cashflow-number{
+ display:inline-block;
+ transform-origin:left center;
+ animation:paaxixi-cashflow-pulse 9.4s ease-in-out infinite;
+}
+.cashflow-number-income{--cashflow-glow:rgba(22,152,76,.28);animation-delay:-1.7s}
+.cashflow-number-expense{--cashflow-glow:rgba(205,58,72,.28);animation-delay:-5s}
+.cashflow-card .cashflow-number{font-weight:900}
+.cashflow-summary{position:relative;border-radius:12px}
+.cashflow-summary-income{background:#f1fbf5!important}
+.cashflow-summary-expense{background:#fff4f5!important}
+.tx-cal-legend .cashflow-number{font-weight:900;letter-spacing:-.15px}
+@keyframes paaxixi-cashflow-pulse{
+ 0%,66%,82%,100%{transform:scale(1);filter:drop-shadow(0 0 0 transparent)}
+ 72%{transform:scale(1.028);filter:drop-shadow(0 0 7px var(--cashflow-glow,transparent))}
+ 77%{transform:scale(1.008);filter:drop-shadow(0 0 2px var(--cashflow-glow,transparent))}
+}
+@keyframes paaxixi-card-gleam{
+ 0%,65%,83%,100%{box-shadow:var(--shadow);border-color:var(--line)}
+ 73%{box-shadow:0 0 0 3px var(--cashflow-aura,transparent),0 10px 27px var(--cashflow-aura,transparent);border-color:var(--cashflow-outline,var(--line))}
+}
+@media(prefers-reduced-motion:reduce){
+ .category-symbol,.cashflow-number,.cashflow-card{
+  animation:none!important;
+  transform:none!important;
+  filter:none!important;
+ }
+ .cashflow-card .card-icon{transition:none!important}
+ .cashflow-card:hover .card-icon{transform:none!important}
+}
+@media print{
+ .category-symbol,.cashflow-number,.cashflow-card{animation:none!important;transform:none!important;filter:none!important}
+}
 </style>
 </head>
 <body>
@@ -1210,7 +1294,13 @@ ${renderTrendPanel()}
 <section class="card"><div class="card-head"><div><h3>Asal Pemasukan</h3><p>Sumber Pendapatan Bulan Berjalan</p></div></div>${bySource.length?bySource.slice(0,7).map(c=>`<div class="stat-pair"><span>${h(c.label)} <span style="color:#8a9bb3">• ${pct(c.amount,inc)}%</span></span><strong>${money(c.amount)}</strong></div>`).join(''):empty('↗','Belum Ada Pemasukan','Misalnya dividen Fastlink, gaji atau tukin BPS.')}
 <div class="linebreak"></div><div class="stat-pair"><span>Piutang Belum Kembali</span><strong class="green">${money(debt.receivable)}</strong></div><div class="stat-pair"><span>Utang Belum Dilunasi</span><strong class="red">${money(debt.payable)}</strong></div><button class="btn sm full" data-nav="debts">Lihat Utang & Piutang</button></section></div>
 <section class="card"><div class="card-head"><div><h3>Transaksi Terbaru</h3><p>Aktivitas Terakhir Pada ${h(monthFmt(ui.month))}</p></div><div class="action-buttons"><button class="btn sm ghost" data-nav="transactions">Semua Transaksi →</button><button class="btn sm" data-nav="reports">Arsip Bulan →</button></div></div>${all.length?all.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt?.localeCompare(a.createdAt||'')||0).slice(0,6).map(txRow).join(''):empty('⇄','Belum Ada Transaksi','Klik “Catat transaksi” untuk membuat catatan baru.')}</section>`}
-function metricCard(label,value,icon,color,sub){return `<section class="card"><div class="row-between"><div class="metric-label">${label}</div><span class="card-icon" style="width:31px;height:31px">${icon}</span></div><div class="metric ${color}">${money(value)}</div><div class="metric-sub">${sub}</div></section>`}
+function metricCard(label,value,icon,color,sub){
+ const flow=label==='Pemasukan Bulan Ini'?'income':label==='Pengeluaran Bulan Ini'?'expense':'';
+ return `<section class="card ${flow?'cashflow-card cashflow-card-'+flow:''}">
+  <div class="row-between"><div class="metric-label">${label}</div><span class="card-icon" style="width:31px;height:31px">${icon}</span></div>
+  <div class="metric ${color} ${flow?'cashflow-number cashflow-number-'+flow:''}">${money(value)}</div>
+  <div class="metric-sub">${sub}</div></section>`;
+}
 function budgetProgress(c){let b=effectiveBudget(c.id),spent=spentByCat(c.id),st=status(c.id);return `<div><div class="progress-head"><div class="symbol-line">${symbolBadge(c.label,c.group,true)}<div class="symbol-text"><strong>${h(c.label)}</strong><div class="tiny">${money(spent)} / ${money(b)}</div></div></div>${pill(st.s,st.label)}</div><div class="track ${st.s==='danger'?'danger':st.s==='warn'?'warn':''}"><div style="width:${Math.max(0,Math.min(100,pct(spent,Math.max(b,1))))}%"></div></div></div>`}
 function txRow(t){let detail=t.type==='transfer'?`${acc(t.accountId)?.name||'Rekening dihapus'} → ${acc(t.toAccountId)?.name||'Rekening dihapus'}`:`${cat(t.categoryId)?.label||'Kategori dihapus'} · ${acc(t.accountId)?.name||'Rekening dihapus'}`;return `<div class="list-item"><div><div class="list-title">${t.type==='transfer'?'🔁':pickSymbol(cat(t.categoryId)?.label,cat(t.categoryId)?.group)} ${h(t.title|| (t.type==='transfer'?'Transfer antar rekening':cat(t.categoryId)?.label||'Transaksi'))}</div><div class="list-sub">${dateFmt(t.date)} · ${h(detail)}</div></div><div class="amount ${t.type==='expense'?'red':t.type==='income'?'green':'blue'}">${t.type==='expense'?'−':t.type==='income'?'+':'⇄ '}${money(t.amount)}</div></div>`}
 function renderTx(){let entries=monthly().filter(t=>ui.txFilter==='all'||t.type===ui.txFilter).sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
@@ -1305,8 +1395,8 @@ function renderTransactionCalendar(){
    <button type="button" class="btn sm" data-review-all>☷ Lihat Semua Transaksi</button>
   </div>
   <div class="tx-cal-summary tx-cal-legend" aria-label="Ringkasan uang masuk dan uang keluar bulan ini">
-   <span class="green">↑ Masuk ${money(totals.income)}</span>
-   <span class="red">↓ Keluar ${money(totals.expense)}</span>
+   <span class="green cashflow-number cashflow-number-income">↑ Masuk ${money(totals.income)}</span>
+   <span class="red cashflow-number cashflow-number-expense">↓ Keluar ${money(totals.expense)}</span>
    <span class="tx-cal-summary-note">Transfer antar rekening tidak masuk total.</span>
   </div>
   <p class="tx-calendar-tip"><span class="tx-calendar-tip-icon" aria-hidden="true">!</span><strong>Klik tanggal pada kalender untuk melihat rincian dan mengedit transaksi.</strong></p>
@@ -1421,7 +1511,7 @@ function renderReviewPopup(){
   tx=tx.slice().sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
   const totals=transactionDayTotals(tx);
   sub=tx.length+' Transaksi';
-  const summary=`<div class="tx-popup-summary"><span class="green">↑ Masuk ${money(totals.income)}</span><span class="red">↓ Keluar ${money(totals.expense)}</span>${totals.transfer>0?`<span class="blue">⇄ Transfer ${money(totals.transfer)}</span>`:''}</div>`;
+  const summary=`<div class="tx-popup-summary"><span class="green cashflow-number cashflow-number-income">↑ Masuk ${money(totals.income)}</span><span class="red cashflow-number cashflow-number-expense">↓ Keluar ${money(totals.expense)}</span>${totals.transfer>0?`<span class="blue">⇄ Transfer ${money(totals.transfer)}</span>`:''}</div>`;
   content=summary+(popup.type==='tx-all'?renderTransactionDateGroups(tx):tx.map(transactionCalendarItem).join(''));
  }else if(popup.type==='category'){
   if(ui.view!=='review')return '';
@@ -1463,7 +1553,7 @@ function renderReview(){
     <button type="button" data-review-type="expense" class="review-type-button expense ${!isIncome?'active':''}" aria-pressed="${!isIncome?'true':'false'}">↘ Pengeluaran</button>
    </div>
    <div class="report-kpis">
-    <div><small>Total ${kind}</small><strong class="${isIncome?'green':'red'}">${money(selected.reduce((sum,t)=>sum+num(t.amount),0))}</strong></div>
+    <div class="cashflow-summary ${isIncome?'cashflow-summary-income':'cashflow-summary-expense'}"><small>Total ${kind}</small><strong class="cashflow-number ${isIncome?'green cashflow-number-income':'red cashflow-number-expense'}">${money(selected.reduce((sum,t)=>sum+num(t.amount),0))}</strong></div>
     <div><small>Transaksi</small><strong>${selected.length}</strong></div>
     <div><small>${isIncome?'Sumber Terpakai':'Pos Terpakai'}</small><strong>${count}</strong></div>
    </div>

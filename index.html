@@ -374,7 +374,20 @@ const QUOTES_GEN_Z=[
  'Jajan secukupnya, tenang sepanjang bulannya. 🍵',
  'Plot twist terbaik: akhir bulan saldo masih aman. 💰'
 ];
-let quoteMingguan=null;
+const QUOTE_LAST_KEY='paaxixi-last-opening-quote-v1';
+const QUOTE_CACHE_KEY='paaxixi-trend-quote-cache-v1';
+let quoteMingguan=null,quoteSesi=null;
+function quoteStrings(data){
+ const values=[...(Array.isArray(data?.quotes)?data.quotes:[]),data?.quote];
+ return [...new Set(values.filter(q=>typeof q==='string'&&q.trim()&&q.length<=190).map(q=>q.trim()))];
+}
+function bacaQuoteMingguanTersimpan(){
+ try{
+  const data=JSON.parse(localStorage.getItem(QUOTE_CACHE_KEY)||'null');
+  if(data?.week===idMinggu()&&quoteStrings(data).length>0)return data;
+ }catch(e){}
+ return null;
+}
 function idMinggu(date=new Date()){
  const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));
  d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7));
@@ -383,10 +396,19 @@ function idMinggu(date=new Date()){
  return y+'-W'+String(w).padStart(2,'0');
 }
 function kutipanMingguan(){
- const minggu=idMinggu();
- if(quoteMingguan?.week===minggu)return quoteMingguan;
- const nomor=Number(minggu.slice(0,4))*53+Number(minggu.slice(-2));
- return {week:minggu,quote:QUOTES_GEN_Z[nomor%QUOTES_GEN_Z.length],theme:'Gen Z & Budgeting',is_trending:false};
+ if(quoteSesi)return quoteSesi;
+ // Satu pilihan per pembukaan situs; navigasi, sinkronisasi, dan edit tidak mengacaknya.
+ if(!quoteMingguan)quoteMingguan=bacaQuoteMingguanTersimpan();
+ const pool=quoteMingguan?.week===idMinggu()?quoteStrings(quoteMingguan):QUOTES_GEN_Z;
+ const pilihan=pool.length?pool:QUOTES_GEN_Z;
+ let terakhir='';
+ try{terakhir=localStorage.getItem(QUOTE_LAST_KEY)||'';}catch(e){}
+ const belumTampil=pilihan.filter(q=>q!==terakhir);
+ const calon=belumTampil.length?belumTampil:pilihan;
+ const dipilih=calon[Math.floor(Math.random()*calon.length)];
+ quoteSesi={quote:dipilih,week:idMinggu()};
+ try{localStorage.setItem(QUOTE_LAST_KEY,dipilih);}catch(e){}
+ return quoteSesi;
 }
 async function muatQuoteMingguan(){
  try{
@@ -395,11 +417,13 @@ async function muatQuoteMingguan(){
   const res=await fetch(url,{cache:'no-store'});
   if(!res.ok)throw new Error('Quote mingguan belum tersedia');
   const data=await res.json();
-  if(data?.week!==minggu||typeof data.quote!=='string'||data.quote.length>190)return;
-  quoteMingguan={week:data.week,quote:data.quote,theme:typeof data.theme==='string'?data.theme.slice(0,40):'Gen Z & Budgeting',is_trending:data.is_trending===true};
-  if(ui.view==='dashboard')render();
+  if(data?.week!==minggu||quoteStrings(data).length<1)return;
+  quoteMingguan={week:minggu,quote:data.quote,quotes:quoteStrings(data),theme:typeof data.theme==='string'?data.theme.slice(0,40):'Gen Z & Budgeting',is_trending:data.is_trending===true};
+  // Simpan pilihan tema mingguan untuk pembukaan berikutnya. Jangan ganti quote di tengah popup.
+  try{localStorage.setItem(QUOTE_CACHE_KEY,JSON.stringify(quoteMingguan));}catch(e){}
  }catch(err){console.info('Quote cadangan dipakai:',err.message)}
 }
+
 function insightKeuanganBulanan(){
  const transaksi=monthly().filter(t=>t.type==='expense'||t.type==='income');
  if(!transaksi.length)return '';

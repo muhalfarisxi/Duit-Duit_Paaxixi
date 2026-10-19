@@ -373,6 +373,31 @@ body:has(.review-modal-backdrop){overflow:hidden}
  .review-group-total .review-bar-badge{font-size:9px}
  .review-group-chart .review-bar-caption{font-size:10px}
 }
+
+/* #026 Kalender pemasukan/pengeluaran di Transaksi Harian */
+.tx-calendar-section{margin:18px 0}
+.tx-calendar-grid .tx-cal-day{gap:4px}
+.tx-calendar-grid .tx-cal-day.has-expense{background:#f8fbff}
+.tx-cal-totals{display:flex;flex-direction:column;gap:3px;width:100%;min-width:0}
+.tx-cal-income,.tx-cal-expense,.tx-cal-transfer{display:block;font-weight:800;font-size:11px;line-height:1.2;overflow-wrap:anywhere}
+.tx-cal-income{color:#15803d}
+.tx-cal-expense{color:#c43c4c}
+.tx-cal-transfer{color:#4169a3}
+.tx-cal-summary{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;margin-top:13px;font-weight:800;font-size:12px}
+.tx-cal-summary-note{font-weight:450;font-size:11px;color:#7a8eac}
+.tx-popup-summary{display:flex;flex-wrap:wrap;gap:9px 22px;margin:14px 18px 8px;padding:13px 15px;background:#f4f8fe;border:1px solid #dce8fa;border-radius:10px;font-size:13px;font-weight:850}
+.tx-calendar-item-income{border-left:4px solid #22a060}
+.tx-calendar-item-expense{border-left:4px solid #dc5966}
+.tx-calendar-item-transfer{border-left:4px solid #6190dc}
+.tx-calendar-date-group>summary{display:flex;align-items:center;gap:9px;justify-content:space-between}
+.tx-cal-day-head-totals{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px 14px;font-size:12px}
+@media(max-width:640px){
+ .tx-calendar-grid .tx-cal-day{min-height:73px}
+ .tx-cal-income,.tx-cal-expense,.tx-cal-transfer{font-size:9px}
+ .tx-cal-summary{font-size:11px;gap:7px 13px}
+ .tx-popup-summary{margin:10px 11px;padding:10px;font-size:11px}
+ .tx-cal-day-head-totals{font-size:10px;gap:3px 8px}
+}
 </style>
 </head>
 <body>
@@ -1042,8 +1067,9 @@ ${kind!=='transfer'?`<div class="form-field"><label class="field-label">Kelompok
 <div class="form-field"><label class="field-label">${kind==='income'?'Masuk Ke Rekening':kind==='transfer'?'Dari Rekening':'Bayar Dari Rekening'}</label>${selectAcc('accountId',editing?.accountId||'')}</div>${kind==='transfer'?`<div class="form-field"><label class="field-label">Ke Rekening</label>${selectAcc('toAccountId',editing?.toAccountId||'')}</div>`:''}
 <div class="form-field full"><label class="field-label">Nama / Keterangan Transaksi</label><input class="field" name="title" value="${h(editing?.title||'')}" placeholder="Misalnya: Beli nasi ayam" required maxlength="130"></div><div class="form-field full"><label class="field-label">Catatan (Opsional)</label><textarea class="field" name="note" rows="2" maxlength="500">${h(editing?.note||'')}</textarea></div></div>
 <div class="form-actions"><button class="btn teal" type="submit">${editing?'✓ Simpan perubahan':'＋ Simpan transaksi'}</button>${editing?'<button class="btn" type="button" data-action="cancel-edit-tx">Batal edit</button>':''}</div></form></section>
-<section class="card"><div class="card-head"><div><h3>Ringkasan Transaksi</h3><p>${h(monthFmt(ui.month))}</p></div></div><div class="stat-pair"><span>Pemasukan</span><strong class="green">${money(totalType('income'))}</strong></div><div class="stat-pair"><span>Pengeluaran</span><strong class="red">${money(totalType('expense'))}</strong></div><div class="linebreak"></div><div class="stat-pair"><span>Selisih Bersih</span><strong class="${totalType('income')-totalType('expense')<0?'red':'green'}">${money(totalType('income')-totalType('expense'))}</strong></div><div class="tip" style="margin-top:22px">Transfer antar rekening tidak dihitung sebagai pengeluaran/pemasukan. ${db.reports[ui.month]?'Perubahan transaksi tidak mengubah arsip yang sudah disimpan sebelum laporan diperbarui.':''}</div><button data-nav="review" class="btn sm full" style="margin-top:16px">☷ Tinjau rinci menurut tanggal / kategori →</button></section></div>
-<section class="card"><div class="card-head"><div><h3>Riwayat Transaksi</h3><p>${entries.length} transaksi pada ${h(monthFmt(ui.month))}</p></div><select class="select-sm" id="tx-filter" aria-label="Filter transaksi">${[['all','Semua'],['expense','Pengeluaran'],['income','Pemasukan'],['transfer','Transfer']].map(([value,label])=>`<option value="${value}" ${ui.txFilter===value?'selected':''}>${label}</option>`).join('')}</select></div>${entries.length?`<div class="table-scroll"><table class="table"><thead><tr><th>Tanggal</th><th>Transaksi</th><th>Kategori / Rekening</th><th>Nominal</th><th>Aksi</th></tr></thead><tbody>${entries.map(t=>`<tr><td class="cell-muted">${dateFmt(t.date)}</td><td><strong>${h(t.title)}</strong>${t.note?`<div class="cell-muted">${h(t.note)}</div>`:''}</td><td class="cell-muted">${h(t.type==='transfer'?'Transfer':cat(t.categoryId)?.label||'Kategori tidak ada')}<div>${h(t.type==='transfer'?(acc(t.accountId)?.name||'?')+' → '+(acc(t.toAccountId)?.name||'?'):(acc(t.accountId)?.name||'?'))}</div></td><td><strong class="${t.type==='expense'?'red':t.type==='income'?'green':'blue'}">${t.type==='expense'?'−':t.type==='income'?'+':'⇄ '}${money(t.amount)}</strong></td><td><div class="action-buttons"><button type="button" class="btn sm" data-edit-tx="${h(t.id)}">Edit</button><button type="button" class="btn sm danger" data-delete-tx="${h(t.id)}">Hapus</button></div></td></tr>`).join('')}</tbody></table></div>`:empty('⇄','Tidak Ada Riwayat','Belum ada transaksi untuk filter dan bulan ini.')}</section>`}
+<section class="card"><div class="card-head"><div><h3>Ringkasan Transaksi</h3><p>${h(monthFmt(ui.month))}</p></div></div><div class="stat-pair"><span>Pemasukan</span><strong class="green">${money(totalType('income'))}</strong></div><div class="stat-pair"><span>Pengeluaran</span><strong class="red">${money(totalType('expense'))}</strong></div><div class="linebreak"></div><div class="stat-pair"><span>Selisih Bersih</span><strong class="${totalType('income')-totalType('expense')<0?'red':'green'}">${money(totalType('income')-totalType('expense'))}</strong></div><div class="tip" style="margin-top:22px">Transfer antar rekening tidak dihitung sebagai pengeluaran/pemasukan. ${db.reports[ui.month]?'Perubahan transaksi tidak mengubah arsip yang sudah disimpan sebelum laporan diperbarui.':''}</div><button data-nav="review" class="btn sm full" style="margin-top:16px">▤ Analisis Pengeluaran Per Kelompok →</button></section></div>
+${renderTransactionCalendar()}
+<section class="card"><div class="card-head"><div><h3>Riwayat Transaksi</h3><p>${entries.length} transaksi pada ${h(monthFmt(ui.month))}</p></div><select class="select-sm" id="tx-filter" aria-label="Filter transaksi">${[['all','Semua'],['expense','Pengeluaran'],['income','Pemasukan'],['transfer','Transfer']].map(([value,label])=>`<option value="${value}" ${ui.txFilter===value?'selected':''}>${label}</option>`).join('')}</select></div>${entries.length?`<div class="table-scroll"><table class="table"><thead><tr><th>Tanggal</th><th>Transaksi</th><th>Kategori / Rekening</th><th>Nominal</th><th>Aksi</th></tr></thead><tbody>${entries.map(t=>`<tr><td class="cell-muted">${dateFmt(t.date)}</td><td><strong>${h(t.title)}</strong>${t.note?`<div class="cell-muted">${h(t.note)}</div>`:''}</td><td class="cell-muted">${h(t.type==='transfer'?'Transfer':cat(t.categoryId)?.label||'Kategori tidak ada')}<div>${h(t.type==='transfer'?(acc(t.accountId)?.name||'?')+' → '+(acc(t.toAccountId)?.name||'?'):(acc(t.accountId)?.name||'?'))}</div></td><td><strong class="${t.type==='expense'?'red':t.type==='income'?'green':'blue'}">${t.type==='expense'?'−':t.type==='income'?'+':'⇄ '}${money(t.amount)}</strong></td><td><div class="action-buttons"><button type="button" class="btn sm" data-edit-tx="${h(t.id)}">Edit</button><button type="button" class="btn sm danger" data-delete-tx="${h(t.id)}">Hapus</button></div></td></tr>`).join('')}</tbody></table></div>`:empty('⇄','Tidak Ada Riwayat','Belum ada transaksi untuk filter dan bulan ini.')}</section>${renderReviewPopup()}`}
 function reviewItem(t){let c=cat(t.categoryId),a=acc(t.accountId);return `<div class="review-item"><div><strong>${pickSymbol(c?.label,c?.group)} ${h(t.title)}</strong><div class="tiny">${dateFmt(t.date)} · ${h(c?.group||'-')} / ${h(c?.label||'-')} · ${h(a?.name||'?')}</div>${t.note?`<div class="tiny">${h(t.note)}</div>`:''}</div><div class="review-amount"><strong class="red">${money(t.amount)}</strong><div class="action-buttons"><button type="button" class="btn sm" data-edit-tx="${h(t.id)}">Edit</button><button type="button" class="btn sm danger" data-delete-tx="${h(t.id)}">Hapus</button></div></div></div>`}
 
 
@@ -1052,43 +1078,80 @@ function reviewFilteredExpense({includeDay=true}={}){
   &&(!ui.reviewCategory||t.categoryId===ui.reviewCategory)
   &&(!includeDay||!ui.reviewDate||t.date===ui.reviewDate));
 }
-function reviewDateGroups(tx){
- return [...new Set(tx.map(t=>t.date))].sort().reverse().map(date=>{
-  const entries=tx.filter(t=>t.date===date).sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
-  const amount=entries.reduce((total,t)=>total+num(t.amount),0);
-  return `<details class="review-block" open><summary><span>${dateFmt(date)} <span class="review-meta">· ${entries.length} Transaksi · ${new Set(entries.map(t=>t.categoryId)).size} Pos</span></span><strong class="red">${money(amount)}</strong></summary>${entries.map(reviewItem).join('')}</details>`;
+
+function transactionCalendarItem(t){
+ const c=cat(t.categoryId),source=acc(t.accountId)?.name||'Rekening Tidak Ada';
+ const kind=['expense','income','transfer'].includes(t.type)?t.type:'transfer';
+ const detail=kind==='transfer'
+  ?'Transfer · '+source+' → '+(acc(t.toAccountId)?.name||'Rekening Tidak Ada')
+  :(c?.group?c.group+' / ':'')+(c?.label||'Kategori Tidak Ada')+' · '+source;
+ const symbol=kind==='transfer'?'🔁':pickSymbol(c?.label,c?.group);
+ const prefix=kind==='expense'?'−':kind==='income'?'+':'⇄ ';
+ return `<div class="review-item tx-calendar-item tx-calendar-item-${kind}">
+  <div><strong>${symbol} ${h(t.title||'Transaksi')}</strong>
+   <div class="tiny">${dateFmt(t.date)} · ${h(detail)}</div>
+   ${t.note?`<div class="tiny">${h(t.note)}</div>`:''}</div>
+  <div class="review-amount"><strong class="${kind==='expense'?'red':kind==='income'?'green':'blue'}">${prefix}${money(t.amount)}</strong>
+   <div class="action-buttons"><button type="button" class="btn sm" data-edit-tx="${h(t.id)}">Edit</button><button type="button" class="btn sm danger" data-delete-tx="${h(t.id)}">Hapus</button></div>
+  </div>
+ </div>`;
+}
+function transactionDayTotals(transactions){
+ return transactions.reduce((out,t)=>{
+  const amount=num(t.amount);
+  if(t.type==='income')out.income+=amount;
+  else if(t.type==='expense')out.expense+=amount;
+  else if(t.type==='transfer')out.transfer+=amount;
+  return out;
+ },{income:0,expense:0,transfer:0});
+}
+function renderTransactionDateGroups(transactions){
+ return [...new Set(transactions.map(t=>t.date))].sort().reverse().map(date=>{
+  const selected=transactions.filter(t=>t.date===date).sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  const totals=transactionDayTotals(selected);
+  return `<details class="review-block tx-calendar-date-group" open>
+   <summary><span>${dateFmt(date)} <span class="review-meta">· ${selected.length} Transaksi</span></span>
+    <span class="tx-cal-day-head-totals"><strong class="green">+${money(totals.income)}</strong><strong class="red">−${money(totals.expense)}</strong></span>
+   </summary>${selected.map(transactionCalendarItem).join('')}
+  </details>`;
  }).join('');
 }
-function renderReviewCalendar(transactions){
- const [year,month]=ui.month.split('-').map(Number),days=new Date(year,month,0).getDate();
- const firstOffset=(new Date(year,month-1,1).getDay()+6)%7;
- const wb=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
- const todayWIB=wb.year+'-'+wb.month+'-'+wb.day;
- const byDate={};
+function renderTransactionCalendar(){
+ const transactions=monthly(),[year,month]=ui.month.split('-').map(Number);
+ const days=new Date(year,month,0).getDate(),firstOffset=(new Date(year,month-1,1).getDay()+6)%7;
+ const parts=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+ const todayWIB=parts.year+'-'+parts.month+'-'+parts.day;
+ const daily={};
  for(const t of transactions){
-  const previous=byDate[t.date]||{sum:0,count:0};
-  previous.sum+=num(t.amount);previous.count++;byDate[t.date]=previous;
+  const item=daily[t.date]||{income:0,expense:0,transfer:0,count:0};
+  if(t.type==='income')item.income+=num(t.amount);
+  else if(t.type==='expense')item.expense+=num(t.amount);
+  else if(t.type==='transfer')item.transfer+=num(t.amount);
+  item.count++;daily[t.date]=item;
  }
  const labels=['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
- const headings=labels.map(v=>`<span>${v}</span>`).join('');
  const spacers=Array(firstOffset).fill('<span class="review-cal-spacer" aria-hidden="true"></span>').join('');
  const cells=Array.from({length:days},(_,index)=>{
-  const day=index+1,date=ui.month+'-'+String(day).padStart(2,'0');
-  const row=byDate[date],amount=row?.sum||0;
-  return `<button type="button" class="review-cal-day ${row?'has-expense':''} ${date===todayWIB?'is-today':''}"
-   data-review-day="${date}" aria-label="${dateFmt(date)}: ${row?money(amount)+', '+row.count+' transaksi':'belum ada pengeluaran'}">
-   <span class="review-cal-number">${day}</span>
-   ${row?`<span class="review-cal-total">${shortMoney(amount)}</span><span class="review-cal-count">${row.count} transaksi</span>`:'<span class="review-cal-empty">—</span>'}
+  const date=ui.month+'-'+String(index+1).padStart(2,'0'),day=daily[date];
+  return `<button type="button" class="review-cal-day tx-cal-day ${day?'has-expense':''} ${date===todayWIB?'is-today':''}"
+   data-review-day="${date}" aria-label="${dateFmt(date)}: pemasukan ${money(day?.income||0)}, pengeluaran ${money(day?.expense||0)}, ${day?.count||0} transaksi. Lihat rincian.">
+   <span class="review-cal-number">${index+1}</span>
+   ${day?`<span class="tx-cal-totals">
+      ${day.income?`<span class="tx-cal-income">+${shortMoney(day.income)}</span>`:''}
+      ${day.expense?`<span class="tx-cal-expense">−${shortMoney(day.expense)}</span>`:''}
+      ${!day.income&&!day.expense?'<span class="tx-cal-transfer">⇄ Transfer</span>':''}
+     </span><span class="review-cal-count">${day.count} transaksi</span>`:'<span class="review-cal-empty">—</span>'}
   </button>`;
  }).join('');
- const monthlyTotal=transactions.reduce((sum,t)=>sum+num(t.amount),0);
- return `<div class="review-visual-panel">
-  <div class="review-visual-panel-head"><div><h4>Kalender Pengeluaran · ${h(monthFmt(ui.month))}</h4><p>Klik tanggal untuk melihat daftar transaksi hari itu.</p></div>
-   <button type="button" class="btn sm" data-review-all>☷ Lihat Seluruh Pengeluaran</button></div>
-  <div class="review-cal-head">${headings}</div>
-  <div class="review-calendar">${spacers}${cells}</div>
-  <div class="review-cal-foot"><span>Angka biru = total pengeluaran harian</span><strong>Total: ${money(monthlyTotal)}</strong></div>
- </div>`;
+ const totals=transactionDayTotals(transactions);
+ return `<section class="card tx-calendar-section">
+  <div class="card-head"><div><h3>Kalender Transaksi · ${h(monthFmt(ui.month))}</h3><p>Hijau = Uang Masuk, Merah = Uang Keluar. Klik tanggal untuk melihat dan mengedit transaksi.</p></div>
+   <button type="button" class="btn sm" data-review-all>☷ Lihat Semua Transaksi</button>
+  </div>
+  <div class="review-cal-head">${labels.map(day=>`<span>${day}</span>`).join('')}</div>
+  <div class="review-calendar tx-calendar-grid">${spacers}${cells}</div>
+  <div class="tx-cal-summary"><span class="green">↑ Masuk ${money(totals.income)}</span><span class="red">↓ Keluar ${money(totals.expense)}</span><span class="tx-cal-summary-note">Transfer antar rekening tidak masuk total.</span></div>
+ </section>`;
 }
 function renderReviewBars(transactions){
  const rows=expenses().map(c=>{
@@ -1160,31 +1223,39 @@ function renderReviewBars(transactions){
  </div>`;
 }
 function renderReviewPopup(){
- const pop=ui.reviewPopup;if(!pop||ui.view!=='review')return '';
- let tx=[],title='',sub='';
- const monthTx=reviewFilteredExpense({includeDay:false});
- if(pop.type==='date'){
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(pop.key||'')||!pop.key.startsWith(ui.month))return '';
-  tx=monthTx.filter(t=>t.date===pop.key);title='Pengeluaran · '+dateFmt(pop.key);
-  sub=tx.length+' Transaksi · '+money(tx.reduce((sum,t)=>sum+num(t.amount),0));
- }else if(pop.type==='category'){
-  const category=expenses().find(c=>c.id===pop.key);
+ const popup=ui.reviewPopup;
+ if(!popup||!['review','transactions'].includes(ui.view))return '';
+ let tx=[],title='',sub='',content='';
+ const selectedMonth=monthly();
+ if(popup.type==='tx-date'||popup.type==='tx-all'){
+  if(ui.view!=='transactions')return '';
+  if(popup.type==='tx-date'){
+   if(!/^\d{4}-\d{2}-\d{2}$/.test(popup.key||'')||!popup.key.startsWith(ui.month))return '';
+   tx=selectedMonth.filter(t=>t.date===popup.key);
+   title='Transaksi · '+dateFmt(popup.key);
+  }else{
+   tx=selectedMonth;title='Seluruh Transaksi · '+monthFmt(ui.month);
+  }
+  tx=tx.slice().sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
+  const totals=transactionDayTotals(tx);
+  sub=tx.length+' Transaksi';
+  const summary=`<div class="tx-popup-summary"><span class="green">↑ Masuk ${money(totals.income)}</span><span class="red">↓ Keluar ${money(totals.expense)}</span>${totals.transfer>0?`<span class="blue">⇄ Transfer ${money(totals.transfer)}</span>`:''}</div>`;
+  content=summary+(popup.type==='tx-all'?renderTransactionDateGroups(tx):tx.map(transactionCalendarItem).join(''));
+ }else if(popup.type==='category'){
+  if(ui.view!=='review')return '';
+  const category=expenses().find(c=>c.id===popup.key);
   if(!category)return '';
   tx=reviewFilteredExpense().filter(t=>t.categoryId===category.id);
   title=pickSymbol(category.label,category.group)+' '+category.label;
   sub=category.group+' · '+tx.length+' Transaksi · '+money(tx.reduce((sum,t)=>sum+num(t.amount),0));
- }else if(pop.type==='all'){
-  tx=monthTx;title='Seluruh Pengeluaran · '+monthFmt(ui.month);
-  sub=tx.length+' Transaksi · '+money(tx.reduce((sum,t)=>sum+num(t.amount),0))+(ui.reviewCategory?' · Kategori Terfilter':'');
+  tx=tx.slice().sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
+  content=tx.map(reviewItem).join('');
  }else return '';
- tx=tx.slice().sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
- const entries=pop.type==='all'?reviewDateGroups(tx):tx.map(reviewItem).join('');
  return `<div class="review-modal-backdrop" id="review-modal-backdrop">
   <div class="review-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="review-modal-title" aria-describedby="review-modal-subtitle">
    <div class="review-modal-top"><div><h3 id="review-modal-title">${h(title)}</h3><p id="review-modal-subtitle">${h(sub)}</p></div>
-     <button type="button" class="review-modal-close" data-review-close aria-label="Tutup Rincian Pengeluaran">✕</button>
-   </div>
-   <div class="review-modal-content">${entries||(tx.length?'':'<div class="review-modal-empty">Belum Ada Pengeluaran Pada Pilihan Ini.</div>')}</div>
+    <button type="button" class="review-modal-close" data-review-close aria-label="Tutup Rincian Transaksi">✕</button></div>
+   <div class="review-modal-content">${content||'<div class="review-modal-empty">Belum Ada Transaksi Pada Pilihan Ini.</div>'}</div>
   </div>
  </div>`;
 }
@@ -1196,21 +1267,20 @@ function dismissReviewPopup(){
 }
 function renderReview(){
  const all=monthly().filter(t=>t.type==='expense');
- const filtered=all.filter(t=>(!ui.reviewDate||ui.reviewMode==='date'||t.date===ui.reviewDate)&&(!ui.reviewCategory||t.categoryId===ui.reviewCategory));
- const count=ui.reviewMode==='date'?new Set(filtered.map(t=>t.date)).size:new Set(filtered.map(t=>t.categoryId)).size;
+ const filtered=all.filter(t=>(!ui.reviewDate||t.date===ui.reviewDate)&&(!ui.reviewCategory||t.categoryId===ui.reviewCategory));
+ const count=new Set(filtered.map(t=>t.categoryId)).size;
  return `<section class="card">
-  <div class="card-head"><div><h3>Tinjau Pengeluaran · ${h(monthFmt(ui.month))}</h3><p>${ui.reviewMode==='date'?'Lihat total per tanggal dalam kalender.':'Bandingkan nominal pengeluaran setiap pos dengan batas anggarannya.'}</p></div><button class="btn sm" data-action="csv-review">↓ CSV</button></div>
-  <div class="review-tabs"><button data-review-mode="category" class="${ui.reviewMode==='category'?'active':''}">▤ Grafik Per Pos</button><button data-review-mode="date" class="${ui.reviewMode==='date'?'active':''}">▦ Kalender Tanggal</button></div>
+  <div class="card-head"><div><h3>Tinjau Pengeluaran · ${h(monthFmt(ui.month))}</h3><p>Bandingkan kelompok dan pos dengan batas anggaran. Kalender uang masuk/keluar sekarang berada di Transaksi Harian.</p></div>
+   <button class="btn sm" data-action="csv-review">↓ CSV</button></div>
   <div class="review-controls">
-   ${ui.reviewMode==='category'?`<label><span class="field-label">Filter Tanggal</span><input type="date" class="field" id="review-date" value="${h(ui.reviewDate)}"></label>`:''}
+   <label><span class="field-label">Filter Tanggal</span><input type="date" class="field" id="review-date" value="${h(ui.reviewDate)}"></label>
    <label><span class="field-label">Filter Kategori</span><select class="field" id="review-category"><option value="">Semua Pos</option>${expenses().map(c=>`<option value="${h(c.id)}" ${ui.reviewCategory===c.id?'selected':''}>${pickSymbol(c.label,c.group)} ${h(c.group)} · ${h(c.label)}</option>`).join('')}</select></label>
    <button class="btn sm" data-action="clear-review">Reset Filter</button>
   </div>
-  <div class="report-kpis"><div><small>Jumlah Pengeluaran</small><strong>${money(filtered.reduce((sum,t)=>sum+num(t.amount),0))}</strong></div><div><small>Transaksi</small><strong>${filtered.length}</strong></div><div><small>${ui.reviewMode==='date'?'Tanggal Tercatat':'Pos Terpakai'}</small><strong>${count}</strong></div></div>
-  ${ui.reviewMode==='date'?renderReviewCalendar(filtered):renderReviewBars(filtered)}
+  <div class="report-kpis"><div><small>Jumlah Pengeluaran</small><strong>${money(filtered.reduce((sum,t)=>sum+num(t.amount),0))}</strong></div><div><small>Transaksi</small><strong>${filtered.length}</strong></div><div><small>Pos Terpakai</small><strong>${count}</strong></div></div>
+  ${renderReviewBars(filtered)}
  </section>${renderReviewPopup()}`;
 }
-
 function expenseGroupManager(){
  return `<section class="card" id="expense-group-manager" style="margin-bottom:16px">
   <div class="card-head"><div><h3>Kelola Kelompok Pengeluaran</h3><p>Tambah, Edit Nama, Warna, Atau Hapus Kelompok.</p></div><button type="button" class="btn primary sm" data-add-expense-group>＋ Tambah Kelompok</button></div>
@@ -1406,7 +1476,7 @@ function exportJSON(){let blob=new Blob([JSON.stringify({...db,exportedAt:new Da
 function validDb(o){return o&&Array.isArray(o.accounts)&&Array.isArray(o.transactions)&&Array.isArray(o.debts)&&Array.isArray(o.categories)&&Array.isArray(o.budgetMoves)&&o.budgets&&typeof o.budgets==='object'&&o.accounts.every(a=>a.id&&a.name&&Number.isFinite(Number(a.opening)))&&o.transactions.every(t=>t.id&&t.type&&t.date&&Number.isFinite(Number(t.amount)))&&o.debts.every(d=>d.id&&d.type&&d.person&&Number.isFinite(Number(d.amount))&&Array.isArray(d.settlements))&&(!('expenseGroups' in o)||Array.isArray(o.expenseGroups)&&o.expenseGroups.every(g=>g&&typeof g.id==='string'&&typeof g.name==='string'&&typeof g.color==='string'))}
 async function importJSON(file){if(!file)return;try{if(file.size>3*1024*1024)throw Error('File terlalu besar.');let obj=JSON.parse(await file.text());if(!validDb(obj))throw Error('Format cadangan tidak cocok.');if(!confirm('Impor akan MENGGANTI semua data keuangan dalam browser ini. Lanjutkan?'))return;db=normalizeExpenseGroups({version:2,accounts:obj.accounts,categories:obj.categories,expenseGroups:obj.expenseGroups,transactions:obj.transactions,budgets:obj.budgets,budgetMoves:obj.budgetMoves,debts:obj.debts,reports:obj.reports||{}});save();setView('dashboard');toast('Data berhasil dipulihkan.')}catch(e){toast('Gagal mengimpor: '+e.message,true)}finally{document.getElementById('import-file').value=''}}
 document.addEventListener('submit',e=>{if(e.target.closest('form')){e.preventDefault();handleForm(e.target)}});
-function goEditTx(id){let t=db.transactions.find(t=>t.id===id);if(!t)return;ui.txEditId=id;ui.txType=t.type;ui.month=t.date.slice(0,7);setView('transactions');document.getElementById('tx-entry')?.scrollIntoView({behavior:'smooth',block:'start'})}
+function goEditTx(id){let t=db.transactions.find(t=>t.id===id);if(!t)return;ui.reviewPopup=null;ui.txEditId=id;ui.txType=t.type;ui.month=t.date.slice(0,7);setView('transactions');document.getElementById('tx-entry')?.scrollIntoView({behavior:'smooth',block:'start'})}
 function adjustCompositionPopup(){
  const pop=document.querySelector('.comp-popover');
  const trigger=pop?.parentElement?.querySelector('.comp-popup-trigger');
@@ -1491,8 +1561,8 @@ if(x.dataset.reviewToggleGroup){
  return;
 }
 if(x.dataset.reviewSelect){ui.reviewPopup={type:'category',key:x.dataset.reviewSelect};render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});return}
-if(x.dataset.reviewDay){ui.reviewPopup={type:'date',key:x.dataset.reviewDay};render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});return}
-if(x.hasAttribute('data-review-all')){ui.reviewPopup={type:'all'};render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});return}
+if(x.dataset.reviewDay){ui.reviewPopup={type:'tx-date',key:x.dataset.reviewDay};render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});return}
+if(x.hasAttribute('data-review-all')){ui.reviewPopup={type:'tx-all'};render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});return}
 if(x.dataset.editTx){goEditTx(x.dataset.editTx);return}
 if(x.dataset.editAccount){ui.accountEditId=x.dataset.editAccount;render();return}
 if(x.dataset.editDebt){ui.debtEditId=x.dataset.editDebt;render();return}

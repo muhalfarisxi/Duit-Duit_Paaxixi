@@ -205,6 +205,7 @@ def main():
         "updated_at": now.isoformat(timespec="seconds"),
         "theme": theme,
         "quote": quotes[idx % len(quotes)],
+        "quotes": list(dict.fromkeys(quotes)),
         "is_trending": is_trending,
         "source_url": ("https://ads.tiktok.com/business/creativecenter/hashtag/find" if trend_source == "TikTok Business API (Indonesia)" else SOURCE) if is_trending else None,
         "trend_source": trend_source if is_trending else None,

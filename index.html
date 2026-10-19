@@ -177,6 +177,19 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .comp-compact-reset:hover{text-decoration:underline}
 @media(max-width:550px){.comp-compact-grid,.comp-compact-dates{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.comp-controls-compact{padding:10px}.comp-popover{width:min(282px,calc(100vw - 48px))}.comp-compact-field select,.comp-compact-field input,.comp-popup-trigger{padding:0 8px}}
 @media(prefers-reduced-motion:reduce){.comp-popover{animation:none}}
+/* Popup sambutan setiap buka/refresh situs; tutup hanya sampai halaman dimuat ulang. */
+.welcome-modal-backdrop{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:clamp(14px,4vw,32px);background:rgba(9,25,48,.64);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);overflow-y:auto}
+.welcome-modal{position:relative;width:min(820px,100%);margin:auto;box-shadow:0 26px 74px rgba(5,23,51,.38);border-radius:20px}
+.welcome-modal .welcome-panel{margin:0;padding:32px 68px 32px 28px;border-radius:20px;min-height:180px;box-shadow:none}
+.welcome-modal .welcome-avatar{width:110px;height:110px}
+.welcome-modal .welcome-copy h2{font-size:clamp(22px,3vw,29px)}
+.welcome-modal .welcome-quote{font-size:15px;line-height:1.6}
+.welcome-modal-close{position:absolute;z-index:2;top:13px;right:13px;display:grid;place-items:center;width:34px;height:34px;border:1px solid rgba(255,255,255,.25);border-radius:10px;background:rgba(255,255,255,.14);color:#fff;font-size:17px;line-height:1;cursor:pointer;transition:background .15s}
+.welcome-modal-close:hover{background:rgba(255,255,255,.27)}
+.welcome-modal-close:focus-visible{outline:3px solid #fff;outline-offset:2px}
+body:has(.welcome-modal-backdrop){overflow:hidden}
+@media(max-width:600px){.welcome-modal .welcome-panel{flex-direction:column;align-items:flex-start;gap:15px;padding:22px 20px 24px;min-height:0}.welcome-modal .welcome-avatar{width:82px;height:82px}.welcome-modal .welcome-copy h2{font-size:22px}.welcome-modal .welcome-quote{font-size:13px}.welcome-modal .welcome-eyebrow{padding-right:12px}.welcome-modal-close{top:12px;right:12px}}
+@media print{.welcome-modal-backdrop{display:none!important}}
 </style>
 </head>
 <body>
@@ -252,7 +265,7 @@ const expenseGroups=()=>db.expenseGroups;
 const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],debts:[],reports:{}});
 function load(){try{let v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.accounts)&&Array.isArray(v.categories)&&Array.isArray(v.transactions)&&Array.isArray(v.debts)&&v.budgets&&Array.isArray(v.budgetMoves))return normalizeExpenseGroups(v);}catch(e){}return fresh()}
 let db=load();db.reports=db.reports||{};
-let ui={view:'dashboard',month:currentMonth(),txType:'expense',txFilter:'all',debtFilter:'open',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'month',trendFrom:'',trendTo:'',trendLabels:true,open:false,menu:null},reviewMode:'date',reviewDate:'',reviewCategory:'',reportMonth:currentMonth()};
+let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',debtFilter:'open',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'month',trendFrom:'',trendTo:'',trendLabels:true,open:false,menu:null},reviewMode:'date',reviewDate:'',reviewCategory:'',reportMonth:currentMonth()};
 let cloud={configured:false,signedIn:false,ready:false,email:'',busy:false,error:'',empty:false,pendingDecision:false};
 function syncBadge(){let b=document.getElementById('cloud-status');if(!b)return;
  b.className='cloud-state'+(cloud.signedIn&&cloud.ready&&!cloud.pendingDecision?' online':cloud.busy?' wait':'');
@@ -415,7 +428,7 @@ function welcomeBlock(){
  const tanggal=new Intl.DateTimeFormat('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(now);
  const konten=kutipanMingguan();
  const info=insightKeuanganBulanan();
- return `<section class="welcome-panel" aria-label="Sambutan harian"><img class="welcome-avatar" src="./profil-paaxixi.png?v=2" width="100" height="100" alt="Logo profil Duit-Duit Paaxixi"><div class="welcome-copy"><div class="welcome-eyebrow">${h(tanggal)} · DUIT-DUIT PAAXIXI</div><h2>Selamat ${greeting}, Alfa! ${emoji}</h2><p class="welcome-quote">${h(konten.quote)}${info?' '+h(info):''}</p></div></section>`;
+ return `<section class="welcome-panel" aria-label="Sambutan harian"><img class="welcome-avatar" src="./profil-paaxixi.png?v=2" width="100" height="100" alt="Logo profil Duit-Duit Paaxixi"><div class="welcome-copy"><div class="welcome-eyebrow">${h(tanggal)} · DUIT-DUIT PAAXIXI</div><h2 id="welcome-popup-heading">Selamat ${greeting}, Alfa! ${emoji}</h2><p id="welcome-popup-quote" class="welcome-quote">${h(konten.quote)}${info?' '+h(info):''}</p></div></section>`;
 }
 
 /* ---------- Analisis Pengeluaran: hanya membaca data transaksi ---------- */
@@ -679,11 +692,26 @@ function renderTrendPanel(){
     <div class="trend-table-wrap"><table class="trend-table"><thead><tr><th>Periode</th>${matrixEntries.map(e=>`<th>${e.icon} ${h(e.label)}</th>`).join('')}<th>Total</th></tr></thead>
     <tbody>${rowTable}</tbody></table></div>
   </details>
-  <p class="comp-tiny">Grafik dihitung dari transaksi yang tercatat, bukan perkiraan. Pos atau kelompok yang namanya diubah mengikuti klasifikasi saat ini. Rentang tren dapat berbeda dari filter tanggal Komposisi Pengeluaran.</p>
+  
  </section>`;
 }
+function welcomeModal(){
+ if(!ui.showWelcomePopup)return '';
+ return `<div class="welcome-modal-backdrop" id="welcome-modal-backdrop">
+  <div class="welcome-modal" role="dialog" aria-modal="true" aria-labelledby="welcome-popup-heading" aria-describedby="welcome-popup-quote">
+    <button type="button" class="welcome-modal-close" data-close-welcome="button" aria-label="Tutup Sambutan" title="Tutup Sambutan">✕</button>
+    ${welcomeBlock()}
+  </div>
+ </div>`;
+}
+function dismissWelcome(){
+ if(!ui.showWelcomePopup)return;
+ ui.showWelcomePopup=false;
+ render();
+ document.getElementById('top-add')?.focus({preventScroll:true});
+}
 function renderDash(){let all=monthly(),exp=totalType('expense'),inc=totalType('income'),bt=budgetTotal(),accountBalances=balances(),kas=Object.values(accountBalances).reduce((s,x)=>s+x,0),alert=expenses().filter(c=>hasBudget(c.id)&&status(c.id).s!=='ok').sort((a,b)=>({danger:0,warn:1}[status(a.id).s]||2)-({danger:0,warn:1}[status(b.id).s]||2)),budgets=expenses().filter(c=>hasBudget(c.id)).sort((a,b)=>pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1))),bySource=incomes().map(c=>({...c,amount:all.filter(t=>t.type==='income'&&t.categoryId===c.id).reduce((s,t)=>s+num(t.amount),0)})).filter(c=>c.amount>0).sort((a,b)=>b.amount-a.amount),debt=totalsDebt();
-return `${welcomeBlock()}${all.length===0?`<div class="callout"><span>✦</span><div><strong>Mulai catatan pertamamu.</strong> Dashboard akan otomatis terisi. Mau melihat simulasi lebih dulu? <button class="btn sm" type="button" data-action="demo" style="margin-left:7px">Isi data contoh</button></div></div>`:''}
+return `${welcomeModal()}${all.length===0?`<div class="callout"><span>✦</span><div><strong>Mulai catatan pertamamu.</strong> Dashboard akan otomatis terisi. Mau melihat simulasi lebih dulu? <button class="btn sm" type="button" data-action="demo" style="margin-left:7px">Isi data contoh</button></div></div>`:''}
 <div class="grid kpis">
 ${metricCard('Pemasukan Bulan Ini',inc,'↑','green','Transaksi Pemasukan')}${metricCard('Pengeluaran Bulan Ini',exp,'↓','red','Transaksi Pengeluaran')}${metricCard('Sisa Anggaran',bt>0?bt-budgetUsed():0,'◴',bt>0&&bt-budgetUsed()<0?'red':'green',bt>0?`Dari Total ${money(bt)}`:'Belum Ada Anggaran')}${metricCard('Total Saldo Rekening',kas,'▤',kas<0?'red':'blue','Saldo Seluruh Rekening, Sepanjang Waktu')}
 </div>
@@ -856,9 +884,12 @@ document.addEventListener('pointerdown',event=>{
  if(ui.comp.menu&&!event.target.closest('.comp-picker'))dismissCompositionPopup();
 });
 document.addEventListener('keydown',event=>{
+ if(event.key==='Escape'&&ui.showWelcomePopup){event.preventDefault();dismissWelcome();return;}
  if(event.key==='Escape'&&ui.comp.menu){const kind=ui.comp.menu;dismissCompositionPopup();document.querySelector('[data-comp-menu="'+kind+'"].comp-popup-trigger')?.focus();}
 });
-document.addEventListener('click',async e=>{let x=e.target.closest('button');if(!x)return;
+document.addEventListener('click',async e=>{
+ if(e.target.closest('[data-close-welcome]')||e.target.id==='welcome-modal-backdrop'){dismissWelcome();return;}
+ let x=e.target.closest('button');if(!x)return;
 if(x.dataset.compMenu){
  ui.comp.menu=ui.comp.menu===x.dataset.compMenu?null:x.dataset.compMenu;
  render();document.querySelector('[data-comp-menu="'+x.dataset.compMenu+'"].comp-popup-trigger')?.focus({preventScroll:true});return;
@@ -979,7 +1010,7 @@ if(x.id==='tx-filter'){ui.txFilter=x.value;render()}if(x.id==='debt-filter'){ui.
 if(x.id==='review-date'){ui.reviewDate=x.value;render()}if(x.id==='review-category'){ui.reviewCategory=x.value;render()}
 if(x.id==='tx-group'){let cs=(ui.txType==='expense'?expenses():incomes()).filter(c=>c.group===x.value);let sel=document.getElementById('tx-category');if(sel)sel.innerHTML=cs.map(c=>`<option value="${h(c.id)}">${pickSymbol(c.label,c.group)} ${h(c.label)}</option>`).join('')}
 if(x.id==='new-cat-kind'){let sel=document.getElementById('new-cat-group');sel.innerHTML=(x.value==='income'?['BPS','Fastlink','Lainnya']:expenseGroups().map(g=>g.name)).map(g=>`<option value="${h(g)}">${pickSymbol(g,g)} ${h(g)}</option>`).join('')}});
-document.getElementById('top-add').addEventListener('click',()=>{ui.txEditId=null;ui.txType='expense';setView('transactions')});document.getElementById('cloud-status').addEventListener('click',()=>setView('accounts'));document.getElementById('import-file').addEventListener('change',e=>importJSON(e.target.files?.[0]));render();void muatQuoteMingguan();
+document.getElementById('top-add').addEventListener('click',()=>{ui.txEditId=null;ui.txType='expense';setView('transactions')});document.getElementById('cloud-status').addEventListener('click',()=>setView('accounts'));document.getElementById('import-file').addEventListener('change',e=>importJSON(e.target.files?.[0]));render();document.querySelector('.welcome-modal-close')?.focus({preventScroll:true});void muatQuoteMingguan();
 
 })();
 </script>

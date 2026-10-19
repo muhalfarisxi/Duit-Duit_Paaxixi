@@ -898,7 +898,7 @@ function renderReports(){let months=Object.keys(db.reports||{}).sort().reverse()
 <section class="card no-print" style="margin-bottom:16px"><div class="card-head"><div><h3>Riwayat Laporan Tersimpan</h3><p>Arsip yang tersimpan tetap dapat dibuka kembali kapan saja.</p></div></div>${months.length?`<div class="inline-cards">${months.map(x=>`<div class="inline-line"><div><strong>${h(monthFmt(x))}</strong><small>Disimpan ${new Date(db.reports[x].createdAt).toLocaleString('id-ID')} · Keluar ${money(db.reports[x].expense)}</small></div><div class="action-buttons"><button class="btn sm" data-open-report="${h(x)}">Buka</button><button class="btn sm danger" data-delete-report="${h(x)}">Hapus</button></div></div>`).join('')}</div>`:empty('▣','Belum Ada Laporan','Klik Simpan laporan bulanan untuk mengarsipkan bulan pilihan.')}</section>
 ${r?`<section class="card" id="print-area"><div class="report-header"><div class="page-eyebrow">DUIT-DUIT PAAXIXI — LAPORAN KEUANGAN PRIBADI</div><h2 style="margin:5px 0">Laporan ${h(monthFmt(r.month))}</h2><div class="tiny">Arsip dibuat: ${new Date(r.createdAt).toLocaleString('id-ID')} · Periode ${h(r.month)}</div></div><div class="report-kpis"><div><small>Total Pemasukan</small><strong class="green">${money(r.income)}</strong></div><div><small>Total Pengeluaran</small><strong class="red">${money(r.expense)}</strong></div><div><small>Arus Kas Bersih</small><strong>${money(r.net)}</strong></div></div><div class="list-head">Rincian Pemasukan Per Kategori</div>${reportTable(r.incomeBreakdown.filter(x=>x.received>0),['Sumber Pemasukan','Jumlah'],x=>`<tr><td>${h(x.group)} / ${h(x.label)}</td><td>${money(x.received)}</td></tr>`)}<div class="list-head">Rincian Pengeluaran Dan Anggaran</div>${reportTable(r.expenseBreakdown.filter(x=>x.spent>0||x.budget>0),['Kategori','Anggaran','Terpakai','Sisa'],x=>`<tr><td>${h(x.group)} / ${h(x.label)}</td><td>${money(x.budget)}</td><td>${money(x.spent)}</td><td>${money(x.budget-x.spent)}</td></tr>`)}<div class="list-head">Saldo Setiap Rekening (Akhir Bulan)</div>${reportTable(r.balances,['Rekening','Saldo'],x=>`<tr><td>${h(x.name)} (${h(x.type)})</td><td>${money(x.balance)}</td></tr>`)}<div class="list-head">Utang & Piutang Yang Belum Lunas (Akhir Bulan)</div>${reportTable(r.debts.filter(x=>x.remaining>0),['Jenis · Nama','Saldo'],x=>`<tr><td>${x.type==='receivable'?'Piutang':'Utang'} · ${h(x.person)}</td><td>${money(x.remaining)}</td></tr>`)}<div class="list-head">Daftar Transaksi Lengkap (${r.transactions.length})</div>${reportTable(r.transactions,['Tanggal','Uraian','Kategori','Jumlah'],x=>`<tr><td>${dateFmt(x.date)}</td><td>${h(x.title)}${x.note?' · '+h(x.note):''}</td><td>${x.type==='transfer'?'Transfer '+h(x.accountLabel)+' → '+h(x.toAccountLabel):h(x.categoryLabel)}</td><td>${x.type==='expense'?'−':x.type==='income'?'+':'⇄ '}${money(x.amount)}</td></tr>`)}<div class="report-note">Arsip ini adalah salinan data ketika laporan disimpan. Semua nominal dalam rupiah. Transfer antar rekening serta pokok utang/piutang tidak dimasukkan ke total pemasukan/pengeluaran.</div><div class="form-actions no-print"><button class="btn teal" data-action="print-report">🖨 Cetak / Simpan PDF</button><button class="btn" data-action="csv-report">↓ Unduh rincian CSV</button></div></section>`:''}`}
 
-function setView(view){ui.comp.menu=null;if(!['dashboard','transactions','review','budgets','debts','reports','accounts'].includes(view))return;ui.view=view;render();window.scrollTo({top:0,behavior:'smooth'})}
+function setView(view){if(ui.view!==view)closeFinanceEditor();ui.comp.menu=null;if(!['dashboard','transactions','review','budgets','debts','reports','accounts'].includes(view))return;ui.view=view;render();window.scrollTo({top:0,behavior:'smooth'})}
 function demo(){if(cloud.signedIn){toast('Keluar dari akun cloud sebelum memuat simulasi.',true);return}if(!confirm('Isi data SIMULASI bulan ini? Ini akan MENGGANTI seluruh data yang tersimpan di browser ini. Lanjutkan?'))return;db=fresh();db.accounts=[{id:'a-cash',name:'Tunai',type:'Tunai',opening:350000},{id:'a-bank',name:'Bank Contoh',type:'Bank',opening:1450000},{id:'a-wallet',name:'E-Wallet Contoh',type:'E-Wallet',opening:180000}];let budgetAmounts=[850000,1200000,450000,120000,200000,100000,250000,180000,250000,200000,150000,160000];expenses().forEach((c,i)=>db.budgets[ui.month+'|'+c.id]=budgetAmounts[i]);let add=(date,type,amount,categoryId,title,accountId='a-bank',toAccountId)=>db.transactions.push({id:uid(),date,type,amount,categoryId,title,accountId,toAccountId,createdAt:new Date().toISOString(),note:''});let m=ui.month;let at=n=>m+'-'+String(n).padStart(2,'0');let maxDay=Math.min(Number(today().slice(8)),21);let safe=n=>at(Math.min(n,maxDay));add(safe(1),'income',4200000,'c14','Gaji pokok bulan ini');add(safe(2),'income',3200000,'c15','Tukin bulan ini');add(safe(3),'income',1750000,'c13','Dividen Fastlink');add(safe(5),'income',650000,'c16','Uang makan');add(safe(6),'expense',825000,'c1','Kontrakan bulanan');add(safe(7),'expense',970000,'c2','Belanja makan dan bahan pokok');add(safe(8),'expense',345000,'c3','Bensin & transport');add(safe(9),'expense',112000,'c8','Skincare & pangkas rambut');add(safe(11),'expense',225000,'c7','Ngopi & jajan');add(safe(12),'expense',145000,'c11','Paket internet');add(safe(13),'expense',185000,'c9','Hadiah untuk diri sendiri');add(safe(15),'expense',255000,'c10','Obat & periksa');add(safe(17),'expense',190000,'c6','Infaq');add(safe(18),'expense',240000,'c2','Makan siang & malam');add(safe(19),'expense',95000,'c4','Laundry','a-cash');add(safe(20),'transfer',250000,null,'Top up e-wallet','a-bank','a-wallet');db.debts=[{id:uid(),type:'receivable',person:'Teman (contoh)',amount:200000,date:safe(10),accountId:'a-cash',note:'Contoh piutang',settlements:[]}];save();setView('dashboard');toast('Data simulasi telah dimuat. Hapus sebelum memulai pencatatan asli.')}
 function parseAmount(value){
  const raw=String(value??'').trim();
@@ -926,6 +926,11 @@ function rupiahInputHandler(e){
  el.setSelectionRange(cursor,cursor);
 }
 document.addEventListener('input',rupiahInputHandler);
+document.addEventListener('input',event=>{
+ if(!event.target.matches?.('#finance-editor-backdrop [data-icon-source]'))return;
+ const icon=document.getElementById('finance-editor-symbol');
+ if(icon)icon.textContent=pickSymbol(event.target.value,document.querySelector('#finance-editor-backdrop [data-editor-group]')?.value||'');
+});
 document.addEventListener('blur',e=>{
  const el=e.target;
  if(el.matches?.('input[data-rupiah]')&&el.value.endsWith(','))el.value=el.value.slice(0,-1);
@@ -951,9 +956,20 @@ if(id==='expense-group-form'){
   if(editId&&!old)return toast('Kelompok yang diedit tidak ditemukan. Coba muat ulang.',true);
   if(old){const previous=old.name;old.name=name;old.color=color;if(previous!==name)db.categories.forEach(c=>{if(c.kind==='expense'&&c.group===previous)c.group=name});}
   else db.expenseGroups.push({id:uid(),name,color});
-  ui.expenseGroupEditId=null;ui.budgetCategoryGroup=null;save();render();toast(old?'Kelompok pengeluaran berhasil diperbarui.':'Kelompok pengeluaran berhasil ditambahkan.');return;
+  const draft=cachePendingBudgetInputs();closeFinanceEditor();save();render();restorePendingBudgetInputs(draft);toast(old?'Kelompok pengeluaran berhasil diperbarui.':'Kelompok pengeluaran berhasil ditambahkan.');return;
  }
- if(id==='category-form'||id==='budget-category-form'){let label=String(f.get('label')||'').trim(),editId=f.get('editId'),old=db.categories.find(c=>c.id===editId),kind=old?.kind||f.get('kind'),group=f.get('group');if(!label||!['expense','income'].includes(kind)||!(kind==='income'?['BPS','Fastlink','Lainnya']:expenseGroups().map(g=>g.name)).includes(group))return toast('Kategori tidak valid.',true);if(db.categories.some(c=>c.id!==editId&&c.kind===kind&&c.group===group&&c.label.toLowerCase()===label.toLowerCase()))return toast('Kategori sudah ada.',true);if(old)Object.assign(old,{label,group});else db.categories.push({id:uid(),label,kind,group});ui.categoryEditId=null;ui.budgetCategoryEditId=null;ui.budgetCategoryGroup=null;save();render();toast('Kategori berhasil disimpan.');return}}
+ if(id==='category-form'||id==='budget-category-form'){
+  const label=String(f.get('label')||'').trim(),editId=String(f.get('editId')||''),old=db.categories.find(c=>c.id===editId),kind=old?.kind||f.get('kind'),group=f.get('group');
+  if(!label||!['expense','income'].includes(kind)||!(kind==='income'?['BPS','Fastlink','Lainnya']:expenseGroups().map(g=>g.name)).includes(group))return toast('Kategori tidak valid.',true);
+  if(editId&&!old)return toast('Pos yang diedit tidak ditemukan. Muat ulang halaman.',true);
+  if(db.categories.some(c=>c.id!==editId&&c.kind===kind&&c.group===group&&c.label.toLowerCase()===label.toLowerCase()))return toast('Kategori sudah ada.',true);
+  const isPopup=id==='budget-category-form',draft=isPopup?cachePendingBudgetInputs():null;
+  if(old)Object.assign(old,{label,group});else db.categories.push({id:uid(),label,kind,group});
+  if(isPopup)closeFinanceEditor();
+  ui.categoryEditId=null;ui.budgetCategoryEditId=null;ui.budgetCategoryGroup=null;
+  save();render();if(draft)restorePendingBudgetInputs(draft);
+  toast(old?'Pos / Kategori berhasil diperbarui.':'Pos / Kategori berhasil ditambahkan.');return;
+ }}
 function downloadFile(name,body,mime){let blob=new Blob([body],{type:mime||'text/plain'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),500)}
 function asCSV(items){let fields=['Tanggal','Jenis','Nama Pengeluaran / Pemasukan','Kelompok','Kategori','Rekening','Nominal (Rp)','Catatan'];let rows=[fields,...items.map(t=>[t.date,t.type==='expense'?'Pengeluaran':t.type==='income'?'Pemasukan':'Transfer',t.title,t.group||cat(t.categoryId)?.group||'',t.categoryLabel||cat(t.categoryId)?.label||'',t.accountLabel||acc(t.accountId)?.name||'',t.amount,t.note||''])];return '\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n')}
 function saveReport(){let m=ui.month;if(!db.transactions.some(t=>t.date.slice(0,7)===m)&&!expenses().some(c=>num(db.budgets[m+'|'+c.id])>0))return toast('Belum ada transaksi/anggaran bulan itu untuk diarsipkan.',true);if(db.reports[m]&&!confirm('Timpa arsip '+monthFmt(m)+' dengan keadaan transaksi sekarang?'))return;db.reports[m]=buildReport(m);ui.reportMonth=m;save();setView('reports');toast('Arsip laporan '+monthFmt(m)+' telah disimpan.');}
@@ -984,10 +1000,24 @@ document.addEventListener('pointerdown',event=>{
  if(ui.comp.menu&&!event.target.closest('.comp-picker'))dismissCompositionPopup();
 });
 document.addEventListener('keydown',event=>{
+ const dialog=document.querySelector('#finance-editor-backdrop .finance-editor-dialog');
+ if(dialog){
+  if(event.key==='Escape'){event.preventDefault();closeFinanceEditor();return;}
+  if(event.key==='Tab'){
+   const focusable=[...dialog.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled)')];
+   if(focusable.length){
+    const first=focusable[0],last=focusable[focusable.length-1];
+    if(event.shiftKey&&(document.activeElement===first||!dialog.contains(document.activeElement))){event.preventDefault();last.focus();}
+    else if(!event.shiftKey&&(document.activeElement===last||!dialog.contains(document.activeElement))){event.preventDefault();first.focus();}
+   }
+  }
+  return;
+ }
  if(event.key==='Escape'&&ui.showWelcomePopup){event.preventDefault();dismissWelcome();return;}
  if(event.key==='Escape'&&ui.comp.menu){const kind=ui.comp.menu;dismissCompositionPopup();document.querySelector('[data-comp-menu="'+kind+'"].comp-popup-trigger')?.focus();}
 });
 document.addEventListener('click',async e=>{
+ if(e.target.closest('[data-close-finance-editor]')||e.target.id==='finance-editor-backdrop'){closeFinanceEditor();return;}
  if(e.target.closest('[data-close-welcome]')||e.target.id==='welcome-modal-backdrop'){dismissWelcome();return;}
  let x=e.target.closest('button');if(!x)return;
 if(x.dataset.compMenu){
@@ -1010,11 +1040,8 @@ if(x.dataset.reviewMode){ui.reviewMode=x.dataset.reviewMode;render();return}
 if(x.dataset.editTx){goEditTx(x.dataset.editTx);return}
 if(x.dataset.editAccount){ui.accountEditId=x.dataset.editAccount;render();return}
 if(x.dataset.editDebt){ui.debtEditId=x.dataset.editDebt;render();return}
-if(x.dataset.editExpenseGroup){
- const g=expenseGroups().find(g=>g.id===x.dataset.editExpenseGroup);
- if(!g)return toast('Kelompok tidak ditemukan.',true);
- ui.expenseGroupEditId=g.id;setView('budgets');document.getElementById('expense-group-manager')?.scrollIntoView({behavior:'smooth',block:'start'});return;
- }
+if(x.hasAttribute('data-add-expense-group')){openFinanceEditor('group');return;}
+ if(x.dataset.editExpenseGroup){openFinanceEditor('group',x.dataset.editExpenseGroup);return;}
  if(x.dataset.deleteExpenseGroup){
  const g=expenseGroups().find(g=>g.id===x.dataset.deleteExpenseGroup);
  if(!g)return toast('Kelompok tidak ditemukan.',true);
@@ -1030,8 +1057,8 @@ if(x.dataset.editExpenseGroup){
  return;
  }
  if(x.dataset.editCategory){ui.categoryEditId=x.dataset.editCategory;render();return}
- if(x.dataset.addBudgetCategory){ui.budgetCategoryGroup=x.dataset.addBudgetCategory;ui.budgetCategoryEditId=null;render();document.getElementById('budget-category-editor')?.scrollIntoView({behavior:'smooth',block:'start'});return}
- if(x.dataset.editBudgetCategory){const c=cat(x.dataset.editBudgetCategory);if(!c)return;ui.budgetCategoryEditId=c.id;ui.budgetCategoryGroup=c.group;render();document.getElementById('budget-category-editor')?.scrollIntoView({behavior:'smooth',block:'start'});return}
+ if(x.hasAttribute('data-add-budget-category')){openFinanceEditor('pos',null,x.dataset.addBudgetCategory);return;}
+ if(x.dataset.editBudgetCategory){openFinanceEditor('pos',x.dataset.editBudgetCategory);return;}
 if(x.dataset.editMove){ui.moveEditId=x.dataset.editMove;render();return}
 if(x.dataset.editRepay){let [id,pid]=x.dataset.editRepay.split('|');ui.debtSelected=id;ui.repayEditId=pid;render();document.getElementById('repay-panel')?.scrollIntoView({behavior:'smooth'});return}
 if(x.dataset.openReport){ui.reportMonth=x.dataset.openReport;setView('reports');document.getElementById('print-area')?.scrollIntoView({behavior:'smooth'});return}
@@ -1046,8 +1073,7 @@ if(x.dataset.repay){ui.debtSelected=x.dataset.repay;ui.repayEditId=null;render()
 if(x.dataset.action){let a=x.dataset.action;
 if(cloud.pendingDecision&&!['cloud-upload','cloud-empty','cloud-logout','export','export-precloud'].includes(a))return toast('Cloud kosong. Putuskan dahulu apakah akan mengunggah data lokal atau mulai dari kosong.',true);
 if(a==='demo')demo();if(a==='export')exportJSON();if(a==='export-precloud'){let old=localStorage.getItem('arus-cadangan-sebelum-cloud');if(old)downloadFile('Duit-Duit-Paaxixi-cadangan-sebelum-cloud.json',old,'application/json');}if(a==='import')document.getElementById('import-file').click();
-if(a==='cancel-expense-group'){ui.expenseGroupEditId=null;render()}
- if(a==='cancel-budget-category'){ui.budgetCategoryEditId=null;ui.budgetCategoryGroup=null;render()}
+if(a==='cancel-expense-group'||a==='cancel-budget-category'){closeFinanceEditor();return;}
  if(a==='cancel-edit-tx'){ui.txEditId=null;render()}if(a==='cancel-edit-debt'){ui.debtEditId=null;render()}if(a==='cancel-account-edit'){ui.accountEditId=null;render()}if(a==='cancel-category-edit'){ui.categoryEditId=null;render()}if(a==='cancel-move-edit'){ui.moveEditId=null;render()}if(a==='clear-review'){ui.reviewDate='';ui.reviewCategory='';render()}
 if(a==='reset'&&confirm('HAPUS seluruh transaksi, anggaran, pinjaman, arsip laporan, dan rekening'+(cloud.signedIn?' pada SEMUA PERANGKAT tersinkron':' di browser ini')+'? Tindakan ini tidak dapat dibatalkan tanpa file cadangan.')){db=fresh();save();ui.debtSelected=null;ui.txEditId=null;setView('dashboard');toast('Data dibersihkan.')}
 if(a==='new-transfer'){ui.txEditId=null;ui.txType='transfer';setView('transactions')}
@@ -1060,6 +1086,11 @@ if(a==='cloud-empty'){if(!window.ARUS_CLOUD||!cloud.ready)return toast('Cloud be
 if(a==='cloud-upload'){if(!window.ARUS_CLOUD||!cloud.ready)return toast('Cloud belum siap.',true);if(confirm('PERHATIAN: Timpa seluruh data CLOUD dengan salinan browser saat ini? Ini mengganti data tersinkron di HP dan laptop. Pastikan sudah mencadangkan JSON!'))try{cloud.busy=true;syncBadge();await window.ARUS_CLOUD.replace(db);cloud.pendingDecision=false;cloud.empty=false;cloud.busy=false;syncBadge();toast('Data berhasil diunggah ke cloud.')}catch(e){cloud.busy=false;showError(e)}}
 return;}});
 document.addEventListener('change',e=>{let x=e.target;
+ if(x.matches?.('#finance-editor-backdrop [data-editor-group]')){
+  const icon=document.getElementById('finance-editor-symbol');
+  if(icon)icon.textContent=pickSymbol(document.querySelector('#finance-editor-backdrop [data-icon-source]')?.value||'',x.value);
+  return;
+ }
 if(x.matches('[data-comp-group],[data-comp-category]')){
  const isGroup=x.hasAttribute('data-comp-group');
  const groupNames=new Set(analysisGroups().map(g=>g.name));

@@ -138,6 +138,43 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .trend-data-details summary{cursor:pointer;color:#1a4686;font-size:12px;font-weight:800}
 .trend-data-details[open] summary{margin-bottom:12px}
 @media(max-width:720px){.trend-range-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.trend-range-filters label:first-child{grid-column:1/-1}}
+
+/* #014 Filter ringkas dengan menu pilihan pop-up berlapis; tidak meregangkan kartu. */
+#composition-card:has(.comp-picker.is-open){position:relative;z-index:30;overflow:visible}
+.comp-dashboard-grid{isolation:isolate}
+.comp-controls-compact{overflow:visible;padding:12px;position:relative}
+.comp-compact-grid{display:grid;grid-template-columns:repeat(2,minmax(0,195px));gap:10px 12px;align-items:end}
+.comp-compact-field{display:flex;flex-direction:column;gap:5px;position:relative;min-width:0}
+.comp-compact-label{font-size:11px;font-weight:750;color:#456287;line-height:1.25}
+.comp-compact-field select,.comp-compact-field input,.comp-popup-trigger{box-sizing:border-box;width:100%;min-width:0;height:37px;border:1px solid #cbdbf1;border-radius:9px;background:#fff;padding:0 11px;color:#173e72;font:inherit;font-size:12px}
+.comp-popup-trigger{display:flex;align-items:center;justify-content:space-between;gap:7px;cursor:pointer;text-align:left}
+.comp-popup-trigger:hover,.comp-popup-trigger[aria-expanded="true"]{border-color:#639bef;background:#f8fbff}
+.comp-popup-trigger:disabled{opacity:.56;cursor:not-allowed}
+.comp-trigger-value{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:750}
+.comp-chevron{font-size:19px;line-height:1;color:#7892b7}
+.comp-picker.is-open{z-index:70}
+.comp-popover{position:absolute;z-index:100;top:calc(100% + 7px);left:0;width:min(282px,calc(100vw - 64px));box-sizing:border-box;background:#fff;border:1px solid #cbdcf5;border-radius:13px;box-shadow:0 14px 38px rgba(19,46,91,.19);padding:0;animation:comp-pop-in .12s ease-out}
+.comp-picker:nth-child(3) .comp-popover{left:auto;right:0}
+@keyframes comp-pop-in{from{opacity:.6;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+.comp-popover-header{display:flex;justify-content:space-between;align-items:center;padding:11px 12px 7px;color:#173e72;font-size:12px}
+.comp-popup-close{border:0;background:#edf3ff;border-radius:7px;color:#4b638b;cursor:pointer;width:25px;height:25px}
+.comp-popover-actions{display:flex;gap:7px;padding:0 12px 9px}
+.comp-popover-actions button{font:inherit;font-size:11px;font-weight:750;padding:6px 9px;border:1px solid #d9e6f8;color:#265ab1;background:#f5f9ff;border-radius:7px;cursor:pointer}
+.comp-popover-actions button:hover{background:#e6f0ff}
+.comp-popover-items{overflow-y:auto;overscroll-behavior:contain;max-height:210px;padding:0 10px 4px}
+.comp-popitem{display:flex;align-items:flex-start;gap:8px;padding:8px 6px;border-radius:7px;cursor:pointer;font-size:12px;color:#243d61;line-height:1.35}
+.comp-popitem:hover{background:#eff5ff}
+.comp-popitem input{flex:none;width:15px;height:15px;accent-color:#2563eb;cursor:pointer;margin-top:1px}
+.comp-popitem span{min-width:0;overflow-wrap:anywhere}
+.comp-popitem small{display:block;color:#7b91ad;font-size:10px;margin-top:2px}
+.comp-popover-empty{font-size:12px;color:#71849d;padding:12px}
+.comp-popover-foot{border-top:1px solid #e5ecf7;padding:8px 12px;font-size:10px;color:#71849d;line-height:1.4}
+.comp-compact-dates{display:grid;grid-template-columns:repeat(2,minmax(0,195px));gap:10px 12px;margin-top:11px}
+.comp-compact-bottom{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:11px;font-size:10px;color:#7d8fa8}
+.comp-compact-reset{border:0;background:transparent;color:#265ab1;cursor:pointer;font:inherit;font-size:11px;font-weight:750;padding:3px 0}
+.comp-compact-reset:hover{text-decoration:underline}
+@media(max-width:550px){.comp-compact-grid,.comp-compact-dates{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.comp-controls-compact{padding:10px}.comp-popover{width:min(282px,calc(100vw - 48px))}.comp-compact-field select,.comp-compact-field input,.comp-popup-trigger{padding:0 8px}}
+@media(prefers-reduced-motion:reduce){.comp-popover{animation:none}}
 </style>
 </head>
 <body>
@@ -213,7 +250,7 @@ const expenseGroups=()=>db.expenseGroups;
 const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],debts:[],reports:{}});
 function load(){try{let v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.accounts)&&Array.isArray(v.categories)&&Array.isArray(v.transactions)&&Array.isArray(v.debts)&&v.budgets&&Array.isArray(v.budgetMoves))return normalizeExpenseGroups(v);}catch(e){}return fresh()}
 let db=load();db.reports=db.reports||{};
-let ui={view:'dashboard',month:currentMonth(),txType:'expense',txFilter:'all',debtFilter:'open',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'month',trendFrom:'',trendTo:'',trendLabels:true,open:false},reviewMode:'date',reviewDate:'',reviewCategory:'',reportMonth:currentMonth()};
+let ui={view:'dashboard',month:currentMonth(),txType:'expense',txFilter:'all',debtFilter:'open',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'month',trendFrom:'',trendTo:'',trendLabels:true,open:false,menu:null},reviewMode:'date',reviewDate:'',reviewCategory:'',reportMonth:currentMonth()};
 let cloud={configured:false,signedIn:false,ready:false,email:'',busy:false,error:'',empty:false,pendingDecision:false};
 function syncBadge(){let b=document.getElementById('cloud-status');if(!b)return;
  b.className='cloud-state'+(cloud.signedIn&&cloud.ready&&!cloud.pendingDecision?' online':cloud.busy?' wait':'');
@@ -414,44 +451,41 @@ function analysisEntries(transactions){
  return items.filter(item=>item.value>0).sort((a,b)=>b.value-a.value);
 }
 function renderCompositionControls(){
- const c=ui.comp,groupList=expenseGroups(),visibleGroups=analysisGroups();
- const groupNames=new Set(visibleGroups.map(g=>g.name));
- const catList=expenses().filter(cat=>groupNames.has(cat.group));
- const chosenCats=analysisCategories();
- const titleCount=(set,total)=>set===null?'Semua':set.length===0?'Tidak Ada':set.length+' dari '+total;
- const listGroups=groupList.map(g=>`<label><input type="checkbox" data-comp-group="${h(g.id)}" ${c.groups===null||c.groups.includes(g.id)?'checked':''}><span>${pickSymbol(g.name,g.name)} ${h(g.name)}</span></label>`).join('');
- const listCategories=catList.map(item=>`<label><input type="checkbox" data-comp-category="${h(item.id)}" ${c.categories===null||c.categories.includes(item.id)?'checked':''}><span>${pickSymbol(item.label,item.group)} ${h(item.label)}<small>${h(item.group)}</small></span></label>`).join('');
- return `<div class="comp-controls">
-  <div class="comp-stage"><div class="comp-step">1</div><div class="comp-stage-body">
-   <h4>Periode Pengeluaran</h4>
-   <div class="comp-fields">
-    <label>Pilih Rentang<select id="comp-preset">
-      <option value="month" ${c.preset==='month'?'selected':''}>Kumulatif Bulan Terpilih (Default)</option>
-      <option value="range" ${c.preset==='range'?'selected':''}>Rentang Tanggal Bebas</option>
-      <option value="all" ${c.preset==='all'?'selected':''}>Semua Tanggal Tercatat</option>
-    </select></label>
-    ${c.preset==='range'?`<label>Mulai Tanggal<input id="comp-start" type="date" value="${h(c.from||monthBounds(ui.month).from)}"></label><label>Sampai Tanggal<input id="comp-end" type="date" value="${h(c.to||monthBounds(ui.month).to)}"></label>`:''}
+ const c=ui.comp,groupList=expenseGroups(),groups=analysisGroups(),names=new Set(groups.map(g=>g.name));
+ const catList=expenses().filter(cat=>names.has(cat.group));
+ const count=(value,total)=>value===null?'Semua':value.length===0?'Tidak Ada':value.length+' / '+total;
+ const groupsOptions=groupList.map(g=>`<label class="comp-popitem"><input type="checkbox" data-comp-group="${h(g.id)}" ${c.groups===null||c.groups.includes(g.id)?'checked':''}><span>${pickSymbol(g.name,g.name)} ${h(g.name)}</span></label>`).join('');
+ const categoryOptions=catList.map(cat=>`<label class="comp-popitem"><input type="checkbox" data-comp-category="${h(cat.id)}" ${c.categories===null||c.categories.includes(cat.id)?'checked':''}><span>${pickSymbol(cat.label,cat.group)} ${h(cat.label)}<small>${h(cat.group)}</small></span></label>`).join('');
+ const dropdown=(kind,title,summary,body,disabled=false)=>{
+   const opened=c.menu===kind,id='comp-'+kind+'-popup';
+   return `<div class="comp-compact-field comp-picker ${opened?'is-open':''}">
+    <span class="comp-compact-label">${title}</span>
+    <button type="button" class="comp-popup-trigger" data-comp-menu="${kind}" aria-haspopup="true" aria-controls="${id}" aria-expanded="${opened?'true':'false'}" ${disabled?'disabled':''}><span class="comp-trigger-value">${h(summary)}</span><span class="comp-chevron" aria-hidden="true">⌄</span></button>
+    ${opened?`<div class="comp-popover" id="${id}" role="group" aria-label="Pilihan ${title}">
+      <div class="comp-popover-header"><strong>${title}</strong><button type="button" class="comp-popup-close" data-comp-menu="${kind}" aria-label="Tutup pilihan ${title}">✕</button></div>
+      <div class="comp-popover-actions"><button type="button" data-comp-action="all-${kind==='group'?'groups':'categories'}">Pilih Semua</button><button type="button" data-comp-action="clear-${kind==='group'?'groups':'categories'}">Hapus Semua</button></div>
+      <div class="comp-popover-items">${body||'<div class="comp-popover-empty">Belum Ada Pilihan</div>'}</div>
+      <div class="comp-popover-foot">${kind==='group'?'Pilih beberapa kelompok. Pos akan mengikuti pilihanmu.':'Centang satu atau beberapa pos untuk dianalisis.'}</div>
+     </div>`:''}
+   </div>`;
+ };
+ const presetOpts=[['month','Bulan Ini'],['range','Rentang Tanggal'],['all','Seluruh Data']];
+ return `<div class="comp-controls comp-controls-compact">
+   <div class="comp-compact-grid">
+    <label class="comp-compact-field"><span class="comp-compact-label">1 · Periode</span>
+     <select id="comp-preset">${presetOpts.map(([val,label])=>`<option value="${val}" ${c.preset===val?'selected':''}>${label}</option>`).join('')}</select>
+    </label>
+    ${dropdown('group','2 · Kelompok',count(c.groups,groupList.length),groupsOptions)}
+    ${dropdown('category','3 · Pos',catList.length?count(c.categories,catList.length):'Tidak Ada Pos',categoryOptions,!catList.length)}
+    <label class="comp-compact-field"><span class="comp-compact-label">4 · Komposisi</span>
+     <select id="comp-breakdown"><option value="group" ${c.breakdown==='group'?'selected':''}>Per Kelompok</option><option value="category" ${c.breakdown==='category'?'selected':''}>Per Pos Pengeluaran</option></select>
+    </label>
    </div>
-  </div></div>
-  <div class="comp-stage"><div class="comp-step">2</div><div class="comp-stage-body">
-   <h4>Kelompok Pengeluaran</h4><p class="comp-tiny">Pilih satu atau beberapa kelompok lebih dahulu.</p>
-   <details id="comp-group-list" open><summary>${titleCount(c.groups,groupList.length)} Kelompok Dipilih</summary>
-    <div class="comp-checks comp-check-grid">${listGroups||'<span class="comp-empty">Belum Ada Kelompok</span>'}</div>
-   </details>
-   <div class="comp-list-actions"><button type="button" class="btn sm" data-comp-action="all-groups">✓ Pilih Semua</button><button type="button" class="btn sm" data-comp-action="clear-groups">✕ Hapus Semua</button></div>
-  </div></div>
-  <div class="comp-stage"><div class="comp-step">3</div><div class="comp-stage-body">
-   <h4>Pos Pengeluaran</h4><p class="comp-tiny">Daftar pos otomatis mengikuti kelompok di atas.</p>
-   <details id="comp-category-list" open><summary>${catList.length===0?'Tidak Ada Pos':titleCount(c.categories,catList.length)+' Pos Dipilih'}</summary>
-    <div class="comp-checks comp-check-grid">${listCategories||'<span class="comp-empty">Pilih Kelompok Agar Pos Muncul</span>'}</div>
-   </details>
-   <div class="comp-list-actions"><button type="button" class="btn sm" data-comp-action="all-categories" ${catList.length?'':'disabled'}>✓ Pilih Semua</button><button type="button" class="btn sm" data-comp-action="clear-categories" ${catList.length?'':'disabled'}>✕ Hapus Semua</button></div>
-  </div></div>
-  <div class="comp-stage"><div class="comp-step">4</div><div class="comp-stage-body"><h4>Tampilkan Analisis</h4>
-   <div class="comp-fields"><label>Komposisi Berdasarkan<select id="comp-breakdown"><option value="group" ${c.breakdown==='group'?'selected':''}>Kelompok Pengeluaran</option><option value="category" ${c.breakdown==='category'?'selected':''}>Pos / Kategori Pengeluaran</option></select></label></div>
-  </div></div>
-  <div class="comp-list-actions"><button type="button" class="btn sm" data-comp-action="reset">↺ Kembalikan Filter Default</button></div>
-  <p class="comp-tiny">Filter komposisi tidak mengubah transaksi, anggaran, atau laporan tersimpan.</p>
+   ${c.preset==='range'?`<div class="comp-compact-dates">
+    <label class="comp-compact-field"><span class="comp-compact-label">Tanggal Mulai</span><input id="comp-start" type="date" value="${h(c.from||monthBounds(ui.month).from)}"></label>
+    <label class="comp-compact-field"><span class="comp-compact-label">Tanggal Selesai</span><input id="comp-end" type="date" value="${h(c.to||monthBounds(ui.month).to)}"></label>
+   </div>`:''}
+   <div class="comp-compact-bottom"><button type="button" class="comp-compact-reset" data-comp-action="reset">↺ Reset Filter</button><span>Filter hanya memengaruhi analisis.</span></div>
  </div>`;
 }
 function renderComposition(){
@@ -724,7 +758,7 @@ function renderReports(){let months=Object.keys(db.reports||{}).sort().reverse()
 <section class="card no-print" style="margin-bottom:16px"><div class="card-head"><div><h3>Riwayat Laporan Tersimpan</h3><p>Arsip yang tersimpan tetap dapat dibuka kembali kapan saja.</p></div></div>${months.length?`<div class="inline-cards">${months.map(x=>`<div class="inline-line"><div><strong>${h(monthFmt(x))}</strong><small>Disimpan ${new Date(db.reports[x].createdAt).toLocaleString('id-ID')} · Keluar ${money(db.reports[x].expense)}</small></div><div class="action-buttons"><button class="btn sm" data-open-report="${h(x)}">Buka</button><button class="btn sm danger" data-delete-report="${h(x)}">Hapus</button></div></div>`).join('')}</div>`:empty('▣','Belum Ada Laporan','Klik Simpan laporan bulanan untuk mengarsipkan bulan pilihan.')}</section>
 ${r?`<section class="card" id="print-area"><div class="report-header"><div class="page-eyebrow">DUIT-DUIT PAAXIXI — LAPORAN KEUANGAN PRIBADI</div><h2 style="margin:5px 0">Laporan ${h(monthFmt(r.month))}</h2><div class="tiny">Arsip dibuat: ${new Date(r.createdAt).toLocaleString('id-ID')} · Periode ${h(r.month)}</div></div><div class="report-kpis"><div><small>Total Pemasukan</small><strong class="green">${money(r.income)}</strong></div><div><small>Total Pengeluaran</small><strong class="red">${money(r.expense)}</strong></div><div><small>Arus Kas Bersih</small><strong>${money(r.net)}</strong></div></div><div class="list-head">Rincian Pemasukan Per Kategori</div>${reportTable(r.incomeBreakdown.filter(x=>x.received>0),['Sumber Pemasukan','Jumlah'],x=>`<tr><td>${h(x.group)} / ${h(x.label)}</td><td>${money(x.received)}</td></tr>`)}<div class="list-head">Rincian Pengeluaran Dan Anggaran</div>${reportTable(r.expenseBreakdown.filter(x=>x.spent>0||x.budget>0),['Kategori','Anggaran','Terpakai','Sisa'],x=>`<tr><td>${h(x.group)} / ${h(x.label)}</td><td>${money(x.budget)}</td><td>${money(x.spent)}</td><td>${money(x.budget-x.spent)}</td></tr>`)}<div class="list-head">Saldo Setiap Rekening (Akhir Bulan)</div>${reportTable(r.balances,['Rekening','Saldo'],x=>`<tr><td>${h(x.name)} (${h(x.type)})</td><td>${money(x.balance)}</td></tr>`)}<div class="list-head">Utang & Piutang Yang Belum Lunas (Akhir Bulan)</div>${reportTable(r.debts.filter(x=>x.remaining>0),['Jenis · Nama','Saldo'],x=>`<tr><td>${x.type==='receivable'?'Piutang':'Utang'} · ${h(x.person)}</td><td>${money(x.remaining)}</td></tr>`)}<div class="list-head">Daftar Transaksi Lengkap (${r.transactions.length})</div>${reportTable(r.transactions,['Tanggal','Uraian','Kategori','Jumlah'],x=>`<tr><td>${dateFmt(x.date)}</td><td>${h(x.title)}${x.note?' · '+h(x.note):''}</td><td>${x.type==='transfer'?'Transfer '+h(x.accountLabel)+' → '+h(x.toAccountLabel):h(x.categoryLabel)}</td><td>${x.type==='expense'?'−':x.type==='income'?'+':'⇄ '}${money(x.amount)}</td></tr>`)}<div class="report-note">Arsip ini adalah salinan data ketika laporan disimpan. Semua nominal dalam rupiah. Transfer antar rekening serta pokok utang/piutang tidak dimasukkan ke total pemasukan/pengeluaran.</div><div class="form-actions no-print"><button class="btn teal" data-action="print-report">🖨 Cetak / Simpan PDF</button><button class="btn" data-action="csv-report">↓ Unduh rincian CSV</button></div></section>`:''}`}
 
-function setView(view){if(!['dashboard','transactions','review','budgets','debts','reports','accounts'].includes(view))return;ui.view=view;render();window.scrollTo({top:0,behavior:'smooth'})}
+function setView(view){ui.comp.menu=null;if(!['dashboard','transactions','review','budgets','debts','reports','accounts'].includes(view))return;ui.view=view;render();window.scrollTo({top:0,behavior:'smooth'})}
 function demo(){if(cloud.signedIn){toast('Keluar dari akun cloud sebelum memuat simulasi.',true);return}if(!confirm('Isi data SIMULASI bulan ini? Ini akan MENGGANTI seluruh data yang tersimpan di browser ini. Lanjutkan?'))return;db=fresh();db.accounts=[{id:'a-cash',name:'Tunai',type:'Tunai',opening:350000},{id:'a-bank',name:'Bank Contoh',type:'Bank',opening:1450000},{id:'a-wallet',name:'E-Wallet Contoh',type:'E-Wallet',opening:180000}];let budgetAmounts=[850000,1200000,450000,120000,200000,100000,250000,180000,250000,200000,150000,160000];expenses().forEach((c,i)=>db.budgets[ui.month+'|'+c.id]=budgetAmounts[i]);let add=(date,type,amount,categoryId,title,accountId='a-bank',toAccountId)=>db.transactions.push({id:uid(),date,type,amount,categoryId,title,accountId,toAccountId,createdAt:new Date().toISOString(),note:''});let m=ui.month;let at=n=>m+'-'+String(n).padStart(2,'0');let maxDay=Math.min(Number(today().slice(8)),21);let safe=n=>at(Math.min(n,maxDay));add(safe(1),'income',4200000,'c14','Gaji pokok bulan ini');add(safe(2),'income',3200000,'c15','Tukin bulan ini');add(safe(3),'income',1750000,'c13','Dividen Fastlink');add(safe(5),'income',650000,'c16','Uang makan');add(safe(6),'expense',825000,'c1','Kontrakan bulanan');add(safe(7),'expense',970000,'c2','Belanja makan dan bahan pokok');add(safe(8),'expense',345000,'c3','Bensin & transport');add(safe(9),'expense',112000,'c8','Skincare & pangkas rambut');add(safe(11),'expense',225000,'c7','Ngopi & jajan');add(safe(12),'expense',145000,'c11','Paket internet');add(safe(13),'expense',185000,'c9','Hadiah untuk diri sendiri');add(safe(15),'expense',255000,'c10','Obat & periksa');add(safe(17),'expense',190000,'c6','Infaq');add(safe(18),'expense',240000,'c2','Makan siang & malam');add(safe(19),'expense',95000,'c4','Laundry','a-cash');add(safe(20),'transfer',250000,null,'Top up e-wallet','a-bank','a-wallet');db.debts=[{id:uid(),type:'receivable',person:'Teman (contoh)',amount:200000,date:safe(10),accountId:'a-cash',note:'Contoh piutang',settlements:[]}];save();setView('dashboard');toast('Data simulasi telah dimuat. Hapus sebelum memulai pencatatan asli.')}
 function parseAmount(value){
  const raw=String(value??'').trim();
@@ -789,11 +823,28 @@ function validDb(o){return o&&Array.isArray(o.accounts)&&Array.isArray(o.transac
 async function importJSON(file){if(!file)return;try{if(file.size>3*1024*1024)throw Error('File terlalu besar.');let obj=JSON.parse(await file.text());if(!validDb(obj))throw Error('Format cadangan tidak cocok.');if(!confirm('Impor akan MENGGANTI semua data keuangan dalam browser ini. Lanjutkan?'))return;db=normalizeExpenseGroups({version:2,accounts:obj.accounts,categories:obj.categories,expenseGroups:obj.expenseGroups,transactions:obj.transactions,budgets:obj.budgets,budgetMoves:obj.budgetMoves,debts:obj.debts,reports:obj.reports||{}});save();setView('dashboard');toast('Data berhasil dipulihkan.')}catch(e){toast('Gagal mengimpor: '+e.message,true)}finally{document.getElementById('import-file').value=''}}
 document.addEventListener('submit',e=>{if(e.target.closest('form')){e.preventDefault();handleForm(e.target)}});
 function goEditTx(id){let t=db.transactions.find(t=>t.id===id);if(!t)return;ui.txEditId=id;ui.txType=t.type;ui.month=t.date.slice(0,7);setView('transactions');document.getElementById('tx-entry')?.scrollIntoView({behavior:'smooth',block:'start'})}
+function dismissCompositionPopup(){
+ const kind=ui.comp.menu;if(!kind)return;
+ ui.comp.menu=null;
+ document.querySelector('.comp-popover')?.remove();
+ const trigger=document.querySelector('[data-comp-menu="'+kind+'"].comp-popup-trigger');
+ if(trigger){trigger.setAttribute('aria-expanded','false');trigger.closest('.comp-picker')?.classList.remove('is-open');}
+}
+document.addEventListener('pointerdown',event=>{
+ if(ui.comp.menu&&!event.target.closest('.comp-picker'))dismissCompositionPopup();
+});
+document.addEventListener('keydown',event=>{
+ if(event.key==='Escape'&&ui.comp.menu){const kind=ui.comp.menu;dismissCompositionPopup();document.querySelector('[data-comp-menu="'+kind+'"].comp-popup-trigger')?.focus();}
+});
 document.addEventListener('click',async e=>{let x=e.target.closest('button');if(!x)return;
+if(x.dataset.compMenu){
+ ui.comp.menu=ui.comp.menu===x.dataset.compMenu?null:x.dataset.compMenu;
+ render();document.querySelector('[data-comp-menu="'+x.dataset.compMenu+'"].comp-popup-trigger')?.focus({preventScroll:true});return;
+}
 if(x.dataset.compAction){
  const cmd=x.dataset.compAction;
- if(cmd==='toggle'){ui.comp.open=!ui.comp.open;}
- if(cmd==='reset'){ui.comp={preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'month',trendFrom:'',trendTo:'',trendLabels:true,open:true};}
+ if(cmd==='toggle'){ui.comp.open=!ui.comp.open;ui.comp.menu=null;}
+ if(cmd==='reset'){ui.comp={preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'month',trendFrom:'',trendTo:'',trendLabels:true,open:true,menu:null};}
  if(cmd==='all-groups'){ui.comp.groups=null;ui.comp.categories=null;}
  if(cmd==='clear-groups'){ui.comp.groups=[];ui.comp.categories=null;}
  if(cmd==='all-categories'){ui.comp.categories=null;}
@@ -858,16 +909,15 @@ return;}});
 document.addEventListener('change',e=>{let x=e.target;
 if(x.matches('[data-comp-group],[data-comp-category]')){
  const isGroup=x.hasAttribute('data-comp-group');
- const all=isGroup?expenseGroups().map(g=>g.id):expenses().map(c=>c.id);
+ const groupNames=new Set(analysisGroups().map(g=>g.name));
+ const all=isGroup?expenseGroups().map(g=>g.id):expenses().filter(c=>groupNames.has(c.group)).map(c=>c.id);
  const value=isGroup?x.dataset.compGroup:x.dataset.compCategory;
  const key=isGroup?'groups':'categories',old=ui.comp[key];
  let selected=old===null?all.slice():old.filter(id=>all.includes(id));
  selected=x.checked?[...new Set([...selected,value])]:selected.filter(id=>id!==value);
  ui.comp[key]=selected.length===all.length?null:selected;
- ui.comp.groupsOpen=document.getElementById('comp-group-list')?.open||false;
- ui.comp.categoriesOpen=document.getElementById('comp-category-list')?.open||false;
- if(isGroup){ui.comp.groupsOpen=true;ui.comp.categories=null;}
- else ui.comp.categoriesOpen=true;
+ if(isGroup){ui.comp.categories=null;ui.comp.menu='group';}
+ else ui.comp.menu='category';
  render();return;
 }
 if(x.id==='comp-preset'){

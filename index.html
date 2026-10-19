@@ -229,7 +229,7 @@ body:has(.finance-editor-backdrop){overflow:hidden}
 .finance-color-check{color:#fff;font-size:16px;font-weight:900;opacity:0;text-shadow:0 1px 2px #0005;pointer-events:none}
 .finance-color-option input:checked+.finance-color-swatch .finance-color-check{opacity:1}
 .finance-color-name{font-size:10px;font-weight:650;color:#52698d;line-height:1.3;text-align:center;pointer-events:none}
-.finance-color-legacy{margin:10px 0 0;font-size:11px;color:#7185a4;line-height:1.45}
+.finance-color-help{margin:10px 0 0;font-size:11px;color:#7185a4;line-height:1.45}
 @media(max-width:430px){.finance-color-options{gap:5px}.finance-color-option{padding:9px 2px 7px}.finance-color-swatch{width:28px;height:28px}.finance-color-name{font-size:10px}}
 </style>
 </head>
@@ -927,16 +927,21 @@ function financeEditorMarkup(kind){
  const title=isGroup?(item?'Edit Kelompok':'Tambah Kelompok'):(item?'Edit Pos Pengeluaran':'Tambah Pos Pengeluaran');
  const description=isGroup?'Atur nama dan warna kelompok pengeluaran.':'Tentukan nama pos dan kelompok pengeluarannya.';
  const icon=isGroup?pickSymbol(item?.name||'Kelompok'):pickSymbol(item?.label||'Pos',selectedGroup);
+ const oldColor=isGroup?cleanGroupColor(item?.color):null;
+ const occupied=isGroup?expenseGroups().filter(g=>g.id!==item?.id).map(g=>g.color):[];
+ const colorRecommendations=isGroup?freeGroupColorChoices([...occupied,...(oldColor?[oldColor]:[])],oldColor?4:5):[];
+ const colorChoices=oldColor?[{value:oldColor,name:GROUP_PALETTE.find(p=>p.value===oldColor)?.name||'Warna Saat Ini'},...colorRecommendations]:colorRecommendations;
+ const selectedColor=oldColor||colorChoices[0]?.value||'#2563eb';
  const fields=isGroup?`<input type="hidden" name="editId" value="${h(item?.id||'')}">
   <label class="editor-field"><span>Nama Kelompok</span><input class="field" name="name" maxlength="45" required data-editor-focus data-icon-source placeholder="Contoh: Kebutuhan Pokok" value="${h(item?.name||'')}"></label>
-  <fieldset class="finance-color-set"><legend>Warna Kelompok <small>· Pilih 1 dari 5 warna</small></legend>
-   <input type="hidden" name="color" data-finance-color-value value="${h(item?.color||suggestedGroupColor())}">
-   <div class="finance-color-options" role="radiogroup" aria-label="Warna Kelompok">${GROUP_PALETTE.map(p=>`<label class="finance-color-option" title="${h(p.name)}">
-    <input type="radio" name="paletteColor" value="${h(p.value)}" data-finance-swatch ${(item?.color||suggestedGroupColor()).toLowerCase()===p.value?'checked':''}>
-    <span class="finance-color-swatch" style="--swatch:${p.value}"><span class="finance-color-check" aria-hidden="true">✓</span></span>
+  <fieldset class="finance-color-set"><legend>Warna Kelompok <small>· 5 Pilihan Unik</small></legend>
+   <input type="hidden" name="color" data-finance-color-value value="${h(selectedColor)}">
+   <div class="finance-color-options" role="radiogroup" aria-label="Pilih Warna Kelompok">${colorChoices.map(p=>`<label class="finance-color-option" title="${h(p.name)} · ${h(p.value)}">
+    <input type="radio" name="paletteColor" value="${h(p.value)}" data-finance-swatch ${selectedColor===p.value?'checked':''}>
+    <span class="finance-color-swatch" style="--swatch:${h(p.value)}"><span class="finance-color-check" aria-hidden="true">✓</span></span>
     <span class="finance-color-name">${h(p.name)}</span>
    </label>`).join('')}</div>
-   ${item?.color&&!GROUP_PALETTE.some(p=>p.value===item.color.toLowerCase())?'<p class="finance-color-legacy">Warna lama tetap digunakan sampai kamu memilih warna baru.</p>':''}
+   <p class="finance-color-help">Warna kelompok lain tidak ditawarkan. Rekomendasi akan mengikuti warna yang tersedia.</p>
   </fieldset>`:
   `<input type="hidden" name="editId" value="${h(item?.id||'')}"><input type="hidden" name="kind" value="expense">
   <label class="editor-field"><span>Nama Pos Pengeluaran</span><input class="field" name="label" maxlength="70" required data-editor-focus data-icon-source placeholder="Contoh: Belanja Bulanan" value="${h(item?.label||'')}"></label>
@@ -1068,7 +1073,11 @@ if(id==='expense-group-form'){
   const editId=String(f.get('editId')||''),old=expenseGroups().find(g=>g.id===editId);
   const name=String(f.get('name')||'').trim().replace(/\s+/g,' ').slice(0,45),color=String(f.get('color')||'');
   if(!name||!/^#[\da-fA-F]{6}$/.test(color))return toast('Nama atau warna kelompok tidak valid.',true);
-  if(!GROUP_PALETTE.some(p=>p.value===color.toLowerCase())&&!(old&&old.color.toLowerCase()===color.toLowerCase()))return toast('Pilih salah satu dari 5 warna yang tersedia.',true);
+  const usedByOther=expenseGroups().some(g=>g.id!==editId&&cleanGroupColor(g.color)===cleanGroupColor(color));
+  if(usedByOther)return toast('Warna ini sudah digunakan kelompok lain. Pilih warna berbeda.',true);
+  const currentColor=cleanGroupColor(old?.color);
+  const proposals=freeGroupColorChoices(expenseGroups().filter(g=>g.id!==editId).map(g=>g.color).concat(currentColor?[currentColor]:[]),currentColor?4:5);
+  if(color.toLowerCase()!==currentColor&&!proposals.some(p=>p.value===color.toLowerCase()))return toast('Pilih salah satu warna rekomendasi yang tersedia.',true);
   if(expenseGroups().some(g=>g.id!==editId&&g.name.toLocaleLowerCase('id-ID')===name.toLocaleLowerCase('id-ID')))return toast('Nama kelompok sudah ada.',true);
   if(editId&&!old)return toast('Kelompok yang diedit tidak ditemukan. Coba muat ulang.',true);
   if(old){const previous=old.name;old.name=name;old.color=color;if(previous!==name)db.categories.forEach(c=>{if(c.kind==='expense'&&c.group===previous)c.group=name});}

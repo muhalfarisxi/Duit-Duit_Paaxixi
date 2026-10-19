@@ -1009,7 +1009,8 @@ function reviewDateGroups(tx){
 function renderReviewCalendar(transactions){
  const [year,month]=ui.month.split('-').map(Number),days=new Date(year,month,0).getDate();
  const firstOffset=(new Date(year,month-1,1).getDay()+6)%7;
- const todayWIB=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ const wb=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+ const todayWIB=wb.year+'-'+wb.month+'-'+wb.day;
  const byDate={};
  for(const t of transactions){
   const previous=byDate[t.date]||{sum:0,count:0};

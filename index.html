@@ -1513,12 +1513,16 @@ function trendExpectedRoutine(){
   if(!prev1.length||!prev2.length||db.transactions.some(t=>t.type===category.kind&&t.categoryId===category.id&&t.date.startsWith(month)))continue;
   const title=String(category.label||''),recurringName=/gaji|tukin|deviden|dividen|uang makan|internet|wifi|wi-fi|tempat tinggal|kontrakan|sewa|kos|listrik|tagihan|cicilan|langganan|iuran|asuransi/i.test(title);
   // Pos tidak rutin tidak ditebak hanya karena kebetulan ada di dua bulan.
-  // Untuk pos umum (misalnya Jajan), minta pola yang lebih kuat agar tidak sering salah mengingatkan.
-  const stableTitles=prev1.length===1&&prev2.length===1&&
-   String(prev1[0].title||'').trim().toLowerCase()===String(prev2[0].title||'').trim().toLowerCase()&&
+  // Pos umum perlu minimal tiga bulan konsisten agar tidak salah menganggap belanja sesekali sebagai kewajiban rutin.
+  const threeMonthsAgo=trendPreviousMonth(month,-3);
+  const prev3=db.transactions.filter(t=>t.type===category.kind&&t.categoryId===category.id&&t.date.startsWith(threeMonthsAgo));
+  const matches=[prev1,prev2,prev3];
+  const stableTitles=matches.every(list=>list.length===1)&&
    String(prev1[0].title||'').trim().length>3&&
-   Math.abs(Number(prev1[0].date.slice(8,10))-Number(prev2[0].date.slice(8,10)))<=5&&
-   Math.abs(num(prev1[0].amount)-num(prev2[0].amount))<=Math.max(10000,Math.max(num(prev1[0].amount),num(prev2[0].amount))*.3);
+   matches.every(list=>String(list[0].title||'').trim().toLowerCase()===String(prev1[0].title||'').trim().toLowerCase())&&
+   Math.max(...matches.map(list=>Number(list[0].date.slice(8,10))))-Math.min(...matches.map(list=>Number(list[0].date.slice(8,10))))<=5&&
+   Math.max(...matches.map(list=>num(list[0].amount)))-Math.min(...matches.map(list=>num(list[0].amount)))<=
+    Math.max(10000,Math.max(...matches.map(list=>num(list[0].amount)))*.3);
   if(!recurringName&&!stableTitles)continue;
   const due=Math.max(...prev1.concat(prev2).map(t=>Number(t.date.slice(8,10))));
   const overdue=currentDay>Math.min(31,due+3);

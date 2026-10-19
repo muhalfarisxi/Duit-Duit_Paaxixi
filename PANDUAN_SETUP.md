@@ -66,6 +66,7 @@ Unggah **empat file ini** ke root repo GitHub: `index.html`, `cloud.js`, `fireba
 ## Dashboard Analisis Dinamis (Kumulatif, Filter, dan Trendline)
 - Buka **Dashboard → Komposisi Pengeluaran → ⚙ Atur Analisis**. Defaultnya adalah akumulasi pengeluaran pada bulan di bagian atas website.
 - Filter ditata berurutan: **(1) Periode Pengeluaran → (2) Kelompok Pengeluaran → (3) Pos Pengeluaran → (4) Tampilan Komposisi**.
+- Filter dibuat **ringkas dua kolom**. Klik kolom **Kelompok** atau **Pos** untuk membuka pop-up kecil dengan pilihan centang (multi-select) dan tombol **Pilih Semua / Hapus Semua**. Pop-up tidak menambah tinggi kartu, dapat ditutup dengan menekan di luar atau tombol Esc, dan menyesuaikan posisi jika tidak cukup ruang di bawah.
 - Kelompok dan pos mendukung **Pilih Semua** serta **Hapus Semua**. Daftar pos hanya berisi pos dari kelompok yang masih dipilih; saat kelompok diganti, pilihan pos diatur ulang menjadi semua pos yang terlihat.
 - Periode komposisi bisa berupa bulan terpilih, rentang tanggal bebas, atau seluruh tanggal yang tercatat. Persentase diagram donat dihitung dari transaksi yang masuk filter.
 - Bagian **Tren & Perbandingan Pengeluaran** menggunakan **grafik garis** dengan titik dan label nominal. Pilih jenis perbandingan **Antartanggal (Harian), Antarbulan (Bulanan), atau Antartahun (Tahunan)**. Setiap jenis memiliki input **Dari** dan **Sampai** sendiri.

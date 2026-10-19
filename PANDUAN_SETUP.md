@@ -88,3 +88,13 @@ Unggah **empat file ini** ke root repo GitHub: `index.html`, `cloud.js`, `fireba
 - Angka anggaran yang belum disimpan tetap dipertahankan di input tabel ketika popup disimpan. Tekan **Simpan Anggaran** untuk benar-benar menyimpan perubahan nominal pagu; perubahan nama/kelompok memiliki tombol Simpan tersendiri.
 - Hapus masih meminta konfirmasi dan menjaga agar pos yang sudah dipakai transaksi/anggaran tidak dapat dihapus sembarangan.
 - Penyimpanan data dan sinkronisasi Firestore tetap memakai mekanisme yang sama seperti sebelumnya.
+
+
+## Kalender dan Grafik Tinjau Pengeluaran
+- Menu **Tinjau Pengeluaran** memiliki dua mode: **Grafik Per Pos** (default) dan **Kalender Tanggal**. Kedua tampilan responsif untuk ponsel/laptop.
+- **Grafik Per Pos**: seluruh pos berada **dalam satu frame grafik batang horizontal** dengan urutan nominal terbesar lebih dulu, warna sesuai kelompok, dan garis batas anggaran per pos. Klik batang untuk membuka popup daftar transaksi pos tersebut, termasuk Edit/Hapus. Filter tanggal hanya berlaku pada nominal batang; garis dan status anggaran tetap mengacu pada anggaran serta pengeluaran kumulatif bulan yang dipilih.
+- **Kalender Tanggal**: tujuh kolom Senin–Minggu, berisi total pengeluaran harian (disingkat ketika perlu agar muat pada HP). Tanggal tanpa transaksi ditandai garis pendek. Klik tanggal untuk membuka popup transaksi tanggal tersebut. Tanggal hari ini ditandai menurut waktu WIB.
+- **Lihat Seluruh Pengeluaran**: tombol pada kalender membuka popup berisi rekap bulan terpilih **dikelompokkan menurut tanggal terbaru ke terlama**, dengan rincian transaksi dan tombol Edit/Hapus.
+- Filter kategori berlaku untuk kedua mode, termasuk popup daftar keseluruhan. Reset Filter mengembalikan semua pos. CSV tetap tersedia dan menggunakan filter yang sedang aktif.
+- Pop-up bisa ditutup dengan tombol ✕, klik latar gelap di luar dialog, atau tombol Escape. Mode Kalender tidak menggunakan input Filter Tanggal tersendiri karena seluruh hari langsung tersedia untuk diklik.
+- Perubahan ini hanya mengubah tampilan dan cara meninjau; pengolahan anggaran, arsip keuangan, serta mekanisme sinkronisasi Firebase tetap menggunakan data yang sama.

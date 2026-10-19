@@ -801,6 +801,83 @@ body:has(.review-modal-backdrop){overflow:hidden}
  .kpi-account-balance{font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){.kpi-detail-trigger .kpi-hint span{transition:none!important;transform:none!important}}
+
+/* #036 Warning action stays on-theme, appears distinctly interactive. */
+.budget-nav-highlight{
+ position:relative;isolation:isolate;overflow:hidden;
+ background:linear-gradient(110deg,#143765,#1e4d8b,#173b6e)!important;
+ color:#fff!important;border:1px solid #285a98!important;
+ box-shadow:0 3px 12px rgba(24,66,119,.13);
+ font-weight:850;letter-spacing:.05px;
+ animation:budget-nav-glow 7.8s ease-in-out -2.5s infinite;
+}
+.budget-nav-highlight::before{
+ content:"";position:absolute;z-index:-1;inset:0;
+ background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.23) 47%,transparent 75%);
+ transform:translateX(-125%);
+ animation:budget-nav-shine 7.8s ease-in-out -2.5s infinite;pointer-events:none;
+}
+.budget-nav-spark{color:#ffd479;font-size:16px;display:inline-block;animation:budget-nav-star 6.7s ease-in-out -1s infinite}
+.budget-nav-arrow{display:inline-block;transition:transform .2s ease}
+.budget-nav-highlight:hover{filter:brightness(1.1)}
+.budget-nav-highlight:hover .budget-nav-arrow{transform:translateX(4px)}
+@keyframes budget-nav-glow{
+ 0%,66%,83%,100%{box-shadow:0 3px 12px rgba(24,66,119,.13)}
+ 73%{box-shadow:0 0 0 3px rgba(42,109,197,.19),0 7px 19px rgba(28,76,150,.28)}
+}
+@keyframes budget-nav-shine{
+ 0%,66%,100%{transform:translateX(-125%)}
+ 77%,85%{transform:translateX(125%)}
+}
+@keyframes budget-nav-star{
+ 0%,64%,84%,100%{transform:rotate(0deg) scale(1)}
+ 72%{transform:rotate(42deg) scale(1.25)}
+ 79%{transform:rotate(-10deg) scale(.98)}
+}
+/* Interactive, touch-friendly line chart: highlighted pill labels and breathing dots. */
+.trend-interactive-svg .trend-animated-line{
+ stroke-dasharray:1;stroke-dashoffset:1;
+ animation:trend-draw-in 1.1s ease-out var(--trend-delay,0s) forwards;
+}
+.trend-click-point{cursor:pointer;outline:none}
+.trend-click-point .trend-point-dot,.trend-click-point .trend-point-ring{transform-box:fill-box;transform-origin:center;transition:transform .18s ease,opacity .18s ease,stroke-width .18s}
+.trend-click-point .trend-point-ring{
+ animation:trend-ring-breathe 8.6s ease-in-out var(--trend-point-delay,0s) infinite;
+}
+.trend-click-point .trend-point-label{
+ transform-box:fill-box;transform-origin:center;
+ animation:trend-amount-emphasis 9.7s ease-in-out var(--trend-point-delay,0s) infinite;
+}
+.trend-click-point:hover .trend-point-dot,.trend-click-point:focus .trend-point-dot{transform:scale(1.52)}
+.trend-click-point:hover .trend-point-ring,.trend-click-point:focus .trend-point-ring{transform:scale(1.43);opacity:1;animation:none}
+.trend-click-point:hover .trend-point-label,.trend-click-point:focus .trend-point-label{animation:none;transform:scale(1.1)}
+.trend-click-point:hover .trend-point-label rect,.trend-click-point:focus .trend-point-label rect{fill:#dceaff;stroke:#2563eb;stroke-width:1.6}
+.trend-click-point:focus .trend-touch-target{stroke:#2d68c8;stroke-width:1.5;stroke-dasharray:3 3;fill:rgba(37,99,235,.09)}
+.trend-click-point:focus-visible .trend-touch-target{stroke:#245dbe;stroke-width:2;stroke-dasharray:none}
+.trend-popup-total{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:14px 16px 6px;padding:14px 16px;background:#f0f5ff;border:1px solid #cfe0fa;border-radius:12px;font-size:12px;color:#4b6792;font-weight:700}
+.trend-popup-total strong{font-size:20px;font-weight:900}
+@keyframes trend-draw-in{to{stroke-dashoffset:0}}
+@keyframes trend-ring-breathe{
+ 0%,65%,84%,100%{opacity:.65;transform:scale(1)}
+ 73%{opacity:1;transform:scale(1.5)}
+}
+@keyframes trend-amount-emphasis{
+ 0%,65%,83%,100%{transform:scale(1);filter:drop-shadow(0 0 0 transparent)}
+ 73%{transform:scale(1.06);filter:drop-shadow(0 2px 3px rgba(37,99,235,.2))}
+}
+@media(max-width:640px){.trend-popup-total strong{font-size:17px}}
+@media(prefers-reduced-motion:reduce){
+ .budget-nav-highlight,.budget-nav-highlight::before,.budget-nav-spark,
+ .trend-interactive-svg .trend-animated-line,.trend-click-point .trend-point-ring,.trend-click-point .trend-point-label{
+  animation:none!important;transition:none!important;filter:none!important;
+ }
+ .trend-interactive-svg .trend-animated-line{stroke-dasharray:none;stroke-dashoffset:0}
+}
+@media print{
+ .budget-nav-highlight,.budget-nav-highlight::before,.budget-nav-spark,
+ .trend-interactive-svg .trend-animated-line,.trend-click-point .trend-point-ring,.trend-click-point .trend-point-label{animation:none!important}
+ .trend-interactive-svg .trend-animated-line{stroke-dasharray:none;stroke-dashoffset:0}
+}
 </style>
 </head>
 <body>
@@ -1075,8 +1152,11 @@ function labelNav(){const titles={dashboard:['Dashboard Keuangan','Ringkasan Uta
 function render(){
  const prev=document.querySelector('.comp-popover');
  const oldKind=prev?.dataset?.compPopup,oldScroll=prev?.querySelector('.comp-popover-items')?.scrollTop||0;
+ const oldTrendScroll=document.querySelector('.trend-scroll')?.scrollLeft;
  labelNav();
  document.getElementById('content').innerHTML=({dashboard:renderDash,transactions:renderTx,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])();
+ const newTrendScroll=document.querySelector('.trend-scroll');
+ if(newTrendScroll&&oldTrendScroll!==undefined)newTrendScroll.scrollLeft=oldTrendScroll;
  if(ui.view==='dashboard'&&ui.comp.menu){
   const next=document.querySelector('.comp-popover');
   if(next&&oldKind===ui.comp.menu){const list=next.querySelector('.comp-popover-items');if(list)list.scrollTop=oldScroll;}
@@ -1322,30 +1402,32 @@ function trendRowTransaction(t,key,mode){
  return mode==='day'?t.date===key:mode==='month'?t.date.startsWith(key):t.date.slice(0,4)===key;
 }
 function trendChartSVG(rows,entries){
- const n=rows.length,w=Math.max(690,n*88+100),height=328,left=60,right=34,top=52,bottom=45;
+ const n=rows.length,w=Math.max(690,n*88+100),height=338,left=65,right=40,top=57,bottom=45;
  const plotWidth=w-left-right,plotHeight=height-top-bottom;
  const max=Math.max(1,...rows.map(row=>row.total)),y=value=>top+plotHeight-value/max*plotHeight;
  const x=i=>left+(n===1?plotWidth/2:i*plotWidth/(n-1));
- const series=[{id:'total',label:'Total Pengeluaran',color:'#174ea6',width:3.5,values:rows.map(row=>row.count?row.total:null)}];
- // Garis kelompok/pos terbesar; total tetap garis utama.
+ const breakdown=ui.comp.breakdown,mode=ui.comp.trend;
+ const series=[{id:'total',scope:'total',label:'Total Pengeluaran',color:'#174ea6',width:3.5,values:rows.map(row=>row.count?row.total:null)}];
+ // Jumlah untuk setiap titik harus berasal dari transaksi yang sama dengan grafik.
  for(const e of entries.slice(0,4)){
   const values=rows.map(row=>{
    if(!row.count)return null;
    let val=0;
    for(const t of row.tx){
     const c=cat(t.categoryId);
-    if(ui.comp.breakdown==='group'?c?.group===e.label:t.categoryId===e.id)val+=num(t.amount);
+    if(breakdown==='group'?c?.group===e.label:t.categoryId===e.id)val+=num(t.amount);
    }
    return val;
   });
-  if(values.some((v,i)=>v!==null&&Math.abs(v-rows[i].total)>0.001))series.push({id:e.id,label:e.label,color:e.color,width:2,values});
+  if(values.some((v,i)=>v!==null&&Math.abs(v-rows[i].total)>.001))
+   series.push({id:e.id,scope:breakdown,label:e.label,color:e.color,width:2,values});
  }
  const grid=[0,.25,.5,.75,1].map(rate=>{
   const pos=y(rate*max);
   return `<line x1="${left}" y1="${pos}" x2="${w-right}" y2="${pos}" stroke="#e1eaf8" stroke-dasharray="3 5"/><text x="${left-8}" y="${pos+4}" fill="#7387a6" font-size="10" text-anchor="end">${shortMoney(rate*max)}</text>`;
  }).join('');
- const makeSegments=(vals)=>{
-  let list=[],part=[];
+ const makeSegments=vals=>{
+  const list=[];let part=[];
   vals.forEach((value,i)=>{
    if(value===null){if(part.length)list.push(part);part=[];}
    else part.push([x(i),y(value)]);
@@ -1353,26 +1435,42 @@ function trendChartSVG(rows,entries){
   if(part.length)list.push(part);
   return list;
  };
- const paths=series.map((ser,si)=>makeSegments(ser.values).map(part=>{
+ const paths=series.map((ser,si)=>makeSegments(ser.values).map((part,j)=>{
   const d=part.map((pt,i)=>(i===0?'M':'L')+pt[0].toFixed(1)+','+pt[1].toFixed(1)).join(' ');
-  return `<path d="${d}" fill="none" stroke="${ser.color}" stroke-width="${ser.width}" stroke-linejoin="round" stroke-linecap="round" ${si?'stroke-opacity=".78"':''}/>`;
+  return `<path class="trend-animated-line" pathLength="1" d="${d}" fill="none" stroke="${ser.color}" stroke-width="${ser.width}" stroke-linejoin="round" stroke-linecap="round" ${si?'stroke-opacity=".78"':''} style="--trend-delay:${(si*.2+j*.1).toFixed(2)}s"/>`;
  }).join('')).join('');
  const pointLabels=series.map((ser,si)=>ser.values.map((value,i)=>{
-  if(value===null)return '';
-  const xx=x(i),yy=y(value),dot=`<circle cx="${xx}" cy="${yy}" r="${si?3.5:4.7}" fill="${ser.color}" stroke="#fff" stroke-width="1.8"><title>${h(ser.label)} · ${h(trendLabel(rows[i].key,ui.comp.trend))}: ${money(value)}</title></circle>`;
-  // Label nominal total pada semua titik untuk rentang ringkas.
-  // Untuk rentang panjang beri label berselang; semua titik tetap punya tooltip.
-  const step=n<=15?1:Math.ceil(n/15);
-  const show=ui.comp.trendLabels&&si===0&&(i%step===0||i===n-1);
-  const label=show?`<text x="${xx}" y="${Math.max(16,yy-13)}" font-size="10" font-weight="800" text-anchor="middle" fill="#143e79" paint-order="stroke" stroke="#fff" stroke-width="3.5" stroke-linejoin="round">${shortMoney(value)}</text>`:'';
-  return dot+label;
+  // Nol pada seri turunan bukan transaksi nyata. Hindari titik nol bertumpuk.
+  if(value===null||(si>0&&value===0))return '';
+  const xx=x(i),yy=y(value),display=shortMoney(value);
+  const show=ui.comp.trendLabels&&si===0&&value>0&&(i%(n<=15?1:Math.ceil(n/15))===0||i===n-1);
+  const labelWidth=Math.min(103,Math.max(54,display.length*6.6+13)),labelY=Math.max(8,yy-36);
+  const amountLabel=show?`<g class="trend-point-label">
+    <rect x="${xx-labelWidth/2}" y="${labelY}" width="${labelWidth}" height="23" rx="8" fill="#eaf2ff" stroke="#8fb4f0" stroke-width="1"/>
+    <text x="${xx}" y="${labelY+15.5}" font-size="11" font-weight="850" text-anchor="middle" fill="#143e79">${h(display)}</text>
+  </g>`:'';
+  return `<g class="trend-click-point" data-trend-point="1" data-trend-key="${h(rows[i].key)}"
+    data-trend-mode="${h(mode)}" data-trend-series="${h(ser.id)}" data-trend-scope="${h(ser.scope)}"
+    role="button" tabindex="0" focusable="true"
+    aria-label="Lihat rincian ${h(ser.label)}, ${h(trendLabel(rows[i].key,mode))}, ${money(value)}"
+    style="--trend-point-color:${ser.color};--trend-point-delay:-${((i%9)*.58+si*.25).toFixed(2)}s">
+   <title>Klik untuk rincian: ${h(ser.label)} · ${h(trendLabel(rows[i].key,mode))} · ${money(value)}</title>
+   <circle class="trend-touch-target" cx="${xx}" cy="${yy}" r="17" fill="transparent" stroke="none"/>
+   <circle class="trend-point-ring" cx="${xx}" cy="${yy}" r="${si?9:11}" fill="${ser.color}" fill-opacity=".12" stroke="${ser.color}" stroke-opacity=".40" stroke-width="1.2"/>
+   <circle class="trend-point-dot" cx="${xx}" cy="${yy}" r="${si?4.5:5.6}" fill="${ser.color}" stroke="#fff" stroke-width="1.8"/>
+   ${amountLabel}
+  </g>`;
  }).join('')).join('');
  const axisLabels=rows.map((row,i)=>{
   const show=n<=16||i%Math.ceil(n/15)===0||i===n-1;
-  return show?`<text x="${x(i)}" y="${height-20}" text-anchor="middle" fill="#6682a5" font-size="11">${h(trendLabel(row.key,ui.comp.trend))}</text>`:'';
+  return show?`<text x="${x(i)}" y="${height-20}" text-anchor="middle" fill="#6682a5" font-size="11">${h(trendLabel(row.key,mode))}</text>`:'';
  }).join('');
  const lineLegend=series.map(ser=>`<span class="trend-line-key"><i style="background:${h(ser.color)}"></i>${h(ser.label)}</span>`).join('');
- return `<div class="trend-scroll"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${height}" width="${w}" height="${height}" role="img" aria-label="Grafik garis tren pengeluaran dengan nilai Rupiah pada titik. Geser untuk melihat seluruh periode." style="display:block;max-width:none">${grid}${paths}${pointLabels}${axisLabels}</svg></div><div class="trend-line-legend">${lineLegend}</div>`;
+ return `<div class="trend-scroll"><svg class="trend-interactive-svg" xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 ${w} ${height}" width="${w}" height="${height}"
+  role="group" aria-label="Grafik tren pengeluaran interaktif. Klik titik atau label nominal untuk membuka transaksi periode terkait; grafik dapat digeser."
+  style="display:block;max-width:none">${grid}${paths}${pointLabels}${axisLabels}</svg></div>
+  <div class="trend-line-legend">${lineLegend}</div>`;
 }
 function renderTrendPanel(){
  const c=ui.comp,periods=trendPeriods(),mode=periods.mode;
@@ -1431,7 +1529,7 @@ function renderTrendPanel(){
     ${inputs}
     <div class="trend-range-actions"><button type="button" class="btn sm" data-comp-action="trend-default">↺ Rentang Default</button></div>
   </div>
-  <div class="trend-label-toggle"><label><input type="checkbox" id="trend-labels" ${c.trendLabels?'checked':''}> Tampilkan Label Nominal Di Titik Grafik</label><span class="comp-tiny">Arahkan kursor / sentuh titik untuk nominal lengkap.</span></div>
+  <div class="trend-label-toggle"><label><input type="checkbox" id="trend-labels" ${c.trendLabels?'checked':''}> Tampilkan Label Nominal Di Titik Grafik</label><span class="comp-tiny">Klik titik atau nominal pada grafik untuk melihat daftar pengeluarannya.</span></div>
   ${grandTotal>0?trendChartSVG(rows,entries):'<div class="comp-empty">Tidak Ada Transaksi Pengeluaran Di Rentang Yang Dipilih.</div>'}
   ${periods.trimmed?`<p class="comp-tiny">Rentang sangat panjang. Ditampilkan ${periods.keys.length} periode terakhir; persempit rentang untuk melihat periode sebelumnya.</p>`:''}
   <div class="trend-notes"><div class="trend-note"><strong>📈 Perubahan Periode</strong>${comparison}</div><div class="trend-note"><strong>🔎 Kontributor Utama</strong>${insight}</div><div class="trend-note" style="grid-column:1/-1"><strong>🚦 Indikasi Otomatis</strong>${indication}</div></div>
@@ -1463,7 +1561,7 @@ return `${welcomeModal()}${all.length===0?`<div class="callout"><span>✦</span>
 ${metricCard('Pemasukan Bulan Ini',inc,'↑','green','Transaksi Pemasukan')}${metricCard('Pengeluaran Bulan Ini',exp,'↓','red','Transaksi Pengeluaran')}${metricCard('Sisa Anggaran',bt>0?bt-budgetUsed():0,'◴',bt>0&&bt-budgetUsed()<0?'red':'green',bt>0?`Dari Total ${money(bt)}`:'Belum Ada Anggaran')}${metricCard('Total Saldo Rekening',kas,'▤',kas<0?'red':'blue','Saldo Seluruh Rekening, Sepanjang Waktu')}
 </div>
 <div class="grid layout-2 comp-dashboard-grid">${renderComposition()}
-<section class="card"><div class="card-head"><div><h3>Peringatan Anggaran</h3><p>Pos Yang Menipis Atau Sudah Melebihi Batas</p></div>${alert.length?`<span class="budget-alert-emphasis" role="status" aria-label="${alert.length} pos anggaran perlu perhatian"><span class="budget-alert-exclamation" aria-hidden="true">!</span>${pill('warn',`${alert.length} Pos Perlu Perhatian`)}</span>`:pill('ok','0 Pos Perlu Perhatian')}</div>${alert.length?`<div class="alert-list">${alert.slice(0,5).map(c=>{let st=status(c.id),left=effectiveBudget(c.id)-spentByCat(c.id);return `<div class="alert-item ${st.s==='danger'?'red-alert':''}"><span class="mini-num">${symbolBadge(c.label,c.group)}</span><div style="flex:1"><strong>${h(c.label)} — ${st.label}</strong><p>${left<0?'Melebihi '+money(-left):'Sisa Hanya '+money(left)} Dari ${money(effectiveBudget(c.id))}</p></div></div>`}).join('')}</div><button type="button" class="btn sm full" style="margin-top:16px" data-nav="budgets">Kelola / Alihkan Anggaran →</button>`:empty('✓','Tidak Ada Peringatan',bt?'Semua pos beranggaran masih aman.':'Atur anggaran per kategori agar peringatan dapat muncul.',`<button data-nav="budgets" class="btn sm">Atur anggaran</button>`)}</section></div>
+<section class="card"><div class="card-head"><div><h3>Peringatan Anggaran</h3><p>Pos Yang Menipis Atau Sudah Melebihi Batas</p></div>${alert.length?`<span class="budget-alert-emphasis" role="status" aria-label="${alert.length} pos anggaran perlu perhatian"><span class="budget-alert-exclamation" aria-hidden="true">!</span>${pill('warn',`${alert.length} Pos Perlu Perhatian`)}</span>`:pill('ok','0 Pos Perlu Perhatian')}</div>${alert.length?`<div class="alert-list">${alert.slice(0,5).map(c=>{let st=status(c.id),left=effectiveBudget(c.id)-spentByCat(c.id);return `<div class="alert-item ${st.s==='danger'?'red-alert':''}"><span class="mini-num">${symbolBadge(c.label,c.group)}</span><div style="flex:1"><strong>${h(c.label)} — ${st.label}</strong><p>${left<0?'Melebihi '+money(-left):'Sisa Hanya '+money(left)} Dari ${money(effectiveBudget(c.id))}</p></div></div>`}).join('')}</div><button type="button" class="btn sm full budget-nav-highlight" style="margin-top:16px" data-nav="budgets"><span class="budget-nav-spark" aria-hidden="true">✦</span>Kelola / Alihkan Anggaran <span class="budget-nav-arrow" aria-hidden="true">→</span></button>`:empty('✓','Tidak Ada Peringatan',bt?'Semua pos beranggaran masih aman.':'Atur anggaran per kategori agar peringatan dapat muncul.',`<button data-nav="budgets" class="btn sm">Atur anggaran</button>`)}</section></div>
 ${renderTrendPanel()}
 <div class="grid layout-2"><section class="card"><div class="card-head"><div><h3>Penggunaan Anggaran</h3><p>Pos Dengan Persentase Pemakaian Tertinggi</p></div><button data-nav="budgets" class="btn sm ghost">Lihat Semua ↗</button></div>${budgets.length?`<div class="budget-list">${budgets.slice(0,5).map(c=>budgetProgress(c)).join('')}</div>`:empty('◎','Anggaran Belum Disusun','Kamu dapat memberi batas pengeluaran tiap kategori untuk setiap bulan.')}</section>
 <section class="card"><div class="card-head"><div><h3>Asal Pemasukan</h3><p>Sumber Pendapatan Bulan Berjalan</p></div></div>${bySource.length?bySource.slice(0,7).map(c=>`<div class="stat-pair"><span>${h(c.label)} <span style="color:#8a9bb3">• ${pct(c.amount,inc)}%</span></span><strong>${money(c.amount)}</strong></div>`).join(''):empty('↗','Belum Ada Pemasukan','Misalnya dividen Fastlink, gaji atau tukin BPS.')}
@@ -1509,7 +1607,7 @@ function kpiBudgetBreakdown(){
   </div>`;
  }).join('');
  return overview+'<p class="kpi-detail-note">Hanya pos yang memiliki anggaran yang masuk perhitungan Sisa Anggaran. Pengeluaran tanpa anggaran tetap tercatat di laporan pengeluaran.</p>'
-  +'<div class="kpi-detail-rows">'+details+'</div><div class="kpi-modal-actions"><button type="button" class="btn sm" data-nav="budgets">Kelola / Alihkan Anggaran →</button></div>';
+  +'<div class="kpi-detail-rows">'+details+'</div><div class="kpi-modal-actions"><button type="button" class="btn sm budget-nav-highlight" data-nav="budgets"><span class="budget-nav-spark" aria-hidden="true">✦</span>Kelola / Alihkan Anggaran <span class="budget-nav-arrow" aria-hidden="true">→</span></button></div>';
 }
 function kpiBalanceBreakdown(){
  const current=balances();
@@ -1550,8 +1648,51 @@ function kpiBalanceBreakdown(){
   <p class="kpi-detail-note">Saldo seluruh waktu dihitung dari saldo awal, pemasukan, pengeluaran, transfer antar rekening, serta pencairan dan pelunasan utang/piutang. Ganti bulan tidak mengubah total ini.</p>
   <div class="kpi-modal-actions"><button type="button" class="btn sm" data-nav="accounts">Kelola Rekening →</button></div>`;
 }
+function renderTrendPointPopup(popup){
+ if(!['day','month','year'].includes(popup.mode)||popup.mode!==ui.comp.trend)return '';
+ const periods=trendPeriods();
+ if(!periods.keys.includes(popup.key))return '';
+ const selectedIds=new Set(analysisCategories().map(c=>c.id));
+ const selected=db.transactions.filter(t=>t.type==='expense'&&selectedIds.has(t.categoryId)&&trendRowTransaction(t,popup.key,popup.mode));
+ let label='Total Pengeluaran';
+ if(popup.scope==='group'){
+  const group=analysisGroups().find(g=>g.id===popup.series);
+  if(!group)return '';
+  label=group.name;
+  selected.splice(0,selected.length,...selected.filter(t=>cat(t.categoryId)?.group===group.name));
+ }else if(popup.scope==='category'){
+  const category=analysisCategories().find(c=>c.id===popup.series);
+  if(!category)return '';
+  label=category.label;
+  selected.splice(0,selected.length,...selected.filter(t=>t.categoryId===category.id));
+ }else if(popup.scope!=='total')return '';
+ const tx=selected.sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
+ const periodLabel=popup.mode==='day'?dateFmt(popup.key):popup.mode==='month'?monthFmt(popup.key):'Tahun '+popup.key;
+ const amount=tx.reduce((sum,t)=>sum+num(t.amount),0);
+ const title='Rincian '+label+' · '+periodLabel;
+ const desc=(popup.scope==='total'?'Semua Kelompok/Pos Terpilih':popup.scope==='group'?'Kelompok Pengeluaran':'Pos Pengeluaran')+' · '+tx.length+' Transaksi';
+ const rows=tx.length?(popup.mode==='day'?tx.map(transactionCalendarItem).join(''):kpiDailyBreakdown(tx,'expense')):'<div class="review-modal-empty">Belum Ada Pengeluaran Untuk Titik Ini.</div>';
+ return `<div class="review-modal-backdrop trend-popup-backdrop" id="review-modal-backdrop">
+  <div class="review-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="review-modal-title" aria-describedby="review-modal-subtitle">
+   <div class="review-modal-top"><div><h3 id="review-modal-title">${h(title)}</h3><p id="review-modal-subtitle">${h(desc)}</p></div>
+    <button type="button" class="review-modal-close" data-review-close aria-label="Tutup Rincian Titik Grafik">✕</button></div>
+   <div class="review-modal-content">
+    <div class="trend-popup-total"><span>Pengeluaran Pada Titik Grafik</span><strong class="red">${money(amount)}</strong></div>
+    <p class="kpi-detail-note">Transaksi mengikuti periode, kelompok, dan pos yang dipilih dalam filter analisis.</p>
+    ${rows}
+   </div>
+  </div></div>`;
+}
+function openTrendPoint(element){
+ const d=element.dataset;
+ if(!d.trendPoint||!['day','month','year'].includes(d.trendMode))return;
+ ui.reviewPopup={type:'trend-point',key:d.trendKey,mode:d.trendMode,scope:d.trendScope,series:d.trendSeries};
+ render();
+ document.querySelector('[data-review-close]')?.focus({preventScroll:true});
+}
 function renderDashboardKpiPopup(){
- const popup=ui.reviewPopup;if(ui.view!=='dashboard'||popup?.type!=='dashboard-kpi')return '';
+ const popup=ui.reviewPopup;if(ui.view!=='dashboard'||!['dashboard-kpi','trend-point'].includes(popup?.type))return '';
+ if(popup.type==='trend-point')return renderTrendPointPopup(popup);
  const key=popup.key;
  let title='',description='',content='';
  if(key==='income'||key==='expense'){
@@ -1836,7 +1977,10 @@ function dismissReviewPopup(){
  ui.reviewPopup=null;
  render();
  if(previous.type==='dashboard-kpi')document.querySelector('[data-dashboard-kpi="'+previous.key+'"]')?.focus({preventScroll:true});
- else document.querySelector('[data-review-day], [data-review-select], [data-review-all]')?.focus({preventScroll:true});
+ else if(previous.type==='trend-point'){
+  const prior=[...document.querySelectorAll('[data-trend-point]')].find(el=>el.dataset.trendKey===previous.key&&el.dataset.trendSeries===previous.series&&el.dataset.trendScope===previous.scope);
+  prior?.focus({preventScroll:true});
+ }else document.querySelector('[data-review-day], [data-review-select], [data-review-all]')?.focus({preventScroll:true});
 }
 function renderReview(){
  const kind=ui.reviewType==='income'?'Pemasukan':'Pengeluaran';
@@ -2106,6 +2250,9 @@ document.addEventListener('keydown',event=>{
   }
   return;
  }
+ if((event.key==='Enter'||event.key===' ')&&event.target?.matches?.('[data-trend-point]')){
+  event.preventDefault();openTrendPoint(event.target);return;
+ }
  if(event.key==='Escape'&&ui.showWelcomePopup){event.preventDefault();dismissWelcome();return;}
  if(event.key==='Escape'&&ui.comp.menu){const kind=ui.comp.menu;dismissCompositionPopup();document.querySelector('[data-comp-menu="'+kind+'"].comp-popup-trigger')?.focus();}
 });
@@ -2113,6 +2260,8 @@ document.addEventListener('click',async e=>{
  if(e.target.closest('[data-review-close]')||e.target.id==='review-modal-backdrop'){dismissReviewPopup();return;}
  if(e.target.closest('[data-close-finance-editor]')||e.target.id==='finance-editor-backdrop'){closeFinanceEditor();return;}
  if(e.target.closest('[data-close-welcome]')||e.target.id==='welcome-modal-backdrop'){dismissWelcome();return;}
+ const trendPoint=e.target.closest('[data-trend-point]');
+ if(trendPoint){openTrendPoint(trendPoint);return;}
  let x=e.target.closest('button');if(!x)return;
 if(x.dataset.compMenu){
  ui.comp.menu=ui.comp.menu===x.dataset.compMenu?null:x.dataset.compMenu;

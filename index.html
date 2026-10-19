@@ -61,7 +61,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 /* Filter komposisi dan perbandingan historis -- seluruhnya presentasional. */
 .comp-dashboard-grid{align-items:start}
 .comp-header{display:flex;gap:10px;align-items:start;justify-content:space-between}
-.comp-filter-toggle{white-space:nowrap}
+.comp-filter-toggle{white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:7px}.filter-funnel-icon{display:block;width:16px;height:16px;flex:none}
 .comp-controls{margin:0 0 18px;padding:15px;background:#f2f6fe;border:1px solid #dce8fb;border-radius:15px}
 .comp-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .comp-fields label{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:12px;color:#435a7b}
@@ -511,7 +511,7 @@ function renderComposition(){
  const range=dates.from===dates.to?dateFmt(dates.from):dateFmt(dates.from)+' – '+dateFmt(dates.to);
  return `<section class="card" id="composition-card">
  <div class="card-head comp-header"><div><h3>Komposisi Pengeluaran</h3><p>${h(ui.comp.breakdown==='group'?'Per Kelompok':'Per Pos')} • ${h(dates.title)}</p><div class="comp-summary">${h(range)} · ${selected.transactions.length} Transaksi · ${selected.groups.length} Kelompok · ${selected.categories.length} Pos</div></div>
-  <button type="button" class="btn sm comp-filter-toggle" data-comp-action="toggle" aria-expanded="${ui.comp.open?'true':'false'}">⚙ ${ui.comp.open?'Tutup Filter':'Atur Analisis'}</button>
+  <button type="button" class="btn sm comp-filter-toggle" data-comp-action="toggle" aria-expanded="${ui.comp.open?'true':'false'}"><svg class="filter-funnel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5h16l-6.5 7.5v5l-3 1.5v-6.5L4 5z"/></svg><span>${ui.comp.open?'Tutup Filter':'Atur Analisis'}</span></button>
  </div>
  ${ui.comp.open?renderCompositionControls():''}
  ${total>0?`<div class="distribution"><div class="donut" style="background:conic-gradient(${gradient})"><div class="donut-middle"><span>Total Keluar</span>${shortMoney(total)}</div></div>

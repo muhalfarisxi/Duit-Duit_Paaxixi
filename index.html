@@ -191,6 +191,8 @@ body:has(.welcome-modal-backdrop){overflow:hidden}
 @media(max-width:600px){.welcome-modal .welcome-panel{flex-direction:column;align-items:flex-start;gap:15px;padding:22px 20px 24px;min-height:0}.welcome-modal .welcome-avatar{width:82px;height:82px}.welcome-modal .welcome-copy h2{font-size:22px}.welcome-modal .welcome-quote{font-size:13px}.welcome-modal .welcome-eyebrow{padding-right:12px}.welcome-modal-close{top:12px;right:12px}}
 @media print{.welcome-modal-backdrop{display:none!important}}
 
+/* Notifikasi validasi tetap berada di atas modal formulir. */
+.toast{z-index:1200}
 /* Modal ringkas untuk Tambah/Edit Pos serta Kelompok Pengeluaran */
 .finance-editor-backdrop{position:fixed;inset:0;z-index:1100;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(9,27,57,.57);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);overflow-y:auto}
 .finance-editor-dialog{width:min(430px,100%);max-height:min(620px,calc(100dvh - 32px));overflow-y:auto;margin:auto;background:#fff;border:1px solid #dce8fb;border-radius:19px;box-shadow:0 24px 70px rgba(9,36,71,.29);color:var(--text)}

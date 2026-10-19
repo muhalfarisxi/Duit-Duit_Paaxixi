@@ -351,6 +351,28 @@ body:has(.review-modal-backdrop){overflow:hidden}
  .review-group-chevron{width:24px;height:24px;font-size:20px}
  .review-group-body{padding:8px}
 }
+
+/* Grafik ringkasan kelompok: bar dan garis budget meski dropdown tertutup */
+.review-group-toggle{display:grid;grid-template-columns:minmax(150px,215px) minmax(115px,1fr) minmax(130px,175px);gap:15px;align-items:center}
+.review-group-chart{display:block;min-width:0}
+.review-group-chart .review-bar-track{height:19px;background:#e9f0fa}
+.review-group-chart .review-bar-caption{display:block;white-space:normal;line-height:1.3}
+.review-group-right{justify-content:flex-end;min-width:0}
+.review-group-total{white-space:nowrap}
+.review-group-total .review-bar-badge{display:table;margin:6px 0 0 auto;font-size:10px}
+@media(max-width:750px){
+ .review-group-toggle{grid-template-columns:minmax(0,1fr) auto;gap:9px 10px}
+ .review-group-info{grid-column:1;grid-row:1}
+ .review-group-right{grid-column:2;grid-row:1}
+ .review-group-chart{grid-column:1/-1;grid-row:2;padding:0 2px 2px}
+ .review-group-chart .review-bar-track{height:16px}
+}
+@media(max-width:420px){
+ .review-group-info strong{font-size:12px}
+ .review-group-total{font-size:12px}
+ .review-group-total .review-bar-badge{font-size:9px}
+ .review-group-chart .review-bar-caption{font-size:10px}
+}
 </style>
 </head>
 <body>
@@ -1092,26 +1114,47 @@ function renderReviewBars(transactions){
  };
  const groups=expenseGroups().map(group=>{
   const parts=rows.filter(row=>row.c.group===group.name);
-  return {group,parts,total:parts.reduce((sum,row)=>sum+row.spent,0),
-   budget:parts.reduce((sum,row)=>sum+(row.budgeted?row.budget:0),0),
+  const categories=expenses().filter(c=>c.group===group.name);
+  const total=parts.reduce((sum,row)=>sum+row.spent,0);
+  // Anggaran kelompok tetap mencakup seluruh pos saat tanggal transaksi difilter.
+  const budget=categories.reduce((sum,c)=>sum+(hasBudget(c.id)?Math.max(0,effectiveBudget(c.id)):0),0);
+  const monthlySpent=categories.reduce((sum,c)=>sum+spentByCat(c.id),0);
+  const budgeted=budget>0;
+  const budgetStatus=!budgeted?{label:'Belum Diatur',kind:'unset'}:
+   monthlySpent>budget?{label:'Melewati Batas',kind:'danger'}:
+   monthlySpent>=budget*.8?{label:'Menipis',kind:'warn'}:{label:'Aman',kind:''};
+  return {group,parts,total,budget,budgeted,monthlySpent,budgetStatus,
    transactions:parts.reduce((sum,row)=>sum+row.ts.length,0)};
  }).filter(item=>item.parts.length).sort((a,b)=>b.total-a.total||a.group.name.localeCompare(b.group.name,'id'));
+ const groupScale=Math.max(1,...groups.map(g=>Math.max(g.total,g.budget)));
  const expanded=ui.reviewOpenGroups||[];
  const cards=groups.map(item=>{
   const open=expanded.includes(item.group.id);
   const color=cleanGroupColor(item.group.color)||'#2563eb';
+  const width=(100*item.total/groupScale).toFixed(4);
+  const limit=(100*item.budget/groupScale).toFixed(4);
   return `<section class="review-group ${open?'is-open':''}" style="--group-accent:${color}">
-   <button type="button" class="review-group-toggle" data-review-toggle-group="${h(item.group.id)}" aria-expanded="${open?'true':'false'}">
+   <button type="button" class="review-group-toggle" data-review-toggle-group="${h(item.group.id)}" aria-expanded="${open?'true':'false'}" aria-label="Kelompok ${h(item.group.name)}, pengeluaran ${money(item.total)}, ${item.budgeted?'anggaran '+money(item.budget):'belum ada anggaran'}, ${item.budgetStatus.label}. ${open?'Tutup':'Buka'} pos">
     <span class="review-group-info">${symbolBadge(item.group.name,item.group.name,true)}
       <span><strong>${h(item.group.name)}</strong><small>${item.parts.length} Pos · ${item.transactions} Transaksi</small></span></span>
-    <span class="review-group-right"><span class="review-group-total">${money(item.total)}<small>${item.budget?'Total Anggaran '+money(item.budget):'Belum Ada Anggaran'}</small></span><span class="review-group-chevron" aria-hidden="true">⌄</span></span>
+    <span class="review-group-chart">
+      <span class="review-bar-track" aria-hidden="true">
+        <span class="review-bar-fill" style="--bar-color:${color};width:${width}%"></span>
+        ${item.budgeted?`<span class="review-bar-marker" style="left:${limit}%"></span>`:''}
+      </span>
+      <span class="review-bar-caption">${item.budgeted?'Batas Kelompok '+money(item.budget):'Belum Ada Anggaran Kelompok'}</span>
+    </span>
+    <span class="review-group-right">
+      <span class="review-group-total">${money(item.total)}<small class="review-bar-badge ${item.budgetStatus.kind}">${item.budgetStatus.label}</small></span>
+      <span class="review-group-chevron" aria-hidden="true">⌄</span>
+    </span>
    </button>
    ${open?`<div class="review-group-body"><div class="review-visual-list">${item.parts.map(barMarkup).join('')}</div></div>`:''}
   </section>`;
  }).join('');
  return `<div class="review-visual-panel">
   <div class="review-visual-panel-head"><div><h4>Grafik Pengeluaran Per Kelompok</h4><p>Klik kelompok untuk menampilkan pos pengeluaran di dalamnya.</p></div></div>
-  <div class="review-chart-legend"><span><i class="review-legend-block"></i>Pengeluaran</span><span><i class="review-legend-marker"></i>Batas Anggaran Bulanan Per Pos</span><span>Kelompok & Pos: Terbesar → Terkecil</span></div>
+  <div class="review-chart-legend"><span><i class="review-legend-block"></i>Pengeluaran</span><span><i class="review-legend-marker"></i>Batas Anggaran Bulanan Kelompok / Pos</span><span>Kelompok & Pos: Terbesar → Terkecil</span></div>
   <div class="review-group-list">${cards}</div>
   ${ui.reviewDate?'<p class="review-chart-note">Pengeluaran berdasarkan tanggal terpilih; batas dan status anggaran tetap berdasarkan kumulatif bulan penuh.</p>':''}
  </div>`;

@@ -626,6 +626,111 @@ body:has(.review-modal-backdrop){overflow:hidden}
 @media print{
  .category-symbol,.cashflow-number,.cashflow-card{animation:none!important;transform:none!important;filter:none!important}
 }
+
+/* #034 Highlight bulan aktif, saldo/anggaran utama, dan indikator perhatian. */
+.month-pill-highlight{
+ position:relative;
+ isolation:isolate;
+ border-color:#b5cef6;
+ box-shadow:0 0 0 1px rgba(51,104,207,.08);
+ animation:paaxixi-month-outline 10.5s ease-in-out infinite;
+ transition:border-color .2s,box-shadow .2s;
+}
+.month-pill-highlight:focus-within{border-color:#285fc5;box-shadow:0 0 0 3px #2d68cc26}
+.month-pill-highlight .month-pill-symbol{
+ display:inline-grid;place-items:center;flex:none;width:23px;height:23px;
+ color:#2563c8;background:#eaf2ff;border-radius:7px;
+ animation:paaxixi-month-wiggle 9.3s ease-in-out -2.5s infinite;
+}
+.month-pill-highlight input{position:relative;z-index:1}
+.focus-card{
+ position:relative;isolation:isolate;
+ --focus-tint:rgba(29,111,211,.12);
+ --focus-edge:#aac8f1;
+ animation:paaxixi-focus-card-pulse 11s ease-in-out infinite;
+}
+.focus-card-budget{--focus-tint:rgba(25,138,104,.13);--focus-edge:#a5d8c8;animation-delay:-2.8s}
+.focus-card-budget.is-negative{--focus-tint:rgba(203,72,85,.15);--focus-edge:#edb7c0}
+.focus-card-balance{--focus-tint:rgba(38,99,193,.15);--focus-edge:#a8c6f5;animation-delay:-6s}
+.focus-card .metric.focus-value{
+ display:inline-block;transform-origin:left center;max-width:100%;
+ font-weight:900;
+ animation:paaxixi-focus-number 9.6s ease-in-out infinite;
+}
+.focus-card-budget .focus-value{animation-delay:-2.8s}
+.focus-card-balance .focus-value{animation-delay:-5.9s}
+.focus-card .focus-card-icon{transition:background .2s}
+.focus-card .focus-card-icon{animation:paaxixi-focus-icon 10s ease-in-out infinite}
+.focus-card-balance .focus-card-icon{animation-delay:-5.9s}
+.budget-alert-emphasis{
+ display:inline-flex;align-items:center;gap:7px;flex:none;
+}
+.budget-alert-emphasis .badge.warn{
+ color:#9a620c;background:#fff1d9;border:1px solid #ffe0a8;
+ font-weight:800;
+}
+.budget-alert-exclamation{
+ position:relative;display:grid;place-items:center;flex:none;
+ width:22px;height:22px;border-radius:50%;
+ background:#e6a335;color:#fff;font-weight:900;font-size:14px;line-height:1;
+ box-shadow:0 1px 3px #a2762429;
+ animation:paaxixi-attention-bounce 7.5s ease-in-out -2s infinite;
+}
+.budget-alert-exclamation::after{
+ content:"";position:absolute;inset:-4px;border-radius:50%;
+ border:1.5px solid #e8ae4b;opacity:0;
+ animation:paaxixi-attention-ring 7.5s ease-out -2s infinite;
+}
+@keyframes paaxixi-month-outline{
+ 0%,66%,82%,100%{border-color:#b5cef6;box-shadow:0 0 0 1px rgba(51,104,207,.08)}
+ 73%{border-color:#578de5;box-shadow:0 0 0 3px rgba(47,100,205,.10),0 4px 15px rgba(47,100,205,.09)}
+}
+@keyframes paaxixi-month-wiggle{
+ 0%,69%,85%,100%{transform:rotate(0deg) scale(1)}
+ 75%{transform:rotate(-12deg) scale(1.1)}
+ 81%{transform:rotate(5deg) scale(1.04)}
+}
+@keyframes paaxixi-focus-card-pulse{
+ 0%,65%,82%,100%{border-color:#e8eef8;box-shadow:var(--shadow)}
+ 73%{border-color:var(--focus-edge);box-shadow:0 0 0 3px var(--focus-tint),0 9px 25px var(--focus-tint)}
+}
+@keyframes paaxixi-focus-number{
+ 0%,66%,82%,100%{transform:scale(1);filter:brightness(1)}
+ 74%{transform:scale(1.034);filter:brightness(1.08)}
+ 80%{transform:scale(1.007);filter:brightness(1)}
+}
+@keyframes paaxixi-focus-icon{
+ 0%,67%,83%,100%{transform:rotate(0deg) scale(1)}
+ 73%{transform:rotate(-10deg) scale(1.1)}
+ 79%{transform:rotate(4deg) scale(1.035)}
+}
+@keyframes paaxixi-attention-bounce{
+ 0%,63%,85%,100%{transform:scale(1) rotate(0)}
+ 69%{transform:scale(1.16) rotate(-10deg)}
+ 75%{transform:scale(1.05) rotate(6deg)}
+ 80%{transform:scale(1.13) rotate(0)}
+}
+@keyframes paaxixi-attention-ring{
+ 0%,63%,100%{opacity:0;transform:scale(.7)}
+ 69%{opacity:.68;transform:scale(1)}
+ 84%{opacity:0;transform:scale(1.4)}
+}
+@media(max-width:520px){
+ .budget-alert-emphasis{gap:5px}
+ .budget-alert-exclamation{width:19px;height:19px;font-size:12px}
+ .month-pill-highlight .month-pill-symbol{width:20px;height:20px}
+ .focus-card .metric.focus-value{font-size:clamp(18px,5vw,23px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .month-pill-highlight,.month-pill-symbol,
+ .focus-card,.focus-card .metric.focus-value,.focus-card .focus-card-icon,
+ .budget-alert-exclamation,.budget-alert-exclamation::after{animation:none!important;transform:none!important;filter:none!important}
+}
+@media print{
+ .month-pill-highlight,.month-pill-symbol,.focus-card,
+ .focus-card .metric.focus-value,.focus-card .focus-card-icon,
+ .budget-alert-exclamation,.budget-alert-exclamation::after{animation:none!important}
+}
 </style>
 </head>
 <body>
@@ -654,7 +759,7 @@ body:has(.review-modal-backdrop){overflow:hidden}
       <span class="paaxixi-word" data-paaxixi-letters>Duit-Duit</span>
       <span class="paaxixi-word" data-paaxixi-letters>Paaxixi</span>
       <span class="paaxixi-kicker-spark" aria-hidden="true">✦</span>
-    </div><h1 class="page-title" id="page-title">Dashboard Keuangan</h1><div class="tiny" id="page-subtitle">Pantau arus uangmu dalam satu tempat.</div></div><div class="top-controls"><button class="cloud-state" id="cloud-status" type="button" title="Status sinkronisasi">◯ Mode lokal</button><label class="month-pill">▦ <input id="month-input" type="month" aria-label="Pilih bulan laporan"></label><button class="btn primary" type="button" id="top-add">＋ Catat transaksi</button></div></header>
+    </div><h1 class="page-title" id="page-title">Dashboard Keuangan</h1><div class="tiny" id="page-subtitle">Pantau arus uangmu dalam satu tempat.</div></div><div class="top-controls"><button class="cloud-state" id="cloud-status" type="button" title="Status sinkronisasi">◯ Mode lokal</button><label class="month-pill month-pill-highlight" title="Periode laporan yang sedang aktif"><span class="month-pill-symbol" aria-hidden="true">▦</span><input id="month-input" type="month" aria-label="Pilih bulan laporan"></label><button class="btn primary" type="button" id="top-add">＋ Catat transaksi</button></div></header>
   <div class="content" id="content"></div>
   <div class="footer-note">Duit-Duit Paaxixi • Keuangan pribadi • Arsip bulanan & cadangan JSON • Aktifkan Firebase untuk sinkronisasi HP/laptop</div>
 </main>
@@ -1288,7 +1393,7 @@ return `${welcomeModal()}${all.length===0?`<div class="callout"><span>✦</span>
 ${metricCard('Pemasukan Bulan Ini',inc,'↑','green','Transaksi Pemasukan')}${metricCard('Pengeluaran Bulan Ini',exp,'↓','red','Transaksi Pengeluaran')}${metricCard('Sisa Anggaran',bt>0?bt-budgetUsed():0,'◴',bt>0&&bt-budgetUsed()<0?'red':'green',bt>0?`Dari Total ${money(bt)}`:'Belum Ada Anggaran')}${metricCard('Total Saldo Rekening',kas,'▤',kas<0?'red':'blue','Saldo Seluruh Rekening, Sepanjang Waktu')}
 </div>
 <div class="grid layout-2 comp-dashboard-grid">${renderComposition()}
-<section class="card"><div class="card-head"><div><h3>Peringatan Anggaran</h3><p>Pos Yang Menipis Atau Sudah Melebihi Batas</p></div>${pill(alert.length?'warn':'ok',`${alert.length} Pos Perlu Perhatian`)}</div>${alert.length?`<div class="alert-list">${alert.slice(0,5).map(c=>{let st=status(c.id),left=effectiveBudget(c.id)-spentByCat(c.id);return `<div class="alert-item ${st.s==='danger'?'red-alert':''}"><span class="mini-num">${symbolBadge(c.label,c.group)}</span><div style="flex:1"><strong>${h(c.label)} — ${st.label}</strong><p>${left<0?'Melebihi '+money(-left):'Sisa Hanya '+money(left)} Dari ${money(effectiveBudget(c.id))}</p></div></div>`}).join('')}</div><button type="button" class="btn sm full" style="margin-top:16px" data-nav="budgets">Kelola / Alihkan Anggaran →</button>`:empty('✓','Tidak Ada Peringatan',bt?'Semua pos beranggaran masih aman.':'Atur anggaran per kategori agar peringatan dapat muncul.',`<button data-nav="budgets" class="btn sm">Atur anggaran</button>`)}</section></div>
+<section class="card"><div class="card-head"><div><h3>Peringatan Anggaran</h3><p>Pos Yang Menipis Atau Sudah Melebihi Batas</p></div>${alert.length?`<span class="budget-alert-emphasis" role="status" aria-label="${alert.length} pos anggaran perlu perhatian"><span class="budget-alert-exclamation" aria-hidden="true">!</span>${pill('warn',`${alert.length} Pos Perlu Perhatian`)}</span>`:pill('ok','0 Pos Perlu Perhatian')}</div>${alert.length?`<div class="alert-list">${alert.slice(0,5).map(c=>{let st=status(c.id),left=effectiveBudget(c.id)-spentByCat(c.id);return `<div class="alert-item ${st.s==='danger'?'red-alert':''}"><span class="mini-num">${symbolBadge(c.label,c.group)}</span><div style="flex:1"><strong>${h(c.label)} — ${st.label}</strong><p>${left<0?'Melebihi '+money(-left):'Sisa Hanya '+money(left)} Dari ${money(effectiveBudget(c.id))}</p></div></div>`}).join('')}</div><button type="button" class="btn sm full" style="margin-top:16px" data-nav="budgets">Kelola / Alihkan Anggaran →</button>`:empty('✓','Tidak Ada Peringatan',bt?'Semua pos beranggaran masih aman.':'Atur anggaran per kategori agar peringatan dapat muncul.',`<button data-nav="budgets" class="btn sm">Atur anggaran</button>`)}</section></div>
 ${renderTrendPanel()}
 <div class="grid layout-2"><section class="card"><div class="card-head"><div><h3>Penggunaan Anggaran</h3><p>Pos Dengan Persentase Pemakaian Tertinggi</p></div><button data-nav="budgets" class="btn sm ghost">Lihat Semua ↗</button></div>${budgets.length?`<div class="budget-list">${budgets.slice(0,5).map(c=>budgetProgress(c)).join('')}</div>`:empty('◎','Anggaran Belum Disusun','Kamu dapat memberi batas pengeluaran tiap kategori untuk setiap bulan.')}</section>
 <section class="card"><div class="card-head"><div><h3>Asal Pemasukan</h3><p>Sumber Pendapatan Bulan Berjalan</p></div></div>${bySource.length?bySource.slice(0,7).map(c=>`<div class="stat-pair"><span>${h(c.label)} <span style="color:#8a9bb3">• ${pct(c.amount,inc)}%</span></span><strong>${money(c.amount)}</strong></div>`).join(''):empty('↗','Belum Ada Pemasukan','Misalnya dividen Fastlink, gaji atau tukin BPS.')}
@@ -1296,9 +1401,12 @@ ${renderTrendPanel()}
 <section class="card"><div class="card-head"><div><h3>Transaksi Terbaru</h3><p>Aktivitas Terakhir Pada ${h(monthFmt(ui.month))}</p></div><div class="action-buttons"><button class="btn sm ghost" data-nav="transactions">Semua Transaksi →</button><button class="btn sm" data-nav="reports">Arsip Bulan →</button></div></div>${all.length?all.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt?.localeCompare(a.createdAt||'')||0).slice(0,6).map(txRow).join(''):empty('⇄','Belum Ada Transaksi','Klik “Catat transaksi” untuk membuat catatan baru.')}</section>`}
 function metricCard(label,value,icon,color,sub){
  const flow=label==='Pemasukan Bulan Ini'?'income':label==='Pengeluaran Bulan Ini'?'expense':'';
- return `<section class="card ${flow?'cashflow-card cashflow-card-'+flow:''}">
-  <div class="row-between"><div class="metric-label">${label}</div><span class="card-icon" style="width:31px;height:31px">${icon}</span></div>
-  <div class="metric ${color} ${flow?'cashflow-number cashflow-number-'+flow:''}">${money(value)}</div>
+ const focus=label==='Sisa Anggaran'?'budget':label==='Total Saldo Rekening'?'balance':'';
+ const focusClass=focus?'focus-card focus-card-'+focus+(color==='red'?' is-negative':''):'';
+ const highlighted=flow||focus;
+ return `<section class="card ${flow?'cashflow-card cashflow-card-'+flow:''} ${focusClass}">
+  <div class="row-between"><div class="metric-label">${label}</div><span class="card-icon ${focus?'focus-card-icon':''}" style="width:31px;height:31px">${icon}</span></div>
+  <div class="metric ${color} ${flow?'cashflow-number cashflow-number-'+flow:''} ${focus?'focus-value focus-value-'+focus:''}">${money(value)}</div>
   <div class="metric-sub">${sub}</div></section>`;
 }
 function budgetProgress(c){let b=effectiveBudget(c.id),spent=spentByCat(c.id),st=status(c.id);return `<div><div class="progress-head"><div class="symbol-line">${symbolBadge(c.label,c.group,true)}<div class="symbol-text"><strong>${h(c.label)}</strong><div class="tiny">${money(spent)} / ${money(b)}</div></div></div>${pill(st.s,st.label)}</div><div class="track ${st.s==='danger'?'danger':st.s==='warn'?'warn':''}"><div style="width:${Math.max(0,Math.min(100,pct(spent,Math.max(b,1))))}%"></div></div></div>`}

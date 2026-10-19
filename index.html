@@ -1473,6 +1473,92 @@ body:has(.repay-popup-backdrop){overflow:hidden}
  .finance-spotlight-action,.debt-filter-pill,.debt-quick-tabs button{transition:none!important}
 }
 
+
+/* #047 Transaksi: tambah/edit via modal, daftar riwayat tanpa halaman tersendiri. */
+@media(max-width:820px){.bottom-nav{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.tx-entry-backdrop,.tx-history-backdrop{
+ position:fixed;inset:0;z-index:1150;display:flex;align-items:center;justify-content:center;
+ background:rgba(8,27,58,.68);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+ overflow-y:auto;padding:15px;animation:tx-modal-fade .2s ease both
+}
+.tx-entry-backdrop{z-index:1180}
+.tx-entry-dialog,.tx-history-dialog{
+ width:min(660px,100%);max-height:calc(100dvh - 30px);display:flex;flex-direction:column;overflow:hidden;
+ border-radius:20px;background:#fff;border:1px solid #d5e5fc;
+ box-shadow:0 27px 78px rgba(5,30,69,.35);margin:auto;animation:tx-modal-pop .26s cubic-bezier(.18,.76,.25,1.05) both
+}
+.tx-history-dialog{width:min(820px,100%)}
+.tx-entry-heading{display:flex;align-items:center;gap:11px;padding:17px 20px;border-bottom:1px solid #e2ebf8;flex:none;background:linear-gradient(120deg,#fff,#f4f9ff)}
+.tx-entry-heading>div{flex:1;min-width:0}
+.tx-entry-heading h3{color:#153d70;font-size:clamp(17px,2.2vw,22px);font-weight:900;line-height:1.3;margin:0}
+.tx-entry-heading p{font-size:12px;color:#7186a1;line-height:1.5;margin:5px 0 0}
+.tx-entry-symbol{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:12px;background:#e8f2ff;color:#2c67bd;font-size:21px;font-weight:850}
+.tx-entry-close{display:grid;place-items:center;flex:none;width:36px;height:36px;background:#ecf4ff;border:1px solid #d3e2f9;border-radius:10px;color:#214e89;font-size:17px}
+.tx-entry-close:hover{background:#ddecff}
+.tx-entry-body,.tx-history-content{overflow-y:auto;overscroll-behavior:contain;padding:18px 20px 22px}
+.tx-entry-body .pill-tabs{margin-bottom:16px}
+.tx-entry-body .pill-tabs button{transition:background .2s,color .2s,transform .2s}
+.tx-entry-body .pill-tabs button.active{box-shadow:0 3px 11px rgba(29,80,144,.1)}
+.tx-entry-body .form-grid{gap:12px}
+.tx-entry-body .form-field{min-width:0}
+.tx-entry-body .field{min-width:0;width:100%}
+.tx-entry-body .form-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:9px;margin-top:16px}
+.tx-entry-body .form-actions>.btn[type="submit"]{background:#102a4e;border-color:#102a4e;color:#fff}
+.tx-entry-dialog :is(button,input,textarea,select):focus-visible,.tx-history-dialog :is(button,input,select):focus-visible{outline:3px solid #3883e9;outline-offset:2px}
+.tx-history-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 14px;color:#6a83a2;font-weight:700;font-size:12px}
+.tx-history-toolbar select{min-width:155px;max-width:240px;width:auto}
+.tx-history-item{padding:13px 15px;margin:0 0 10px;border:1px solid #dbe8f9;border-radius:13px;background:#fff;transition:box-shadow .18s,border-color .18s}
+.tx-history-item:hover{border-color:#b9d4f7;box-shadow:0 5px 15px rgba(19,72,134,.07)}
+.tx-history-item-head{display:flex;justify-content:space-between;align-items:center;gap:13px}
+.tx-history-item-head>div{min-width:0}
+.tx-history-item-head strong{font-size:14px;color:#143b70;display:block;overflow-wrap:anywhere}
+.tx-history-item-head small{font-size:11px;color:#7890ab;display:block;margin-top:5px;line-height:1.5}
+.tx-history-item-head>b{font-size:15px;white-space:nowrap}
+.tx-history-item>p{font-size:11px;color:#617d9e;margin:7px 0 0}
+.tx-history-item-actions{display:flex;gap:7px;justify-content:flex-end;margin-top:10px}
+.tx-history-footer{display:flex;justify-content:space-between;gap:9px;padding:13px 20px;border-top:1px solid #e4ecf8;background:#f8fbff;flex:none}
+.tx-recent-row{gap:16px;min-width:0}
+.tx-recent-info{min-width:0;flex:1}
+.tx-recent-end{display:flex;flex-direction:column;gap:9px;align-items:flex-end;flex:none}
+.tx-recent-end>.amount{white-space:nowrap}
+.tx-recent-actions{display:flex;align-items:center;gap:7px}
+.tx-recent-actions .btn{font-size:11px;padding:5px 10px}
+.content .btn[data-nav],.content .tx-nav-cta{background:linear-gradient(115deg,#eff6ff,#e0eeff);border:1.5px solid #a9cafa;color:#174a87;font-weight:850;box-shadow:0 4px 11px rgba(20,79,151,.08);transition:transform .2s,box-shadow .2s,background .2s}
+.content .btn[data-nav]:hover,.content .tx-nav-cta:hover{background:#dfeeff;transform:translateY(-2px);box-shadow:0 9px 21px rgba(23,76,143,.16)}
+.content .btn[data-nav]:focus-visible,.content .tx-nav-cta:focus-visible{outline:3px solid #347fe3;outline-offset:3px}
+.nav-cta-arrow{display:inline-block;transition:transform .18s}
+.tx-nav-cta:hover .nav-cta-arrow{transform:translate(3px,-2px)}
+body:has(.tx-entry-backdrop),body:has(.tx-history-backdrop){overflow:hidden}
+@keyframes tx-modal-fade{from{opacity:0}to{opacity:1}}
+@keyframes tx-modal-pop{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:600px){
+ .tx-entry-backdrop,.tx-history-backdrop{padding:9px}
+ .tx-entry-dialog,.tx-history-dialog{max-height:calc(100dvh - 18px);border-radius:16px}
+ .tx-entry-heading{padding:13px 12px;gap:8px}
+ .tx-entry-symbol{width:36px;height:36px;font-size:19px}
+ .tx-entry-heading h3{font-size:17px}
+ .tx-entry-body,.tx-history-content{padding:13px}
+ .tx-entry-body .form-grid{grid-template-columns:1fr;gap:10px}
+ .tx-entry-body .form-field.full{grid-column:auto}
+ .tx-entry-body .form-actions{display:grid;grid-template-columns:1fr 1fr}
+ .tx-entry-body .form-actions .btn{padding:10px 8px;font-size:12px;white-space:normal}
+ .tx-history-footer{padding:11px;flex-wrap:wrap}
+ .tx-history-footer .btn{flex:1;font-size:11px;padding:9px 8px}
+ .tx-history-item-head{align-items:flex-start}
+ .tx-history-item-head>b{font-size:13px}
+ .tx-history-toolbar{display:block}
+ .tx-history-toolbar select{display:block;margin-top:7px;width:100%;max-width:none}
+ .tx-recent-row{align-items:flex-start;flex-wrap:wrap;gap:6px}
+ .tx-recent-end{width:100%;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px}
+ .tx-recent-actions{margin-left:auto}
+ .tx-recent-actions .btn{padding:5px 8px}
+}
+@media(prefers-reduced-motion:reduce){
+ .tx-entry-backdrop,.tx-history-backdrop,.tx-entry-dialog,.tx-history-dialog{animation:none!important}
+ .content .btn[data-nav],.content .tx-nav-cta,.tx-history-item,.nav-cta-arrow{transition:none!important}
+}
+@media print{.tx-entry-backdrop,.tx-history-backdrop{display:none!important}}
+
 </style>
 </head>
 <body>
@@ -1487,8 +1573,7 @@ body:has(.repay-popup-backdrop){overflow:hidden}
     </span></div>
   <div class="s-label">MENU UTAMA</div><nav class="nav" id="side-nav">
   <button type="button" data-nav="dashboard"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg></span> Dashboard</button>
-  <button type="button" data-nav="transactions"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 4-4 4 4 4M4 8h16M16 20l4-4-4-4M20 16H4"/></svg></span> Transaksi Harian</button>
-  <button type="button" data-nav="review"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v10h10"/><path d="M21.1 15.7A10 10 0 1 1 8.3 2.7"/><path d="M12 2a10 10 0 0 1 10 10H12z"/></svg></span> Rincian Transaksi</button>
+    <button type="button" data-nav="review"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v10h10"/><path d="M21.1 15.7A10 10 0 1 1 8.3 2.7"/><path d="M12 2a10 10 0 0 1 10 10H12z"/></svg></span> Rincian Transaksi</button>
   <button type="button" data-nav="budgets"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M16 14h5"/><circle cx="17" cy="14" r="0.8" fill="currentColor" stroke="none"/></svg></span> Anggaran Bulanan</button>
   <button type="button" data-nav="debts"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h4l3 2 3-2h4l4 4-5 6a2 2 0 0 1-3 0l-2-2"/><path d="m2 10 3 3m17-3-3 3M9 14l2 2m-5 0 2 2"/></svg></span> Utang & Piutang</button>
   <button type="button" data-nav="reports"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18m-12 4h6"/></svg></span> Arsip Laporan</button>
@@ -1507,8 +1592,7 @@ body:has(.repay-popup-backdrop){overflow:hidden}
 </main>
 <nav class="bottom-nav" id="bottom-nav" aria-label="Navigasi utama">
   <button type="button" data-nav="dashboard"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg></span> Beranda</button>
-  <button type="button" data-nav="transactions"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 4-4 4 4 4M4 8h16M16 20l4-4-4-4M20 16H4"/></svg></span> Transaksi</button>
-  <button type="button" data-nav="review"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v10h10"/><path d="M21.1 15.7A10 10 0 1 1 8.3 2.7"/><path d="M12 2a10 10 0 0 1 10 10H12z"/></svg></span> Tinjau</button>
+    <button type="button" data-nav="review"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v10h10"/><path d="M21.1 15.7A10 10 0 1 1 8.3 2.7"/><path d="M12 2a10 10 0 0 1 10 10H12z"/></svg></span> Tinjau</button>
   <button type="button" data-nav="budgets"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M16 14h5"/><circle cx="17" cy="14" r="0.8" fill="currentColor" stroke="none"/></svg></span> Anggaran</button>
   <button type="button" data-nav="accounts"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9m4 0h3M4 17h3m4 0h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></span> Lainnya</button>
 </nav>
@@ -1648,7 +1732,7 @@ const expenseGroups=()=>db.expenseGroups;
 const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],debts:[],reports:{}});
 function load(){try{let v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.accounts)&&Array.isArray(v.categories)&&Array.isArray(v.transactions)&&Array.isArray(v.debts)&&v.budgets&&Array.isArray(v.budgetMoves))return normalizeExpenseGroups(v);}catch(e){}return fresh()}
 let db=load();db.reports=db.reports||{};
-let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'month',trendFrom:'',trendTo:'',trendLabels:true,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupFilter:'open',reportMonth:currentMonth()};
+let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'month',trendFrom:'',trendTo:'',trendLabels:true,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupFilter:'open',reportMonth:currentMonth()};
 let cloud={configured:false,signedIn:false,ready:false,email:'',busy:false,error:'',empty:false,pendingDecision:false};
 function syncBadge(){let b=document.getElementById('cloud-status');if(!b)return;
  b.className='cloud-state'+(cloud.signedIn&&cloud.ready&&!cloud.pendingDecision?' online':cloud.busy?' wait':'');
@@ -1743,13 +1827,13 @@ function tanggalWetonWIB(date=new Date()){
  const index=((3+days)%5+5)%5;
  return parts.weekday+' '+pasaran[index]+', '+day+' '+parts.month+' '+year;
 }
-function labelNav(){const titles={dashboard:['Dashboard Keuangan','Ringkasan Utama Untuk Bulan Yang Dipilih.'],transactions:['Transaksi Harian','Tambah, Edit, Dan Hapus Pengeluaran, Pemasukan, Atau Transfer.'],review:['Rincian Transaksi','Analisis Pemasukan Dan Pengeluaran Berdasarkan Kelompok, Pos, Dan Tanggal.'],budgets:['Anggaran Bulanan','Tetapkan Batas Dan Alihkan Sisa Antar Pos.'],debts:['Utang & Piutang','Pantau Pinjaman Dan Pembayaran.'],reports:['Arsip Laporan','Simpan Snapshot Laporan Tiap Bulan, Cetak Atau Ekspor.'],accounts:['Rekening, Kategori & Sinkronisasi','Kelola Rekening, Kategori, Login Cloud, Dan Cadangan.']};const item=titles[ui.view];document.getElementById('page-title').textContent=item[0];document.getElementById('page-subtitle').textContent=ui.view==='dashboard'?tanggalWetonWIB():item[1];document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
+function labelNav(){const titles={dashboard:['Dashboard Keuangan','Ringkasan Utama Untuk Bulan Yang Dipilih.'],review:['Rincian Transaksi','Analisis Pemasukan Dan Pengeluaran Berdasarkan Kelompok, Pos, Dan Tanggal.'],budgets:['Anggaran Bulanan','Tetapkan Batas Dan Alihkan Sisa Antar Pos.'],debts:['Utang & Piutang','Pantau Pinjaman Dan Pembayaran.'],reports:['Arsip Laporan','Simpan Snapshot Laporan Tiap Bulan, Cetak Atau Ekspor.'],accounts:['Rekening, Kategori & Sinkronisasi','Kelola Rekening, Kategori, Login Cloud, Dan Cadangan.']};const item=titles[ui.view];document.getElementById('page-title').textContent=item[0];document.getElementById('page-subtitle').textContent=ui.view==='dashboard'?tanggalWetonWIB():item[1];document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
 function render(){
  const prev=document.querySelector('.comp-popover');
  const oldKind=prev?.dataset?.compPopup,oldScroll=prev?.querySelector('.comp-popover-items')?.scrollTop||0;
  const oldTrendScroll=document.querySelector('.trend-scroll')?.scrollLeft;
  labelNav();
- document.getElementById('content').innerHTML=({dashboard:renderDash,transactions:renderTx,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])();
+ document.getElementById('content').innerHTML=({dashboard:renderDash,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])()+renderTxHistoryPopup()+renderTxModal();
  const newTrendScroll=document.querySelector('.trend-scroll');
  if(newTrendScroll&&oldTrendScroll!==undefined)newTrendScroll.scrollLeft=oldTrendScroll;
  if(ui.view==='dashboard'&&ui.comp.menu){
@@ -2278,7 +2362,7 @@ ${renderTrendPanel()}
 <div class="grid layout-2"><section class="card finance-spotlight-card budget-spotlight-card"><div class="card-head"><div><h3>Penggunaan Anggaran</h3><p>Pos Dengan Persentase Pemakaian Tertinggi</p></div><button type="button" data-nav="budgets" class="btn sm ghost finance-spotlight-action budget-all-cta">Lihat Semua <span class="spotlight-arrow" aria-hidden="true">↗</span></button></div>${budgets.length?`<div class="budget-list">${budgets.slice(0,5).map(c=>budgetProgress(c)).join('')}</div>`:empty('◎','Anggaran Belum Disusun','Kamu dapat memberi batas pengeluaran tiap kategori untuk setiap bulan.')}</section>
 <section class="card finance-spotlight-card income-spotlight-card"><div class="card-head"><div><h3>Asal Pemasukan</h3><p>Sumber Pendapatan Bulan Berjalan</p></div></div>${bySource.length?bySource.slice(0,7).map(c=>`<div class="stat-pair"><span>${h(c.label)} <span style="color:#8a9bb3">• ${pct(c.amount,inc)}%</span></span><strong>${money(c.amount)}</strong></div>`).join(''):empty('↗','Belum Ada Pemasukan','Misalnya dividen Fastlink, gaji atau tukin BPS.')}
 <div class="linebreak"></div><div class="stat-pair"><span>Piutang Belum Kembali</span><strong class="green">${money(debt.receivable)}</strong></div><div class="stat-pair"><span>Utang Belum Dilunasi</span><strong class="red">${money(debt.payable)}</strong></div><button type="button" class="btn sm full finance-spotlight-action debt-overview-cta" data-debt-overview="open" aria-haspopup="dialog"><span aria-hidden="true">↗</span> Lihat Utang & Piutang <span class="spotlight-arrow" aria-hidden="true">→</span></button></section></div>
-<section class="card"><div class="card-head"><div><h3>Transaksi Terbaru</h3><p>Aktivitas Terakhir Pada ${h(monthFmt(ui.month))}</p></div><div class="action-buttons"><button class="btn sm ghost" data-nav="transactions">Semua Transaksi →</button><button class="btn sm" data-nav="reports">Arsip Bulan →</button></div></div>${all.length?all.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt?.localeCompare(a.createdAt||'')||0).slice(0,6).map(txRow).join(''):empty('⇄','Belum Ada Transaksi','Klik “Catat transaksi” untuk membuat catatan baru.')}</section>${renderDashboardKpiPopup()}`}
+<section class="card"><div class="card-head"><div><h3>Transaksi Terbaru</h3><p>Aktivitas Terakhir Pada ${h(monthFmt(ui.month))}</p></div><div class="action-buttons"><button type="button" class="btn sm ghost tx-nav-cta" data-tx-history>Semua Transaksi <span class="nav-cta-arrow" aria-hidden="true">↗</span></button><button type="button" class="btn sm tx-nav-cta" data-nav="reports">Arsip Bulan <span class="nav-cta-arrow" aria-hidden="true">↗</span></button></div></div>${all.length?all.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt?.localeCompare(a.createdAt||'')||0).slice(0,6).map(txRow).join(''):empty('⇄','Belum Ada Transaksi','Klik “Catat transaksi” untuk membuat catatan baru.')}</section>${renderDashboardKpiPopup()}`}
 
 /* #035 Rincian interaktif kartu Dashboard; semuanya memakai sumber data yang sama. */
 function kpiDailyBreakdown(transactions,type){
@@ -2515,18 +2599,112 @@ function metricCard(label,value,icon,color,sub){
  </section>`;
 }
 function budgetProgress(c){let b=effectiveBudget(c.id),spent=spentByCat(c.id),st=status(c.id);return `<div><div class="progress-head"><div class="symbol-line">${symbolBadge(c.label,c.group,true)}<div class="symbol-text"><strong>${h(c.label)}</strong><div class="tiny">${money(spent)} / ${money(b)}</div></div></div>${pill(st.s,st.label)}</div><div class="track ${st.s==='danger'?'danger':st.s==='warn'?'warn':''}"><div style="width:${Math.max(0,Math.min(100,pct(spent,Math.max(b,1))))}%"></div></div></div>`}
-function txRow(t){let detail=t.type==='transfer'?`${acc(t.accountId)?.name||'Rekening dihapus'} → ${acc(t.toAccountId)?.name||'Rekening dihapus'}`:`${cat(t.categoryId)?.label||'Kategori dihapus'} · ${acc(t.accountId)?.name||'Rekening dihapus'}`;return `<div class="list-item"><div><div class="list-title">${t.type==='transfer'?'🔁':pickSymbol(cat(t.categoryId)?.label,cat(t.categoryId)?.group)} ${h(t.title|| (t.type==='transfer'?'Transfer antar rekening':cat(t.categoryId)?.label||'Transaksi'))}</div><div class="list-sub">${dateFmt(t.date)} · ${h(detail)}</div></div><div class="amount ${t.type==='expense'?'red':t.type==='income'?'green':'blue'}">${t.type==='expense'?'−':t.type==='income'?'+':'⇄ '}${money(t.amount)}</div></div>`}
-function renderTx(){let entries=monthly().filter(t=>ui.txFilter==='all'||t.type===ui.txFilter).sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
-let editing=db.transactions.find(t=>t.id===ui.txEditId);if(ui.txEditId&&!editing)ui.txEditId=null;
-let kind=editing?.type||ui.txType,groupList=[...new Set((kind==='income'?incomes():expenses()).map(c=>c.group))],group=(editing&&cat(editing.categoryId)?.group)||groupList[0],cs=(kind==='income'?incomes():expenses()).filter(c=>c.group===group);
-return `<div class="grid layout-2"><section class="card" id="tx-entry"><div class="card-head"><div><h3>${editing?'Edit Transaksi':'Input Transaksi Baru'}</h3><p>${editing?'Perubahan ikut memperbarui saldo, rekap, dan anggaran.':'Pilih Jenis Transaksi Dan Rekening Asal / Tujuan'}</p></div><span class="card-icon">${editing?'✎':'＋'}</span></div><div class="pill-tabs">${[['expense','Pengeluaran'],['income','Pemasukan'],['transfer','Transfer']].map(x=>`<button type="button" data-txtype="${x[0]}" ${editing?'disabled':''} class="${kind===x[0]?'active':''}">${x[1]}</button>`).join('')}</div>
-<form id="tx-form"><input name="type" type="hidden" value="${kind}"><input name="editId" type="hidden" value="${h(editing?.id||'')}"><div class="form-grid"><div class="form-field"><label class="field-label">Tanggal</label><input class="field" type="date" name="date" value="${editing?.date|| (ui.month===currentMonth()?today():ui.month+'-01')}" required></div><div class="form-field"><label class="field-label">Jumlah (Rp)</label><input class="field" name="amount" type="text" inputmode="decimal" data-rupiah="1" placeholder="50.000" value="${editing?fmtAmount(editing.amount):''}" required></div>
+function txRow(t){
+ const description=t.type==='transfer'?(acc(t.accountId)?.name||'Rekening dihapus')+' → '+(acc(t.toAccountId)?.name||'Rekening dihapus'):(cat(t.categoryId)?.label||'Kategori dihapus')+' · '+(acc(t.accountId)?.name||'Rekening dihapus');
+ const amountClass=t.type==='expense'?'red':t.type==='income'?'green':'blue';
+ const sign=t.type==='expense'?'−':t.type==='income'?'+':'⇄ ';
+ return `<div class="list-item tx-recent-row">
+  <div class="tx-recent-info"><div class="list-title">${t.type==='transfer'?'🔁':pickSymbol(cat(t.categoryId)?.label,cat(t.categoryId)?.group)} ${h(t.title||'Transaksi')}</div>
+  <div class="list-sub">${dateFmt(t.date)} · ${h(description)}</div></div>
+  <div class="tx-recent-end"><strong class="amount ${amountClass}">${sign}${money(t.amount)}</strong>
+   <div class="tx-recent-actions"><button type="button" class="btn sm" data-edit-tx="${h(t.id)}">✎ Edit</button>
+    <button type="button" class="btn sm danger" data-delete-tx="${h(t.id)}">Hapus</button></div>
+  </div>
+ </div>`;
+}
+/* #047 Input/edit transaksi melalui modal yang dapat dibuka dari semua halaman. */
+function renderTxModal(){
+ if(!ui.txModalOpen)return '';
+ const editing=db.transactions.find(t=>t.id===ui.txEditId);
+ if(ui.txEditId&&!editing)return '';
+ const kind=editing?.type||ui.txType;
+ const groupList=[...new Set((kind==='income'?incomes():expenses()).map(c=>c.group))],
+ group=(editing&&cat(editing.categoryId)?.group)||groupList[0],
+ cs=(kind==='income'?incomes():expenses()).filter(c=>c.group===group);
+ return `<div class="tx-entry-backdrop" id="tx-entry-backdrop">
+  <div class="tx-entry-dialog" role="dialog" aria-modal="true" aria-labelledby="tx-entry-heading" aria-describedby="tx-entry-desc">
+   <div class="tx-entry-heading">
+    <span class="tx-entry-symbol" aria-hidden="true">🧾</span>
+    <div><h3 id="tx-entry-heading">${editing?'Edit Transaksi':'Catat Transaksi Baru'}</h3>
+     <p id="tx-entry-desc">${editing?'Ubah data transaksi tanpa berpindah halaman.':'Pilih jenis transaksi, isi nominal, dan pilih rekening.'}</p></div>
+    <button type="button" class="tx-entry-close" data-close-tx-modal aria-label="Tutup form transaksi">✕</button>
+   </div>
+   <div class="tx-entry-body">
+    <div class="pill-tabs">${[['expense','Pengeluaran'],['income','Pemasukan'],['transfer','Transfer']].map(x=>`<button type="button" data-txtype="${x[0]}" ${editing?'disabled':''} class="${kind===x[0]?'active':''}">${x[1]}</button>`).join('')}</div>
+<form id="tx-form" class="tx-entry-form"><input name="type" type="hidden" value="${kind}"><input name="editId" type="hidden" value="${h(editing?.id||'')}"><div class="form-grid"><div class="form-field"><label class="field-label">Tanggal</label><input class="field" type="date" name="date" value="${editing?.date|| (ui.month===currentMonth()?today():ui.month+'-01')}" required></div><div class="form-field"><label class="field-label">Jumlah (Rp)</label><input class="field" name="amount" type="text" inputmode="decimal" data-rupiah="1" placeholder="50.000" value="${editing?fmtAmount(editing.amount):''}" required></div>
 ${kind!=='transfer'?`<div class="form-field"><label class="field-label">Kelompok</label><select class="field" name="group" id="tx-group">${groupList.map(g=>`<option value="${h(g)}" ${g===group?'selected':''}>${pickSymbol(g,g)} ${h(g)}</option>`).join('')}</select></div><div class="form-field"><label class="field-label">Kategori</label><select class="field" name="categoryId" id="tx-category" required>${cs.map(c=>`<option value="${h(c.id)}" ${c.id===editing?.categoryId?'selected':''}>${pickSymbol(c.label,c.group)} ${h(c.label)}</option>`).join('')}</select></div>`:''}
 <div class="form-field"><label class="field-label">${kind==='income'?'Masuk Ke Rekening':kind==='transfer'?'Dari Rekening':'Bayar Dari Rekening'}</label>${selectAcc('accountId',editing?.accountId||'')}</div>${kind==='transfer'?`<div class="form-field"><label class="field-label">Ke Rekening</label>${selectAcc('toAccountId',editing?.toAccountId||'')}</div>`:''}
 <div class="form-field full"><label class="field-label">Nama / Keterangan Transaksi</label><input class="field" name="title" value="${h(editing?.title||'')}" placeholder="Misalnya: Beli nasi ayam" required maxlength="130"></div><div class="form-field full"><label class="field-label">Catatan (Opsional)</label><textarea class="field" name="note" rows="2" maxlength="500">${h(editing?.note||'')}</textarea></div></div>
-<div class="form-actions"><button class="btn teal" type="submit">${editing?'✓ Simpan perubahan':'＋ Simpan transaksi'}</button>${editing?'<button class="btn" type="button" data-action="cancel-edit-tx">Batal edit</button>':''}</div></form></section>
-<section class="card"><div class="card-head"><div><h3>Ringkasan Transaksi</h3><p>${h(monthFmt(ui.month))}</p></div></div><div class="stat-pair"><span>Pemasukan</span><strong class="green">${money(totalType('income'))}</strong></div><div class="stat-pair"><span>Pengeluaran</span><strong class="red">${money(totalType('expense'))}</strong></div><div class="linebreak"></div><div class="stat-pair"><span>Selisih Bersih</span><strong class="${totalType('income')-totalType('expense')<0?'red':'green'}">${money(totalType('income')-totalType('expense'))}</strong></div><div class="tip" style="margin-top:22px">Transfer antar rekening tidak dihitung sebagai pengeluaran/pemasukan. ${db.reports[ui.month]?'Perubahan transaksi tidak mengubah arsip yang sudah disimpan sebelum laporan diperbarui.':''}</div><button data-nav="review" class="btn sm full" style="margin-top:16px">▤ Lihat Rincian Transaksi →</button></section></div>
-<section class="card"><div class="card-head"><div><h3>Riwayat Transaksi</h3><p>${entries.length} transaksi pada ${h(monthFmt(ui.month))}</p></div><select class="select-sm" id="tx-filter" aria-label="Filter transaksi">${[['all','Semua'],['expense','Pengeluaran'],['income','Pemasukan'],['transfer','Transfer']].map(([value,label])=>`<option value="${value}" ${ui.txFilter===value?'selected':''}>${label}</option>`).join('')}</select></div>${entries.length?`<div class="table-scroll"><table class="table"><thead><tr><th>Tanggal</th><th>Transaksi</th><th>Kategori / Rekening</th><th>Nominal</th><th>Aksi</th></tr></thead><tbody>${entries.map(t=>`<tr><td class="cell-muted">${dateFmt(t.date)}</td><td><strong>${h(t.title)}</strong>${t.note?`<div class="cell-muted">${h(t.note)}</div>`:''}</td><td class="cell-muted">${h(t.type==='transfer'?'Transfer':cat(t.categoryId)?.label||'Kategori tidak ada')}<div>${h(t.type==='transfer'?(acc(t.accountId)?.name||'?')+' → '+(acc(t.toAccountId)?.name||'?'):(acc(t.accountId)?.name||'?'))}</div></td><td><strong class="${t.type==='expense'?'red':t.type==='income'?'green':'blue'}">${t.type==='expense'?'−':t.type==='income'?'+':'⇄ '}${money(t.amount)}</strong></td><td><div class="action-buttons"><button type="button" class="btn sm" data-edit-tx="${h(t.id)}">Edit</button><button type="button" class="btn sm danger" data-delete-tx="${h(t.id)}">Hapus</button></div></td></tr>`).join('')}</tbody></table></div>`:empty('⇄','Tidak Ada Riwayat','Belum ada transaksi untuk filter dan bulan ini.')}</section>`}
+<div class="form-actions"><button class="btn teal" type="submit">${editing?'✓ Simpan perubahan':'＋ Simpan transaksi'}</button><button class="btn" type="button" data-close-tx-modal>Batal</button></div></form>
+   </div>
+  </div>
+ </div>`;
+}
+function openTxModal(type='expense',id=null){
+ const existing=id?db.transactions.find(t=>t.id===id):null;
+ if(id&&!existing)return toast('Transaksi tidak ditemukan.',true);
+ ui.txEditId=existing?.id||null;
+ ui.txType=existing?.type||(['expense','income','transfer'].includes(type)?type:'expense');
+ ui.txModalOpen=true;render();
+ (document.querySelector('#tx-entry-backdrop [name="amount"]')||document.querySelector('[data-close-tx-modal]'))?.focus({preventScroll:true});
+}
+function dismissTxModal(){
+ if(!ui.txModalOpen)return;
+ const previous=ui.txEditId;
+ ui.txModalOpen=false;ui.txEditId=null;render();
+ if(previous){
+  const previousEdit=[...document.querySelectorAll('[data-edit-tx]')].find(el=>el.dataset.editTx===previous);
+  if(previousEdit){previousEdit.focus({preventScroll:true});return;}
+ }
+ (document.getElementById('top-add')||document.querySelector('[data-tx-history]'))?.focus({preventScroll:true});
+}
+function renderTxHistoryPopup(){
+ if(!ui.txHistoryOpen)return '';
+ const rows=monthly().filter(t=>ui.txFilter==='all'||t.type===ui.txFilter).slice()
+ .sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
+ const filters=[['all','Semua'],['expense','Pengeluaran'],['income','Pemasukan'],['transfer','Transfer']];
+ return `<div class="tx-history-backdrop" id="tx-history-backdrop">
+  <div class="tx-history-dialog" role="dialog" aria-modal="true" aria-labelledby="tx-history-title" aria-describedby="tx-history-desc">
+   <div class="tx-entry-heading">
+    <span class="tx-entry-symbol" aria-hidden="true">▤</span>
+    <div><h3 id="tx-history-title">Semua Transaksi</h3>
+     <p id="tx-history-desc">${h(monthFmt(ui.month))} · ${rows.length} transaksi sesuai filter</p></div>
+    <button type="button" class="tx-entry-close" data-close-tx-history aria-label="Tutup riwayat transaksi">✕</button>
+   </div>
+   <div class="tx-history-content">
+    <div class="tx-history-toolbar">
+     <span>Daftar transaksi periode terpilih</span>
+     <select id="tx-history-filter" class="field" aria-label="Filter jenis transaksi">${filters.map(([key,label])=>`<option value="${key}" ${ui.txFilter===key?'selected':''}>${label}</option>`).join('')}</select>
+    </div>
+    ${rows.length?rows.map(t=>{
+     const source=acc(t.accountId)?.name||'Rekening tidak tersedia';
+     const category=t.type==='transfer'?'Transfer · '+source+' → '+(acc(t.toAccountId)?.name||'Rekening tidak tersedia'):(cat(t.categoryId)?.label||'Kategori tidak tersedia')+' · '+source;
+     const sign=t.type==='expense'?'−':t.type==='income'?'+':'⇄ ';
+     return `<div class="tx-history-item">
+      <div class="tx-history-item-head"><div><strong>${h(t.title||'Transaksi')}</strong>
+       <small>${h(dateFmt(t.date))} · ${h(category)}</small></div>
+       <b class="${t.type==='expense'?'red':t.type==='income'?'green':'blue'}">${sign}${money(t.amount)}</b></div>
+      ${t.note?`<p>${h(t.note)}</p>`:''}
+      <div class="tx-history-item-actions"><button type="button" class="btn sm" data-edit-tx="${h(t.id)}">✎ Edit</button>
+       <button type="button" class="btn sm danger" data-delete-tx="${h(t.id)}">Hapus</button></div>
+     </div>`;
+    }).join(''):'<div class="review-modal-empty">Belum ada transaksi untuk jenis dan bulan terpilih.</div>'}
+   </div>
+   <div class="tx-history-footer">
+    <button type="button" class="btn tx-nav-cta" data-nav="review">Lihat Analisis Periode ↗</button>
+    <button type="button" class="btn primary" data-tx-create>＋ Catat Transaksi</button>
+   </div>
+  </div>
+ </div>`;
+}
+function openTxHistory(){
+ ui.txHistoryOpen=true;ui.txFilter='all';render();
+ document.querySelector('[data-close-tx-history]')?.focus({preventScroll:true});
+}
+function dismissTxHistory(){
+ if(!ui.txHistoryOpen)return;ui.txHistoryOpen=false;render();
+ document.querySelector('[data-tx-history]')?.focus({preventScroll:true});
+}
 function reviewItem(t){let c=cat(t.categoryId),a=acc(t.accountId),income=t.type==='income';return `<div class="review-item ${income?'review-income-entry':''}"><div><strong>${pickSymbol(c?.label,c?.group)} ${h(t.title)}</strong><div class="tiny">${dateFmt(t.date)} · ${h(c?.group||'-')} / ${h(c?.label||'-')} · ${h(a?.name||'?')}</div>${t.note?`<div class="tiny">${h(t.note)}</div>`:''}</div><div class="review-amount"><strong class="${income?'green':'red'}">${income?'+':'−'}${money(t.amount)}</strong><div class="action-buttons"><button type="button" class="btn sm" data-edit-tx="${h(t.id)}">Edit</button><button type="button" class="btn sm danger" data-delete-tx="${h(t.id)}">Hapus</button></div></div></div>`}
 
 
@@ -2954,7 +3132,7 @@ function renderReports(){let months=Object.keys(db.reports||{}).sort().reverse()
 <section class="card no-print" style="margin-bottom:16px"><div class="card-head"><div><h3>Riwayat Laporan Tersimpan</h3><p>Arsip yang tersimpan tetap dapat dibuka kembali kapan saja.</p></div></div>${months.length?`<div class="inline-cards">${months.map(x=>`<div class="inline-line"><div><strong>${h(monthFmt(x))}</strong><small>Disimpan ${new Date(db.reports[x].createdAt).toLocaleString('id-ID')} · Keluar ${money(db.reports[x].expense)}</small></div><div class="action-buttons"><button class="btn sm" data-open-report="${h(x)}">Buka</button><button class="btn sm danger" data-delete-report="${h(x)}">Hapus</button></div></div>`).join('')}</div>`:empty('▣','Belum Ada Laporan','Klik Simpan laporan bulanan untuk mengarsipkan bulan pilihan.')}</section>
 ${r?`<section class="card" id="print-area"><div class="report-header"><div class="page-eyebrow">DUIT-DUIT PAAXIXI — LAPORAN KEUANGAN PRIBADI</div><h2 style="margin:5px 0">Laporan ${h(monthFmt(r.month))}</h2><div class="tiny">Arsip dibuat: ${new Date(r.createdAt).toLocaleString('id-ID')} · Periode ${h(r.month)}</div></div><div class="report-kpis"><div><small>Total Pemasukan</small><strong class="green">${money(r.income)}</strong></div><div><small>Total Pengeluaran</small><strong class="red">${money(r.expense)}</strong></div><div><small>Arus Kas Bersih</small><strong>${money(r.net)}</strong></div></div><div class="list-head">Rincian Pemasukan Per Kategori</div>${reportTable(r.incomeBreakdown.filter(x=>x.received>0),['Sumber Pemasukan','Jumlah'],x=>`<tr><td>${h(x.group)} / ${h(x.label)}</td><td>${money(x.received)}</td></tr>`)}<div class="list-head">Rincian Pengeluaran Dan Anggaran</div>${reportTable(r.expenseBreakdown.filter(x=>x.spent>0||x.budget>0),['Kategori','Anggaran','Terpakai','Sisa'],x=>`<tr><td>${h(x.group)} / ${h(x.label)}</td><td>${money(x.budget)}</td><td>${money(x.spent)}</td><td>${money(x.budget-x.spent)}</td></tr>`)}<div class="list-head">Saldo Setiap Rekening (Akhir Bulan)</div>${reportTable(r.balances,['Rekening','Saldo'],x=>`<tr><td>${h(x.name)} (${h(x.type)})</td><td>${money(x.balance)}</td></tr>`)}<div class="list-head">Utang & Piutang Yang Belum Lunas (Akhir Bulan)</div>${reportTable(r.debts.filter(x=>x.remaining>0),['Jenis · Nama','Saldo'],x=>`<tr><td>${x.type==='receivable'?'Piutang':'Utang'} · ${h(x.person)}</td><td>${money(x.remaining)}</td></tr>`)}<div class="list-head">Daftar Transaksi Lengkap (${r.transactions.length})</div>${reportTable(r.transactions,['Tanggal','Uraian','Kategori','Jumlah'],x=>`<tr><td>${dateFmt(x.date)}</td><td>${h(x.title)}${x.note?' · '+h(x.note):''}</td><td>${x.type==='transfer'?'Transfer '+h(x.accountLabel)+' → '+h(x.toAccountLabel):h(x.categoryLabel)}</td><td>${x.type==='expense'?'−':x.type==='income'?'+':'⇄ '}${money(x.amount)}</td></tr>`)}<div class="report-note">Arsip ini adalah salinan data ketika laporan disimpan. Semua nominal dalam rupiah. Transfer antar rekening serta pokok utang/piutang tidak dimasukkan ke total pemasukan/pengeluaran.</div><div class="form-actions no-print"><button class="btn teal" data-action="print-report">🖨 Cetak / Simpan PDF</button><button class="btn" data-action="csv-report">↓ Unduh rincian CSV</button></div></section>`:''}`}
 
-function setView(view){if(ui.view!==view){closeFinanceEditor();ui.reviewPopup=null;}ui.comp.menu=null;if(!['dashboard','transactions','review','budgets','debts','reports','accounts'].includes(view))return;ui.view=view;render();window.scrollTo({top:0,behavior:'smooth'})}
+function setView(view){if(view==='transactions'){openTxHistory();return;}if(ui.view!==view){closeFinanceEditor();ui.reviewPopup=null;}ui.txModalOpen=false;ui.txEditId=null;ui.txHistoryOpen=false;ui.comp.menu=null;if(!['dashboard','review','budgets','debts','reports','accounts'].includes(view))return;ui.view=view;render();window.scrollTo({top:0,behavior:'smooth'})}
 function demo(){if(cloud.signedIn){toast('Keluar dari akun cloud sebelum memuat simulasi.',true);return}if(!confirm('Isi data SIMULASI bulan ini? Ini akan MENGGANTI seluruh data yang tersimpan di browser ini. Lanjutkan?'))return;db=fresh();db.accounts=[{id:'a-cash',name:'Tunai',type:'Tunai',opening:350000},{id:'a-bank',name:'Bank Contoh',type:'Bank',opening:1450000},{id:'a-wallet',name:'E-Wallet Contoh',type:'E-Wallet',opening:180000}];let budgetAmounts=[850000,1200000,450000,120000,200000,100000,250000,180000,250000,200000,150000,160000];expenses().forEach((c,i)=>db.budgets[ui.month+'|'+c.id]=budgetAmounts[i]);let add=(date,type,amount,categoryId,title,accountId='a-bank',toAccountId)=>db.transactions.push({id:uid(),date,type,amount,categoryId,title,accountId,toAccountId,createdAt:new Date().toISOString(),note:''});let m=ui.month;let at=n=>m+'-'+String(n).padStart(2,'0');let maxDay=Math.min(Number(today().slice(8)),21);let safe=n=>at(Math.min(n,maxDay));add(safe(1),'income',4200000,'c14','Gaji pokok bulan ini');add(safe(2),'income',3200000,'c15','Tukin bulan ini');add(safe(3),'income',1750000,'c13','Dividen Fastlink');add(safe(5),'income',650000,'c16','Uang makan');add(safe(6),'expense',825000,'c1','Kontrakan bulanan');add(safe(7),'expense',970000,'c2','Belanja makan dan bahan pokok');add(safe(8),'expense',345000,'c3','Bensin & transport');add(safe(9),'expense',112000,'c8','Skincare & pangkas rambut');add(safe(11),'expense',225000,'c7','Ngopi & jajan');add(safe(12),'expense',145000,'c11','Paket internet');add(safe(13),'expense',185000,'c9','Hadiah untuk diri sendiri');add(safe(15),'expense',255000,'c10','Obat & periksa');add(safe(17),'expense',190000,'c6','Infaq');add(safe(18),'expense',240000,'c2','Makan siang & malam');add(safe(19),'expense',95000,'c4','Laundry','a-cash');add(safe(20),'transfer',250000,null,'Top up e-wallet','a-bank','a-wallet');db.debts=[{id:uid(),type:'receivable',person:'Teman (contoh)',amount:200000,date:safe(10),accountId:'a-cash',note:'Contoh piutang',settlements:[]}];save();setView('dashboard');toast('Data simulasi telah dimuat. Hapus sebelum memulai pencatatan asli.')}
 function parseAmount(value){
  const raw=String(value??'').trim();
@@ -2998,7 +3176,7 @@ if(id==='cloud-login-form'){if(!window.ARUS_CLOUD)return toast('Firebase belum d
 if(id==='tx-form'){let type=f.get('type'),amount=positive(f.get('amount')),accountId=f.get('accountId'),toAccountId=f.get('toAccountId'),categoryId=f.get('categoryId'),date=f.get('date'),title=String(f.get('title')||'').trim(),editId=String(f.get('editId')||'');if(!amount||!acc(accountId)||!/^(?:\d{4})-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/.test(date)||!title)return toast('Lengkapi transaksi dengan benar.',true);if(type==='transfer'){if(!acc(toAccountId)||accountId===toAccountId)return toast('Pilih dua rekening berbeda.',true)}else if(!cat(categoryId)||cat(categoryId).kind!==type)return toast('Pilih kategori yang valid.',true);
 let original=db.transactions.find(t=>t.id===editId);if(editId&&!original)return toast('Transaksi tidak ditemukan.',true);
 let item={id:original?.id||uid(),type,amount,accountId,toAccountId:type==='transfer'?toAccountId:undefined,categoryId:type==='transfer'?undefined:categoryId,date,title,note:String(f.get('note')||'').trim(),createdAt:original?.createdAt||new Date().toISOString()};
-if(original)Object.assign(original,item);else db.transactions.push(item);ui.txEditId=null;save();ui.month=date.slice(0,7);render();toast(original?'Perubahan transaksi disimpan.':'Transaksi berhasil disimpan.');return}
+if(original)Object.assign(original,item);else db.transactions.push(item);ui.txEditId=null;ui.txModalOpen=false;save();ui.month=date.slice(0,7);render();toast(original?'Perubahan transaksi disimpan.':'Transaksi berhasil disimpan.');return}
 if(id==='budget-form'){let proposal={...db.budgets},count=0,invalid=false;form.querySelectorAll('[data-budget-id]').forEach(input=>{let v=integer(input.value);if(!Number.isFinite(v)||v<0){invalid=true;return}proposal[ui.month+'|'+input.dataset.budgetId]=v;let netMoves=db.budgetMoves.filter(t=>t.month===ui.month).reduce((s,t)=>s+(t.to===input.dataset.budgetId?num(t.amount):0)-(t.from===input.dataset.budgetId?num(t.amount):0),0);if(v+netMoves<0)invalid=true;count++});if(invalid)return toast('Anggaran tidak valid atau kurang dari nilai pemindahan.',true);db.budgets=proposal;save();render();toast(`${count} anggaran untuk ${monthFmt(ui.month)} tersimpan.`);return}
 if(id==='move-budget-form'){let from=f.get('from'),to=f.get('to'),amount=positive(f.get('amount')),editId=f.get('editId'),old=db.budgetMoves.find(m=>m.id===editId);if(!cat(from)||!cat(to)||from===to||!amount)return toast('Pilih pos dan jumlah yang valid.',true);let sameMonthMoves=db.budgetMoves.filter(x=>x.month===ui.month&&x.id!==editId),net=c=>sameMonthMoves.reduce((s,t)=>s+(t.to===c?num(t.amount):0)-(t.from===c?num(t.amount):0),0);let available=baseBudget(from)+net(from)-spentByCat(from);if(available<amount)return toast('Sisa anggaran pos asal tidak cukup.',true);if(old)Object.assign(old,{from,to,amount});else db.budgetMoves.push({id:uid(),month:ui.month,date:today(),from,to,amount});ui.moveEditId=null;save();render();toast('Pemindahan anggaran disimpan.');return}
 if(id==='debt-form'){let amount=positive(f.get('amount')),person=String(f.get('person')||'').trim(),date=f.get('date'),accountId=f.get('accountId'),editId=f.get('editId'),old=db.debts.find(d=>d.id===editId);if(!amount||!person||!acc(accountId)||!/^(?:\d{4})-\d{2}-\d{2}$/.test(date))return toast('Isi data pinjaman dengan benar.',true);let settled=old?(old.settlements||[]).reduce((s,x)=>s+num(x.amount),0):0;if(amount<settled)return toast('Nominal awal tidak boleh lebih kecil dari total cicilan.',true);let detail={type:f.get('type')==='payable'?'payable':'receivable',person,amount,date,accountId,note:String(f.get('note')||'').trim()};if(old)Object.assign(old,detail);else db.debts.push({id:uid(),...detail,settlements:[]});ui.debtEditId=null;save();render();toast('Catatan pinjaman disimpan.');return}
@@ -3039,7 +3217,7 @@ function exportJSON(){let blob=new Blob([JSON.stringify({...db,exportedAt:new Da
 function validDb(o){return o&&Array.isArray(o.accounts)&&Array.isArray(o.transactions)&&Array.isArray(o.debts)&&Array.isArray(o.categories)&&Array.isArray(o.budgetMoves)&&o.budgets&&typeof o.budgets==='object'&&o.accounts.every(a=>a.id&&a.name&&Number.isFinite(Number(a.opening)))&&o.transactions.every(t=>t.id&&t.type&&t.date&&Number.isFinite(Number(t.amount)))&&o.debts.every(d=>d.id&&d.type&&d.person&&Number.isFinite(Number(d.amount))&&Array.isArray(d.settlements))&&(!('expenseGroups' in o)||Array.isArray(o.expenseGroups)&&o.expenseGroups.every(g=>g&&typeof g.id==='string'&&typeof g.name==='string'&&typeof g.color==='string'))}
 async function importJSON(file){if(!file)return;try{if(file.size>3*1024*1024)throw Error('File terlalu besar.');let obj=JSON.parse(await file.text());if(!validDb(obj))throw Error('Format cadangan tidak cocok.');if(!confirm('Impor akan MENGGANTI semua data keuangan dalam browser ini. Lanjutkan?'))return;db=normalizeExpenseGroups({version:2,accounts:obj.accounts,categories:obj.categories,expenseGroups:obj.expenseGroups,transactions:obj.transactions,budgets:obj.budgets,budgetMoves:obj.budgetMoves,debts:obj.debts,reports:obj.reports||{}});save();setView('dashboard');toast('Data berhasil dipulihkan.')}catch(e){toast('Gagal mengimpor: '+e.message,true)}finally{document.getElementById('import-file').value=''}}
 document.addEventListener('submit',e=>{if(e.target.closest('form')){e.preventDefault();handleForm(e.target)}});
-function goEditTx(id){let t=db.transactions.find(t=>t.id===id);if(!t)return;ui.reviewPopup=null;ui.txEditId=id;ui.txType=t.type;ui.month=t.date.slice(0,7);setView('transactions');document.getElementById('tx-entry')?.scrollIntoView({behavior:'smooth',block:'start'})}
+function goEditTx(id){openTxModal('expense',id)}
 function adjustCompositionPopup(){
  const pop=document.querySelector('.comp-popover');
  const trigger=pop?.parentElement?.querySelector('.comp-popup-trigger');
@@ -3061,6 +3239,24 @@ document.addEventListener('pointerdown',event=>{
  if(ui.comp.menu&&!event.target.closest('.comp-picker'))dismissCompositionPopup();
 });
 document.addEventListener('keydown',event=>{
+ if(ui.txModalOpen){
+  if(event.key==='Escape'){event.preventDefault();dismissTxModal();return;}
+  if(event.key==='Tab'){
+   const dlg=document.querySelector('.tx-entry-dialog');
+   const els=[...(dlg?.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled)')||[])].filter(el=>el.getClientRects().length);
+   if(els.length){const first=els[0],last=els[els.length-1];if(event.shiftKey&&(document.activeElement===first||!dlg.contains(document.activeElement))){event.preventDefault();last.focus();}else if(!event.shiftKey&&(document.activeElement===last||!dlg.contains(document.activeElement))){event.preventDefault();first.focus();}}
+  }
+  return;
+ }
+ if(ui.txHistoryOpen){
+  if(event.key==='Escape'){event.preventDefault();dismissTxHistory();return;}
+  if(event.key==='Tab'){
+   const dlg=document.querySelector('.tx-history-dialog');
+   const els=[...(dlg?.querySelectorAll('button:not(:disabled),select:not(:disabled)')||[])].filter(el=>el.getClientRects().length);
+   if(els.length){const first=els[0],last=els[els.length-1];if(event.shiftKey&&(document.activeElement===first||!dlg.contains(document.activeElement))){event.preventDefault();last.focus();}else if(!event.shiftKey&&(document.activeElement===last||!dlg.contains(document.activeElement))){event.preventDefault();first.focus();}}
+  }
+  return;
+ }
  if(ui.view==='debts'&&ui.debtSelected&&document.getElementById('repay-popup-backdrop')){
   if(event.key==='Escape'){event.preventDefault();dismissRepayPopup();return;}
   if(event.key==='Tab'){
@@ -3110,7 +3306,9 @@ document.addEventListener('keydown',event=>{
 });
 document.addEventListener('click',async e=>{
  if(e.target.closest('[data-close-repay-popup]')||e.target.id==='repay-popup-backdrop'){dismissRepayPopup();return;}
-  if(e.target.closest('[data-review-close]')||e.target.id==='review-modal-backdrop'){dismissReviewPopup();return;}
+  if(e.target.closest('[data-close-tx-modal]')||e.target.id==='tx-entry-backdrop'){dismissTxModal();return;}
+ if(e.target.closest('[data-close-tx-history]')||e.target.id==='tx-history-backdrop'){dismissTxHistory();return;}
+ if(e.target.closest('[data-review-close]')||e.target.id==='review-modal-backdrop'){dismissReviewPopup();return;}
  if(e.target.closest('[data-close-finance-editor]')||e.target.id==='finance-editor-backdrop'){closeFinanceEditor();return;}
  if(e.target.closest('[data-close-welcome]')||e.target.id==='welcome-modal-backdrop'){dismissWelcome();return;}
  const trendPoint=e.target.closest('[data-trend-point]');
@@ -3146,7 +3344,9 @@ if(x.dataset.debtOverview){
  ui.reviewPopup={type:'dashboard-kpi',key:x.dataset.dashboardKpi};
  render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});return;
 }
-if(x.dataset.nav){setView(x.dataset.nav);return}if(x.dataset.txtype){ui.txType=x.dataset.txtype;render();return}
+if(x.dataset.txHistory!==undefined){openTxHistory();return;}
+ if(x.dataset.txCreate!==undefined){openTxModal('expense');return;}
+ if(x.dataset.nav){setView(x.dataset.nav);return}if(x.dataset.txtype){ui.txType=x.dataset.txtype;render();document.querySelector('[data-txtype="'+ui.txType+'"]')?.focus({preventScroll:true});return}
 if(x.dataset.reviewType){
  if(!['expense','income'].includes(x.dataset.reviewType))return;
  ui.reviewType=x.dataset.reviewType;ui.reviewOpenGroups=[];ui.reviewPopup=null;
@@ -3201,9 +3401,9 @@ if(x.dataset.action){let a=x.dataset.action;
 if(cloud.pendingDecision&&!['cloud-upload','cloud-empty','cloud-logout','export','export-precloud'].includes(a))return toast('Cloud kosong. Putuskan dahulu apakah akan mengunggah data lokal atau mulai dari kosong.',true);
 if(a==='demo')demo();if(a==='export')exportJSON();if(a==='export-precloud'){let old=localStorage.getItem('arus-cadangan-sebelum-cloud');if(old)downloadFile('Duit-Duit-Paaxixi-cadangan-sebelum-cloud.json',old,'application/json');}if(a==='import')document.getElementById('import-file').click();
 if(a==='cancel-expense-group'||a==='cancel-budget-category'){closeFinanceEditor();return;}
- if(a==='cancel-edit-tx'){ui.txEditId=null;render()}if(a==='cancel-edit-debt'){ui.debtEditId=null;render()}if(a==='cancel-account-edit'){ui.accountEditId=null;render()}if(a==='cancel-category-edit'){ui.categoryEditId=null;render()}if(a==='cancel-move-edit'){ui.moveEditId=null;render()}
+ if(a==='cancel-edit-tx'){dismissTxModal();return}if(a==='cancel-edit-debt'){ui.debtEditId=null;render()}if(a==='cancel-account-edit'){ui.accountEditId=null;render()}if(a==='cancel-category-edit'){ui.categoryEditId=null;render()}if(a==='cancel-move-edit'){ui.moveEditId=null;render()}
 if(a==='reset'&&confirm('HAPUS seluruh transaksi, anggaran, pinjaman, arsip laporan, dan rekening'+(cloud.signedIn?' pada SEMUA PERANGKAT tersinkron':' di browser ini')+'? Tindakan ini tidak dapat dibatalkan tanpa file cadangan.')){db=fresh();save();ui.debtSelected=null;ui.txEditId=null;setView('dashboard');toast('Data dibersihkan.')}
-if(a==='new-transfer'){ui.txEditId=null;ui.txType='transfer';setView('transactions')}
+if(a==='new-transfer'){openTxModal('transfer');return}
 if(a==='close-repay'){dismissRepayPopup();return}
 if(a==='save-report')saveReport();if(a==='print-report'&&db.reports[ui.reportMonth])window.print();
 if(a==='csv-report'){let r=db.reports[ui.reportMonth];if(r)downloadFile('Duit-Duit-Paaxixi-laporan-'+ui.reportMonth+'.csv',asCSV(r.transactions),'text/csv;charset=utf-8')}
@@ -3267,13 +3467,13 @@ if(x.id==='comp-start'||x.id==='comp-end'){
  }
  ui.comp[key]=x.value;render();return;
 }
-if(x.id==='month-input'){ui.reviewPopup=null;let next=x.value||currentMonth(),prev=ui.month;if(next>prev&&db.transactions.some(t=>t.date.slice(0,7)===prev)&&!db.reports[prev]&&confirm('Bulan '+monthFmt(prev)+' belum diarsipkan. Simpan laporan bulan ini sebelum berpindah?')){db.reports[prev]=buildReport(prev);save();toast('Arsip '+monthFmt(prev)+' disimpan.')}ui.month=next;ui.txEditId=null;ui.moveEditId=null;ui.comp.preset='month';ui.comp.from='';ui.comp.to='';ui.comp.trendFrom='';ui.comp.trendTo='';render()}
+if(x.id==='month-input'){ui.reviewPopup=null;ui.txModalOpen=false;ui.txHistoryOpen=false;let next=x.value||currentMonth(),prev=ui.month;if(next>prev&&db.transactions.some(t=>t.date.slice(0,7)===prev)&&!db.reports[prev]&&confirm('Bulan '+monthFmt(prev)+' belum diarsipkan. Simpan laporan bulan ini sebelum berpindah?')){db.reports[prev]=buildReport(prev);save();toast('Arsip '+monthFmt(prev)+' disimpan.')}ui.month=next;ui.txEditId=null;ui.moveEditId=null;ui.comp.preset='month';ui.comp.from='';ui.comp.to='';ui.comp.trendFrom='';ui.comp.trendTo='';render()}
 if(x.id==='report-month'){ui.month=x.value||currentMonth();render()}
-if(x.id==='tx-filter'){ui.txFilter=x.value;render()}
+if(x.id==='tx-history-filter'){ui.txFilter=x.value;render();document.getElementById('tx-history-filter')?.focus({preventScroll:true})}
 
 if(x.id==='tx-group'){let cs=(ui.txType==='expense'?expenses():incomes()).filter(c=>c.group===x.value);let sel=document.getElementById('tx-category');if(sel)sel.innerHTML=cs.map(c=>`<option value="${h(c.id)}">${pickSymbol(c.label,c.group)} ${h(c.label)}</option>`).join('')}
 if(x.id==='new-cat-kind'){let sel=document.getElementById('new-cat-group');sel.innerHTML=(x.value==='income'?['BPS','Fastlink','Lainnya']:expenseGroups().map(g=>g.name)).map(g=>`<option value="${h(g)}">${pickSymbol(g,g)} ${h(g)}</option>`).join('')}});
-document.getElementById('top-add').addEventListener('click',()=>{ui.txEditId=null;ui.txType='expense';setView('transactions')});document.getElementById('cloud-status').addEventListener('click',()=>setView('accounts'));document.getElementById('import-file').addEventListener('change',e=>importJSON(e.target.files?.[0]));render();document.querySelector('.welcome-modal-close')?.focus({preventScroll:true});void muatQuoteMingguan();
+document.getElementById('top-add').addEventListener('click',()=>openTxModal('expense'));document.getElementById('cloud-status').addEventListener('click',()=>setView('accounts'));document.getElementById('import-file').addEventListener('change',e=>importJSON(e.target.files?.[0]));render();document.querySelector('.welcome-modal-close')?.focus({preventScroll:true});void muatQuoteMingguan();
 // Tanggal dashboard mengikuti hari WIB meski tab dibiarkan terbuka sampai hari berikutnya.
 setInterval(()=>{
  if(ui.view!=='dashboard')return;

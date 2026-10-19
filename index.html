@@ -320,6 +320,37 @@ body:has(.review-modal-backdrop){overflow:hidden}
 }
 @media(max-width:375px){.review-cal-day .review-cal-total{font-size:8px}.review-cal-day{padding:5px 3px}}
 @media print{.review-modal-backdrop{display:none!important}}
+
+/* #024 Grafik pengeluaran dikelompokkan dalam dropdown ringkas. */
+.review-group-list{display:grid;gap:11px}
+.review-group{border:1px solid #d7e5f8;border-radius:14px;background:#fff;overflow:hidden;min-width:0}
+.review-group.is-open{border-color:#b7d0f4;box-shadow:0 2px 11px rgba(15,56,110,.055)}
+.review-group-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;min-width:0;gap:16px;padding:15px 17px;background:#fff;color:var(--text);font:inherit;text-align:left;border:0;cursor:pointer;border-left:4px solid var(--group-accent)}
+.review-group-toggle:hover,.review-group-toggle:focus-visible{background:#f3f8ff}
+.review-group-toggle:focus-visible{outline:2px solid #2563eb;outline-offset:-3px}
+.review-group-info{display:flex;align-items:center;gap:11px;min-width:0}
+.review-group-info>span:last-child{min-width:0}
+.review-group-info strong{font-size:14px;font-weight:850;line-height:1.3;display:block;overflow-wrap:anywhere}
+.review-group-info small{font-size:11px;color:#7b8eac;display:block;margin-top:4px}
+.review-group-right{display:flex;align-items:center;gap:12px;flex:none}
+.review-group-total{font-size:16px;font-weight:850;color:#173e76;text-align:right}
+.review-group-total small{font-weight:500;display:block;font-size:11px;color:#6e86a8;margin-top:4px}
+.review-group-chevron{flex:none;display:grid;place-items:center;width:27px;height:27px;border-radius:8px;background:#edf4ff;color:#285bb2;font-size:22px;line-height:1;transition:transform .15s}
+.review-group.is-open .review-group-chevron{transform:rotate(180deg)}
+.review-group-body{border-top:1px solid #e3edf9;padding:12px;background:#f8fbff}
+.review-group-body .review-visual-list{margin:0;gap:9px}
+.review-group-body .review-bar-select{padding:11px 13px}
+@media(max-width:650px){
+ .review-group-toggle{padding:11px;gap:9px}
+ .review-group-info{gap:7px}
+ .review-group-info strong{font-size:12px}
+ .review-group-info small{font-size:10px}
+ .review-group-right{gap:7px}
+ .review-group-total{font-size:13px}
+ .review-group-total small{font-size:9px}
+ .review-group-chevron{width:24px;height:24px;font-size:20px}
+ .review-group-body{padding:8px}
+}
 </style>
 </head>
 <body>
@@ -484,7 +515,7 @@ const expenseGroups=()=>db.expenseGroups;
 const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],debts:[],reports:{}});
 function load(){try{let v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.accounts)&&Array.isArray(v.categories)&&Array.isArray(v.transactions)&&Array.isArray(v.debts)&&v.budgets&&Array.isArray(v.budgetMoves))return normalizeExpenseGroups(v);}catch(e){}return fresh()}
 let db=load();db.reports=db.reports||{};
-let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',debtFilter:'open',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'month',trendFrom:'',trendTo:'',trendLabels:true,open:false,menu:null},reviewMode:'category',reviewDate:'',reviewCategory:'',reviewSelectedId:null,reviewPopup:null,reportMonth:currentMonth()};
+let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',debtFilter:'open',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'month',trendFrom:'',trendTo:'',trendLabels:true,open:false,menu:null},reviewMode:'category',reviewDate:'',reviewCategory:'',reviewSelectedId:null,reviewOpenGroups:[],reviewPopup:null,reportMonth:currentMonth()};
 let cloud={configured:false,signedIn:false,ready:false,email:'',busy:false,error:'',empty:false,pendingDecision:false};
 function syncBadge(){let b=document.getElementById('cloud-status');if(!b)return;
  b.className='cloud-state'+(cloud.signedIn&&cloud.ready&&!cloud.pendingDecision?' online':cloud.busy?' wait':'');
@@ -1045,24 +1076,44 @@ function renderReviewBars(transactions){
   return {c,ts,spent,budget,budgeted,statusInfo};
  }).filter(r=>r.spent>0||r.budgeted).sort((a,b)=>b.spent-a.spent||a.c.label.localeCompare(b.c.label,'id'));
  if(!rows.length)return empty('▤','Belum Ada Pengeluaran','Tidak ada transaksi atau pagu pada filter ini.');
+ // Gunakan skala yang sama antar-kelompok agar panjang batang bisa dibandingkan.
  const scale=Math.max(1,...rows.map(r=>Math.max(r.spent,r.budgeted?r.budget:0)));
- const bars=rows.map(r=>{
+ const barMarkup=r=>{
   const color=cleanGroupColor(expenseGroups().find(g=>g.name===r.c.group)?.color)||'#2563eb';
   const width=(100*r.spent/scale).toFixed(4),limit=(100*r.budget/scale).toFixed(4);
   return `<button type="button" class="review-bar-select" data-review-select="${h(r.c.id)}" aria-label="Lihat transaksi ${h(r.c.label)}, ${money(r.spent)}">
-   <span class="review-bar-pos">${symbolBadge(r.c.label,r.c.group,true)}<span><strong>${h(r.c.label)}</strong><small>${h(r.c.group)} · ${r.ts.length} Transaksi</small></span></span>
+   <span class="review-bar-pos">${symbolBadge(r.c.label,r.c.group,true)}<span><strong>${h(r.c.label)}</strong><small>${r.ts.length} Transaksi</small></span></span>
    <span class="review-bar-area"><span class="review-bar-track">
     <span class="review-bar-fill" style="--bar-color:${color};width:${width}%"></span>
     ${r.budgeted?`<span class="review-bar-marker" style="left:${limit}%" aria-hidden="true"></span>`:''}
    </span><span class="review-bar-caption">${r.budgeted?'Batas '+money(r.budget):'Belum Ada Anggaran'}</span></span>
    <span class="review-bar-numbers"><strong>${money(r.spent)}</strong><span class="review-bar-badge ${r.statusInfo.s==='danger'?'danger':r.statusInfo.s==='warn'?'warn':r.statusInfo.s==='unset'?'unset':''}">${h(r.statusInfo.label)}</span></span>
   </button>`;
+ };
+ const groups=expenseGroups().map(group=>{
+  const parts=rows.filter(row=>row.c.group===group.name);
+  return {group,parts,total:parts.reduce((sum,row)=>sum+row.spent,0),
+   budget:parts.reduce((sum,row)=>sum+(row.budgeted?row.budget:0),0),
+   transactions:parts.reduce((sum,row)=>sum+row.ts.length,0)};
+ }).filter(item=>item.parts.length).sort((a,b)=>b.total-a.total||a.group.name.localeCompare(b.group.name,'id'));
+ const expanded=ui.reviewOpenGroups||[];
+ const cards=groups.map(item=>{
+  const open=expanded.includes(item.group.id);
+  const color=cleanGroupColor(item.group.color)||'#2563eb';
+  return `<section class="review-group ${open?'is-open':''}" style="--group-accent:${color}">
+   <button type="button" class="review-group-toggle" data-review-toggle-group="${h(item.group.id)}" aria-expanded="${open?'true':'false'}">
+    <span class="review-group-info">${symbolBadge(item.group.name,item.group.name,true)}
+      <span><strong>${h(item.group.name)}</strong><small>${item.parts.length} Pos · ${item.transactions} Transaksi</small></span></span>
+    <span class="review-group-right"><span class="review-group-total">${money(item.total)}<small>${item.budget?'Total Anggaran '+money(item.budget):'Belum Ada Anggaran'}</small></span><span class="review-group-chevron" aria-hidden="true">⌄</span></span>
+   </button>
+   ${open?`<div class="review-group-body"><div class="review-visual-list">${item.parts.map(barMarkup).join('')}</div></div>`:''}
+  </section>`;
  }).join('');
  return `<div class="review-visual-panel">
-  <div class="review-visual-panel-head"><div><h4>Grafik Pengeluaran Per Pos</h4><p>Urut dari terbesar. Klik batang untuk melihat transaksinya.</p></div></div>
-  <div class="review-chart-legend"><span><i class="review-legend-block"></i>Pengeluaran</span><span><i class="review-legend-marker"></i>Batas Anggaran Bulanan</span><span>Terbesar → Terkecil</span></div>
-  <div class="review-visual-list">${bars}</div>
-  ${ui.reviewDate?'<p class="review-chart-note">Bar berdasarkan tanggal terpilih; batas dan status anggaran berdasarkan kumulatif bulan penuh.</p>':''}
+  <div class="review-visual-panel-head"><div><h4>Grafik Pengeluaran Per Kelompok</h4><p>Klik kelompok untuk menampilkan pos pengeluaran di dalamnya.</p></div></div>
+  <div class="review-chart-legend"><span><i class="review-legend-block"></i>Pengeluaran</span><span><i class="review-legend-marker"></i>Batas Anggaran Bulanan Per Pos</span><span>Kelompok & Pos: Terbesar → Terkecil</span></div>
+  <div class="review-group-list">${cards}</div>
+  ${ui.reviewDate?'<p class="review-chart-note">Pengeluaran berdasarkan tanggal terpilih; batas dan status anggaran tetap berdasarkan kumulatif bulan penuh.</p>':''}
  </div>`;
 }
 function renderReviewPopup(){
@@ -1387,6 +1438,15 @@ if(x.dataset.compAction){
 }
 if(x.dataset.nav){setView(x.dataset.nav);return}if(x.dataset.txtype){ui.txType=x.dataset.txtype;render();return}
 if(x.dataset.reviewMode){ui.reviewMode=x.dataset.reviewMode;if(ui.reviewMode==='date')ui.reviewDate='';ui.reviewPopup=null;render();return}
+if(x.dataset.reviewToggleGroup){
+ const id=x.dataset.reviewToggleGroup,previous=ui.reviewOpenGroups||[];
+ ui.reviewOpenGroups=previous.includes(id)?previous.filter(value=>value!==id):[...previous,id];
+ render();
+ document.querySelectorAll('[data-review-toggle-group]').forEach(button=>{
+  if(button.dataset.reviewToggleGroup===id)button.focus({preventScroll:true});
+ });
+ return;
+}
 if(x.dataset.reviewSelect){ui.reviewPopup={type:'category',key:x.dataset.reviewSelect};render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});return}
 if(x.dataset.reviewDay){ui.reviewPopup={type:'date',key:x.dataset.reviewDay};render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});return}
 if(x.hasAttribute('data-review-all')){ui.reviewPopup={type:'all'};render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});return}

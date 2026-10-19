@@ -6,5 +6,10 @@
   "is_trending": true,
   "source_url": "https://trends.google.com/trending/rss?geo=ID",
   "trend_source": "Google Trends Indonesia",
-  "note": "Quote orisinal; tema terinspirasi pencarian populer, bukan kutipan viral."
+  "note": "Quote orisinal; tema terinspirasi pencarian populer, bukan kutipan viral.",
+  "quotes": [
+    "Skor boleh naik-turun, saldo jangan tanpa pantauan. ⚽",
+    "Support tim favorit, support budget sendiri juga. 🏆",
+    "Match boleh panas, pencatatan tetap waras. 🥅"
+  ]
 }

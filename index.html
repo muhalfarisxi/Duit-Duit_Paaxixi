@@ -879,6 +879,27 @@ body:has(.review-modal-backdrop){overflow:hidden}
  .trend-interactive-svg .trend-animated-line,.trend-click-point .trend-point-ring,.trend-click-point .trend-point-label{animation:none!important}
  .trend-interactive-svg .trend-animated-line{stroke-dasharray:none;stroke-dashoffset:0}
 }
+
+/* #037 Analisis keuangan: tiga rekomendasi yang mudah ditindaklanjuti */
+.trend-financial-insight{
+ grid-column:1/-1;
+ border:1px solid #cbdff7;
+ background:linear-gradient(125deg,#f3f8ff 0%,#f7fbff 65%,#f0f7ff 100%);
+ border-radius:15px;padding:15px;
+ color:#244a7d;
+}
+.trend-insight-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:7px 12px;margin-bottom:12px}
+.trend-insight-head>strong{font-size:14px;font-weight:850;color:#163d74}
+.trend-insight-head>span{font-size:10px;color:#748eae}
+.trend-insight-items{display:grid;gap:8px}
+.trend-insight-entry{display:flex;align-items:flex-start;gap:11px;padding:11px 12px;border-radius:11px;background:#fff;border:1px solid #e0eafa}
+.trend-insight-symbol{display:grid;place-items:center;flex:none;width:25px;height:25px;border-radius:8px;font-size:14px;font-weight:850;color:#2d65b0;background:#e9f2ff}
+.trend-insight-entry strong{display:block;font-size:12px;color:#1b4177;font-weight:800;margin-bottom:3px}
+.trend-insight-entry p{margin:0;font-size:12px;line-height:1.55;color:#435f88}
+.trend-insight-action{border-color:#cbdcf8}
+.trend-insight-action .trend-insight-symbol{background:#dceafd;color:#195ab8}
+.trend-insight-check .trend-insight-symbol{background:#fff0d4;color:#ac711c}
+@media(max-width:640px){.trend-financial-insight{padding:10px}.trend-insight-entry{padding:9px;gap:8px}.trend-insight-entry p{font-size:11px}}
 </style>
 </head>
 <body>
@@ -1473,6 +1494,111 @@ function trendChartSVG(rows,entries){
   style="display:block;max-width:none">${grid}${paths}${pointLabels}${axisLabels}</svg></div>
   <div class="trend-line-legend">${lineLegend}</div>`;
 }
+
+/* #037 Insight pengeluaran: arti data, tindakan konkret, dan pemeriksaan pencatatan. */
+function trendPreviousMonth(month,offset){
+ const a=/^(\d{4})-(\d{2})$/.exec(month);
+ if(!a)return '';
+ return new Date(Date.UTC(Number(a[1]),Number(a[2])-1+offset,1)).toISOString().slice(0,7);
+}
+function trendExpectedRoutine(){
+ // Dua bulan berurutan belum membuktikan transaksi wajib terjadi; hanya sinyal untuk dicek.
+ const now=today(),month=now.slice(0,7);
+ if(ui.month!==month||!trendPeriods().keys.some(k=>ui.comp.trend==='day'?k===now:ui.comp.trend==='month'?k===month:k===month.slice(0,4)))return '';
+ const lastMonth=trendPreviousMonth(month,-1),beforeLast=trendPreviousMonth(month,-2),currentDay=Number(now.slice(8,10));
+ const candidates=[];
+ for(const category of db.categories.filter(c=>c.kind==='income'||c.kind==='expense')){
+  const prev1=db.transactions.filter(t=>t.type===category.kind&&t.categoryId===category.id&&t.date.startsWith(lastMonth));
+  const prev2=db.transactions.filter(t=>t.type===category.kind&&t.categoryId===category.id&&t.date.startsWith(beforeLast));
+  if(!prev1.length||!prev2.length||db.transactions.some(t=>t.type===category.kind&&t.categoryId===category.id&&t.date.startsWith(month)))continue;
+  const title=String(category.label||''),recurringName=/gaji|tukin|deviden|dividen|uang makan|internet|wifi|wi-fi|tempat tinggal|kontrakan|sewa|kos|listrik|tagihan|cicilan|langganan|iuran|asuransi/i.test(title);
+  // Pos tidak rutin tidak ditebak hanya karena kebetulan ada di dua bulan.
+  const stableTitles=prev1.some(a=>prev2.some(b=>String(a.title||'').trim().toLowerCase()===String(b.title||'').trim().toLowerCase()&&String(a.title||'').trim().length>3));
+  if(!recurringName&&!stableTitles)continue;
+  const due=Math.max(...prev1.concat(prev2).map(t=>Number(t.date.slice(8,10))));
+  const overdue=currentDay>Math.min(31,due+3);
+  if(!overdue)continue;
+  candidates.push({category,due});
+ }
+ candidates.sort((a,b)=>a.due-b.due||a.category.label.localeCompare(b.category.label,'id'));
+ if(candidates.length){
+  const c=candidates[0].category;
+  return 'Perlu dicek: '+c.label+' tercatat pada dua bulan sebelumnya, tetapi belum ditemukan pada '+monthFmt(month)+'. Cek mutasi rekening atau bukti transaksi; bisa jadi memang belum terjadi.';
+ }
+ const thisMonth=db.transactions.filter(t=>(t.type==='expense'||t.type==='income')&&t.date.startsWith(month)&&t.date<=now);
+ const lastDate=thisMonth.map(t=>t.date).sort().at(-1);
+ if(thisMonth.length>=2&&lastDate){
+  const lapse=Math.floor((Date.parse(now+'T12:00:00Z')-Date.parse(lastDate+'T12:00:00Z'))/86400000);
+  if(lapse>=4)return 'Tidak ada pemasukan/pengeluaran tercatat sejak '+dateFmt(lastDate)+' ('+lapse+' hari). Periksa apakah memang tidak ada transaksi, atau ada yang belum dicatat.';
+ }
+ if(!thisMonth.length&&Number(now.slice(8,10))>=7)
+  return 'Belum ada pemasukan atau pengeluaran tercatat bulan ini. Pastikan transaksi memang belum terjadi, atau lengkapi catatan jika ada.';
+ return 'Belum ada sinyal kuat transaksi rutin yang tertinggal. Untuk memastikan kelengkapan, cocokkan catatan dengan mutasi rekening/e-wallet dan transaksi tunai; aplikasi tidak bisa mendeteksi transaksi yang belum diinput.';
+}
+function trendFinancialInsight(rows,entries,all,grandTotal,mode){
+ const scope=ui.comp.breakdown==='group'?'kelompok':'pos';
+ let meaning='',action='',check=trendExpectedRoutine();
+ const groupsSelected=ui.comp.groups!==null||ui.comp.categories!==null;
+ const scopeText=groupsSelected?' pada kelompok dan pos yang sedang difilter':'';
+ const biggest=entries[0];
+ if(!grandTotal){
+  return {meaning:'Tidak ada pengeluaran tercatat dalam rentang tren dan pilihan filter ini. Angka kosong tidak otomatis berarti tidak ada pengeluaran sebenarnya.',
+   action:'Cek periode dan filter yang dipilih. Jika memang ada transaksi, catat dari menu Transaksi Harian atau cek data yang tersinkron.',
+   check};
+ }
+ if(biggest){
+  const ratio=pct(biggest.value,grandTotal);
+  meaning=(scope==='kelompok'?'Kelompok ':'Pos ')+biggest.label+' menyumbang '+ratio+'% ('+money(biggest.value)+') dari '+money(grandTotal)+' pengeluaran yang tercatat'+scopeText+'. ';
+  meaning+=ratio>=50?'Pengeluaran terkonsentrasi di satu '+scope+'; ini belum cukup untuk menyimpulkan pemborosan.':'Komposisinya tidak didominasi satu '+scope+' secara ekstrem.';
+ }
+ // Bandingkan hanya dua periode SELESAI dan BERURUTAN, bukan bulan/tahun berjalan.
+ const active=mode==='day'?today():mode==='month'?currentMonth():today().slice(0,4);
+ const completed=rows.map((row,i)=>({...row,index:i})).filter(row=>row.key<active&&row.count>0);
+ const end=completed.at(-1),before=completed.at(-2);
+ const comparable=!!(end&&before&&end.index===before.index+1&&before.total>0);
+ if(comparable){
+  const diff=end.total-before.total;
+  meaning+=' Pada '+trendLabel(end.key,mode)+' (periode selesai), pengeluaran '+(diff>0?'naik ':diff<0?'turun ':'tetap ')+
+   (diff===0?'dibanding periode sebelumnya.':money(Math.abs(diff))+' ('+(Math.abs(diff)/before.total*100).toLocaleString('id-ID',{maximumFractionDigits:1})+'%) dibanding '+trendLabel(before.key,mode)+'.');
+ }
+ const rangeHasSelectedMonth=rows.some(row=>mode==='day'?row.key.startsWith(ui.month):mode==='month'?row.key===ui.month:row.key===ui.month.slice(0,4));
+ const monthlySelected=analysisCategories();
+ const overspend=rangeHasSelectedMonth?monthlySelected.filter(c=>hasBudget(c.id)).map(c=>({c,limit:effectiveBudget(c.id),used:spentByCat(c.id)}))
+  .filter(x=>x.used>x.limit).sort((a,b)=>(b.used-b.limit)-(a.used-a.limit)):[];
+ const thin=rangeHasSelectedMonth?monthlySelected.filter(c=>hasBudget(c.id)).map(c=>({c,limit:effectiveBudget(c.id),used:spentByCat(c.id)}))
+  .filter(x=>x.limit>0&&x.used<=x.limit&&x.used>=x.limit*.8).sort((a,b)=>(a.limit-a.used)-(b.limit-b.used)):[];
+ if(overspend.length){
+  const x=overspend[0];
+  action='Prioritaskan '+x.c.label+': pengeluaran '+money(x.used)+' melewati anggaran '+monthFmt(ui.month)+' sebesar '+money(x.used-x.limit)+'. Periksa rincian transaksi dan kebutuhan riil, lalu evaluasi batas atau alihkan anggaran dari pos yang masih longgar.';
+ }else if(thin.length){
+  const x=thin[0];
+  action='Pantau '+x.c.label+': terpakai '+money(x.used)+' dari '+money(x.limit)+', tersisa '+money(x.limit-x.used)+' untuk '+monthFmt(ui.month)+'. Kurangi pengeluaran yang bisa ditunda atau sesuaikan alokasi bila perlu.';
+ }else{
+  const monthIncome=monthly().filter(t=>t.type==='income').reduce((sum,t)=>sum+num(t.amount),0);
+  const monthExpense=monthly().filter(t=>t.type==='expense').reduce((sum,t)=>sum+num(t.amount),0);
+  if(rangeHasSelectedMonth&&monthIncome>0&&monthExpense>monthIncome)
+   action='Arus kas '+monthFmt(ui.month)+' perlu dievaluasi: pengeluaran tercatat melebihi pemasukan sebesar '+money(monthExpense-monthIncome)+'. Pastikan pemasukan sudah dicatat dan tinjau pengeluaran yang dapat dikendalikan.';
+  else if(comparable&&end.total>before.total*1.3&&end.total-before.total>=50000)
+   action='Kenaikan di '+trendLabel(end.key,mode)+' cukup besar. Klik titik grafik kedua periode untuk mengecek transaksi penyumbang selisih '+money(end.total-before.total)+', sebelum memutuskan pemangkasan.';
+  else if(biggest)
+   action='Buka rincian '+biggest.label+' dan mulai evaluasi pos bernilai terbesar. Cocokkan dengan kebutuhan rutin dan anggaran; hindari memangkas kebutuhan penting hanya karena porsinya tinggi.';
+ }
+ return {meaning,action,check};
+}
+function renderTrendFinancialInsight(data){
+ const items=[
+  {label:'Makna Data',icon:'◈',text:data.meaning,kind:'meaning'},
+  {label:'Langkah Berikutnya',icon:'↗',text:data.action,kind:'action'},
+  {label:'Cek Pencatatan',icon:'✓',text:data.check,kind:'check'}
+ ];
+ return `<div class="trend-financial-insight">
+  <div class="trend-insight-head"><strong>💡 Insight Keuangan</strong><span>Analisis Berdasarkan Transaksi Tercatat</span></div>
+  <div class="trend-insight-items">${items.map(item=>`<div class="trend-insight-entry trend-insight-${item.kind}">
+   <span class="trend-insight-symbol" aria-hidden="true">${item.icon}</span>
+   <div><strong>${item.label}</strong><p>${h(item.text)}</p></div>
+  </div>`).join('')}</div>
+  </div>`;
+}
 function renderTrendPanel(){
  const c=ui.comp,periods=trendPeriods(),mode=periods.mode;
  const categoryIds=new Set(analysisCategories().map(x=>x.id));
@@ -1502,14 +1628,7 @@ function renderTrendPanel(){
    return {...e,delta:value(last.tx)-value(previous.tx)};
  }).sort((a,b)=>b.delta-a.delta);
  if(jumps[0]?.delta>0&&comparable)insight+=' Kenaikan terbesar: '+jumps[0].icon+' '+h(jumps[0].label)+' (+'+money(jumps[0].delta)+').';
- let indication='Belum cukup catatan berurutan untuk melihat pola kenaikan atau penurunan.';
- if(!incomplete&&comparable&&third?.count&&third.total>0&&last.total>previous.total&&previous.total>third.total)
-  indication='Pengeluaran meningkat tiga periode berturut-turut. Cek pos yang paling banyak menyumbang kenaikan.';
- else if(!incomplete&&comparable&&last.total>previous.total*1.3&&last.total-previous.total>=50000)
-  indication='Indikasi lonjakan: pengeluaran naik lebih dari 30% dan bertambah minimal Rp50.000 dibanding periode sebelumnya.';
- else if(most&&grandTotal>0&&most.value/grandTotal>=.5)
-  indication='Pengeluaran terkonsentrasi pada '+most.icon+' '+h(most.label)+' ('+pct(most.value,grandTotal)+'%). Ini indikasi, bukan bukti pemborosan.';
- else if(comparable)indication='Belum terlihat lonjakan yang memenuhi ambang indikator otomatis pada dua periode terakhir.';
+ const financialInsight=trendFinancialInsight(rows,entries,all,grandTotal,mode);
  const dflt=trendDefaultRange(),from=c.trendFrom||dflt.from,to=c.trendTo||dflt.to;
  const inputs=mode==='year'?
   `<label>Dari Tahun<input id="trend-start" type="number" min="1900" max="2200" step="1" value="${h(from)}"></label><label>Sampai Tahun<input id="trend-end" type="number" min="1900" max="2200" step="1" value="${h(to)}"></label>`:
@@ -1533,7 +1652,7 @@ function renderTrendPanel(){
   <div class="trend-label-toggle"><label><input type="checkbox" id="trend-labels" ${c.trendLabels?'checked':''}> Tampilkan Label Nominal Di Titik Grafik</label><span class="comp-tiny">Klik titik atau nominal pada grafik untuk melihat daftar pengeluarannya.</span></div>
   ${grandTotal>0?trendChartSVG(rows,entries):'<div class="comp-empty">Tidak Ada Transaksi Pengeluaran Di Rentang Yang Dipilih.</div>'}
   ${periods.trimmed?`<p class="comp-tiny">Rentang sangat panjang. Ditampilkan ${periods.keys.length} periode terakhir; persempit rentang untuk melihat periode sebelumnya.</p>`:''}
-  <div class="trend-notes"><div class="trend-note"><strong>📈 Perubahan Periode</strong>${comparison}</div><div class="trend-note"><strong>🔎 Kontributor Utama</strong>${insight}</div><div class="trend-note" style="grid-column:1/-1"><strong>🚦 Indikasi Otomatis</strong>${indication}</div></div>
+  <div class="trend-notes"><div class="trend-note"><strong>📈 Perubahan Periode</strong>${comparison}</div><div class="trend-note"><strong>🔎 Kontributor Utama</strong>${insight}</div>${renderTrendFinancialInsight(financialInsight)}</div>
   <details class="trend-data-details"><summary>▤ Lihat Rincian Angka Per Periode</summary>
     <div class="trend-table-wrap"><table class="trend-table"><thead><tr><th>Periode</th>${matrixEntries.map(e=>`<th>${e.icon} ${h(e.label)}</th>`).join('')}<th>Total</th></tr></thead>
     <tbody>${rowTable}</tbody></table></div>

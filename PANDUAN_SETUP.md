@@ -101,3 +101,11 @@ Unggah **empat file ini** ke root repo GitHub: `index.html`, `cloud.js`, `fireba
 - Pop-up dapat ditutup melalui ✕, klik di luar dialog, atau Escape. Data transaksi, anggaran, arsip laporan, dan mekanisme sinkronisasi Firebase tidak diubah.
 
 - **Kalender Transaksi — pasaran Jawa:** setiap tanggal menampilkan Legi/Pahing/Pon/Wage/Kliwon dengan siklus lima hari, dihitung dari acuan **1 Oktober 2026 = Legi**. Petunjuk klik tanggal menggunakan strip kuning yang sangat tipis (tidak selebar kartu sebelumnya), dengan ukuran huruf 11px. Posisi keterangan tepat di atas kalender.
+
+
+## Dashboard — Rincian Empat Kartu Utama
+- **Pemasukan Bulan Ini**: klik kartu untuk melihat pop-up daftar transaksi pemasukan bulan yang dipilih; dikelompokkan berdasarkan tanggal terbaru, lengkap dengan kategori, rekening, nominal hijau, serta tombol Edit/Hapus.
+- **Pengeluaran Bulan Ini**: klik kartu untuk daftar pengeluaran bulanan dengan nominal merah, urutan tanggal terbaru, serta Edit/Hapus.
+- **Sisa Anggaran**: klik kartu untuk melihat penjumlahan anggaran bulanan, pengeluaran pada pos beranggaran, sisa anggaran, dan rincian setiap pos beranggaran (anggaran efektif, terpakai, sisa, indikator aman/menipis/melewati batas). Pengeluaran pos tanpa anggaran tidak masuk penghitungan sisa anggaran, konsisten dengan kartu Dashboard. Tersedia pintasan **Kelola / Alihkan Anggaran**.
+- **Total Saldo Rekening**: klik untuk daftar seluruh rekening dengan saldo aktual **sepanjang waktu**, diurutkan dari saldo terbesar. Tiap rekening dapat dibuka untuk melihat saldo awal, pemasukan, pengeluaran, transfer masuk/keluar, dan pengaruh utang/piutang beserta pembayaran. Total cocok dengan kartu Dashboard. Tersedia pintasan ke halaman Rekening & Data.
+- Keempat kartu dibuat menjadi tombol yang mendukung keyboard, ikon petunjuk klik, dan pop-up dengan **tombol ✕, Escape, atau klik di luar**. Semua rincian dihitung langsung dari data yang tersimpan, tanpa mengubah perhitungan, Firebase, atau arsip.

@@ -99,3 +99,5 @@ Unggah **empat file ini** ke root repo GitHub: `index.html`, `cloud.js`, `fireba
 - Pilihan **Pengeluaran** mempertahankan grafik warna unik kelompok dan pos, garis batas anggaran, serta peringatan pemakaian anggaran. Klik batang pos untuk membuka rincian. Ekspor CSV mengikuti pilihan Pemasukan/Pengeluaran, untuk seluruh bulan yang sedang dibuka.
 - Menu **Transaksi Harian** khusus pencatatan, perubahan, dan daftar transaksi bulanan; kalender tidak ditampilkan lagi di sana agar tidak duplikatif.
 - Pop-up dapat ditutup melalui ✕, klik di luar dialog, atau Escape. Data transaksi, anggaran, arsip laporan, dan mekanisme sinkronisasi Firebase tidak diubah.
+
+- **Kalender Transaksi — pasaran Jawa:** setiap tanggal menampilkan Legi/Pahing/Pon/Wage/Kliwon dengan siklus lima hari, dihitung dari acuan **1 Oktober 2026 = Legi**. Petunjuk klik tanggal menggunakan strip kuning yang sangat tipis (tidak selebar kartu sebelumnya), dengan ukuran huruf 11px. Posisi keterangan tepat di atas kalender.

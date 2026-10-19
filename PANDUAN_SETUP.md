@@ -77,3 +77,14 @@ Unggah **empat file ini** ke root repo GitHub: `index.html`, `cloud.js`, `fireba
 - Periode tanpa transaksi tidak otomatis dianggap nol aktual; perbandingan persen hanya dibuat bila kedua periode punya transaksi dan periode pembanding positif. Periode berjalan ditandai belum lengkap.
 - Filter ini hanya memengaruhi analisis; transaksi, saldo, anggaran, arsip laporan, dan sinkronisasi Firestore tetap seperti sebelumnya. Perubahan nama/kelompok pos di masa depan akan tercermin pada pengelompokan riwayat analisis berdasarkan kategori saat ini.
 
+
+
+## Popup Tambah / Edit Kelompok dan Pos Pengeluaran
+- Pada menu **Anggaran Bulanan → Kelola Kelompok Pengeluaran**, klik **＋ Tambah Kelompok** atau **Edit** untuk membuka popup kecil.
+- Kelompok: cukup isi nama dan pilih warna. Popup menyediakan **Simpan Perubahan/Tambah Kelompok**, **Batal**, dan **✕**.
+- Pada tabel **Atur Batas Tiap Kategori**, klik **＋ Tambah Pos** pada kelompok yang sesuai, tombol global **＋ Tambah Pos**, atau **Edit** pada baris pos. Popup memungkinkan mengubah nama dan kelompok tanpa mengganti ID pos.
+- Menekan **Esc** atau mengeklik area gelap di luar formulir juga menutup popup.
+- **Ikon kategori** dalam popup mengikuti nama pos/kelompok yang diketik.
+- Angka anggaran yang belum disimpan tetap dipertahankan di input tabel ketika popup disimpan. Tekan **Simpan Anggaran** untuk benar-benar menyimpan perubahan nominal pagu; perubahan nama/kelompok memiliki tombol Simpan tersendiri.
+- Hapus masih meminta konfirmasi dan menjaga agar pos yang sudah dipakai transaksi/anggaran tidak dapat dihapus sembarangan.
+- Penyimpanan data dan sinkronisasi Firestore tetap memakai mekanisme yang sama seperti sebelumnya.

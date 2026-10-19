@@ -812,11 +812,12 @@ body:has(.review-modal-backdrop){overflow:hidden}
  animation:budget-nav-glow 7.8s ease-in-out -2.5s infinite;
 }
 .budget-nav-highlight::before{
- content:"";position:absolute;z-index:-1;inset:0;
+ content:"";position:absolute;z-index:0;inset:0;
  background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.23) 47%,transparent 75%);
  transform:translateX(-125%);
  animation:budget-nav-shine 7.8s ease-in-out -2.5s infinite;pointer-events:none;
 }
+.budget-nav-highlight > span{position:relative;z-index:1}
 .budget-nav-spark{color:#ffd479;font-size:16px;display:inline-block;animation:budget-nav-star 6.7s ease-in-out -1s infinite}
 .budget-nav-arrow{display:inline-block;transition:transform .2s ease}
 .budget-nav-highlight:hover{filter:brightness(1.1)}

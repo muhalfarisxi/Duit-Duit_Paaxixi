@@ -153,7 +153,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .comp-trigger-value{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:750}
 .comp-chevron{font-size:19px;line-height:1;color:#7892b7}
 .comp-picker.is-open{z-index:70}
-.comp-popover{position:absolute;z-index:100;top:calc(100% + 7px);left:0;width:min(282px,calc(100vw - 64px));box-sizing:border-box;background:#fff;border:1px solid #cbdcf5;border-radius:13px;box-shadow:0 14px 38px rgba(19,46,91,.19);padding:0;animation:comp-pop-in .12s ease-out}
+.comp-popover{position:absolute;z-index:100;top:calc(100% + 7px);left:0;width:min(282px,calc(100vw - 64px));box-sizing:border-box;display:flex;flex-direction:column;max-height:calc(100dvh - 24px);background:#fff;border:1px solid #cbdcf5;border-radius:13px;box-shadow:0 14px 38px rgba(19,46,91,.19);padding:0;animation:comp-pop-in .12s ease-out}
+.comp-popover.flip-up{top:auto;bottom:calc(100% + 7px)}
+.comp-popover-header,.comp-popover-actions,.comp-popover-foot{flex:none}
 .comp-picker:nth-child(3) .comp-popover{left:auto;right:0}
 @keyframes comp-pop-in{from{opacity:.6;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
 .comp-popover-header{display:flex;justify-content:space-between;align-items:center;padding:11px 12px 7px;color:#173e72;font-size:12px}
@@ -161,7 +163,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .comp-popover-actions{display:flex;gap:7px;padding:0 12px 9px}
 .comp-popover-actions button{font:inherit;font-size:11px;font-weight:750;padding:6px 9px;border:1px solid #d9e6f8;color:#265ab1;background:#f5f9ff;border-radius:7px;cursor:pointer}
 .comp-popover-actions button:hover{background:#e6f0ff}
-.comp-popover-items{overflow-y:auto;overscroll-behavior:contain;max-height:210px;padding:0 10px 4px}
+.comp-popover-items{overflow-y:auto;overscroll-behavior:contain;flex:1;min-height:0;max-height:210px;padding:0 10px 4px}
 .comp-popitem{display:flex;align-items:flex-start;gap:8px;padding:8px 6px;border-radius:7px;cursor:pointer;font-size:12px;color:#243d61;line-height:1.35}
 .comp-popitem:hover{background:#eff5ff}
 .comp-popitem input{flex:none;width:15px;height:15px;accent-color:#2563eb;cursor:pointer;margin-top:1px}
@@ -334,7 +336,17 @@ const symbolBadge=(name,group='',small=false)=>`<span class="category-symbol${sm
 const selectAcc=(name,selected='',exclude='')=>`<select class="field" name="${h(name)}" required>${db.accounts.filter(a=>a.id!==exclude).map(a=>`<option value="${h(a.id)}" ${selected===a.id?'selected':''}>${h(a.name)}</option>`).join('')}</select>`;
 function toast(msg,bad=false){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(bad?' bad':'');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.className='toast',4000)}
 function labelNav(){const titles={dashboard:['Dashboard Keuangan','Ringkasan Utama Untuk Bulan Yang Dipilih.'],transactions:['Transaksi Harian','Tambah, Edit, Dan Hapus Pengeluaran, Pemasukan, Atau Transfer.'],review:['Tinjau Pengeluaran','Telusuri Rincian Berdasarkan Tanggal Ataupun Kategori.'],budgets:['Anggaran Bulanan','Tetapkan Batas Dan Alihkan Sisa Antar Pos.'],debts:['Utang & Piutang','Pantau Pinjaman Dan Pembayaran.'],reports:['Arsip Laporan','Simpan Snapshot Laporan Tiap Bulan, Cetak Atau Ekspor.'],accounts:['Rekening, Kategori & Sinkronisasi','Kelola Rekening, Kategori, Login Cloud, Dan Cadangan.']};const item=titles[ui.view];document.getElementById('page-title').textContent=item[0];document.getElementById('page-subtitle').textContent=item[1];document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
-function render(){labelNav();let el=document.getElementById('content');el.innerHTML=({dashboard:renderDash,transactions:renderTx,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])();}
+function render(){
+ const prev=document.querySelector('.comp-popover');
+ const oldKind=prev?.dataset?.compPopup,oldScroll=prev?.querySelector('.comp-popover-items')?.scrollTop||0;
+ labelNav();
+ document.getElementById('content').innerHTML=({dashboard:renderDash,transactions:renderTx,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])();
+ if(ui.view==='dashboard'&&ui.comp.menu){
+  const next=document.querySelector('.comp-popover');
+  if(next&&oldKind===ui.comp.menu){const list=next.querySelector('.comp-popover-items');if(list)list.scrollTop=oldScroll;}
+  adjustCompositionPopup();
+ }
+}
 const QUOTES_GEN_Z=[
  'Kalau lagu Bernadya bisa di-repeat, pengeluaranmu juga wajib di-review, Alfa. 🎧',
  'Jangan cuma omon-omon soal hemat, buktiin lewat catatan, Alfa. 😎',
@@ -461,7 +473,7 @@ function renderCompositionControls(){
    return `<div class="comp-compact-field comp-picker ${opened?'is-open':''}">
     <span class="comp-compact-label">${title}</span>
     <button type="button" class="comp-popup-trigger" data-comp-menu="${kind}" aria-haspopup="true" aria-controls="${id}" aria-expanded="${opened?'true':'false'}" ${disabled?'disabled':''}><span class="comp-trigger-value">${h(summary)}</span><span class="comp-chevron" aria-hidden="true">⌄</span></button>
-    ${opened?`<div class="comp-popover" id="${id}" role="group" aria-label="Pilihan ${title}">
+    ${opened?`<div class="comp-popover" id="${id}" data-comp-popup="${kind}" role="group" aria-label="Pilihan ${title}">
       <div class="comp-popover-header"><strong>${title}</strong><button type="button" class="comp-popup-close" data-comp-menu="${kind}" aria-label="Tutup pilihan ${title}">✕</button></div>
       <div class="comp-popover-actions"><button type="button" data-comp-action="all-${kind==='group'?'groups':'categories'}">Pilih Semua</button><button type="button" data-comp-action="clear-${kind==='group'?'groups':'categories'}">Hapus Semua</button></div>
       <div class="comp-popover-items">${body||'<div class="comp-popover-empty">Belum Ada Pilihan</div>'}</div>
@@ -823,6 +835,16 @@ function validDb(o){return o&&Array.isArray(o.accounts)&&Array.isArray(o.transac
 async function importJSON(file){if(!file)return;try{if(file.size>3*1024*1024)throw Error('File terlalu besar.');let obj=JSON.parse(await file.text());if(!validDb(obj))throw Error('Format cadangan tidak cocok.');if(!confirm('Impor akan MENGGANTI semua data keuangan dalam browser ini. Lanjutkan?'))return;db=normalizeExpenseGroups({version:2,accounts:obj.accounts,categories:obj.categories,expenseGroups:obj.expenseGroups,transactions:obj.transactions,budgets:obj.budgets,budgetMoves:obj.budgetMoves,debts:obj.debts,reports:obj.reports||{}});save();setView('dashboard');toast('Data berhasil dipulihkan.')}catch(e){toast('Gagal mengimpor: '+e.message,true)}finally{document.getElementById('import-file').value=''}}
 document.addEventListener('submit',e=>{if(e.target.closest('form')){e.preventDefault();handleForm(e.target)}});
 function goEditTx(id){let t=db.transactions.find(t=>t.id===id);if(!t)return;ui.txEditId=id;ui.txType=t.type;ui.month=t.date.slice(0,7);setView('transactions');document.getElementById('tx-entry')?.scrollIntoView({behavior:'smooth',block:'start'})}
+function adjustCompositionPopup(){
+ const pop=document.querySelector('.comp-popover');
+ const trigger=pop?.parentElement?.querySelector('.comp-popup-trigger');
+ if(!pop||!trigger||typeof pop.getBoundingClientRect!=='function')return;
+ pop.classList.remove('flip-up');pop.style.maxHeight='';
+ const rect=trigger.getBoundingClientRect(),below=window.innerHeight-rect.bottom-12,above=rect.top-12;
+ const desired=Math.min(360,pop.scrollHeight||320);
+ if(below<desired&&above>below&&above>145){pop.classList.add('flip-up');pop.style.maxHeight=Math.max(145,Math.min(360,above))+'px';}
+ else pop.style.maxHeight=Math.max(145,Math.min(360,below))+'px';
+}
 function dismissCompositionPopup(){
  const kind=ui.comp.menu;if(!kind)return;
  ui.comp.menu=null;

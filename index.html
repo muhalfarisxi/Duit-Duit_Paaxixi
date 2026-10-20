@@ -3014,6 +3014,66 @@ body:has(.tx-search-backdrop){overflow:hidden}
  .budget-alert-dialog[open]{animation:none!important}
 }
 
+
+/* #068 Tombol status anggaran: tombol filter interaktif dan prioritas bahaya */
+.budget-alert-dialog .budget-alert-dialog-summary{
+ display:flex;gap:7px;flex-wrap:wrap;margin:12px 0 8px;align-items:center;
+}
+.budget-alert-dialog .budget-alert-filter{
+ display:inline-flex;align-items:center;gap:5px;justify-content:center;
+ min-height:34px;padding:7px 10px;border-radius:999px;border:1.4px solid #d8e5f8;
+ background:#f4f8ff;color:#54749d;cursor:pointer;
+ font:850 11px/1.2 Nunito,sans-serif;white-space:nowrap;
+ transition:transform .16s,border-color .16s,background .16s,box-shadow .16s;
+}
+.budget-alert-dialog .budget-alert-filter>b{
+ display:inline-grid;place-items:center;min-width:20px;height:20px;border-radius:999px;
+ padding:0 5px;background:#e4edfb;font:900 10px Nunito,sans-serif;color:inherit;
+}
+.budget-alert-dialog .budget-alert-filter-danger{
+ background:#fff4f2;border-color:#f6d3cd;color:#b04942;
+}
+.budget-alert-dialog .budget-alert-filter-warn{
+ background:#fff8eb;border-color:#f0deb6;color:#93631c;
+}
+.budget-alert-dialog .budget-alert-filter-ok{
+ background:#eff9f4;border-color:#cde6d8;color:#27755f;
+}
+.budget-alert-dialog .budget-alert-filter:hover{transform:translateY(-1px);filter:brightness(.99)}
+.budget-alert-dialog .budget-alert-filter[aria-pressed=true]{
+ background:#285fb2;border-color:#285fb2;color:#fff;
+ box-shadow:0 4px 11px #285fb231;
+}
+.budget-alert-dialog .budget-alert-filter-danger[aria-pressed=true]{
+ background:#c54e47;border-color:#c54e47;box-shadow:0 4px 12px #c54e4730;
+}
+.budget-alert-dialog .budget-alert-filter-warn[aria-pressed=true]{
+ background:#bd8129;border-color:#bd8129;box-shadow:0 4px 12px #bd81292c;
+}
+.budget-alert-dialog .budget-alert-filter-ok[aria-pressed=true]{
+ background:#268368;border-color:#268368;box-shadow:0 4px 12px #2683682d;
+}
+.budget-alert-dialog .budget-alert-filter[aria-pressed=true]>b{
+ background:#ffffff32;color:#fff;
+}
+.budget-alert-dialog .budget-alert-filter:focus-visible{outline:3px solid #89b9fc;outline-offset:2px}
+.budget-alert-dialog .budget-alert-filter-info{
+ margin:0 1px 9px;color:#8194ae;font:750 10px/1.4 Nunito,sans-serif;
+}
+.budget-alert-dialog .budget-alert-entry[hidden],.budget-alert-dialog .budget-alert-empty[hidden]{display:none!important}
+.budget-alert-dialog .budget-alert-entry.is-ok{
+ background:linear-gradient(110deg,#f4fcf7,#fff);border-color:#cbe5d8;
+}
+.budget-alert-dialog .budget-alert-entry.is-ok .budget-alert-entry-state{
+ background:#e2f5eb;color:#26775d;
+}
+.budget-alert-dialog .budget-alert-entry.is-ok .budget-alert-entry-track i{background:#37aa84}
+@media(max-width:460px){
+ .budget-alert-dialog .budget-alert-dialog-summary{gap:6px}
+ .budget-alert-dialog .budget-alert-filter{font-size:10px;padding:7px 9px;min-height:33px}
+}
+@media(prefers-reduced-motion:reduce){.budget-alert-dialog .budget-alert-filter{transition:none!important}}
+
 </style>
 </head>
 <body>
@@ -4159,34 +4219,52 @@ function renderBudgetAlertStrip(items,hasBudgetValue){
 }
 function renderBudgetAlertDialog(items,hasBudgetValue){
  const n=budgetAlertCounts(items);
- const entries=items.map(c=>{
-  const st=status(c.id),limit=effectiveBudget(c.id),spent=spentByCat(c.id),left=limit-spent;
+ // Semua = hanya perhatian; Aman tersedia sebagai tab tersendiri.
+ const safeItems=expenses().filter(c=>hasBudget(c.id)&&status(c.id).s==='ok')
+  .sort((a,b)=>pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1)));
+ const tabs=[
+  {id:'attention',icon:'📋',label:'Semua',count:items.length},
+  {id:'danger',icon:'🚨',label:'Melewati Batas',count:n.danger},
+  {id:'warn',icon:'🔔',label:'Menipis',count:n.warn},
+  {id:'ok',icon:'🌱',label:'Aman',count:safeItems.length}
+ ];
+ const tabButtons=tabs.map(t=>
+  '<button type="button" class="budget-alert-filter budget-alert-filter-'+t.id+'" data-budget-alert-filter="'+t.id+'"'+
+  ' data-budget-alert-count="'+t.count+'" aria-pressed="'+(t.id==='attention')+'" title="Tampilkan '+h(t.label)+'">'+
+  '<span aria-hidden="true">'+t.icon+'</span><span>'+h(t.label)+'</span><b>'+t.count+'</b></button>'
+ ).join('');
+ const entries=[...items,...safeItems].map(c=>{
+  const st=status(c.id),limit=effectiveBudget(c.id),spent=spentByCat(c.id),left=limit-spent,
+   type=st.s==='danger'?'danger':st.s==='warn'?'warn':'ok';
   const usage=limit>0?Math.round(spent/limit*100):spent>0?100:0;
-  const advice=st.s==='danger'?'Cek transaksi, lalu evaluasi batas atau alihkan anggaran dari pos lain.':
-   'Pantau sisa anggaran dan prioritaskan kebutuhan yang mendesak.';
-  return '<article class="budget-alert-entry '+(st.s==='danger'?'is-danger':'is-warn')+'">'+
+  const advice=type==='danger'?'Cek transaksi, lalu evaluasi batas atau alihkan anggaran dari pos lain.':
+   type==='warn'?'Pantau sisa anggaran dan prioritaskan kebutuhan yang mendesak.':
+   'Masih aman. Tetap catat pengeluaran dan pantau penggunaan anggaran.';
+  return '<article class="budget-alert-entry is-'+type+'" data-budget-alert-status="'+type+'"'+(type==='ok'?' hidden':'')+'>'+
    '<div class="budget-alert-entry-top"><span class="budget-alert-entry-icon" aria-hidden="true">'+pickSymbol(c.label,c.group)+'</span>'+
    '<span class="budget-alert-entry-name"><strong>'+h(c.label)+'</strong><small>'+h(c.group||'Pengeluaran')+'</small></span>'+
-   '<span class="budget-alert-entry-state">'+(st.s==='danger'?'🚨':'🔔')+' '+h(st.label)+'</span></div>'+
+   '<span class="budget-alert-entry-state">'+(type==='danger'?'🚨':type==='warn'?'🔔':'🌱')+' '+h(st.label)+'</span></div>'+
    '<div class="budget-alert-entry-numbers"><span>Terpakai<strong>'+money(spent)+'</strong></span>'+
    '<span>Batas<strong>'+money(limit)+'</strong></span>'+
    '<span>'+(left<0?'Melebihi':'Sisa')+'<strong>'+money(Math.abs(left))+'</strong></span></div>'+
    '<div class="budget-alert-entry-track"><i style="width:'+Math.max(0,Math.min(100,usage))+'%"></i></div>'+
    '<p class="budget-alert-entry-tip">💡 '+h(advice)+'</p></article>';
  }).join('');
- const nothing=hasBudgetValue>0?'Tidak ada anggaran yang menipis atau terlampaui.':'Tetapkan batas pada pos pengeluaran untuk mulai memantau anggaran.';
+ const empty=hasBudgetValue>0?'Tidak ada pos yang menipis atau melewati batas.':'Tetapkan batas pada pos pengeluaran untuk mulai memantau anggaran.';
  return '<dialog class="budget-alert-dialog" id="budget-alert-dialog" aria-labelledby="budget-alert-dialog-title">'+
   '<header class="budget-alert-dialog-header"><span aria-hidden="true">🔔</span><div><h3 id="budget-alert-dialog-title">Peringatan Anggaran</h3>'+
   '<p>'+h(monthFmt(ui.month))+' · '+items.length+' pos perlu perhatian</p></div>'+
   '<button type="button" class="budget-alert-dialog-close" data-budget-alert-close aria-label="Tutup peringatan">✕</button></header>'+
-  '<div class="budget-alert-dialog-summary"><span>🚨 '+n.danger+' melewati batas</span><span>🔔 '+n.warn+' menipis</span></div>'+
-  '<div class="budget-alert-dialog-items">'+(entries||'<div class="budget-alert-empty">🌱 '+nothing+'</div>')+'</div>'+
+  '<div class="budget-alert-dialog-summary" role="group" aria-label="Filter berdasarkan status anggaran">'+tabButtons+'</div>'+
+  '<p class="budget-alert-filter-info" data-budget-alert-filter-info aria-live="polite">Menampilkan '+items.length+' pos yang perlu perhatian, diurutkan dari melewati batas lalu menipis.</p>'+
+  '<div class="budget-alert-dialog-items">'+entries+
+   '<div class="budget-alert-empty" data-budget-alert-no-results'+(items.length?' hidden':'')+'>🌱 '+empty+'</div></div>'+
   '<footer class="budget-alert-dialog-footer"><button type="button" class="btn sm" data-budget-alert-close>Tutup</button>'+
   '<button type="button" class="btn sm primary" data-nav="budgets">Kelola Anggaran ↗</button></footer>'+
   '</dialog>';
 }
 
-function renderDash(){let all=monthly(),exp=totalType('expense'),inc=totalType('income'),bt=budgetTotal(),accountBalances=balances(),kas=Object.values(accountBalances).reduce((s,x)=>s+x,0),alert=expenses().filter(c=>hasBudget(c.id)&&status(c.id).s!=='ok').sort((a,b)=>({danger:0,warn:1}[status(a.id).s]||2)-({danger:0,warn:1}[status(b.id).s]||2)),budgets=expenses().filter(c=>hasBudget(c.id)).sort((a,b)=>pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1))),bySource=incomes().map(c=>({...c,amount:all.filter(t=>t.type==='income'&&t.categoryId===c.id).reduce((s,t)=>s+num(t.amount),0)})).filter(c=>c.amount>0).sort((a,b)=>b.amount-a.amount),debt=totalsDebt();
+function renderDash(){let all=monthly(),exp=totalType('expense'),inc=totalType('income'),bt=budgetTotal(),accountBalances=balances(),kas=Object.values(accountBalances).reduce((s,x)=>s+x,0),alert=expenses().filter(c=>hasBudget(c.id)&&['danger','warn'].includes(status(c.id).s)).sort((a,b)=>{const priority={danger:0,warn:1};return (priority[status(a.id).s]??9)-(priority[status(b.id).s]??9)||pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1));}),budgets=expenses().filter(c=>hasBudget(c.id)).sort((a,b)=>pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1))),bySource=incomes().map(c=>({...c,amount:all.filter(t=>t.type==='income'&&t.categoryId===c.id).reduce((s,t)=>s+num(t.amount),0)})).filter(c=>c.amount>0).sort((a,b)=>b.amount-a.amount),debt=totalsDebt();
 return `${welcomeModal()}${all.length===0?`<div class="callout"><span>✦</span><div><strong>Mulai catatan pertamamu.</strong> Dashboard akan otomatis terisi. Mau melihat simulasi lebih dulu? <button class="btn sm" type="button" data-action="demo" style="margin-left:7px">Isi data contoh</button></div></div>`:''}
 <div class="grid kpis">
 ${metricCard('Pemasukan Bulan Ini',inc,'↑','green','Transaksi Pemasukan')}${metricCard('Pengeluaran Bulan Ini',exp,'↓','red','Transaksi Pengeluaran')}${metricCard('Sisa Anggaran',bt>0?bt-budgetUsed():0,'◴',bt>0&&bt-budgetUsed()<0?'red':'green',bt>0?`Dari Total ${money(bt)}`:'Belum Ada Anggaran')}${metricCard('Total Saldo Rekening',kas,'▤',kas<0?'red':'blue','Saldo Seluruh Rekening, Sepanjang Waktu')}
@@ -5660,6 +5738,41 @@ document.addEventListener('click',async e=>{
  const alertDialog=document.getElementById('budget-alert-dialog');
  if(e.target.closest?.('[data-budget-alert-open]')){
   if(alertDialog&&!alertDialog.open)alertDialog.showModal();
+  return;
+ }
+ const alertFilter=e.target.closest?.('[data-budget-alert-filter]');
+ if(alertFilter&&alertDialog?.contains(alertFilter)){
+  const choice=alertFilter.dataset.budgetAlertFilter;
+  if(!['attention','danger','warn','ok'].includes(choice))return;
+  alertDialog.querySelectorAll('[data-budget-alert-filter]').forEach(button=>
+   button.setAttribute('aria-pressed',String(button===alertFilter)));
+  let visible=0;
+  alertDialog.querySelectorAll('[data-budget-alert-status]').forEach(row=>{
+   const state=row.dataset.budgetAlertStatus;
+   row.hidden=!(choice==='attention'?state==='danger'||state==='warn':state===choice);
+   if(!row.hidden)visible++;
+  });
+  const empty=alertDialog.querySelector('[data-budget-alert-no-results]');
+  if(empty){
+   empty.hidden=visible>0;
+   if(!visible){
+    const note={
+     attention:'Tidak ada pos yang perlu perhatian. Semua pos beranggaran masih aman.',
+     danger:'Tidak ada pos yang melewati batas anggaran.',
+     warn:'Tidak ada pos dengan anggaran menipis.',
+     ok:'Belum ada pos anggaran yang berstatus aman.'
+    };
+    empty.textContent='🌱 '+note[choice];
+   }
+  }
+  const info=alertDialog.querySelector('[data-budget-alert-filter-info]');
+  if(info){
+   const descriptions={attention:'perlu perhatian (melewati batas lebih dulu)',danger:'melewati batas',
+    warn:'menipis',ok:'aman'};
+   info.textContent='Menampilkan '+visible+' pos '+descriptions[choice]+'.';
+  }
+  const container=alertDialog.querySelector('.budget-alert-dialog-items');
+  if(container)container.scrollTop=0;
   return;
  }
  if(e.target.closest?.('[data-budget-alert-close]')){

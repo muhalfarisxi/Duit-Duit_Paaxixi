@@ -138,6 +138,11 @@
   closeBtn.setAttribute('aria-label','Tutup analisis');
   modalHead.append(modalHeading,closeBtn);
   dialog.append(modalHead);overlay.append(dialog);
+  const chooser=el('div','comp-live-chooser');
+  chooser.setAttribute('role','group');chooser.setAttribute('aria-label','Pilih kategori untuk dianalisis');
+  const chooserLabel=el('span','comp-live-chooser-label','🧩 Pilih kategori');
+  const chooserList=el('div','comp-live-chooser-list');
+  chooser.append(chooserLabel,chooserList);
   const focus=el('section','comp-live-focus');
   focus.setAttribute('aria-live','polite');
   const face=el('span','comp-live-focus-face','🐻');
@@ -183,10 +188,10 @@
    pages.append(pane);
   });
   box.append(title,tabs,pages);
-  dialog.append(focus,box);
+  dialog.append(chooser,focus,box);
   const mini=el('div','comp-live-mini');
   const miniCopy=el('div','comp-live-mini-copy');
-  miniCopy.append(el('strong','','💡 Sorotan Bulan Ini'),el('span','',top.title+' mendominasi '+top.percent+'% dari pengeluaran terfilter.'));
+  miniCopy.append(el('strong','','👑 '+top.title+' · '+top.percent+'%'),el('span','','Porsi terbesar · '+rupiah(top.amount)));
   const viewButton=el('button','comp-live-open','✨ Lihat Analisis');
   viewButton.type='button';
   viewButton.setAttribute('aria-haspopup','dialog');
@@ -261,6 +266,10 @@
    if(focusDescription)focusDescription.textContent=picked?
     'Sebesar '+rupiah(picked.amount)+' dari '+rupiah(total)+' total terfilter. '+(picked.amount>total/2?'Lebih besar daripada gabungan kategori lainnya.':'Sisa kategori lain '+rupiah(total-picked.amount)+'.'):
     'Kategorinya bisa kamu eksplorasi satu per satu. Klik untuk menyematkan pilihan.';
+   all(chooserList,'.comp-live-chooser-chip').forEach((chip,i)=>{
+    chip.setAttribute('aria-pressed',String(i===locked));
+    chip.classList.toggle('active',i===index);
+   });
    if(detailText)detailText.textContent=picked?
     picked.title+' berkontribusi '+picked.percent+'% ('+rupiah(picked.amount)+') dari total terfilter. '+
      (runner&&picked.title===top.title?'Selisih terhadap '+runner.title+': '+rupiah(Math.max(0,top.amount-runner.amount))+'. ':'')+
@@ -276,6 +285,12 @@
    openModal('detail');
   }
   rows.forEach((row,i)=>{
+   const chip=el('button','comp-live-chooser-chip',row.symbol+' '+row.title+' · '+row.percent+'%');
+   chip.type='button';
+   chip.setAttribute('aria-pressed','false');
+   chip.style.setProperty('--live-color',row.color);
+   chip.addEventListener('click',()=>{locked=i;paint(i);showTab('detail');});
+   chooserList.append(chip);
    const button=legendButtons[i],path=slices[i];
    button.addEventListener('mouseenter',()=>paint(i));
    button.addEventListener('mouseleave',()=>paint(locked));
@@ -291,6 +306,12 @@
     if(event.key==='Enter'||event.key===' '){event.preventDefault();toggle(i);}
    });
   });
+  if(rows.length>3){
+   const more=el('button','comp-live-show-more','🧩 Lihat '+(rows.length-3)+' kategori lainnya ↗');
+   more.type='button';
+   more.addEventListener('click',()=>{locked=-1;paint(-1);openModal('detail');});
+   legend.after(more);
+  }
   paint(-1);
  }
  // The dashboard replaces #content after filter/date/cloud changes.

@@ -4074,6 +4074,148 @@ function toggleReviewExportMenu(){
  if(opened)menu.querySelector('button')?.focus({preventScroll:true});else button.focus({preventScroll:true});
 }
 
+
+/* #058 File Excel (.xlsx) dan PDF asli; dibuat langsung di browser tanpa CDN. */
+function reviewXml(s){return String(s??'').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');}
+function reviewZip(files){
+ const encoder=new TextEncoder(),chunks=[],center=[];let position=0;
+ const u16=(v,p,n)=>v.setUint16(p,n,true),u32=(v,p,n)=>v.setUint32(p,n>>>0,true);
+ const add=a=>{chunks.push(a);position+=a.length};
+ const crc=data=>{let c=0xffffffff;for(const b of data){c^=b;for(let k=0;k<8;k++)c=(c>>>1)^((c&1)?0xedb88320:0);}return(c^0xffffffff)>>>0};
+ for(const [name,body] of files){
+  const n=encoder.encode(name),d=encoder.encode(body),checksum=crc(d),offset=position;
+  const local=new Uint8Array(30+n.length),lv=new DataView(local.buffer);
+  u32(lv,0,0x04034b50);u16(lv,4,20);u32(lv,14,checksum);u32(lv,18,d.length);u32(lv,22,d.length);u16(lv,26,n.length);local.set(n,30);
+  add(local);add(d);
+  const c=new Uint8Array(46+n.length),cv=new DataView(c.buffer);
+  u32(cv,0,0x02014b50);u16(cv,4,20);u16(cv,6,20);u32(cv,16,checksum);u32(cv,20,d.length);u32(cv,24,d.length);u16(cv,28,n.length);u32(cv,42,offset);c.set(n,46);center.push(c);
+ }
+ const start=position;center.forEach(add);const end=new Uint8Array(22),ev=new DataView(end.buffer);
+ u32(ev,0,0x06054b50);u16(ev,8,center.length);u16(ev,10,center.length);u32(ev,12,position-start);u32(ev,16,start);add(end);
+ const bytes=new Uint8Array(position);let p=0;for(const chunk of chunks){bytes.set(chunk,p);p+=chunk.length}return bytes;
+}
+function reviewExcelFile(data){
+ const records=[
+  ['Duit-Duit Paaxixi - Rincian '+data.label],['Periode',data.period],
+  ['Jumlah transaksi',data.rows.length],['Total '+data.label,data.total],[],
+  data.columns,...data.rows
+ ];
+ const xmlRows=records.map((r,i)=>'<row r="'+(i+1)+'">'+r.map((v,j)=>{
+  const col=String.fromCharCode(65+j),pos=col+(i+1);
+  const number=typeof v==='number'&&Number.isFinite(v);
+  const sty=i===0?' s="1"':i===5?' s="3"':number?' s="2"':'';
+  return number?'<c r="'+pos+'"'+sty+'><v>'+v+'</v></c>':
+   '<c r="'+pos+'"'+sty+' t="inlineStr"><is><t xml:space="preserve">'+reviewXml(v)+'</t></is></c>';
+ }).join('')+'</row>').join('');
+ const ns='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+ const sheet='<?xml version="1.0" encoding="UTF-8"?>'+
+  '<worksheet xmlns="'+ns+'"><dimension ref="A1:G'+records.length+'"/>'+
+  '<sheetViews><sheetView workbookViewId="0"><pane ySplit="6" topLeftCell="A7" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'+
+  '<cols>'+[16,31,25,25,23,20,38].map((w,i)=>'<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>').join('')+'</cols>'+
+  '<sheetData>'+xmlRows+'</sheetData></worksheet>';
+ const styles='<?xml version="1.0" encoding="UTF-8"?>'+
+  '<styleSheet xmlns="'+ns+'"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>'+
+  '<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFDCEBFF"/><bgColor indexed="64"/></patternFill></fill></fills>'+
+  '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'+
+  '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'+
+  '<cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/>'+
+  '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" applyFont="1"/>'+
+  '<xf numFmtId="3" fontId="0" fillId="0" borderId="0" applyNumberFormat="1"/>'+
+  '<xf numFmtId="0" fontId="1" fillId="1" borderId="0" applyFont="1" applyFill="1"/></cellXfs></styleSheet>';
+ const wb='<?xml version="1.0" encoding="UTF-8"?>'+
+  '<workbook xmlns="'+ns+'" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'+
+  '<sheets><sheet name="Rincian '+reviewXml(data.label)+'" sheetId="1" r:id="rId1"/></sheets></workbook>';
+ const relns='http://schemas.openxmlformats.org/package/2006/relationships';
+ return reviewZip([
+  ['[Content_Types].xml','<?xml version="1.0" encoding="UTF-8"?>'+
+   '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
+   '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'+
+   '<Default Extension="xml" ContentType="application/xml"/>'+
+   '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+
+   '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'+
+   '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'],
+  ['_rels/.rels','<?xml version="1.0" encoding="UTF-8"?>'+
+   '<Relationships xmlns="'+relns+'"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
+  ['xl/workbook.xml',wb],
+  ['xl/_rels/workbook.xml.rels','<?xml version="1.0" encoding="UTF-8"?>'+
+   '<Relationships xmlns="'+relns+'"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'+
+   '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'],
+  ['xl/worksheets/sheet1.xml',sheet],['xl/styles.xml',styles]
+ ]);
+}
+function reviewPDFString(x){
+ return String(x??'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'')
+  .replace(/[^\x20-\x7e]/g,' ').replace(/\s+/g,' ').trim();
+}
+function reviewPDFWrap(value,max=30){
+ const words=reviewPDFString(value).split(' '),out=[];let line='';
+ for(const w of words){
+  if(!w)continue;
+  if(w.length>max){if(line){out.push(line);line='';}for(let i=0;i<w.length;i+=max)out.push(w.slice(i,i+max));}
+  else if(line&&line.length+1+w.length>max){out.push(line);line=w;}
+  else line+=(line?' ':'')+w;
+ }
+ if(line)out.push(line);return out.length?out:[''];
+}
+function reviewPDFFile(data){
+ const encoder=new TextEncoder(),safe=t=>reviewPDFString(t).replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');
+ const t=(v,x,y,size=9,bold=false,color='0.12 0.23 0.41')=>
+  'BT /F'+(bold?2:1)+' '+size+' Tf '+color+' rg 1 0 0 1 '+x+' '+y+' Tm ('+safe(v)+') Tj ET\n';
+ const rectangle=(x,y,w,h,c)=>c+' rg '+x+' '+y+' '+w+' '+h+' re f\n';
+ const pages=[];let stream='',y=0;
+ function startPage(){
+  if(stream)pages.push(stream);
+  stream=rectangle(0,785,595,57,'0.92 0.96 1')+
+   t('DUIT-DUIT PAAXIXI',40,809,10,true,'0.13 0.35 0.63')+
+   t('Rincian '+data.label+' - '+data.period,40,777,17,true)+
+   t('Jumlah: '+data.rows.length+' transaksi | Total: '+money(data.total),40,756,10,true)+
+   rectangle(39,704,517,29,'0.87 0.93 1')+
+   t('Tanggal',42,714,9,true)+t('Transaksi',111,714,9,true)+
+   t('Kelompok / Kategori',238,714,9,true)+t('Rekening',389,714,9,true)+t('Nominal',489,714,9,true);
+  y=695;
+ }
+ startPage();
+ for(let i=0;i<data.rows.length;i++){
+  const r=data.rows[i],chunks=[
+   reviewPDFWrap(r[0],12),reviewPDFWrap(r[1],23),
+   reviewPDFWrap((r[2]||'')+' / '+(r[3]||''),26),reviewPDFWrap(r[4],17),
+   reviewPDFWrap('Rp'+Number(r[5]).toLocaleString('id-ID'),15)
+  ];
+  const note=r[6]?reviewPDFWrap('Catatan: '+r[6],105):[];
+  const high=Math.max(...chunks.map(a=>a.length)),height=14+12*high+10*note.length;
+  if(y-height<50)startPage();
+  if(i%2===0)stream+=rectangle(39,y-height+1,517,height,'0.97 0.98 1');
+  const xs=[42,111,238,389,489];
+  chunks.forEach((parts,k)=>parts.forEach((part,line)=>stream+=t(part,xs[k],y-13-12*line,k===4?9:8,k===4)));
+  note.forEach((part,line)=>stream+=t(part,42,y-13-12*high-10*line,7,false,'0.42 0.50 0.62'));
+  y-=height;stream+='0.87 0.91 0.96 RG 39 '+y+' m 556 '+y+' l S\n';
+ }
+ pages.push(stream);
+ const objs=[],add=x=>(objs.push(x),objs.length),font=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
+ const bold=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>'),pagesId=add(''),children=[];
+ pages.forEach((page,index)=>{
+  const text=page+t('Duit-Duit Paaxixi | Halaman '+(index+1)+' / '+pages.length,40,28,8);
+  const contentId=add('<< /Length '+encoder.encode(text).length+' >>\nstream\n'+text+'endstream');
+  children.push(add('<< /Type /Page /Parent '+pagesId+' 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 '+font+' 0 R /F2 '+bold+' 0 R >> >> /Contents '+contentId+' 0 R >>'));
+ });
+ objs[pagesId-1]='<< /Type /Pages /Kids ['+children.map(x=>x+' 0 R').join(' ')+'] /Count '+children.length+' >>';
+ const catalog=add('<< /Type /Catalog /Pages '+pagesId+' 0 R >>');
+ let pdf='%PDF-1.4\n',offset=encoder.encode(pdf).length;const offsets=[0];
+ objs.forEach((obj,i)=>{offsets.push(offset);const section=(i+1)+' 0 obj\n'+obj+'\nendobj\n';pdf+=section;offset+=encoder.encode(section).length;});
+ const xref=offset;pdf+='xref\n0 '+(objs.length+1)+'\n0000000000 65535 f \n';
+ for(let i=1;i<offsets.length;i++)pdf+=String(offsets[i]).padStart(10,'0')+' 00000 n \n';
+ pdf+='trailer\n<< /Size '+(objs.length+1)+' /Root '+catalog+' 0 R >>\nstartxref\n'+xref+'\n%%EOF';
+ return encoder.encode(pdf);
+}
+function exportReviewFile(format){
+ if(!['xlsx','csv','pdf'].includes(format))return toast('Format export tidak tersedia.',true);
+ const data=reviewExportData(),filename='Duit-Duit-Paaxixi-'+data.label+'-'+data.month+'.'+format;
+ if(format==='csv')downloadFile(filename,reviewExportCSV(data),'text/csv;charset=utf-8');
+ else if(format==='xlsx')downloadFile(filename,reviewExcelFile(data),'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+ else downloadFile(filename,reviewPDFFile(data),'application/pdf');
+ toast('Export '+data.label+' '+data.period+' ('+format.toUpperCase()+') berhasil disiapkan.');
+}
+
 function downloadFile(name,body,mime){let blob=new Blob([body],{type:mime||'text/plain'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),500)}
 function asCSV(items){let fields=['Tanggal','Jenis','Nama Pengeluaran / Pemasukan','Kelompok','Kategori','Rekening','Nominal (Rp)','Catatan'];let rows=[fields,...items.map(t=>[t.date,t.type==='expense'?'Pengeluaran':t.type==='income'?'Pemasukan':'Transfer',t.title,t.group||cat(t.categoryId)?.group||'',t.categoryLabel||cat(t.categoryId)?.label||'',t.accountLabel||acc(t.accountId)?.name||'',t.amount,t.note||''])];return '\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n')}
 function saveReport(){let m=ui.month;if(!db.transactions.some(t=>t.date.slice(0,7)===m)&&!expenses().some(c=>num(db.budgets[m+'|'+c.id])>0))return toast('Belum ada transaksi/anggaran bulan itu untuk diarsipkan.',true);if(db.reports[m]&&!confirm('Timpa arsip '+monthFmt(m)+' dengan keadaan transaksi sekarang?'))return;db.reports[m]=buildReport(m);ui.reportMonth=m;save();setView('reports');toast('Arsip laporan '+monthFmt(m)+' telah disimpan.');}

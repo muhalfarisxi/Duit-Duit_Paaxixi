@@ -6574,10 +6574,6 @@ if(x.id==='comp-preset'){
  render();return;
 }
 if(x.id==='comp-breakdown'){ui.comp.breakdown=x.value==='category'?'category':'group';render();return;}
-if(x.id==='comp-trend-mode'){
- ui.comp.trend=['day','month','year'].includes(x.value)?x.value:'month';
- ui.comp.trendFrom='';ui.comp.trendTo='';render();return;
-}
 if(x.id==='trend-labels'){ui.comp.trendLabels=x.checked;render();return;}
 if(x.id==='trend-start'||x.id==='trend-end'){
  const key=x.id==='trend-start'?'trendFrom':'trendTo';
@@ -6585,6 +6581,8 @@ if(x.id==='trend-start'||x.id==='trend-end'){
  const entered=String(x.value||'');
  if(!regexp.test(entered)||(kind==='year'&&(Number(entered)<1900||Number(entered)>2200))){toast('Masukkan rentang periode yang valid.',true);render();return;}
  const current=trendRange(),from=key==='trendFrom'?entered:current.from,to=key==='trendTo'?entered:current.to;
+ const bounds=trendDefaultRange(kind);
+ if(entered<bounds.from||entered>bounds.to){toast('Pilih periode tren dalam rentang donut.',true);render();return;}
  if(from>to){toast('Periode awal tidak boleh melebihi periode akhir.',true);render();return;}
  ui.comp[key]=entered;render();return;
 }

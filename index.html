@@ -3768,6 +3768,64 @@ body:has(.tx-search-backdrop){overflow:hidden}
 .trend-range-dialog :is(button,input):focus-visible{outline:3px solid #94bbff;outline-offset:2px}
 @media(max-width:510px){.analytics-comp-trend .trend-panel .trend-series-picker{padding:8px}.analytics-comp-trend .trend-panel .trend-series-pill{min-height:30px;padding:5px 8px}.trend-range-dialog{padding:13px}}
 
+/* #080 Compact single-row trend filters and horizontally scrollable series. */
+.analytics-comp-trend .trend-panel .trend-mode-switch.trend-mode-one-row{
+ display:flex!important;flex-wrap:nowrap!important;align-items:center;gap:6px;min-width:0;
+ padding:7px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;
+}
+.analytics-comp-trend .trend-panel .trend-mode-one-row::-webkit-scrollbar{display:none}
+.analytics-comp-trend .trend-panel .trend-mode-one-row .trend-mode-chip{
+ flex:0 0 auto!important;white-space:nowrap;min-height:35px;padding:7px 10px;font-size:10.5px;
+}
+.analytics-comp-trend .trend-panel .trend-mode-one-row .trend-range-chip{
+ appearance:none;flex:0 0 auto;white-space:nowrap;min-height:35px;padding:7px 10px;
+ border:1px solid #bad4f8;border-radius:11px;background:#fff;color:#2d66b1;
+ cursor:pointer;font:900 10.5px/1.2 Nunito,sans-serif;
+}
+.analytics-comp-trend .trend-panel .trend-mode-one-row .trend-range-chip:hover{background:#edf5ff}
+.analytics-comp-trend .trend-panel .trend-period-compact{
+ display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:0 4px;
+}
+.analytics-comp-trend .trend-panel .trend-period-current{
+ min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ color:#5578a7;font:850 10.5px/1.4 Nunito,sans-serif;
+}
+.analytics-comp-trend .trend-panel .trend-period-follow{
+ appearance:none;flex:0 0 auto;border:0;background:transparent;color:#2c67b1;
+ cursor:pointer;font:900 10px/1.25 Nunito,sans-serif;padding:3px 1px;
+}
+.analytics-comp-trend .trend-panel .trend-period-follow:hover{text-decoration:underline}
+.analytics-comp-trend .trend-panel .trend-series-picker.trend-series-single-row{
+ display:flex!important;flex-flow:row nowrap!important;align-items:center;gap:5px;min-width:0;
+ padding:7px;margin:7px 0 6px;border-radius:12px;
+}
+.analytics-comp-trend .trend-panel .trend-series-single-row .trend-series-heading{
+ flex:0 0 auto;white-space:nowrap;margin:0!important;
+}
+.analytics-comp-trend .trend-panel .trend-series-single-row .trend-series-heading strong{font-size:10.5px}
+.analytics-comp-trend .trend-panel .trend-series-single-row .trend-series-buttons{
+ display:flex!important;flex:1 1 auto;min-width:0;flex-wrap:nowrap!important;align-items:center;
+ overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;gap:6px;
+ scrollbar-width:none;-ms-overflow-style:none;touch-action:pan-x pan-y;padding:3px 1px;
+}
+.analytics-comp-trend .trend-panel .trend-series-single-row .trend-series-buttons::-webkit-scrollbar{display:none}
+.analytics-comp-trend .trend-panel .trend-series-single-row .trend-series-pill{flex:0 0 auto!important;white-space:nowrap}
+.analytics-comp-trend .trend-panel .trend-series-single-row .trend-series-step{
+ appearance:none;display:grid;place-items:center;flex:0 0 auto;
+ width:23px;height:31px;padding:0;border:1px solid #d9e6fa;border-radius:8px;
+ background:#fff;color:#3569af;font:900 21px/1 Nunito,sans-serif;cursor:pointer;
+}
+.analytics-comp-trend .trend-panel .trend-series-single-row .trend-series-step:disabled{opacity:.48;cursor:default}
+.analytics-comp-trend .trend-panel .trend-series-single-row .trend-series-step[hidden]{display:none!important}
+.analytics-comp-trend .trend-panel :is(.trend-range-chip,.trend-period-follow,.trend-series-step,.trend-series-buttons):focus-visible{
+ outline:3px solid #94bcf5;outline-offset:2px;
+}
+@media(max-width:510px){
+ .analytics-comp-trend .trend-panel .trend-mode-switch.trend-mode-one-row{gap:4px;padding:6px}
+ .analytics-comp-trend .trend-panel .trend-mode-one-row :is(.trend-mode-chip,.trend-range-chip){min-height:32px;padding:6px 8px;font-size:10px}
+ .analytics-comp-trend .trend-panel .trend-series-picker.trend-series-single-row{gap:4px;padding:6px}
+ .analytics-comp-trend .trend-panel .trend-series-single-row .trend-series-step{width:20px;height:29px}
+}
 </style>
 </head>
 <body>
@@ -4245,6 +4303,7 @@ function render(){
  const prev=document.querySelector('.comp-popover');
  const oldKind=prev?.dataset?.compPopup,oldScroll=prev?.querySelector('.comp-popover-items')?.scrollTop||0;
  const oldTrendScroll=document.querySelector('.trend-scroll')?.scrollLeft;
+ const oldSeriesScroll=document.querySelector('#trend-analysis .trend-series-buttons')?.scrollLeft;
  labelNav();
  document.getElementById('content').innerHTML=({dashboard:renderDash,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])()+renderTxHistoryPopup()+renderTxSearchPopup()+renderTxModal()+renderTrendRangePopup();
  decoratePaaxixiSectionTitles();
@@ -4252,6 +4311,9 @@ function render(){
  paxDecorateMini(document.getElementById('content'));
  paxDecoratePopups(document.getElementById('content'));
  paxAnimateSaved();
+ const seriesScroller=document.querySelector('#trend-analysis .trend-series-buttons');
+ if(seriesScroller&&oldSeriesScroll!==undefined)seriesScroller.scrollLeft=oldSeriesScroll;
+ requestAnimationFrame(updateTrendSeriesArrows);
  const newTrendScroll=document.querySelector('.trend-scroll');
  if(newTrendScroll&&oldTrendScroll!==undefined)newTrendScroll.scrollLeft=oldTrendScroll;
  const trendDialog=document.getElementById('trend-range-dialog');
@@ -4709,8 +4771,9 @@ function renderTrendSeriesButtons(entries){
  const selected=trendSeriesSelected(entries),all=[{id:'total',label:'Total Pengeluaran',color:'#174ea6',icon:'📈'},...entries.map(item=>({
   id:trendSeriesId(item),label:item.label,color:item.color,icon:item.icon
  }))];
- return '<div class="trend-series-picker"><div class="trend-series-heading">'+
-  '<strong>🎨 Tampilkan Garis</strong></div>'+
+ return '<div class="trend-series-picker trend-series-single-row"><div class="trend-series-heading">'+
+  '<strong>🎨 Garis</strong></div>'+ 
+  '<button type="button" class="trend-series-step trend-series-step-prev" data-trend-series-scroll="-1" aria-label="Geser pilihan garis ke kiri">‹</button>'+
   '<div class="trend-series-buttons" role="group" aria-label="Pilih garis tren pengeluaran">'+
   all.map(item=>{
    const active=selected.has(item.id);
@@ -4719,8 +4782,21 @@ function renderTrendSeriesButtons(entries){
     ' title="'+(active?'Sembunyikan':'Tampilkan')+' grafik '+h(item.label)+'">'+
     '<span class="trend-series-pill-icon" aria-hidden="true">'+item.icon+'</span><span>'+h(item.label)+'</span>'+
     (active?'<span class="trend-series-on" aria-hidden="true">✓</span>':'')+'</button>';
-  }).join('')+'</div></div>';
+  }).join('')+'</div>'+ 
+  '<button type="button" class="trend-series-step trend-series-step-next" data-trend-series-scroll="1" aria-label="Geser pilihan garis ke kanan">›</button></div>';
 }
+/* Panah navigasi pilihan garis menyesuaikan posisi dan lebar panel. */
+function updateTrendSeriesArrows(){
+ const host=document.querySelector('#trend-analysis .trend-series-single-row');
+ const scroller=host?.querySelector('.trend-series-buttons');if(!scroller)return;
+ const canScroll=scroller.scrollWidth>scroller.clientWidth+2;
+ const prev=host.querySelector('.trend-series-step-prev'),next=host.querySelector('.trend-series-step-next');
+ if(prev){prev.hidden=!canScroll;prev.disabled=!canScroll||scroller.scrollLeft<=2;}
+ if(next){next.hidden=!canScroll;next.disabled=!canScroll||scroller.scrollLeft>=scroller.scrollWidth-scroller.clientWidth-2;}
+}
+document.addEventListener('scroll',e=>{if(e.target?.matches?.('#trend-analysis .trend-series-buttons'))updateTrendSeriesArrows();},true);
+window.addEventListener('resize',updateTrendSeriesArrows);
+
 function trendCompactValue(value){
  const n=Math.abs(num(value)),negative=value<0?'-':'';
  if(n>=1e9)return negative+'Rp'+(n/1e9).toLocaleString('id-ID',{maximumFractionDigits:1})+'M';
@@ -4965,9 +5041,9 @@ function renderTrendPanel(){
  return `<section class="card trend-panel" id="trend-analysis">
   <div class="card-head"><div><h3>Tren Pengeluaran</h3><p>Klik titik grafik untuk membuka rincian transaksinya.</p></div></div>
   <div class="trend-quick-tools">
-    <div class="trend-mode-switch" role="group" aria-label="Jenis tren">${chips}</div>
+    <div class="trend-mode-switch trend-mode-one-row" role="group" aria-label="Mode dan rentang tren">${chips}<button type="button" class="trend-range-chip" data-trend-range-open>🗓️ Atur Rentang</button></div>
     ${subtitle?`<p class="trend-mode-hint trend-useful-note">${h(subtitle)}</p>`:''}
-    <div class="trend-period-summary"><div class="trend-period-text"><small>Periode ${mode==='day'?'Harian':mode==='month'?'Bulanan':'Tahunan'}</small><strong>${h(activePeriod)}</strong></div><div class="trend-period-actions"><button type="button" data-trend-range-open>🗓️ Atur Rentang</button><button type="button" data-comp-action="trend-default">↺ Ikuti Donut</button></div></div>
+    <div class="trend-period-compact"><span class="trend-period-current" title="${h(activePeriod)}">📅 ${h(activePeriod)}</span><button type="button" class="trend-period-follow" data-comp-action="trend-default">↺ Ikuti Donut</button></div>
   </div>
   ${renderTrendSeriesButtons(donutEntries)}
   <div class="trend-label-toggle"><label><input type="checkbox" id="trend-labels" ${c.trendLabels?'checked':''}> Tampilkan label nominal kecil</label></div>
@@ -6753,6 +6829,11 @@ if(x.dataset.compHighlight!==undefined){
  card.querySelectorAll('[data-comp-highlight]').forEach(node=>node.setAttribute('aria-pressed','false'));
  if(!was)x.setAttribute('aria-pressed','true');
  paxCompRestore(card);return;
+}
+if(x.dataset.trendSeriesScroll!==undefined){
+ const el=document.querySelector('#trend-analysis .trend-series-buttons');
+ if(el)el.scrollBy({left:Number(x.dataset.trendSeriesScroll)*Math.max(160,el.clientWidth*.7),behavior:'smooth'});
+ return;
 }
 if(x.dataset.trendLineToggle!==undefined){
  const itemId=x.dataset.trendLineToggle,all=analysisEntries(expenseSelection().transactions);

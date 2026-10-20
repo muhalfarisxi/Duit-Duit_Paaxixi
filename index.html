@@ -2794,6 +2794,92 @@ body:has(.tx-search-backdrop){overflow:hidden}
 </style>
 <link rel="stylesheet" href="./composition-playful.css?v=5">
 <link rel="stylesheet" href="./composition-pos-popup.css?v=3">
+<style id="composition-v8-style">
+/* v7 — tombol kelompok merupakan legend; label nominal & persen menempel pada donut. */
+#composition-card .comp-direct-groups{gap:8px;padding:8px 0 11px;border-bottom:1px solid #e9eff8}
+#composition-card .comp-direct-groups .comp-group-colored{
+ --comp-group-color:#2563eb;
+ border:1.5px solid color-mix(in srgb,var(--comp-group-color) 50%,#fff)!important;
+ background:color-mix(in srgb,var(--comp-group-color) 9%,#fff)!important;
+ color:color-mix(in srgb,var(--comp-group-color) 70%,#173d65)!important;
+ transition:transform .18s,box-shadow .18s,background .18s!important;
+}
+#composition-card .comp-direct-groups .comp-group-colored:hover{
+ transform:translateY(-2px);
+ background:color-mix(in srgb,var(--comp-group-color) 17%,#fff)!important;
+ box-shadow:0 5px 12px #244a8021!important;
+}
+#composition-card .comp-direct-groups .comp-group-colored[aria-pressed=true]{
+ background:var(--comp-group-color)!important;
+ border-color:var(--comp-group-color)!important;
+ color:#fff!important;
+ box-shadow:0 5px 13px color-mix(in srgb,var(--comp-group-color) 32%,transparent)!important;
+}
+#composition-card .comp-recap-stage{width:100%;margin:0 auto 2px;min-width:0}
+#composition-card .comp-recap-wide{position:relative;width:100%;max-width:730px;margin:auto;isolation:isolate}
+#composition-card .comp-recap-wide>svg{display:block;width:100%;height:auto;max-width:100%;overflow:visible}
+#composition-card .comp-recap-arc{stroke-width:32;stroke-linecap:butt;cursor:pointer;outline:none;transform-origin:320px center;transition:stroke-width .24s,opacity .2s,filter .24s;animation:compRecapAppear .65s ease both;animation-delay:var(--recap-delay,0ms)}
+#composition-card .comp-recap-wide .comp-recap-arc{transform-origin:center;transform-box:view-box}
+#composition-card .comp-recap-arc:is(.is-active,:hover,:focus-visible){stroke-width:39;filter:drop-shadow(0 4px 4px #19458b60)}
+#composition-card .comp-recap-arc:focus-visible{stroke-width:41}
+#composition-card .is-exploring .comp-recap-arc:not(.is-active){opacity:.27}
+#composition-card .comp-recap-center{
+ position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+ width:22%;max-width:145px;aspect-ratio:1;display:flex;justify-content:center;
+ align-items:center;text-align:center;pointer-events:none;padding:0 7px;
+}
+#composition-card .comp-recap-center strong{
+ color:#174884;font:700 clamp(17px,2.9vw,27px)/1.12 Fredoka,Nunito,sans-serif;
+ letter-spacing:-.55px;white-space:nowrap;text-shadow:0 2px 7px #edf4ff;
+}
+#composition-card .comp-recap-callout{cursor:pointer;outline:none;transition:filter .18s,opacity .18s}
+#composition-card .comp-recap-callout:hover,#composition-card .comp-recap-callout:focus-visible,#composition-card .comp-recap-callout.is-active{
+ filter:drop-shadow(0 3px 5px #315b9230);
+}
+#composition-card .comp-recap-callout:hover rect,#composition-card .comp-recap-callout:focus-visible rect,#composition-card .comp-recap-callout.is-active rect{stroke-width:2.3;fill:#edf6ff}
+#composition-card .comp-recap-callout-name{font:850 12px/1.2 Nunito,system-ui,sans-serif;letter-spacing:-.15px}
+#composition-card .comp-recap-callout-data{font:800 11px/1.2 Nunito,system-ui,sans-serif;fill:#506e96}
+#composition-card .comp-recap-narrow{display:none}
+#composition-card .comp-insight,#composition-card .comp-live-mini,#composition-card .comp-live-focus,#composition-card .comp-donut-legend{display:none!important}
+@keyframes compRecapAppear{from{opacity:.2;filter:blur(1px)}to{opacity:1;filter:blur(0)}}
+@media(max-width:670px){
+ #composition-card .comp-recap-wide{display:none}
+ #composition-card .comp-recap-narrow{display:grid;grid-template-columns:minmax(125px,.85fr) minmax(0,1.15fr);align-items:center;gap:10px;min-height:180px;margin-top:5px}
+ #composition-card .comp-recap-small-ring{position:relative;width:100%;max-width:205px;aspect-ratio:1;margin:auto}
+ #composition-card .comp-recap-small-ring>svg{display:block;width:100%;height:auto;overflow:visible}
+ #composition-card .comp-recap-small-center{position:absolute;inset:25%;pointer-events:none;display:flex;align-items:center;justify-content:center;text-align:center}
+ #composition-card .comp-recap-small-center strong{font:700 clamp(15px,3vw,23px)/1.18 Fredoka,Nunito,sans-serif;color:#164984;white-space:nowrap}
+ #composition-card .comp-recap-narrow .comp-recap-arc{stroke-width:33;transform-origin:center;transform-box:view-box}
+ #composition-card .comp-recap-narrow .comp-recap-arc:is(:hover,:focus-visible,.is-active){stroke-width:39}
+ #composition-card .comp-recap-rail{display:grid;align-content:start;gap:6px;max-height:244px;overflow-y:auto;scrollbar-width:thin;min-width:0;padding:4px 3px}
+ #composition-card .comp-recap-rail-label{appearance:none;text-align:left;display:flex;flex-direction:column;gap:2px;width:100%;min-width:0;cursor:pointer;background:color-mix(in srgb,var(--recap-color) 7%,#fff);border:1.3px solid color-mix(in srgb,var(--recap-color) 40%,#fff);border-radius:11px;padding:7px 8px;transition:transform .18s,box-shadow .18s}
+ #composition-card .comp-recap-rail-label:is(:hover,.is-active,:focus-visible){transform:translateY(-1px);border-color:var(--recap-color);box-shadow:0 4px 10px #335b9221;background:color-mix(in srgb,var(--recap-color) 13%,#fff)}
+ #composition-card .comp-recap-rail-label:focus-visible{outline:2px solid #86b8fa;outline-offset:2px}
+ #composition-card .comp-recap-rail-name{font:900 10px/1.3 Nunito,sans-serif;color:color-mix(in srgb,var(--recap-color) 75%,#203955);overflow-wrap:anywhere}
+ #composition-card .comp-recap-rail-data{font:750 10px/1.3 Nunito,sans-serif;color:#597598;white-space:normal}
+}
+@media(max-width:420px){
+ #composition-card .comp-recap-narrow{grid-template-columns:minmax(120px,.82fr) minmax(0,1.18fr);gap:6px}
+ #composition-card .comp-recap-rail{max-height:205px;gap:5px}
+ #composition-card .comp-recap-rail-label{padding:6px}
+ #composition-card .comp-recap-small-center strong{font-size:16px}
+ #composition-card .comp-direct-groups{gap:5px}
+}
+@media(prefers-reduced-motion:reduce){#composition-card .comp-recap-arc,#composition-card .comp-recap-callout,#composition-card .comp-recap-rail-label{animation:none!important;transition:none!important}}
+
+
+/* Standalone v8 indicator + fallback layout to avoid stale legacy styles. */
+#composition-card[data-comp-build="v8"] .comp-build-tag{
+ display:inline-flex;vertical-align:middle;margin-left:7px;align-items:center;
+ font:800 9px/1.25 Nunito,sans-serif;color:#6d8eae;background:#eff6ff;
+ border:1px solid #dceafe;border-radius:999px;padding:3px 6px;letter-spacing:.15px;
+}
+#composition-card[data-live-chart="ready"] .comp-donut-legend,
+#composition-card[data-live-chart="ready"] .comp-distribution{
+ display:none!important;
+}
+
+</style>
 </head>
 <body>
 <div class="app">
@@ -3618,8 +3704,8 @@ function renderComposition(){
  }).join(', ');
  const topCats=selected.categories.map(c=>({c,total:selected.transactions.filter(t=>t.categoryId===c.id).reduce((sum,t)=>sum+num(t.amount),0)})).filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
  const range=dates.from===dates.to?dateFmt(dates.from):dateFmt(dates.from)+' – '+dateFmt(dates.to);
- return `<section class="card" id="composition-card" data-comp-pos-groups="${h(JSON.stringify(posGroups))}" data-comp-pos-period="${h(dates.title)}">
- <div class="card-head comp-header"><div><h3>Komposisi Pengeluaran</h3><p class="comp-compact-subtitle">${h(dates.title)} · ${selected.transactions.length} transaksi</p><div class="comp-summary">${h(range)} · ${selected.transactions.length} Transaksi · ${selected.groups.length} Kelompok · ${selected.categories.length} Pos</div></div>
+ return `<section class="card" id="composition-card" data-comp-build="v8" data-comp-pos-groups="${h(JSON.stringify(posGroups))}" data-comp-pos-period="${h(dates.title)}">
+ <div class="card-head comp-header"><div><h3>Komposisi Pengeluaran <span class="comp-build-tag" title="Versi grafik terbaru">v8</span></h3><p class="comp-compact-subtitle">${h(dates.title)} · ${selected.transactions.length} transaksi</p><div class="comp-summary">${h(range)} · ${selected.transactions.length} Transaksi · ${selected.groups.length} Kelompok · ${selected.categories.length} Pos</div></div>
   <div class="comp-header-actions"><button type="button" class="comp-pos-launch" data-comp-pos-launch aria-haspopup="dialog">🍩 Per Pos <span aria-hidden="true">↗</span></button></div>
  </div>
  ${renderCompositionQuickBar()}${renderCompositionControls()}
@@ -5667,7 +5753,190 @@ document.addEventListener('visibilitychange',()=>{
  });
 })();
 </script>
-<script src="./composition-playful.js?v=7" defer></script>
+<script id="composition-v8-script">
+/* Duit-Duit Paaxixi — komposisi chart v7.
+   Legend kelompok berada di tombol pemilih atas; irisan memakai label langsung.
+   Tidak menulis/mengubah transaksi, rekening, filter, atau cloud. */
+(()=>{
+ 'use strict';
+ const get=(root,selector)=>root?.querySelector(selector);
+ const getAll=(root,selector)=>[...(root?.querySelectorAll(selector)||[])];
+ const money=value=>'Rp'+Math.round(value||0).toLocaleString('id-ID');
+ const compact=value=>value>=1e9?'Rp'+(value/1e9).toLocaleString('id-ID',{maximumFractionDigits:1})+' M':
+  value>=1e6?'Rp'+(value/1e6).toLocaleString('id-ID',{maximumFractionDigits:1})+' jt':
+  value>=1e3?'Rp'+(value/1e3).toLocaleString('id-ID',{maximumFractionDigits:0})+' rb':money(value);
+ const node=(tag,cls,txt)=>{
+  const el=document.createElement(tag);
+  if(cls)el.className=cls;
+  if(txt!==undefined)el.textContent=txt;
+  return el;
+ };
+ const vector=(tag,attrs={})=>{
+  const el=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  Object.entries(attrs).forEach(([key,value])=>el.setAttribute(key,String(value)));
+  return el;
+ };
+ const xy=(deg,r,cx,cy)=>{
+  const theta=(deg-90)*Math.PI/180;
+  return {x:cx+r*Math.cos(theta),y:cy+r*Math.sin(theta)};
+ };
+ function arc(from,to,r,cx,cy){
+  const size=to-from,trim=Math.min(.6,size*.16);
+  let a=from+trim,b=to-trim;if(b-a>=359.9)b=a+359.75;
+  const first=xy(a,r,cx,cy),last=xy(b,r,cx,cy);
+  return 'M '+first.x.toFixed(2)+' '+first.y.toFixed(2)+
+   ' A '+r+' '+r+' 0 '+(b-a>180?'1':'0')+' 1 '+last.x.toFixed(2)+' '+last.y.toFixed(2);
+ }
+ function enhance(){
+  const card=document.getElementById('composition-card');
+  if(!card||card.dataset.liveChart==='ready')return;
+  const distribution=get(card,'.comp-distribution');
+  const legend=get(card,'.comp-donut-legend');
+  if(!distribution||!legend)return;
+  const rows=getAll(legend,'.comp-legend-item').map(item=>({
+   name:get(item,'.comp-legend-name')?.textContent?.trim()||'Kategori',
+   icon:get(item,'.category-symbol')?.textContent?.trim()||'🏷️',
+   amount:Number((get(item,'.comp-legend-amount')?.textContent||'0').replace(/[^0-9]/g,''))||0,
+   color:item.dataset.compColor||'#2563eb'
+  })).filter(item=>item.amount>0);
+  if(!rows.length)return;
+  card.dataset.liveChart='ready';
+  const total=rows.reduce((acc,item)=>acc+item.amount,0);
+  const selectedGroup=!!get(card,'.comp-direct-groups .comp-group-colored[aria-pressed="true"]');
+  const stage=node('div','comp-recap-stage');
+  stage.setAttribute('aria-label',selectedGroup?'Komposisi per pos di kelompok terpilih':'Komposisi per kelompok pengeluaran');
+  const desktop=node('div','comp-recap-wide');
+  const mobile=node('div','comp-recap-narrow');
+  const left=[],right=[];
+  let angle=0;
+  const figures=rows.map((item,index)=>{
+   const start=angle,span=item.amount/total*360;angle+=span;
+   const midpoint=start+span/2;
+   const side=Math.sin((midpoint)*Math.PI/180)>=0?'right':'left';
+   const figure={...item,index,start,end:angle,mid:midpoint,side,percentage:Math.round(item.amount/total*100)};
+   (side==='right'?right:left).push(figure);
+   return figure;
+  });
+  const maxItems=Math.max(left.length,right.length);
+  const height=Math.max(315,Math.round(maxItems*56+56));
+  const cx=320,cy=height/2,radius=87;
+  const canvas=vector('svg',{viewBox:'0 0 640 '+height,role:'group',
+   'aria-label':'Donut dengan label nominal dan persentase untuk setiap '+(selectedGroup?'pos':'kelompok')});
+  const track=vector('circle',{cx,cy,r:radius,fill:'none',stroke:'#e8effa','stroke-width':32});
+  canvas.append(track);
+  const connectorLayer=vector('g',{class:'comp-recap-connectors'});
+  const arcLayer=vector('g',{class:'comp-recap-arcs'});
+  const labelLayer=vector('g',{class:'comp-recap-labels'});
+  canvas.append(connectorLayer,arcLayer,labelLayer);
+  const center=node('div','comp-recap-center');
+  const value=node('strong','',compact(total));center.append(value);
+  desktop.append(canvas,center);
+  // A responsive donut and a narrow adjacent annotation rail for phone widths.
+  const smallRing=node('div','comp-recap-small-ring');
+  const smallSvg=vector('svg',{viewBox:'0 0 240 240',role:'group','aria-label':'Grafik komposisi interaktif'});
+  smallSvg.append(vector('circle',{cx:120,cy:120,r:88,fill:'none',stroke:'#e8effa','stroke-width':32}));
+  const smallCenter=node('div','comp-recap-small-center');
+  const smallValue=node('strong','',compact(total));smallCenter.append(smallValue);
+  smallRing.append(smallSvg,smallCenter);
+  const smallRail=node('div','comp-recap-rail');smallRail.setAttribute('aria-label','Label persentase dan nominal di sisi donut');
+  mobile.append(smallRing,smallRail);
+  stage.append(desktop,mobile);
+  const shapes=[],labels=[],mobileLabels=[];
+  let locked=-1;
+  function paint(index){
+   const chosen=index>=0?figures[index]:null;
+   value.textContent=compact(chosen?chosen.amount:total);
+   smallValue.textContent=value.textContent;
+   canvas.classList.toggle('is-exploring',!!chosen);
+   smallSvg.classList.toggle('is-exploring',!!chosen);
+   shapes.forEach(({wide,narrow},i)=>{
+    for(const path of [wide,narrow]){
+     path.classList.toggle('is-active',i===index);
+     path.setAttribute('aria-pressed',String(i===locked));
+    }
+   });
+   labels.forEach((el,i)=>{el.classList.toggle('is-active',i===index);el.setAttribute('aria-pressed',String(i===locked));});
+   mobileLabels.forEach((el,i)=>{el.classList.toggle('is-active',i===index);el.setAttribute('aria-pressed',String(i===locked));});
+  }
+  const choose=index=>{locked=locked===index?-1:index;paint(locked);};
+  function connect(el,index){
+   el.addEventListener('mouseenter',()=>paint(index));
+   el.addEventListener('mouseleave',()=>paint(locked));
+   el.addEventListener('focus',()=>paint(index));
+   el.addEventListener('blur',()=>paint(locked));
+   el.addEventListener('click',()=>choose(index));
+   if(el.namespaceURI==='http://www.w3.org/2000/svg'){
+    el.addEventListener('keydown',event=>{
+     if(event.key==='Enter'||event.key===' '){event.preventDefault();choose(index);}
+    });
+   }
+  }
+  figures.forEach((entry,i)=>{
+   const props={stroke:entry.color,fill:'none',role:'button',tabindex:0,
+    'aria-label':entry.name+', '+entry.percentage+' persen, '+money(entry.amount),
+    'aria-pressed':'false'};
+   const wide=vector('path',{...props,d:arc(entry.start,entry.end,radius,cx,cy),class:'comp-recap-arc'});
+   const mobilePath=vector('path',{...props,d:arc(entry.start,entry.end,88,120,120),class:'comp-recap-arc'});
+   const push=xy(entry.mid,4,0,0);
+   wide.style.setProperty('--recap-push-x',push.x.toFixed(2)+'px');
+   wide.style.setProperty('--recap-push-y',push.y.toFixed(2)+'px');
+   mobilePath.style.setProperty('--recap-push-x',push.x.toFixed(2)+'px');
+   mobilePath.style.setProperty('--recap-push-y',push.y.toFixed(2)+'px');
+   wide.style.setProperty('--recap-delay',i*65+'ms');
+   mobilePath.style.setProperty('--recap-delay',i*65+'ms');
+   arcLayer.append(wide);smallSvg.append(mobilePath);
+   shapes.push({wide,narrow:mobilePath});
+   connect(wide,i);connect(mobilePath,i);
+   const mini=node('button','comp-recap-rail-label');
+   mini.type='button';mini.setAttribute('aria-pressed','false');mini.style.setProperty('--recap-color',entry.color);
+   const top=node('span','comp-recap-rail-name',entry.icon+' '+entry.name);
+   const detail=node('span','comp-recap-rail-data',entry.percentage+'% · '+money(entry.amount));
+   mini.append(top,detail);mini.setAttribute('aria-label',entry.name+', '+entry.percentage+' persen, '+money(entry.amount));
+   smallRail.append(mini);mobileLabels.push(mini);connect(mini,i);
+  });
+  // Label positions are distributed separately on either side of the ring to prevent collisions.
+  for(const list of [left,right]){
+   list.sort((a,b)=>xy(a.mid,118,cx,cy).y-xy(b.mid,118,cx,cy).y);
+   list.forEach((entry,j)=>{
+    const x=entry.side==='left'?7:471;
+    const slot=cy+(j-(list.length-1)/2)*56;
+    const origin=xy(entry.mid,109,cx,cy);
+    const destX=entry.side==='left'?181:459;
+    const elbowX=entry.side==='left'?222:418;
+    const connector=vector('path',{
+     d:'M '+origin.x.toFixed(2)+' '+origin.y.toFixed(2)+
+       ' L '+elbowX+' '+slot.toFixed(2)+' L '+destX+' '+slot.toFixed(2),
+     stroke:entry.color,fill:'none','stroke-width':1.7,
+     'stroke-linecap':'round',opacity:.72
+    });
+    connectorLayer.append(connector);
+    const g=vector('g',{class:'comp-recap-callout',role:'button',tabindex:0,'aria-pressed':'false',
+     'aria-label':entry.name+', '+entry.percentage+' persen, '+money(entry.amount)});
+    const plate=vector('rect',{x,y:slot-24,width:162,height:48,rx:12,fill:'#f8fbff',
+     stroke:entry.color,'stroke-opacity':.44,'stroke-width':1.25});
+    const name=vector('text',{x:x+10,y:slot-5,class:'comp-recap-callout-name',fill:entry.color});
+    name.textContent=entry.icon+' '+entry.name;
+    const detail=vector('text',{x:x+10,y:slot+12,class:'comp-recap-callout-data'});
+    detail.textContent=entry.percentage+'% · '+money(entry.amount);
+    g.append(plate,name,detail);labelLayer.append(g);
+    labels[entry.index]=g;connect(g,entry.index);
+   });
+  }
+  distribution.replaceWith(stage);
+  get(card,'.comp-insight')?.remove();
+  get(card,'.comp-live-intro')?.remove();
+  get(card,'.comp-live-mini')?.remove();
+  paint(-1);
+ }
+ function init(){
+  const content=document.getElementById('content');if(!content)return;
+  const observer=new MutationObserver(enhance);observer.observe(content,{childList:true});
+  enhance();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+ else init();
+})();
+</script>
 <script src="./composition-pos-popup.js?v=2" defer></script>
 <script src="firebase-config.js"></script>
 <script type="module" src="cloud.js"></script>

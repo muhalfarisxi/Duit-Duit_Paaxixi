@@ -166,3 +166,50 @@ body.comp-live-dialog-open{overflow:hidden}
 .comp-live-dialog .comp-live-pane h4{font-family:Fredoka,Nunito,sans-serif;font-weight:700;color:#23568b}
 .comp-live-dialog .comp-live-pane p{font-family:Nunito,sans-serif;font-weight:750;color:#5e789c}
 .comp-live-dialog .comp-live-pane small{font-family:Nunito,sans-serif;color:#8094ac}
+
+
+/* v5 — Filter cepat sekali tap, dashboard ringan dan popup kategori */
+#composition-card .comp-quickbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 13px;margin:2px 0 13px;padding:10px 11px;background:linear-gradient(115deg,#f3f8ff,#f8fbff);border:1px solid #dceafa;border-radius:14px}
+#composition-card .comp-quick-group{display:flex;flex-direction:column;gap:5px;min-width:0}
+#composition-card .comp-quick-label{font:900 10px/1.2 Nunito,sans-serif;color:#6682a5}
+#composition-card .comp-quick-options{display:flex;flex-wrap:wrap;align-items:center;gap:5px;min-width:0}
+#composition-card .comp-quick-choice{border:1px solid #d7e5fa;background:#fff;color:#637e9e;border-radius:9px;padding:7px 10px;font:850 11px/1.3 Nunito,sans-serif;white-space:nowrap;transition:transform .17s,background .17s,box-shadow .17s}
+#composition-card .comp-quick-choice:hover{transform:translateY(-2px);background:#e9f3ff}
+#composition-card .comp-quick-choice[aria-pressed=true]{background:#275fb7;color:#fff;border-color:#275fb7;box-shadow:0 4px 9px #275fb731}
+#composition-card .comp-quick-choice:focus-visible,#composition-card .comp-filter-chip:focus-visible,#composition-card .comp-filter-more:focus-visible{outline:3px solid #85b8ff;outline-offset:2px}
+#composition-card .comp-quick-dates{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding-top:3px}
+#composition-card .comp-quick-dates label{display:flex;flex-direction:column;gap:4px;min-width:0;font:850 10px/1.2 Nunito,sans-serif;color:#6c82a0}
+#composition-card .comp-quick-dates input{width:100%;min-width:0;padding:8px;border:1px solid #cbdff6;background:#fff;border-radius:9px;color:#2e4e79;font:750 11px Nunito,sans-serif}
+#composition-card .comp-controls.comp-controls-inline{display:grid;gap:11px;margin:0 0 12px;padding:11px 12px;max-width:100%;background:linear-gradient(120deg,#f5f9ff,#fafcff);border:1px solid #dce9fb;border-radius:14px}
+#composition-card .comp-filter-row{display:grid;gap:6px;min-width:0}
+#composition-card .comp-filter-caption{display:flex;align-items:center;justify-content:space-between;gap:7px;flex-wrap:wrap}
+#composition-card .comp-filter-caption strong{font:900 11px/1.3 Nunito,sans-serif;color:#345f92}
+#composition-card .comp-filter-caption small{font:750 10px/1.3 Nunito,sans-serif;color:#899cb6}
+#composition-card .comp-filter-chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap;overflow-y:auto;max-height:146px;padding:3px 1px 5px;scrollbar-width:thin}
+#composition-card .comp-filter-chip{font:850 10px/1.3 Nunito,sans-serif;white-space:normal;text-align:center;min-height:29px;padding:6px 10px;border:1px solid #dce7f8;border-radius:999px;background:#fff;color:#6480a0;transition:transform .18s,background .18s}
+#composition-card .comp-filter-chip:hover{transform:translateY(-1px);background:#eaf3ff}
+#composition-card .comp-filter-chip[aria-pressed=true]{border-color:#4380cf;background:#e5f0ff;color:#1d5ba2;box-shadow:0 2px 7px #4380cf17}
+#composition-card .comp-filter-chip.comp-all-chip[aria-pressed=true]{background:#2a61b5;border-color:#2a61b5;color:white}
+#composition-card .comp-filter-more{font:900 10px/1.3 Nunito,sans-serif;color:#2863b4;background:#e8f2ff;border:1px dashed #9bc1f0;border-radius:999px;padding:6px 10px}
+#composition-card .comp-filter-footer{display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap;border-top:1px solid #e3ecf9;padding-top:8px}
+#composition-card .comp-filter-footer>span{font:750 10px/1.3 Nunito,sans-serif;color:#8a9db6}
+#composition-card .comp-filter-none{font:750 10px Nunito,sans-serif;color:#889cb6}
+#composition-card .comp-donut-legend{max-height:none;overflow:visible;gap:6px}
+#composition-card .comp-live-legend:nth-child(n+4){display:none}
+#composition-card .comp-live-legend{animation-duration:.38s}
+#composition-card .comp-live-show-more{display:block;width:100%;padding:7px 8px;margin-top:4px;color:#2f66aa;background:#eff6ff;border:1px dashed #bcd4f4;border-radius:10px;font:850 11px/1.3 Nunito,sans-serif;transition:background .18s}
+#composition-card .comp-live-show-more:hover{background:#e0edff}
+#composition-card .comp-live-show-more:focus-visible{outline:3px solid #8ab9fa;outline-offset:2px}
+#composition-card .comp-live-mini{padding:8px 10px;gap:6px}
+#composition-card .comp-live-mini-copy strong{font-size:11px}
+#composition-card .comp-live-mini-copy span{font-size:10px}
+#composition-card .comp-live-open{padding:8px 9px;font-size:10px}
+.comp-live-dialog .comp-live-chooser{display:grid;gap:6px;margin:0 0 10px;padding:10px;border-radius:12px;background:#f5f9ff;border:1px solid #e2edfc}
+.comp-live-dialog .comp-live-chooser-label{font:900 10px/1.3 Nunito,sans-serif;color:#607b9f}
+.comp-live-dialog .comp-live-chooser-list{display:flex;align-items:center;flex-wrap:wrap;gap:6px;max-height:102px;overflow:auto;scrollbar-width:thin}
+.comp-live-dialog .comp-live-chooser-chip{appearance:none;border-radius:999px;border:1px solid #dce7f8;background:#fff;color:#5f7b9e;padding:6px 8px;font:850 10px/1.3 Nunito,sans-serif;cursor:pointer;transition:.18s}
+.comp-live-dialog .comp-live-chooser-chip:hover{transform:translateY(-1px);border-color:var(--live-color,#a8c9fa)}
+.comp-live-dialog .comp-live-chooser-chip:is(.active,[aria-pressed=true]){background:#e8f1ff;color:#245ca6;border-color:var(--live-color,#7aa6e6)}
+.comp-live-dialog .comp-live-chooser-chip:focus-visible{outline:3px solid #8ebfff;outline-offset:2px}
+@container(max-width:650px){#composition-card .comp-quickbar{grid-template-columns:1fr;gap:10px}#composition-card .comp-quick-group{flex-direction:row;align-items:center;flex-wrap:wrap;gap:7px}#composition-card .comp-quick-label{flex:0 0 65px}#composition-card .comp-quick-options{flex:1}}
+@container(max-width:390px){#composition-card .comp-quickbar{padding:8px}#composition-card .comp-quick-group{align-items:flex-start;flex-direction:column}#composition-card .comp-quick-options{width:100%}#composition-card .comp-quick-choice{padding:7px;font-size:10px}#composition-card .comp-live-mini{flex-wrap:nowrap}#composition-card .comp-live-open{width:auto;white-space:normal;max-width:115px}}

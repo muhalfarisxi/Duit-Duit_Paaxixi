@@ -3454,7 +3454,10 @@ function renderCompositionQuickBar(){
 function renderCompositionControls(){
  const c=ui.comp,groupList=expenseGroups(),active=c.groups?.length===1?c.groups[0]:null;
  const choices='<button type="button" class="comp-filter-chip comp-all-chip" data-comp-quick-group="all" aria-pressed="'+(!active)+'">✨ Semua Kelompok</button>'+
-  groupList.map(g=>'<button type="button" class="comp-filter-chip" data-comp-quick-group="'+h(g.id)+'" aria-pressed="'+(active===g.id)+'">'+pickSymbol(g.name,g.name)+' '+h(g.name)+'</button>').join('');
+  groupList.map(g=>{
+   const color=/^#[0-9a-f]{6}$/i.test(g.color||'')?g.color:'#2563eb';
+   return '<button type="button" class="comp-filter-chip comp-group-colored" style="--comp-group-color:'+color+'" data-comp-quick-group="'+h(g.id)+'" aria-pressed="'+(active===g.id)+'" title="Lihat pos '+h(g.name)+'">'+pickSymbol(g.name,g.name)+' '+h(g.name)+'</button>';
+  }).join('');
  return '<div class="comp-direct-groups" role="group" aria-label="Pilih kelompok pengeluaran">'+choices+'</div>';
 }
 

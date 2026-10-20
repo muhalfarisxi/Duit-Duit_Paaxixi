@@ -2014,6 +2014,47 @@ body:has(.tx-search-backdrop){overflow:hidden}
  .tx-search-account-shortcuts button{transition:none!important}
 }
 
+
+/* #055 Kalender ceria + pencarian dikelompokkan per tanggal */
+.tx-calendar-section .tx-calendar-header{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;margin-bottom:12px}
+.tx-calendar-header-title{flex:1 1 280px;min-width:0}
+.tx-calendar-section .tx-calendar-title{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:0;font:600 clamp(17px,1.7vw,22px)/1.3 'Fredoka','Nunito',system-ui,sans-serif;color:#17416f}
+.tx-calendar-title-icon{display:grid;place-items:center;flex:none;width:43px;height:43px;border-radius:14px;background:#e7f2ff;border:1px solid #c0d8f9;font-size:23px;box-shadow:0 4px 11px rgba(26,84,157,.1);animation:tx-cals-float 3.4s ease-in-out infinite}
+.tx-calendar-title-words{position:relative}
+.tx-calendar-title-words::after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:3px;border-radius:10px;background:linear-gradient(90deg,#377ad2,#a8cefa,transparent);transform-origin:left;animation:tx-cals-line .7s ease-out both}
+.tx-calendar-month{padding:7px 11px;border-radius:999px;border:1px solid #f1d897;background:#fff6df;color:#90680e;box-shadow:0 3px 9px rgba(210,154,27,.07);font:800 clamp(12px,1.05vw,14px)/1.3 'Nunito',sans-serif}
+.tx-calendar-sparkle{font-size:19px;animation:tx-cals-sparkle 3s ease-in-out infinite}
+.tx-calendar-section .tx-calendar-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px}
+.tx-calendar-section .tx-calendar-actions :is(.tx-calendar-search-cta,.tx-calendar-all-cta){display:inline-flex;justify-content:center;align-items:center;gap:7px;min-height:46px;padding:10px 14px;border-style:solid;border-width:1.5px;border-radius:14px;font:850 12px/1.3 'Nunito',system-ui,sans-serif;white-space:nowrap;cursor:pointer;transition:transform .18s,box-shadow .18s}
+.tx-calendar-section .tx-calendar-actions .tx-calendar-search-cta{background:linear-gradient(115deg,#e9f3ff,#d8eaff);color:#1c5190;border-color:#9dc2f5;box-shadow:0 5px 14px rgba(38,100,182,.11);animation:tx-cals-blue 4s ease-in-out infinite}
+.tx-calendar-section .tx-calendar-actions .tx-calendar-all-cta{background:linear-gradient(115deg,#fff7df,#ffebbb);color:#88600b;border-color:#eed088;box-shadow:0 5px 14px rgba(191,145,30,.14);animation:tx-cals-gold 4.5s ease-in-out infinite}
+.tx-calendar-section .tx-calendar-actions :is(.tx-calendar-search-cta,.tx-calendar-all-cta):hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(31,86,158,.19)}
+.tx-calendar-section .tx-calendar-actions button:focus-visible{outline:3px solid #3d83dd;outline-offset:3px}
+.tx-calendar-cta-arrow{display:inline-block;transition:transform .18s}
+.tx-calendar-all-cta:hover .tx-calendar-cta-arrow{transform:translate(3px,-2px)}
+.tx-search-date-group{overflow:hidden;margin:0 0 12px;border:1px solid #d5e4f9;border-radius:17px;box-shadow:0 4px 13px rgba(33,85,151,.045)}
+.tx-search-date-group>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none;padding:13px 15px;cursor:pointer;background:linear-gradient(115deg,#f6f9ff,#ecf4ff);border-bottom:1px solid #dde8f7}
+.tx-search-date-group>summary::-webkit-details-marker{display:none}
+.tx-search-date-group:not([open])>summary{border-bottom:0}
+.tx-search-date-group>summary:focus-visible{outline:3px solid #3b7fda;outline-offset:-3px}
+.tx-search-date-label{display:flex;align-items:center;flex-wrap:wrap;gap:7px;color:#183e70}
+.tx-search-date-label>strong{font-size:15px}
+.tx-search-date-chevron{display:inline-block;font-size:14px;color:#3977ce;transition:transform .18s}
+.tx-search-date-group:not([open]) .tx-search-date-chevron{transform:rotate(-90deg)}
+.tx-search-date-group .tx-cal-day-head-totals{display:flex;align-items:center;flex-wrap:wrap;gap:12px;font:850 12px/1.4 'Nunito',sans-serif}
+.tx-search-date-list{display:grid;padding:6px 13px 10px;background:#fff}
+.tx-search-date-group .tx-search-result{border:0;border-bottom:1px solid #e3ecf9;border-radius:0;box-shadow:none;margin:0;padding:13px 4px}
+.tx-search-date-group .tx-search-result:last-child{border-bottom:0}
+.tx-search-date-group .tx-search-result:hover{background:#f9fbff;box-shadow:none}
+@keyframes tx-cals-float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-3px) rotate(3deg)}}
+@keyframes tx-cals-line{from{transform:scaleX(.07);opacity:.2}to{transform:scaleX(1);opacity:1}}
+@keyframes tx-cals-sparkle{0%,68%,100%{transform:scale(.95) rotate(-6deg);opacity:.7}78%{transform:scale(1.18) rotate(7deg);opacity:1}}
+@keyframes tx-cals-blue{0%,100%{box-shadow:0 5px 14px rgba(38,100,182,.11)}50%{box-shadow:0 7px 18px rgba(45,125,230,.24)}}
+@keyframes tx-cals-gold{0%,100%{box-shadow:0 5px 14px rgba(191,145,30,.14)}50%{box-shadow:0 7px 18px rgba(231,169,38,.27)}}
+@media(max-width:750px){.tx-calendar-header-title{flex-basis:100%}.tx-calendar-section .tx-calendar-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;width:100%}.tx-calendar-section .tx-calendar-actions :is(.tx-calendar-search-cta,.tx-calendar-all-cta){min-width:0;min-height:42px;padding:8px 6px;font-size:11px;white-space:normal;text-align:center}}
+@media(max-width:570px){.tx-calendar-section .tx-calendar-title{gap:6px;font-size:16px}.tx-calendar-title-icon{width:36px;height:36px;font-size:20px}.tx-calendar-month{font-size:12px}.tx-search-date-group>summary{flex-direction:column;align-items:flex-start;padding:11px;gap:7px}.tx-search-date-label>strong{font-size:13px}.tx-search-date-group .tx-cal-day-head-totals{padding-left:17px;font-size:11px;gap:9px}.tx-search-date-list{padding:4px 9px 9px}}
+@media(prefers-reduced-motion:reduce){.tx-calendar-title-icon,.tx-calendar-title-words::after,.tx-calendar-sparkle,.tx-calendar-section .tx-calendar-actions .tx-calendar-search-cta,.tx-calendar-section .tx-calendar-actions .tx-calendar-all-cta{animation:none!important}.tx-calendar-section .tx-calendar-actions :is(.tx-calendar-search-cta,.tx-calendar-all-cta),.tx-search-date-chevron,.tx-calendar-cta-arrow{transition:none!important}}
+
 </style>
 </head>
 <body>
@@ -3242,24 +3283,8 @@ function txSearchHighlight(title,term){
  if(at<0||!term)return h(value);
  return h(value.slice(0,at))+'<mark class="tx-search-match">'+h(value.slice(at,at+term.length))+'</mark>'+h(value.slice(at+term.length));
 }
-function renderTxSearchResults(){
- const text=String(ui.txSearchQuery||'').trim(),accountMode=/^rekening\s*:\s*/i.test(text);
- const query=accountMode?text.replace(/^rekening\s*:\s*/i,'').trim():text;
- const numeric=!accountMode&&txSearchIsAmount(text);
- if(!text||(!numeric&&txSearchNormalize(query).length<2)){
-  return '<div class="tx-search-empty"><span aria-hidden="true">🔍</span><strong>Temukan transaksi dengan cepat</strong>'+
-   '<p>Cari nama, nominal pengeluaran, atau nama rekening. Kamu juga bisa memilih rekening di atas.</p></div>';
- }
- const rows=txSearchResults(text);
- if(!rows.length)return '<div class="tx-search-empty"><span aria-hidden="true">🧐</span><strong>Tidak ada transaksi yang cocok</strong>'+
-  '<p>'+(numeric?'Coba beberapa digit nominal yang lebih singkat.':accountMode?'Belum ada transaksi pada rekening ini. Coba rekening lainnya.':'Coba nama transaksi atau rekening yang lebih singkat.')+'</p></div>';
- const LIMIT=70,visible=rows.slice(0,LIMIT);
- const category=accountMode?'transaksi rekening':numeric?'pengeluaran':'transaksi';
- const mode=accountMode?'Rekening':numeric?'Nominal':'Nama atau rekening';
- const header='<p class="tx-search-count" role="status">'+rows.length+' '+category+' cocok'+
- (rows.length>LIMIT?' · '+LIMIT+' hasil teratas':'')+
- '<span> · Berdasarkan '+mode+' · Semua bulan</span></p>';
- return header+visible.map(item=>{
+/* #055 Shared result rows for dated transaction search. */
+function renderTxSearchItem(item,text,query,numeric,accountMode){
   const t=item.transaction,from=acc(t.accountId)?.name||'Rekening tidak tersedia';
   const to=t.type==='transfer'?acc(t.toAccountId)?.name||'Rekening tidak tersedia':'';
   const accountHtml=(!numeric)?txSearchHighlight(from,query):h(from);
@@ -3278,6 +3303,43 @@ function renderTxSearchResults(){
    (t.note?'<p>'+h(t.note)+'</p>':'')+
    '<div class="tx-history-item-actions"><button type="button" class="btn sm" data-edit-tx="'+h(t.id)+'">✎ Edit</button>'+
    '<button type="button" class="btn sm danger" data-delete-tx="'+h(t.id)+'">Hapus</button></div></article>';
+ 
+}
+function renderTxSearchResults(){
+ const text=String(ui.txSearchQuery||'').trim(),accountMode=/^rekening\s*:\s*/i.test(text);
+ const query=accountMode?text.replace(/^rekening\s*:\s*/i,'').trim():text;
+ const numeric=!accountMode&&txSearchIsAmount(text);
+ if(!text||(!numeric&&txSearchNormalize(query).length<2)){
+  return '<div class="tx-search-empty"><span aria-hidden="true">🔍</span><strong>Temukan transaksi dengan cepat</strong>'+
+   '<p>Cari nama, nominal pengeluaran, atau nama rekening. Kamu juga bisa memilih rekening di atas.</p></div>';
+ }
+ const rows=txSearchResults(text);
+ if(!rows.length)return '<div class="tx-search-empty"><span aria-hidden="true">🧐</span><strong>Tidak ada transaksi yang cocok</strong>'+
+  '<p>'+(numeric?'Coba beberapa digit nominal yang lebih singkat.':accountMode?'Belum ada transaksi pada rekening ini. Coba rekening lainnya.':'Coba nama transaksi atau rekening yang lebih singkat.')+'</p></div>';
+ const LIMIT=70,visible=rows.slice(0,LIMIT);
+ const category=accountMode?'transaksi rekening':numeric?'pengeluaran':'transaksi';
+ const mode=accountMode?'Rekening':numeric?'Nominal':'Nama atau rekening';
+ const header='<p class="tx-search-count" role="status">'+rows.length+' '+category+' cocok'+
+ (rows.length>LIMIT?' · '+LIMIT+' hasil teratas':'')+
+ '<span> · Berdasarkan '+mode+' · Semua bulan</span></p>';
+ const groups=new Map();
+ visible.forEach(item=>{
+  const date=item.transaction.date||'';
+  if(!groups.has(date))groups.set(date,[]);
+  groups.get(date).push(item);
+ });
+ return header+[...groups.keys()].sort((a,b)=>b.localeCompare(a)).map(date=>{
+  const items=groups.get(date),totals=transactionDayTotals(items.map(x=>x.transaction));
+  return '<details class="review-block tx-calendar-date-group tx-search-date-group" open>'+
+   '<summary><span class="tx-search-date-label"><span class="tx-search-date-chevron" aria-hidden="true">▾</span>'+
+    '<strong>'+h(date?dateFmt(date):'Tanggal tidak tersedia')+'</strong>'+
+    '<span class="review-meta">· '+items.length+' Transaksi</span></span>'+
+   '<span class="tx-cal-day-head-totals"><strong class="green">+'+money(totals.income)+'</strong>'+
+    '<strong class="red">−'+money(totals.expense)+'</strong>'+
+    (totals.transfer>0?'<strong class="blue">⇄ '+money(totals.transfer)+'</strong>':'')+
+   '</span></summary><div class="tx-search-date-list">'+
+    items.map(item=>renderTxSearchItem(item,text,query,numeric,accountMode)).join('')+
+   '</div></details>';
  }).join('');
 }
 function renderTxSearchPopup(){
@@ -3394,9 +3456,12 @@ function renderTransactionCalendar(){
  }).join('');
  const totals=transactionDayTotals(transactions);
  return `<section class="card tx-calendar-section">
-  <div class="card-head"><div><h3>Kalender Transaksi · ${h(monthFmt(ui.month))}</h3></div>
-   <div class="tx-calendar-actions"><button type="button" class="btn sm tx-calendar-search-cta" data-tx-search aria-haspopup="dialog">⌕ Cari Transaksi</button>
-   <button type="button" class="btn sm" data-review-all>☷ Lihat Semua Transaksi</button></div>
+  <div class="card-head tx-calendar-header">
+   <div class="tx-calendar-header-title"><h3 class="tx-calendar-title"><span class="tx-calendar-title-icon" aria-hidden="true">🗓️</span><span class="tx-calendar-title-words">Kalender Transaksi</span><span class="tx-calendar-month">${h(monthFmt(ui.month))}</span><span class="tx-calendar-sparkle" aria-hidden="true">✨</span></h3></div>
+   <div class="tx-calendar-actions">
+    <button type="button" class="btn sm tx-calendar-search-cta" data-tx-search aria-haspopup="dialog"><span aria-hidden="true">🔎</span> Cari Transaksi</button>
+    <button type="button" class="btn sm tx-calendar-all-cta" data-review-all aria-haspopup="dialog"><span aria-hidden="true">📋</span> Lihat Semua Transaksi <span class="tx-calendar-cta-arrow" aria-hidden="true">↗</span></button>
+   </div>
   </div>
   <div class="tx-cal-summary tx-cal-legend" aria-label="Ringkasan uang masuk dan uang keluar bulan ini">
    <span class="green cashflow-number cashflow-number-income">↑ Masuk ${money(totals.income)}</span>

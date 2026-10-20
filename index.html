@@ -3161,12 +3161,14 @@ function txSearchResults(query){
  const text=String(query||'').trim(),amountMode=txSearchIsAmount(text);
  const digits=text.replace(/\D/g,'');
  if(amountMode&&digits.length){
-  return db.transactions.filter(t=>t.type==='expense').map(t=>{
+  const results=db.transactions.filter(t=>t.type==='expense').map(t=>{
    const amount=String(Math.trunc(num(t.amount)));
    return {transaction:t,score:amount===digits?0:amount.startsWith(digits)?1:amount.includes(digits)?2:-1};
   }).filter(item=>item.score>=0)
    .sort((a,b)=>a.score-b.score||String(b.transaction.date||'').localeCompare(String(a.transaction.date||''))||
     String(b.transaction.createdAt||'').localeCompare(String(a.transaction.createdAt||'')));
+  const exact=results.filter(item=>item.score===0);
+  return exact.length?exact:results;
  }
  if(txSearchNormalize(text).length<2)return [];
  return db.transactions.map(t=>({transaction:t,score:txSearchTitleScore(t.title,text)}))

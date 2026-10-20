@@ -3989,9 +3989,7 @@ function renderTrendPanel(){
   <div class="trend-label-toggle"><label><input type="checkbox" id="trend-labels" ${c.trendLabels?'checked':''}> Tampilkan Label Nominal Di Titik Grafik</label><span class="comp-tiny">Klik titik atau nominal pada grafik untuk melihat daftar pengeluarannya.</span></div>
   ${grandTotal>0?trendChartSVG(rows,entries):'<div class="comp-empty">Tidak Ada Transaksi Pengeluaran Di Rentang Yang Dipilih.</div>'}
   ${periods.trimmed?`<p class="comp-tiny">Rentang sangat panjang. Ditampilkan ${periods.keys.length} periode terakhir; persempit rentang untuk melihat periode sebelumnya.</p>`:''}
-  <div class="trend-notes"><div class="trend-note"><strong>📈 Perubahan Periode</strong>${comparison}</div><div class="trend-note"><strong>🔎 Kontributor Utama</strong>${insight}</div>${renderTrendFinancialInsight(financialInsight)}</div>
-
-  
+  <details class="trend-insight-expand"><summary>✨ Buka Insight Tren & Perbandingan</summary><div class="trend-notes"><div class="trend-note"><strong>📈 Perubahan Periode</strong>${comparison}</div><div class="trend-note"><strong>🔎 Kontributor Utama</strong>${insight}</div>${renderTrendFinancialInsight(financialInsight)}</div></details>
  </section>`;
 }
 function welcomeModal(){
@@ -4009,18 +4007,61 @@ function dismissWelcome(){
  render();
  document.getElementById('top-add')?.focus({preventScroll:true});
 }
+
+/* #067 Budget strip + dialog: use existing month/status functions, no saved changes. */
+function budgetAlertCounts(items){
+ return {danger:items.filter(x=>status(x.id).s==='danger').length,warn:items.filter(x=>status(x.id).s==='warn').length};
+}
+function renderBudgetAlertStrip(items,hasBudgetValue){
+ const n=budgetAlertCounts(items),tone=n.danger?'danger':n.warn?'warn':hasBudgetValue>0?'safe':'unset';
+ const title=items.length?items.length+' pos perlu perhatian':hasBudgetValue>0?'Anggaran dalam kondisi aman':'Belum ada batas anggaran';
+ const info=items.length?[n.danger?n.danger+' melewati batas':'',n.warn?n.warn+' hampir habis':''].filter(Boolean).join(' · '):
+  hasBudgetValue>0?'Semua pos masih dalam batas aman':'Atur anggaran agar peringatan aktif';
+ return '<button type="button" class="budget-alert-strip budget-alert-strip-'+tone+'" data-budget-alert-open aria-haspopup="dialog" aria-controls="budget-alert-dialog">'+
+  '<span class="budget-alert-strip-icon" aria-hidden="true">'+(n.danger?'🚨':n.warn?'🔔':hasBudgetValue>0?'🌿':'🎯')+'</span>'+
+  '<span class="budget-alert-strip-copy"><strong>'+title+'</strong><small>'+h(info+' · '+monthFmt(ui.month))+'</small></span>'+
+  '<span class="budget-alert-strip-cta">Lihat rincian ↗</span></button>';
+}
+function renderBudgetAlertDialog(items,hasBudgetValue){
+ const n=budgetAlertCounts(items);
+ const entries=items.map(c=>{
+  const st=status(c.id),limit=effectiveBudget(c.id),spent=spentByCat(c.id),left=limit-spent;
+  const usage=limit>0?Math.round(spent/limit*100):spent>0?100:0;
+  const advice=st.s==='danger'?'Cek transaksi, lalu evaluasi batas atau alihkan anggaran dari pos lain.':
+   'Pantau sisa anggaran dan prioritaskan kebutuhan yang mendesak.';
+  return '<article class="budget-alert-entry '+(st.s==='danger'?'is-danger':'is-warn')+'">'+
+   '<div class="budget-alert-entry-top"><span class="budget-alert-entry-icon" aria-hidden="true">'+pickSymbol(c.label,c.group)+'</span>'+
+   '<span class="budget-alert-entry-name"><strong>'+h(c.label)+'</strong><small>'+h(c.group||'Pengeluaran')+'</small></span>'+
+   '<span class="budget-alert-entry-state">'+(st.s==='danger'?'🚨':'🔔')+' '+h(st.label)+'</span></div>'+
+   '<div class="budget-alert-entry-numbers"><span>Terpakai<strong>'+money(spent)+'</strong></span>'+
+   '<span>Batas<strong>'+money(limit)+'</strong></span>'+
+   '<span>'+(left<0?'Melebihi':'Sisa')+'<strong>'+money(Math.abs(left))+'</strong></span></div>'+
+   '<div class="budget-alert-entry-track"><i style="width:'+Math.max(0,Math.min(100,usage))+'%"></i></div>'+
+   '<p class="budget-alert-entry-tip">💡 '+h(advice)+'</p></article>';
+ }).join('');
+ const nothing=hasBudgetValue>0?'Tidak ada anggaran yang menipis atau terlampaui.':'Tetapkan batas pada pos pengeluaran untuk mulai memantau anggaran.';
+ return '<dialog class="budget-alert-dialog" id="budget-alert-dialog" aria-labelledby="budget-alert-dialog-title">'+
+  '<header class="budget-alert-dialog-header"><span aria-hidden="true">🔔</span><div><h3 id="budget-alert-dialog-title">Peringatan Anggaran</h3>'+
+  '<p>'+h(monthFmt(ui.month))+' · '+items.length+' pos perlu perhatian</p></div>'+
+  '<button type="button" class="budget-alert-dialog-close" data-budget-alert-close aria-label="Tutup peringatan">✕</button></header>'+
+  '<div class="budget-alert-dialog-summary"><span>🚨 '+n.danger+' melewati batas</span><span>🔔 '+n.warn+' menipis</span></div>'+
+  '<div class="budget-alert-dialog-items">'+(entries||'<div class="budget-alert-empty">🌱 '+nothing+'</div>')+'</div>'+
+  '<footer class="budget-alert-dialog-footer"><button type="button" class="btn sm" data-budget-alert-close>Tutup</button>'+
+  '<button type="button" class="btn sm primary" data-nav="budgets">Kelola Anggaran ↗</button></footer>'+
+  '</dialog>';
+}
+
 function renderDash(){let all=monthly(),exp=totalType('expense'),inc=totalType('income'),bt=budgetTotal(),accountBalances=balances(),kas=Object.values(accountBalances).reduce((s,x)=>s+x,0),alert=expenses().filter(c=>hasBudget(c.id)&&status(c.id).s!=='ok').sort((a,b)=>({danger:0,warn:1}[status(a.id).s]||2)-({danger:0,warn:1}[status(b.id).s]||2)),budgets=expenses().filter(c=>hasBudget(c.id)).sort((a,b)=>pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1))),bySource=incomes().map(c=>({...c,amount:all.filter(t=>t.type==='income'&&t.categoryId===c.id).reduce((s,t)=>s+num(t.amount),0)})).filter(c=>c.amount>0).sort((a,b)=>b.amount-a.amount),debt=totalsDebt();
 return `${welcomeModal()}${all.length===0?`<div class="callout"><span>✦</span><div><strong>Mulai catatan pertamamu.</strong> Dashboard akan otomatis terisi. Mau melihat simulasi lebih dulu? <button class="btn sm" type="button" data-action="demo" style="margin-left:7px">Isi data contoh</button></div></div>`:''}
 <div class="grid kpis">
 ${metricCard('Pemasukan Bulan Ini',inc,'↑','green','Transaksi Pemasukan')}${metricCard('Pengeluaran Bulan Ini',exp,'↓','red','Transaksi Pengeluaran')}${metricCard('Sisa Anggaran',bt>0?bt-budgetUsed():0,'◴',bt>0&&bt-budgetUsed()<0?'red':'green',bt>0?`Dari Total ${money(bt)}`:'Belum Ada Anggaran')}${metricCard('Total Saldo Rekening',kas,'▤',kas<0?'red':'blue','Saldo Seluruh Rekening, Sepanjang Waktu')}
 </div>
-<div class="grid layout-2 comp-dashboard-grid">${renderComposition()}
-<section class="card"><div class="card-head"><div><h3>Peringatan Anggaran</h3><p>Periksa pos yang hampir habis atau melebihi batas sebelum mencatat pengeluaran berikutnya.</p></div>${alert.length?`<span class="budget-alert-emphasis" role="status" aria-label="${alert.length} pos anggaran perlu perhatian"><span class="budget-alert-exclamation" aria-hidden="true">!</span>${pill('warn',`${alert.length} Pos Perlu Perhatian`)}</span>`:pill('ok','0 Pos Perlu Perhatian')}</div>${alert.length?`<div class="alert-list">${alert.slice(0,5).map(c=>{let st=status(c.id),left=effectiveBudget(c.id)-spentByCat(c.id);return `<div class="alert-item ${st.s==='danger'?'red-alert':''}"><span class="mini-num">${symbolBadge(c.label,c.group)}</span><div style="flex:1"><strong>${h(c.label)} — ${st.label}</strong><p>${left<0?'Melebihi '+money(-left):'Sisa Hanya '+money(left)} Dari ${money(effectiveBudget(c.id))}</p></div></div>`}).join('')}</div><button type="button" class="btn sm full budget-nav-highlight" style="margin-top:16px" data-nav="budgets"><span class="budget-nav-spark" aria-hidden="true">✦</span>Kelola / Alihkan Anggaran <span class="budget-nav-arrow" aria-hidden="true">→</span></button>`:empty('✓','Tidak Ada Peringatan',bt?'Semua pos beranggaran masih aman.':'Atur anggaran per kategori agar peringatan dapat muncul.',`<button data-nav="budgets" class="btn sm">Atur anggaran</button>`)}</section></div>
-${renderTrendPanel()}
+${renderBudgetAlertStrip(alert,bt)}
+<div class="analytics-comp-trend">${renderComposition()}${renderTrendPanel()}</div>
 <div class="grid layout-2"><section class="card finance-spotlight-card budget-spotlight-card"><div class="card-head"><div><h3>Penggunaan Anggaran</h3><p>Periksa pos yang paling banyak terpakai; atur ulang batas bila mulai menipis.</p></div><button type="button" data-nav="budgets" class="btn sm ghost finance-spotlight-action budget-all-cta">Lihat Semua <span class="spotlight-arrow" aria-hidden="true">↗</span></button></div>${budgets.length?`<div class="budget-list">${budgets.slice(0,5).map(c=>budgetProgress(c)).join('')}</div>`:empty('◎','Anggaran Belum Disusun','Kamu dapat memberi batas pengeluaran tiap kategori untuk setiap bulan.')}</section>
 <section class="card finance-spotlight-card income-spotlight-card"><div class="card-head"><div><h3>Asal Pemasukan</h3><p>Periksa sumber pemasukan terbesar dan pastikan pendapatan rutin sudah tercatat.</p></div></div>${bySource.length?bySource.slice(0,7).map(c=>`<div class="stat-pair"><span>${h(c.label)} <span style="color:#8a9bb3">• ${pct(c.amount,inc)}%</span></span><strong>${money(c.amount)}</strong></div>`).join(''):empty('↗','Belum Ada Pemasukan','Misalnya dividen Fastlink, gaji atau tukin BPS.')}
 <div class="linebreak"></div><div class="stat-pair"><span>Piutang Belum Kembali</span><strong class="green">${money(debt.receivable)}</strong></div><div class="stat-pair"><span>Utang Belum Dilunasi</span><strong class="red">${money(debt.payable)}</strong></div><button type="button" class="btn sm full finance-spotlight-action debt-overview-cta" data-debt-overview="open" aria-haspopup="dialog"><span aria-hidden="true">↗</span> Lihat Utang & Piutang <span class="spotlight-arrow" aria-hidden="true">→</span></button></section></div>
-<section class="card"><div class="card-head"><div><h3>Transaksi Terbaru</h3><p>Periksa transaksi ${h(monthFmt(ui.month))}; Edit jika ada nominal atau kategori yang keliru.</p></div><div class="action-buttons"><button type="button" class="btn sm ghost tx-nav-cta" data-tx-history>Semua Transaksi <span class="nav-cta-arrow" aria-hidden="true">↗</span></button><button type="button" class="btn sm tx-nav-cta" data-nav="reports">Arsip Bulan <span class="nav-cta-arrow" aria-hidden="true">↗</span></button></div></div>${all.length?all.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt?.localeCompare(a.createdAt||'')||0).slice(0,6).map(txRow).join(''):empty('⇄','Belum Ada Transaksi','Klik “Catat transaksi” untuk membuat catatan baru.')}</section>${renderDashboardKpiPopup()}`}
+<section class="card"><div class="card-head"><div><h3>Transaksi Terbaru</h3><p>Periksa transaksi ${h(monthFmt(ui.month))}; Edit jika ada nominal atau kategori yang keliru.</p></div><div class="action-buttons"><button type="button" class="btn sm ghost tx-nav-cta" data-tx-history>Semua Transaksi <span class="nav-cta-arrow" aria-hidden="true">↗</span></button><button type="button" class="btn sm tx-nav-cta" data-nav="reports">Arsip Bulan <span class="nav-cta-arrow" aria-hidden="true">↗</span></button></div></div>${all.length?all.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt?.localeCompare(a.createdAt||'')||0).slice(0,6).map(txRow).join(''):empty('⇄','Belum Ada Transaksi','Klik “Catat transaksi” untuk membuat catatan baru.')}</section>${renderDashboardKpiPopup()}${renderBudgetAlertDialog(alert,bt)}`}
 
 /* #035 Rincian interaktif kartu Dashboard; semuanya memakai sumber data yang sama. */
 function kpiDailyBreakdown(transactions,type){
@@ -5481,6 +5522,22 @@ document.addEventListener('click',async e=>{
  if(e.target.closest('[data-review-close]')||e.target.id==='review-modal-backdrop'){dismissReviewPopup();return;}
  if(e.target.closest('[data-close-finance-editor]')||e.target.id==='finance-editor-backdrop'){closeFinanceEditor();return;}
  if(e.target.closest('[data-close-welcome]')||e.target.id==='welcome-modal-backdrop'){dismissWelcome();return;}
+ const alertDialog=document.getElementById('budget-alert-dialog');
+ if(e.target.closest?.('[data-budget-alert-open]')){
+  if(alertDialog&&!alertDialog.open)alertDialog.showModal();
+  return;
+ }
+ if(e.target.closest?.('[data-budget-alert-close]')){
+  if(alertDialog?.open)alertDialog.close();
+  document.querySelector('[data-budget-alert-open]')?.focus({preventScroll:true});
+  return;
+ }
+ if(e.target===alertDialog&&alertDialog?.open){
+  const bounds=alertDialog.getBoundingClientRect();
+  if(e.clientX<bounds.left||e.clientX>bounds.right||e.clientY<bounds.top||e.clientY>bounds.bottom){
+   alertDialog.close();return;
+  }
+ }
  const trendPoint=e.target.closest('[data-trend-point]');
  if(trendPoint){openTrendPoint(trendPoint);return;}
  let x=e.target.closest('button');if(!x)return;

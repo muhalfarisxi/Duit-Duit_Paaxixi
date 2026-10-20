@@ -3294,6 +3294,127 @@ body:has(.tx-search-backdrop){overflow:hidden}
  .budget-alert-dialog .budget-alert-top-difference{transition:none!important;animation:none!important}
 }
 
+
+
+/* #071 — Kembalikan label bergaris, rapikan tombol, dan pertahankan animasi donut */
+#composition-card .comp-direct-period{margin:1px 0 8px}
+#composition-card .comp-period-buttons{gap:5px}
+#composition-card .comp-direct-period .comp-quick-choice{
+ font:850 10px/1.2 Nunito,sans-serif!important;
+ padding:6px 9px!important;min-height:31px!important;
+ border-radius:10px!important;box-shadow:none!important;
+}
+#composition-card .comp-direct-period .comp-quick-choice[aria-pressed=true]{
+ box-shadow:0 3px 8px #255aab28!important;
+}
+#composition-card .comp-direct-groups{
+ gap:6px!important;padding:5px 0 9px!important;
+ margin-bottom:6px!important;
+}
+#composition-card .comp-direct-groups .comp-filter-chip{
+ font:900 10px/1.2 Nunito,sans-serif!important;
+ padding:6px 9px!important;min-height:31px!important;
+ border-radius:10px!important;white-space:nowrap;
+ box-shadow:none!important;transition:transform .18s,background .18s!important;
+}
+#composition-card .comp-direct-groups .comp-filter-chip[aria-pressed=true]{
+ box-shadow:0 3px 8px #2854ae24!important;
+}
+#composition-card .comp-pos-launch{
+ padding:7px 9px!important;min-height:32px!important;
+ border-radius:10px!important;font:900 10px/1.2 Nunito,sans-serif!important;
+}
+.analytics-comp-trend #composition-card .comp-recap-wide{
+ display:block!important;
+ width:100%;max-width:730px;margin:3px auto 0;
+}
+.analytics-comp-trend #composition-card .comp-recap-narrow{
+ display:none!important;
+}
+/* Garis penunjuk dibangun sebagai path SVG, dengan kotak label pastel mengikuti warna irisan. */
+.analytics-comp-trend #composition-card .comp-recap-wide>svg{
+ display:block;width:100%;height:auto;overflow:visible;
+}
+.analytics-comp-trend #composition-card .comp-recap-callout{
+ cursor:pointer;
+}
+.analytics-comp-trend #composition-card .comp-recap-callout rect{
+ fill:#f9fbff;stroke-width:1.25;
+}
+.analytics-comp-trend #composition-card .comp-recap-callout-name{
+ font:900 12px/1.15 Nunito,sans-serif;
+}
+.analytics-comp-trend #composition-card .comp-recap-callout-data{
+ font:850 11px/1.25 Nunito,sans-serif;fill:#5a7699;
+}
+.analytics-comp-trend #composition-card .comp-recap-center strong{
+ font:700 clamp(17px,2.15vw,27px)/1 Fredoka,Nunito,sans-serif!important;
+ color:#174884!important;white-space:nowrap!important;
+}
+.analytics-comp-trend #composition-card .comp-recap-wide{
+ filter:drop-shadow(0 7px 7px #2c64c31a);
+}
+@container (max-width:490px){
+ .analytics-comp-trend #composition-card .comp-recap-wide{display:none!important}
+ .analytics-comp-trend #composition-card .comp-recap-narrow{
+  display:grid!important;
+  grid-template-columns:minmax(112px,.9fr) minmax(0,1.1fr);
+  min-height:175px;gap:12px;margin:5px 0 1px;
+ }
+ .analytics-comp-trend #composition-card .comp-recap-small-ring{
+  width:min(100%,182px);max-width:182px;
+ }
+ .analytics-comp-trend #composition-card .comp-recap-small-center strong{
+  font:700 clamp(14px,3.3vw,21px)/1.1 Fredoka,Nunito,sans-serif!important;
+  white-space:nowrap!important;letter-spacing:-.6px;
+ }
+ .analytics-comp-trend #composition-card .comp-recap-rail{
+  display:grid;align-content:center;gap:7px;
+  overflow-y:auto;max-height:245px;
+  padding:4px 2px 4px 8px;
+ }
+ .analytics-comp-trend #composition-card .comp-recap-rail-label{
+  position:relative;
+  display:flex;flex-direction:column;align-items:flex-start;
+  background:transparent!important;border:0!important;
+  border-left:2px solid var(--recap-color)!important;
+  border-radius:0!important;
+  min-height:36px;padding:3px 3px 3px 8px!important;
+  box-shadow:none!important;
+ }
+ .analytics-comp-trend #composition-card .comp-recap-rail-label:before{
+  content:"";position:absolute;right:100%;top:50%;
+  width:9px;height:2px;background:var(--recap-color);
+ }
+ .analytics-comp-trend #composition-card .comp-recap-rail-label:is(:hover,.is-active,:focus-visible){
+  transform:translateX(2px);
+  background:transparent!important;
+  box-shadow:none!important;
+ }
+ .analytics-comp-trend #composition-card .comp-recap-rail-name{
+  font:900 10px/1.35 Nunito,sans-serif!important;
+  color:var(--recap-color)!important;
+  overflow-wrap:anywhere;
+ }
+ .analytics-comp-trend #composition-card .comp-recap-rail-data{
+  font:850 10px/1.35 Nunito,sans-serif!important;
+  color:#5c7698!important;
+ }
+}
+@media(max-width:400px){
+ #composition-card .comp-direct-groups .comp-filter-chip{
+  padding:6px 8px!important;font-size:9.5px!important;
+ }
+ #composition-card .comp-direct-period .comp-quick-choice{
+  padding:6px 8px!important;font-size:9.5px!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .analytics-comp-trend #composition-card .comp-recap-wide{
+  animation:none!important;
+ }
+}
+
 </style>
 </head>
 <body>
@@ -3901,6 +4022,21 @@ function welcomeBlock(){
 
 /* ---------- Analisis Pengeluaran: hanya membaca data transaksi ---------- */
 const ANALYTICS_COLORS=['#2563eb','#38a8ed','#7c73df','#16a4b8','#f4a05c','#a465ce','#3b9b86','#e57b99','#86a248','#738da9'];
+/* Warna pos yang konsisten dengan induk kelompok:
+   Living Fix = variasi biru, Playing = sian/biru, Living Lain = ungu/biru. */
+const ANALYTICS_POS_PALETTES={
+ 'LIVING FIX':['#2563eb','#487fe1','#6978de','#3d9bd7','#789aee','#5275bf','#87a8e8','#4663c1'],
+ 'PLAYING':['#35a9ec','#5d7de5','#72bdf0','#528fd4','#8ba2e9','#3c91c9','#6f97dd','#7bcbea'],
+ 'LIVING LAIN':['#7c73df','#9980e6','#678ddc','#a79ce9','#6e80c9','#7cabde','#b3a2e8','#4d87c3']
+};
+function analysisPosColor(category){
+ const withinGroup=expenses().filter(item=>item.group===category.group);
+ const index=Math.max(0,withinGroup.findIndex(item=>item.id===category.id));
+ const palette=ANALYTICS_POS_PALETTES[category.group];
+ if(palette)return palette[index%palette.length];
+ const group=expenseGroups().find(item=>item.name===category.group);
+ return index===0&&/^#[0-9a-f]{6}$/i.test(group?.color||'')?group.color:ANALYTICS_COLORS[index%3];
+}
 const dateISO=(date)=>date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
 function monthBounds(month){
  const [year,m]=month.split('-').map(Number);
@@ -3938,7 +4074,7 @@ function analysisEntries(transactions){
     value:transactions.reduce((sum,t)=>sum+(cat(t.categoryId)?.group===g.name?num(t.amount):0),0)}));
  }else{
   items=analysisCategories().map(c=>({id:c.id,label:c.label,icon:pickSymbol(c.label,c.group),
-    color:ANALYTICS_COLORS[expenses().findIndex(e=>e.id===c.id)%ANALYTICS_COLORS.length],
+    color:analysisPosColor(c),
     value:transactions.reduce((sum,t)=>sum+(t.categoryId===c.id?num(t.amount):0),0)}));
  }
  return items.filter(item=>item.value>0).sort((a,b)=>b.value-a.value);
@@ -4107,7 +4243,7 @@ function renderComposition(){
  const posGroups=expenseGroups().map(g=>{
   const items=expenses().filter(c=>c.group===g.name).map(c=>({
    id:c.id,label:c.label,group:g.name,icon:pickSymbol(c.label,c.group),
-   color:ANALYTICS_COLORS[Math.max(0,expenses().findIndex(e=>e.id===c.id))%ANALYTICS_COLORS.length],
+   color:analysisPosColor(c),
    value:allExpenseTransactions.reduce((n,t)=>n+(t.categoryId===c.id?num(t.amount):0),0)
   }));
   return {id:g.id,name:g.name,color:g.color,icon:pickSymbol(g.name,g.name),items};

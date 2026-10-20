@@ -1,0 +1,70 @@
+/* Duit-Duit Paaxixi — Komposisi Pengeluaran hidup.
+   Seluruh selector dibatasi pada kartu ini untuk menjaga menu lain. */
+#composition-card{container-type:inline-size;background:radial-gradient(circle at 13% 5%,#f1f7ff 0,transparent 37%),#fff}
+#composition-card .comp-header{margin-bottom:12px}
+#composition-card .comp-live-intro{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 13px}
+#composition-card .comp-live-pill{display:inline-flex;align-items:center;border-radius:999px;background:#f0f6ff;border:1px solid #dce9fc;padding:6px 10px;font:850 11px/1.2 Nunito,sans-serif;color:#6381a3}
+#composition-card .comp-live-pill.live-champion{background:#fff3d2;border-color:#f1d99e;color:#966418;animation:liveCompTwinkle 3.8s ease-in-out infinite}
+#composition-card .comp-distribution{gap:12px;grid-template-columns:minmax(180px,.88fr) minmax(180px,1.12fr)}
+#composition-card .comp-donut-area{gap:5px}
+#composition-card .comp-donut{position:relative;background:none!important;border:0;box-shadow:0 10px 30px rgba(83,137,215,.10);width:clamp(186px,18vw,235px);height:clamp(186px,18vw,235px);overflow:visible;animation:liveCompFloat 5.3s ease-in-out infinite}
+#composition-card .comp-donut:before{inset:26%;z-index:1;box-shadow:inset 0 0 17px #dbeaff;background:radial-gradient(circle,#fff,#f5faff)}
+#composition-card .comp-donut:after{content:"✧";position:absolute;top:-2%;right:0;color:#92b5ef;font-size:24px;animation:liveCompTwinkle 3s ease-in-out infinite;pointer-events:none}
+#composition-card .comp-donut-middle{position:relative;z-index:3;max-width:61%;gap:3px}
+#composition-card .comp-live-mascot{display:block;font-size:25px;line-height:1;animation:liveCompWink 4.3s ease-in-out infinite}
+#composition-card .comp-donut-caption{font-size:10px;color:#7e95b1}
+#composition-card .comp-donut-value{font-size:clamp(19px,2.1vw,26px);color:#154980}
+#composition-card .comp-donut-name{font-size:10px;color:#6586ad}
+#composition-card .comp-donut-help{font:800 11px/1.4 Nunito,sans-serif;color:#7590b2;text-align:center}
+#composition-card .comp-live-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:2}
+#composition-card .comp-live-track{fill:none;stroke:#e6effb;stroke-width:33}
+#composition-card .comp-live-segment{fill:none;stroke-width:33;stroke-linecap:butt;cursor:pointer;transform-origin:120px 120px;outline:none;transition:opacity .23s,transform .24s,stroke-width .24s,filter .24s;animation:liveCompPop .7s ease both;animation-delay:var(--appearance-delay,0ms)}
+#composition-card .comp-live-segment.champion:not(.is-active){filter:drop-shadow(0 2px 4px #3668b758)}
+#composition-card .comp-live-svg.is-exploring .comp-live-segment:not(.is-active){opacity:.3}
+#composition-card .comp-live-segment:is(.is-active,:hover,:focus-visible){stroke-width:39;transform:translate(var(--push-x,0px),var(--push-y,0px));filter:drop-shadow(0 3px 5px #21529b75)}
+#composition-card .comp-live-segment:focus-visible{stroke-width:42;filter:drop-shadow(0 0 5px #1354aa)}
+#composition-card .comp-donut-legend{display:grid;gap:9px;padding:4px 5px 6px;max-height:360px;overflow:auto}
+#composition-card .comp-live-legend{display:flex;flex-direction:column;gap:7px;text-align:left;width:100%;padding:10px 12px;border:1.5px solid #e2eaf9;border-radius:17px;background:linear-gradient(110deg,#fff,#f9fbff);box-shadow:0 4px 11px #1f549310;transition:transform .2s,border-color .2s,background .2s,box-shadow .2s;animation:liveCompPop .5s ease both;animation-delay:var(--appearance-delay,0ms);cursor:pointer}
+#composition-card .comp-live-legend.champion{border-color:#f0daa4;background:linear-gradient(112deg,#fffdf2,#fff)}
+#composition-card .comp-live-legend:is(:hover,:focus-visible,.is-active){transform:translateY(-2px) scale(1.01);background:linear-gradient(110deg,#eff7ff,#fff);border-color:var(--live-color,#8eb5f7);box-shadow:0 10px 20px #2b65b524}
+#composition-card .comp-live-legend[aria-pressed=true]{border-width:2px;box-shadow:0 0 0 2px #dbe8fc,0 8px 18px #2457a824}
+#composition-card .comp-live-legend:focus-visible{outline:3px solid #75b1fa;outline-offset:2px}
+#composition-card .comp-live-legend-top{display:flex;align-items:center;gap:9px;min-width:0}
+#composition-card .comp-live-legend-emoji{width:39px;height:39px;flex:none;display:grid;place-items:center;border-radius:13px;background:#eaf2ff;box-shadow:inset 0 0 0 1px #e1eafa;font-size:21px;transition:transform .23s}
+#composition-card .comp-live-legend:is(:hover,.is-active) .comp-live-legend-emoji{transform:rotate(-9deg) scale(1.08)}
+#composition-card .comp-live-legend-copy{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+#composition-card .comp-live-legend-copy strong{font:700 clamp(13px,1.25vw,16px)/1.27 Fredoka,Nunito,sans-serif;color:#234575;overflow-wrap:anywhere}
+#composition-card .comp-live-legend-copy small{font:750 11px/1.3 Nunito,sans-serif;color:#8499b5}
+#composition-card .comp-live-legend-percent{flex:none;display:grid;place-items:center;min-width:42px;padding:7px 8px;border-radius:11px;background:#e9f1ff;font:950 13px/1.1 Nunito,sans-serif;color:#2461ac}
+#composition-card .comp-live-bar{display:block;height:6px;width:100%;overflow:hidden;border-radius:99px;background:#e8f0fc}
+#composition-card .comp-live-bar>i{display:block;height:100%;background:var(--live-color,#2563eb);border-radius:99px;animation:liveCompGrow .9s ease backwards;animation-delay:var(--appearance-delay,0ms)}
+#composition-card .comp-live-crown{align-self:flex-start;background:#fff1c7;color:#93681c;padding:4px 7px;border-radius:8px;font:900 9px/1.2 Nunito,sans-serif}
+#composition-card .comp-live-focus{display:flex;align-items:flex-start;gap:10px;margin:13px 0 0;padding:12px 13px;border:1px solid #d7e8fd;background:#f2f8ff;border-radius:16px}
+#composition-card .comp-live-focus-face{font-size:26px;line-height:1;animation:liveCompWink 4s ease-in-out infinite}
+#composition-card .comp-live-focus-copy{min-width:0}
+#composition-card .comp-live-focus-copy>strong{font:700 14px/1.4 Fredoka,Nunito,sans-serif;color:#23528d}
+#composition-card .comp-live-focus-copy>p{font:750 12px/1.55 Nunito,sans-serif;color:#6582a4;margin:4px 0 0}
+#composition-card .comp-live-insights{padding:15px;margin-top:14px;border:1px solid #e1e7fc;border-radius:19px;background:linear-gradient(118deg,#f0f7ff,#f4f0ff);overflow:hidden;position:relative}
+#composition-card .comp-live-insights:before{content:"✦";position:absolute;right:-6px;top:-23px;font-size:62px;color:#e5dfff;pointer-events:none}
+#composition-card .comp-live-insight-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:0 0 11px;position:relative}
+#composition-card .comp-live-insight-head>strong{font:700 17px/1.3 Fredoka,Nunito,sans-serif;color:#24518b}
+#composition-card .comp-live-insight-head>span{border-radius:99px;background:#fff;border:1px solid #e5def6;padding:5px 9px;font:900 10px/1.25 Nunito,sans-serif;color:#825ba7}
+#composition-card .comp-live-tabs{display:flex;flex-wrap:wrap;gap:7px;position:relative}
+#composition-card .comp-live-tab{border:1px solid #dce7fb;border-radius:11px;padding:9px 10px;background:#fff;color:#6e84a5;font:900 11px/1.3 Nunito,sans-serif;transition:transform .18s,box-shadow .18s}
+#composition-card .comp-live-tab:hover{transform:translateY(-2px)}
+#composition-card .comp-live-tab[aria-selected=true]{background:#285fab;color:#fff;border-color:#285fab;box-shadow:0 5px 12px #285fab3d}
+#composition-card .comp-live-tab:focus-visible{outline:3px solid #82b7fb;outline-offset:2px}
+#composition-card .comp-live-pages{position:relative}
+#composition-card .comp-live-pane{padding:13px;margin-top:10px;border-radius:14px;border:1px solid #e0eafb;background:#ffffffed;animation:liveCompPop .3s ease}
+#composition-card .comp-live-pane[hidden]{display:none}
+#composition-card .comp-live-pane h4{font:700 14px/1.35 Fredoka,Nunito,sans-serif;color:#22538b;margin:0 0 5px}
+#composition-card .comp-live-pane p{font:750 12px/1.7 Nunito,sans-serif;color:#56779b;margin:0}
+#composition-card .comp-live-pane small{display:block;font:700 10px/1.5 Nunito,sans-serif;color:#8194ac;margin-top:8px}
+@keyframes liveCompFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes liveCompTwinkle{0%,100%{opacity:.78;filter:brightness(1)}50%{opacity:1;filter:brightness(1.08)}}
+@keyframes liveCompWink{0%,90%,100%{transform:rotate(0)}94%{transform:rotate(-12deg)}97%{transform:rotate(11deg)}}
+@keyframes liveCompPop{from{opacity:0;transform:translateY(7px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes liveCompGrow{from{transform:scaleX(0);transform-origin:left}to{transform:scaleX(1);transform-origin:left}}
+@container(max-width:560px){#composition-card .comp-distribution{grid-template-columns:1fr}#composition-card .comp-donut{width:205px;height:205px}#composition-card .comp-donut-legend{max-height:320px}}
+@container(max-width:340px){#composition-card .comp-live-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}#composition-card .comp-live-tab{font-size:10px;padding:8px 4px}}
+@media(prefers-reduced-motion:reduce){#composition-card .comp-donut,#composition-card .comp-live-mascot,#composition-card .comp-live-segment,#composition-card .comp-live-pill,#composition-card .comp-live-legend,#composition-card .comp-live-legend-emoji,#composition-card .comp-live-bar>i,#composition-card .comp-live-focus-face,#composition-card .comp-live-pane{animation:none!important;transition:none!important}}

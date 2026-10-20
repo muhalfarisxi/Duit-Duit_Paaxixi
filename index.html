@@ -3415,6 +3415,34 @@ body:has(.tx-search-backdrop){overflow:hidden}
  }
 }
 
+
+
+/* #072: Label SVG mengikuti sudut sektor dan memakai warna irisan yang sama */
+.analytics-comp-trend #composition-card .comp-recap-callout .comp-recap-callout-name,
+.analytics-comp-trend #composition-card .comp-recap-callout .comp-recap-callout-data{
+ fill:var(--recap-color,#24558d)!important;
+}
+.analytics-comp-trend #composition-card .comp-recap-callout .comp-recap-callout-name{
+ font:900 12px/1.2 Nunito,system-ui,sans-serif;
+}
+.analytics-comp-trend #composition-card .comp-recap-callout .comp-recap-callout-data{
+ font:850 11px/1.2 Nunito,system-ui,sans-serif;
+ opacity:.95;
+}
+.analytics-comp-trend #composition-card .comp-recap-callout rect{
+ fill:color-mix(in srgb,var(--recap-color,#2563eb) 5%,#fff);
+ stroke:var(--recap-color,#2563eb);
+}
+.analytics-comp-trend #composition-card .comp-recap-callout:is(:hover,:focus-visible,.is-active) rect{
+ fill:color-mix(in srgb,var(--recap-color,#2563eb) 11%,#fff);
+}
+@container (max-width:490px){
+ .analytics-comp-trend #composition-card .comp-recap-rail-label .comp-recap-rail-name,
+ .analytics-comp-trend #composition-card .comp-recap-rail-label .comp-recap-rail-data{
+  color:var(--recap-color)!important;
+ }
+}
+
 </style>
 </head>
 <body>
@@ -6590,16 +6618,18 @@ document.addEventListener('visibilitychange',()=>{
    mini.append(top,detail);mini.setAttribute('aria-label',entry.name+', '+entry.percentage+' persen, '+money(entry.amount));
    smallRail.append(mini);mobileLabels.push(mini);connect(mini,i);
   });
-  // Rapikan connector: dimulai DI LUAR tepi donut dan berakhir tepat di tepi label.
-  // Label mengikuti titik tengah irisan; pergeseran hanya dilakukan ketika saling bertumpuk.
+  // Setiap garis dimulai tepat setelah tepi irisan donut dan bergerak RADIAL
+  // sesuai sudut irisan, baru melengkung halus ke sisi kotak label.
+  // Distribusi vertikal label menjaga urutan posisi dan mencegah tabrakan.
   for(const list of [left,right]){
    const margin=27,minGap=55;
    const placed=list.map(entry=>({
     entry,
-    origin:xy(entry.mid,radius+22,cx,cy)
-   })).sort((a,b)=>a.origin.y-b.origin.y);
+    radialStart:xy(entry.mid,radius+18,cx,cy),
+    radialElbow:xy(entry.mid,radius+39,cx,cy)
+   })).sort((a,b)=>a.radialStart.y-b.radialStart.y);
    if(!placed.length)continue;
-   let slots=placed.map(p=>Math.min(height-margin,Math.max(margin,p.origin.y)));
+   let slots=placed.map(p=>Math.min(height-margin,Math.max(margin,p.radialStart.y)));
    for(let i=1;i<slots.length;i++)slots[i]=Math.max(slots[i],slots[i-1]+minGap);
    if(slots[slots.length-1]>height-margin){
     const shift=slots[slots.length-1]-(height-margin);
@@ -6609,38 +6639,45 @@ document.addEventListener('visibilitychange',()=>{
     const shift=margin-slots[0];
     slots=slots.map(y=>y+shift);
    }
-   placed.forEach(({entry,origin},j)=>{
-    const x=entry.side==='left'?7:471;
-    const slot=slots[j];
+   placed.forEach(({entry,radialStart,radialElbow},j)=>{
+    const x=entry.side==='left'?7:471,slot=slots[j];
     const dir=entry.side==='left'?-1:1;
-    const edgeX=entry.side==='left'?x+171:x-9;
-    const startX=Number(origin.x.toFixed(2));
-    const startY=Number(origin.y.toFixed(2));
-    const endY=Number(slot.toFixed(2));
-    // Posisi normal: horizontal lurus; jika label bergeser karena padat, lengkung halus.
-    const d=Math.abs(startY-endY)<3
-     ?'M '+startX+' '+startY+' H '+edgeX
-     :'M '+startX+' '+startY+
-      ' C '+(startX+dir*19).toFixed(2)+' '+startY+
-      ' '+(edgeX-dir*19).toFixed(2)+' '+endY+
-      ' '+edgeX+' '+endY;
+    // Tepi kotak: kiri = 7 + 162; kanan = 471. Tidak ada gap mengambang.
+    const edgeX=entry.side==='left'?x+162:x;
+    const p1x=radialStart.x.toFixed(2),p1y=radialStart.y.toFixed(2);
+    const p2x=radialElbow.x.toFixed(2),p2y=radialElbow.y.toFixed(2);
+    const slotY=slot.toFixed(2);
+    const control1X=(radialElbow.x+dir*24).toFixed(2);
+    const control2X=(edgeX-dir*21).toFixed(2);
+    const pathData='M '+p1x+' '+p1y+
+     ' L '+p2x+' '+p2y+
+     ' C '+control1X+' '+p2y+
+     ' '+control2X+' '+slotY+
+     ' '+edgeX+' '+slotY;
     const connector=vector('path',{
-     d,stroke:entry.color,fill:'none','stroke-width':1.4,
-     'stroke-linecap':'round','stroke-linejoin':'round',opacity:.64,
+     d:pathData,stroke:entry.color,fill:'none','stroke-width':1.65,
+     'stroke-linecap':'round','stroke-linejoin':'round',opacity:.85,
      'pointer-events':'none'
     });
     const anchor=vector('circle',{
-     cx:startX,cy:startY,r:2,fill:entry.color,opacity:.8,
+     cx:p1x,cy:p1y,r:2.35,fill:entry.color,opacity:.96,
      'pointer-events':'none'
     });
     connectorLayer.append(connector,anchor);
-    const g=vector('g',{class:'comp-recap-callout',role:'button',tabindex:0,'aria-pressed':'false',
+    const g=vector('g',{class:'comp-recap-callout',role:'button',tabindex:0,
+     'aria-pressed':'false',
      'aria-label':entry.name+', '+entry.percentage+' persen, '+money(entry.amount)});
-    const plate=vector('rect',{x,y:slot-24,width:162,height:48,rx:12,fill:'#f8fbff',
-     stroke:entry.color,'stroke-opacity':.44,'stroke-width':1.25});
-    const name=vector('text',{x:x+10,y:slot-5,class:'comp-recap-callout-name',fill:entry.color});
+    // Satu sumber warna untuk kedua baris teks dan border, sama persis dengan slice.
+    g.style.setProperty('--recap-color',entry.color);
+    const plate=vector('rect',{x,y:slot-24,width:162,height:48,rx:12,
+     fill:'#f8fbff',stroke:entry.color,'stroke-opacity':.62,'stroke-width':1.35});
+    const name=vector('text',{
+     x:x+10,y:slot-6,class:'comp-recap-callout-name',fill:entry.color
+    });
     name.textContent=entry.icon+' '+entry.name;
-    const detail=vector('text',{x:x+10,y:slot+12,class:'comp-recap-callout-data'});
+    const detail=vector('text',{
+     x:x+10,y:slot+13,class:'comp-recap-callout-data',fill:entry.color
+    });
     detail.textContent=entry.percentage+'% · '+money(entry.amount);
     g.append(plate,name,detail);labelLayer.append(g);
     labels[entry.index]=g;connect(g,entry.index);

@@ -2055,6 +2055,35 @@ body:has(.tx-search-backdrop){overflow:hidden}
 @media(max-width:570px){.tx-calendar-section .tx-calendar-title{gap:6px;font-size:16px}.tx-calendar-title-icon{width:36px;height:36px;font-size:20px}.tx-calendar-month{font-size:12px}.tx-search-date-group>summary{flex-direction:column;align-items:flex-start;padding:11px;gap:7px}.tx-search-date-label>strong{font-size:13px}.tx-search-date-group .tx-cal-day-head-totals{padding-left:17px;font-size:11px;gap:9px}.tx-search-date-list{padding:4px 9px 9px}}
 @media(prefers-reduced-motion:reduce){.tx-calendar-title-icon,.tx-calendar-title-words::after,.tx-calendar-sparkle,.tx-calendar-section .tx-calendar-actions .tx-calendar-search-cta,.tx-calendar-section .tx-calendar-actions .tx-calendar-all-cta{animation:none!important}.tx-calendar-section .tx-calendar-actions :is(.tx-calendar-search-cta,.tx-calendar-all-cta),.tx-search-date-chevron,.tx-calendar-cta-arrow{transition:none!important}}
 
+
+/* #056 Header rapi: login, bulan, dan Catat Transaksi sejajar pada desktop. */
+@media(min-width:1271px){
+ .topbar{display:grid;grid-template-columns:minmax(0,1fr) max-content;align-items:center;column-gap:18px}
+ .topbar>div:first-child{min-width:0}
+ .topbar .top-controls{display:flex;align-items:center;justify-content:flex-end;flex-wrap:nowrap;gap:10px;min-width:0}
+ .topbar .top-controls .cloud-state{flex:0 1 190px;max-width:190px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .topbar .top-controls .month-pill{flex:0 0 auto;min-width:0;padding:10px 11px}
+ .topbar .top-controls .month-pill input{width:145px;min-width:0;max-width:145px}
+ .topbar .top-controls #top-add{flex:0 0 auto;white-space:nowrap;padding:11px 15px;min-height:43px}
+}
+/* Laptop: jika area terlalu sempit, tiga aksi pindah bersama tanpa tombol tertinggal. */
+@media(min-width:631px) and (max-width:1270px){
+ .topbar{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;row-gap:14px}
+ .topbar .top-controls{display:flex;flex-wrap:nowrap;justify-content:flex-end;align-items:center;gap:10px;min-width:0}
+ .topbar .top-controls .cloud-state{flex:0 1 210px;min-width:0}
+ .topbar .top-controls .month-pill{flex:0 0 auto}
+ .topbar .top-controls #top-add{flex:0 0 auto;white-space:nowrap}
+}
+/* HP: dua kontrol atas, lalu tombol catat selebar kontainer. */
+@media(max-width:630px){
+ .topbar{display:block}
+ .topbar .top-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch;gap:9px;margin-top:16px}
+ .topbar .top-controls .cloud-state{max-width:none;min-width:0;width:100%;height:100%;text-align:center}
+ .topbar .top-controls .month-pill{width:100%;min-width:0;box-sizing:border-box}
+ .topbar .top-controls .month-pill input{width:100%;min-width:0;max-width:100%}
+ .topbar .top-controls #top-add{grid-column:1/-1;width:100%;min-height:46px;white-space:nowrap;justify-content:center}
+}
+
 </style>
 </head>
 <body>

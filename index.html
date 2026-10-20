@@ -2243,6 +2243,106 @@ body:has(.tx-search-backdrop){overflow:hidden}
  #content .pax-cute-heading .pax-heading-sparkle{display:none!important}
 }
 
+
+/* #060 Tab jenis transaksi: compact, lucu, dan fit seperti switcher Pemasukan/Pengeluaran. */
+.tx-entry-body .pill-tabs.tx-type-selector{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ align-items:stretch;gap:8px;padding:7px;margin-bottom:17px;
+ border-radius:18px;border:1px solid #d4e3f8;
+ background:linear-gradient(120deg,#f2f7ff,#eaf2fd);
+}
+.tx-entry-body .pill-tabs.tx-type-selector button{
+ position:relative;display:flex;flex-direction:row;align-items:center;
+ justify-content:center;gap:7px;width:100%;min-width:0;
+ min-height:63px;padding:10px 8px;box-sizing:border-box;
+ border-radius:14px;border:1px solid transparent;
+ white-space:nowrap;text-align:center;overflow:hidden;
+ transition:transform .18s ease,background .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+.tx-entry-body .pill-tabs.tx-type-selector .tx-type-glyph{
+ display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;
+ width:auto;height:auto;min-width:0;padding:0;
+ background:transparent!important;border:0!important;
+ box-shadow:none!important;border-radius:0;font:800 21px/1 'Nunito',system-ui,sans-serif;
+}
+.tx-entry-body .pill-tabs.tx-type-selector .tx-type-label{
+ display:inline-block;flex:0 1 auto;min-width:0;max-width:100%;
+ padding:0;margin:0;font:600 16px/1.22 'Fredoka','Nunito',system-ui,sans-serif;
+ letter-spacing:0;text-transform:none;
+ white-space:nowrap!important;word-break:keep-all;overflow-wrap:normal;
+ overflow:visible;text-align:center;
+}
+.tx-entry-body .pill-tabs.tx-type-selector button[data-txtype="expense"]:not(.active){
+ color:#be4f55;background:#fff0f1;border-color:#f4d4d6;
+}
+.tx-entry-body .pill-tabs.tx-type-selector button[data-txtype="income"]:not(.active){
+ color:#148364;background:#e9f8ef;border-color:#ceebdc;
+}
+.tx-entry-body .pill-tabs.tx-type-selector button[data-txtype="transfer"]:not(.active){
+ color:#2868b9;background:#ebf3ff;border-color:#d3e3fa;
+}
+.tx-entry-body .pill-tabs.tx-type-selector button[data-txtype="expense"].active,
+.tx-entry-body .pill-tabs.tx-type-selector button[data-txtype="expense"].active:disabled{
+ background:linear-gradient(115deg,#bb4352,#d85f63)!important;color:#fff!important;
+ border-color:#bb4855;box-shadow:0 6px 15px rgba(181,67,81,.17);
+}
+.tx-entry-body .pill-tabs.tx-type-selector button[data-txtype="income"].active,
+.tx-entry-body .pill-tabs.tx-type-selector button[data-txtype="income"].active:disabled{
+ background:linear-gradient(115deg,#158361,#2ca482)!important;color:#fff!important;
+ border-color:#158361;box-shadow:0 6px 15px rgba(30,133,97,.17);
+}
+.tx-entry-body .pill-tabs.tx-type-selector button[data-txtype="transfer"].active,
+.tx-entry-body .pill-tabs.tx-type-selector button[data-txtype="transfer"].active:disabled{
+ background:linear-gradient(115deg,#2b62af,#4d89d5)!important;color:#fff!important;
+ border-color:#2b62af;box-shadow:0 6px 15px rgba(41,103,184,.18);
+}
+.tx-entry-body .pill-tabs.tx-type-selector button.active .tx-type-glyph,
+.tx-entry-body .pill-tabs.tx-type-selector button[data-txtype="expense"].active .tx-type-glyph,
+.tx-entry-body .pill-tabs.tx-type-selector button[data-txtype="income"].active .tx-type-glyph,
+.tx-entry-body .pill-tabs.tx-type-selector button[data-txtype="transfer"].active .tx-type-glyph{
+ color:#fff!important;background:transparent!important;border:0!important;
+}
+.tx-entry-body .pill-tabs.tx-type-selector button.active::after{content:none!important;animation:none!important}
+.tx-entry-body .pill-tabs.tx-type-selector button:hover:not(:disabled){
+ transform:translateY(-1px);filter:brightness(1.015);
+}
+.tx-entry-body .pill-tabs.tx-type-selector button.active,
+.tx-entry-body .pill-tabs.tx-type-selector button.active:disabled{transform:none;opacity:1!important}
+.tx-entry-body .pill-tabs.tx-type-selector button:not(.active):disabled{
+ opacity:.85!important;filter:saturate(.86);cursor:not-allowed;
+}
+.tx-entry-dialog .tx-entry-heading h3{
+ font-size:clamp(20px,2.1vw,26px);
+}
+@media(max-width:600px){
+ .tx-entry-body .pill-tabs.tx-type-selector{gap:5px;padding:5px;margin-bottom:15px;border-radius:15px}
+ .tx-entry-body .pill-tabs.tx-type-selector button{
+  display:flex;flex-direction:row;align-items:center;justify-content:center;
+  min-height:56px;gap:4px;padding:9px 3px;border-radius:11px;white-space:nowrap;
+ }
+ .tx-entry-body .pill-tabs.tx-type-selector .tx-type-glyph{
+  width:auto;height:auto;min-width:0;font-size:16px;border:0;border-radius:0;
+ }
+ .tx-entry-body .pill-tabs.tx-type-selector .tx-type-label{
+  font-size:clamp(10px,2.55vw,13px);font-weight:600;letter-spacing:-.12px;
+  white-space:nowrap!important;overflow-wrap:normal;word-break:keep-all;
+ }
+ .tx-entry-dialog .tx-entry-heading h3{font-size:clamp(18px,4.5vw,21px)}
+}
+@media(max-width:380px){
+ .tx-entry-body .pill-tabs.tx-type-selector{gap:4px;padding:4px}
+ .tx-entry-body .pill-tabs.tx-type-selector button{
+  min-height:52px;gap:3px;padding:7px 2px;
+ }
+ .tx-entry-body .pill-tabs.tx-type-selector .tx-type-glyph{font-size:14px}
+ .tx-entry-body .pill-tabs.tx-type-selector .tx-type-label{
+  font-size:clamp(9.2px,2.65vw,10.7px);letter-spacing:-.25px;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .tx-entry-body .pill-tabs.tx-type-selector button{transition:none!important}
+}
+
 </style>
 </head>
 <body>

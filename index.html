@@ -2343,6 +2343,73 @@ body:has(.tx-search-backdrop){overflow:hidden}
  .tx-entry-body .pill-tabs.tx-type-selector button{transition:none!important}
 }
 
+
+/* #061 Label kecil lucu, paragraf deskripsi tetap statis. */
+#content .pax-mini-label,#finance-editor-backdrop .pax-mini-label{
+ display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;
+ max-width:100%;min-width:0;font-family:'Fredoka','Nunito',system-ui,sans-serif!important;
+ font-size:clamp(12px,1.12vw,14px)!important;font-weight:600!important;
+ letter-spacing:0!important;line-height:1.4!important;color:#315482!important;
+}
+.pax-mini-icon{display:inline-grid;place-items:center;flex:none;width:27px;height:27px;
+ border-radius:9px;font-size:14px;background:#e8f3ff;border:1px solid #c8defa;
+ box-shadow:0 4px 10px rgba(42,95,166,.08);animation:pax-mini-float 4.4s ease-in-out infinite}
+.pax-mini-label[data-tone="green"] .pax-mini-icon{background:#e8f9ef;border-color:#c7e8d7}
+.pax-mini-label[data-tone="gold"] .pax-mini-icon{background:#fff7e3;border-color:#f3e0af}
+.pax-mini-label[data-tone="coral"] .pax-mini-icon{background:#fff0f2;border-color:#f6d2d9}
+.pax-mini-label[data-tone="lavender"] .pax-mini-icon{background:#f3efff;border-color:#dbd2fa}
+.pax-mini-word{position:relative;min-width:0;overflow-wrap:anywhere}
+.pax-mini-word::after{content:"";position:absolute;bottom:-3px;left:0;right:0;height:2px;
+ border-radius:99px;background:linear-gradient(90deg,#498bdf,transparent);
+ transform-origin:left;animation:pax-mini-underline .65s ease-out both}
+.pax-mini-label[data-tone="green"] .pax-mini-word::after{background:linear-gradient(90deg,#299b78,transparent)}
+.pax-mini-label[data-tone="coral"] .pax-mini-word::after{background:linear-gradient(90deg,#d96478,transparent)}
+.pax-mini-label[data-tone="gold"] .pax-mini-word::after{background:linear-gradient(90deg,#d6a13c,transparent)}
+.pax-mini-label[data-tone="lavender"] .pax-mini-word::after{background:linear-gradient(90deg,#9877d5,transparent)}
+.pax-mini-star{color:#86aee5;font-size:11px;animation:pax-mini-sparkle 5.5s ease-in-out infinite}
+#content .metric-label.pax-mini-label{gap:4px}
+#content .metric-label.pax-mini-label .pax-mini-icon{width:23px;height:23px;font-size:12px}
+#content .metric-label.pax-mini-label .pax-mini-star{display:none}
+#content .form-field,#finance-editor-backdrop .form-field{transition:background .2s,box-shadow .2s}
+#content .form-field.pax-field-engaged,#finance-editor-backdrop .form-field.pax-field-engaged{
+ border-radius:13px;background:rgba(238,247,255,.55);
+}
+#content .form-field.pax-field-engaged .pax-mini-icon,#finance-editor-backdrop .form-field.pax-field-engaged .pax-mini-icon{
+ box-shadow:0 0 0 4px rgba(60,133,228,.13)}
+/* Nama pos, kelompok, akun, dan item memakai font ramah tanpa menggerakkan nominal. */
+#content :is(.inline-line strong,.group-heading .symbol-line,.progress-head .symbol-text strong,
+ .review-bar-pos strong,.review-group-info strong,.list-title,.debt-title,.account-info>strong){
+ font-family:'Fredoka','Nunito',system-ui,sans-serif;font-weight:600;
+ transition:color .18s,transform .18s}
+#content :is(.inline-line,.tx-recent-row,.account-row,.debt-row,.review-group):hover
+ :is(strong,.list-title,.debt-title){color:#2868b1}
+#content .group-heading .symbol-line::after{
+ content:' ✦';font-size:11px;color:#8cb3e8;animation:pax-mini-sparkle 5.3s ease-in-out infinite
+}
+.pax-new-pulse{animation:pax-saved-pop .6s cubic-bezier(.2,.8,.25,1.1) both!important}
+.pax-new-pulse .track>div,.pax-new-pulse .review-bar-fill{
+ animation:pax-new-progress .65s ease-out both;transform-origin:left}
+@keyframes pax-mini-float{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-2px) rotate(2deg)}}
+@keyframes pax-mini-underline{from{opacity:.1;transform:scaleX(.07)}to{opacity:1;transform:scaleX(1)}}
+@keyframes pax-mini-sparkle{0%,78%,100%{opacity:.45;transform:scale(.94)}83%{opacity:1;transform:scale(1.16)}}
+@keyframes pax-saved-pop{
+ 0%{transform:translateY(7px) scale(.985);box-shadow:0 0 0 0 rgba(53,126,220,.15)}
+ 60%{transform:translateY(-2px) scale(1.007);box-shadow:0 0 0 5px rgba(53,126,220,.11)}
+ 100%{transform:none;box-shadow:0 0 0 0 rgba(53,126,220,0)}
+}
+@keyframes pax-new-progress{from{transform:scaleX(.83)}to{transform:scaleX(1)}}
+@media(max-width:650px){
+ #content .pax-mini-label,#finance-editor-backdrop .pax-mini-label{font-size:12px!important;gap:5px}
+ .pax-mini-icon{width:23px;height:23px;font-size:12px;border-radius:8px}
+ #content .metric-label.pax-mini-label .pax-mini-icon{width:20px;height:20px;font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){
+ .pax-mini-icon,.pax-mini-word::after,.pax-mini-star,.pax-new-pulse,
+ .pax-new-pulse .track>div,.pax-new-pulse .review-bar-fill,
+ #content .group-heading .symbol-line::after{animation:none!important;transition:none!important}
+}
+@media print{.pax-mini-icon,.pax-mini-star{display:none!important}.pax-mini-word::after{display:none!important}}
+
 </style>
 </head>
 <body>
@@ -2672,6 +2739,70 @@ function decoratePaaxixiSectionTitles(){
  });
 }
 
+
+/* #061 Subjudul ceria dan animasi respons saat data keuangan berubah */
+const PAX_MINI={
+'Tanggal':['🗓️','gold'],'Tanggal Pembayaran':['🗓️','gold'],'Jumlah (Rp)':['💰','green'],
+'Jumlah Pembayaran (Rp)':['💰','green'],'Kelompok':['🧩','blue'],'Kategori':['🏷️','coral'],
+'Bayar Dari Rekening':['💳','blue'],'Masuk Ke Rekening':['🏦','green'],
+'Dari Rekening':['🏦','blue'],'Ke Rekening':['💸','green'],
+'Nama / Keterangan Transaksi':['✍️','lavender'],'Catatan (Opsional)':['📝','lavender'],
+'Nama Rekening':['👛','blue'],'Nama Kategori':['🏷️','coral'],
+'Saldo Awal (Rp)':['💵','green'],'Nama Orang / Pihak':['🤝','lavender'],
+'Total Anggaran':['🎯','gold'],'Sisa Anggaran':['🌱','green']
+};
+function paxMiniPreset(name){
+ if(PAX_MINI[name])return PAX_MINI[name];
+ if(/anggaran|pagu|batas/i.test(name))return ['🎯','gold'];
+ if(/pos|kelompok|kategori/i.test(name))return ['🧩','lavender'];
+ if(/transaksi|pengeluaran|cicilan/i.test(name))return ['🧾','coral'];
+ if(/pemasukan|rekening|saldo|nominal|jumlah/i.test(name))return ['💰','green'];
+ if(/tanggal|periode/i.test(name))return ['🗓️','gold'];
+ return ['✨','blue'];
+}
+function paxDecorateMini(root){
+ if(!root)return;
+ root.querySelectorAll('.form-field>label.field-label,.tx-search-form>label,.metric-label').forEach(el=>{
+  if(el.classList.contains('pax-mini-label')||el.children.length||el.querySelector('input,select,button'))return;
+  const label=el.textContent.trim();if(!label)return;
+  const [emoji,tone]=paxMiniPreset(label);
+  const icon=document.createElement('span'),word=document.createElement('span'),star=document.createElement('span');
+  icon.className='pax-mini-icon';icon.textContent=emoji;icon.setAttribute('aria-hidden','true');
+  word.className='pax-mini-word';word.textContent=label;
+  star.className='pax-mini-star';star.textContent='✦';star.setAttribute('aria-hidden','true');
+  el.classList.add('pax-mini-label');el.dataset.tone=tone;el.replaceChildren(icon,word,star);
+ });
+}
+let paxSaved=null;
+function paxMarkSaved(kind,id){paxSaved={kind,id}}
+function paxPulse(el){
+ if(!el)return;
+ el.classList.remove('pax-new-pulse');void el.offsetWidth;el.classList.add('pax-new-pulse');
+ el.addEventListener('animationend',()=>el.classList.remove('pax-new-pulse'),{once:true});
+}
+function paxAnimateSaved(){
+ const saved=paxSaved;paxSaved=null;
+ if(!saved)return;
+ const root=document.getElementById('content');if(!root)return;
+ let el=null,selector='',key='';
+ if(saved.kind==='transaction'){selector='[data-edit-tx]';key='editTx'}
+ if(saved.kind==='group'){selector='[data-edit-expense-group]';key='editExpenseGroup'}
+ if(saved.kind==='category'){selector='[data-edit-budget-category]';key='editBudgetCategory'}
+ if(saved.kind==='account'){selector='[data-edit-account]';key='editAccount'}
+ if(selector){
+  const btn=[...root.querySelectorAll(selector)].find(btn=>btn.dataset[key]===saved.id);
+  el=btn?.closest('.tx-recent-row,.tx-calendar-item,.review-item,.tx-search-result,.inline-line,.account-row,tr');
+ }
+ if(saved.kind==='debt'){
+  el=[...root.querySelectorAll('.debt-title')].find(x=>x.textContent.includes(saved.id))?.closest('.debt-row');
+ }
+ if(saved.kind==='budget')el=root.querySelector('.budget-kpis');
+ if(saved.kind==='move')el=root.querySelector('.list-item');
+ if(!el&&saved.kind==='transaction')el=root.querySelector('.cashflow-card,.review-kpi');
+ if(!el&&saved.kind==='category')el=root.querySelector('.group-heading');
+ paxPulse(el);
+}
+
 function labelNav(){const titles={dashboard:['Dashboard Keuangan',''],review:['Rincian Transaksi','Pilih tanggal atau kelompok untuk memeriksa transaksi dan membandingkan pengeluaran.'],budgets:['Anggaran Bulanan','Tetapkan batas tiap pos; alihkan sisa dari pos lain jika diperlukan.'],debts:['Utang & Piutang','Pilih status untuk melihat pinjaman yang belum lunas dan riwayat cicilannya.'],reports:['Arsip Laporan','Simpan laporan setiap akhir bulan agar angka periode tersebut terdokumentasi.'],accounts:['Rekening, Kategori & Sinkronisasi','Cocokkan saldo rekening, susun kategori, dan cadangkan data secara berkala.']};const item=titles[ui.view];decoratePaaxixiPageTitle(item[0]);document.getElementById('page-subtitle').textContent=ui.view==='dashboard'?tanggalWetonWIB():item[1];document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
 function render(){
  const prev=document.querySelector('.comp-popover');
@@ -2680,6 +2811,8 @@ function render(){
  labelNav();
  document.getElementById('content').innerHTML=({dashboard:renderDash,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])()+renderTxHistoryPopup()+renderTxSearchPopup()+renderTxModal();
  decoratePaaxixiSectionTitles();
+ paxDecorateMini(document.getElementById('content'));
+ paxAnimateSaved();
  const newTrendScroll=document.querySelector('.trend-scroll');
  if(newTrendScroll&&oldTrendScroll!==undefined)newTrendScroll.scrollLeft=oldTrendScroll;
  if(ui.view==='dashboard'&&ui.comp.menu){
@@ -4058,6 +4191,7 @@ function openFinanceEditor(kind,id=null,groupName=null){
  financeEditorReturnFocus=document.activeElement;
  document.getElementById('finance-editor-backdrop')?.remove();
  document.body.insertAdjacentHTML('beforeend',financeEditorMarkup(kind));
+ paxDecorateMini(document.getElementById('finance-editor-backdrop'));
  document.querySelector('#finance-editor-backdrop [data-editor-focus]')?.focus({preventScroll:true});
 }
 function closeFinanceEditor(){
@@ -4276,6 +4410,24 @@ document.addEventListener('input',event=>{
  const icon=document.getElementById('finance-editor-symbol');
  if(icon)icon.textContent=pickSymbol(event.target.value,document.querySelector('#finance-editor-backdrop [data-editor-group]')?.value||'');
 });
+
+/* Respons visual segera ketika input, kelompok, pos, atau rekening dipilih. */
+document.addEventListener('focusin',e=>{
+ const el=e.target.closest?.('.form-field');
+ if(el&&e.target.matches?.('input,select,textarea'))el.classList.add('pax-field-engaged');
+});
+document.addEventListener('focusout',e=>{
+ e.target.closest?.('.form-field')?.classList.remove('pax-field-engaged');
+});
+document.addEventListener('change',e=>{
+ const control=e.target;if(!control?.isConnected||!control.matches?.('input,select,textarea'))return;
+ paxPulse(control.closest('.form-field'));
+ if(control.matches('[data-budget-id]'))paxPulse(control.closest('tr'));
+ if(control.matches('#tx-group,#tx-category,#new-cat-group,[data-editor-group]')){
+  const form=control.closest('form');paxPulse(form?.querySelector('.form-grid'));
+ }
+});
+
 document.addEventListener('blur',e=>{
  const el=e.target;
  if(el.matches?.('input[data-rupiah]')&&el.value.endsWith(','))el.value=el.value.slice(0,-1);
@@ -4287,12 +4439,12 @@ if(id==='cloud-login-form'){if(!window.ARUS_CLOUD)return toast('Firebase belum d
 if(id==='tx-form'){let type=f.get('type'),amount=positive(f.get('amount')),accountId=f.get('accountId'),toAccountId=f.get('toAccountId'),categoryId=f.get('categoryId'),date=f.get('date'),title=String(f.get('title')||'').trim(),editId=String(f.get('editId')||'');if(!amount||!acc(accountId)||!/^(?:\d{4})-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/.test(date)||!title)return toast('Lengkapi transaksi dengan benar.',true);if(type==='transfer'){if(!acc(toAccountId)||accountId===toAccountId)return toast('Pilih dua rekening berbeda.',true)}else if(!cat(categoryId)||cat(categoryId).kind!==type)return toast('Pilih kategori yang valid.',true);
 let original=db.transactions.find(t=>t.id===editId);if(editId&&!original)return toast('Transaksi tidak ditemukan.',true);
 let item={id:original?.id||uid(),type,amount,accountId,toAccountId:type==='transfer'?toAccountId:undefined,categoryId:type==='transfer'?undefined:categoryId,date,title,note:String(f.get('note')||'').trim(),createdAt:original?.createdAt||new Date().toISOString()};
-if(original)Object.assign(original,item);else db.transactions.push(item);ui.txEditId=null;ui.txModalOpen=false;save();ui.month=date.slice(0,7);render();toast(original?'Perubahan transaksi disimpan.':'Transaksi berhasil disimpan.');return}
-if(id==='budget-form'){let proposal={...db.budgets},count=0,invalid=false;form.querySelectorAll('[data-budget-id]').forEach(input=>{let v=integer(input.value);if(!Number.isFinite(v)||v<0){invalid=true;return}proposal[ui.month+'|'+input.dataset.budgetId]=v;let netMoves=db.budgetMoves.filter(t=>t.month===ui.month).reduce((s,t)=>s+(t.to===input.dataset.budgetId?num(t.amount):0)-(t.from===input.dataset.budgetId?num(t.amount):0),0);if(v+netMoves<0)invalid=true;count++});if(invalid)return toast('Anggaran tidak valid atau kurang dari nilai pemindahan.',true);db.budgets=proposal;save();render();toast(`${count} anggaran untuk ${monthFmt(ui.month)} tersimpan.`);return}
-if(id==='move-budget-form'){let from=f.get('from'),to=f.get('to'),amount=positive(f.get('amount')),editId=f.get('editId'),old=db.budgetMoves.find(m=>m.id===editId);if(!cat(from)||!cat(to)||from===to||!amount)return toast('Pilih pos dan jumlah yang valid.',true);let sameMonthMoves=db.budgetMoves.filter(x=>x.month===ui.month&&x.id!==editId),net=c=>sameMonthMoves.reduce((s,t)=>s+(t.to===c?num(t.amount):0)-(t.from===c?num(t.amount):0),0);let available=baseBudget(from)+net(from)-spentByCat(from);if(available<amount)return toast('Sisa anggaran pos asal tidak cukup.',true);if(old)Object.assign(old,{from,to,amount});else db.budgetMoves.push({id:uid(),month:ui.month,date:today(),from,to,amount});ui.moveEditId=null;save();render();toast('Pemindahan anggaran disimpan.');return}
-if(id==='debt-form'){let amount=positive(f.get('amount')),person=String(f.get('person')||'').trim(),date=f.get('date'),accountId=f.get('accountId'),editId=f.get('editId'),old=db.debts.find(d=>d.id===editId);if(!amount||!person||!acc(accountId)||!/^(?:\d{4})-\d{2}-\d{2}$/.test(date))return toast('Isi data pinjaman dengan benar.',true);let settled=old?(old.settlements||[]).reduce((s,x)=>s+num(x.amount),0):0;if(amount<settled)return toast('Nominal awal tidak boleh lebih kecil dari total cicilan.',true);let detail={type:f.get('type')==='payable'?'payable':'receivable',person,amount,date,accountId,note:String(f.get('note')||'').trim()};if(old)Object.assign(old,detail);else db.debts.push({id:uid(),...detail,settlements:[]});ui.debtEditId=null;save();render();toast('Catatan pinjaman disimpan.');return}
+if(original)Object.assign(original,item);else db.transactions.push(item);paxMarkSaved('transaction',item.id);ui.txEditId=null;ui.txModalOpen=false;save();ui.month=date.slice(0,7);render();toast(original?'Perubahan transaksi disimpan.':'Transaksi berhasil disimpan.');return}
+if(id==='budget-form'){let proposal={...db.budgets},count=0,invalid=false;form.querySelectorAll('[data-budget-id]').forEach(input=>{let v=integer(input.value);if(!Number.isFinite(v)||v<0){invalid=true;return}proposal[ui.month+'|'+input.dataset.budgetId]=v;let netMoves=db.budgetMoves.filter(t=>t.month===ui.month).reduce((s,t)=>s+(t.to===input.dataset.budgetId?num(t.amount):0)-(t.from===input.dataset.budgetId?num(t.amount):0),0);if(v+netMoves<0)invalid=true;count++});if(invalid)return toast('Anggaran tidak valid atau kurang dari nilai pemindahan.',true);db.budgets=proposal;paxMarkSaved('budget','');save();render();toast(`${count} anggaran untuk ${monthFmt(ui.month)} tersimpan.`);return}
+if(id==='move-budget-form'){let from=f.get('from'),to=f.get('to'),amount=positive(f.get('amount')),editId=f.get('editId'),old=db.budgetMoves.find(m=>m.id===editId);if(!cat(from)||!cat(to)||from===to||!amount)return toast('Pilih pos dan jumlah yang valid.',true);let sameMonthMoves=db.budgetMoves.filter(x=>x.month===ui.month&&x.id!==editId),net=c=>sameMonthMoves.reduce((s,t)=>s+(t.to===c?num(t.amount):0)-(t.from===c?num(t.amount):0),0);let available=baseBudget(from)+net(from)-spentByCat(from);if(available<amount)return toast('Sisa anggaran pos asal tidak cukup.',true);if(old)Object.assign(old,{from,to,amount});else db.budgetMoves.push({id:uid(),month:ui.month,date:today(),from,to,amount});paxMarkSaved('move',old?.id||'');ui.moveEditId=null;save();render();toast('Pemindahan anggaran disimpan.');return}
+if(id==='debt-form'){let amount=positive(f.get('amount')),person=String(f.get('person')||'').trim(),date=f.get('date'),accountId=f.get('accountId'),editId=f.get('editId'),old=db.debts.find(d=>d.id===editId);if(!amount||!person||!acc(accountId)||!/^(?:\d{4})-\d{2}-\d{2}$/.test(date))return toast('Isi data pinjaman dengan benar.',true);let settled=old?(old.settlements||[]).reduce((s,x)=>s+num(x.amount),0):0;if(amount<settled)return toast('Nominal awal tidak boleh lebih kecil dari total cicilan.',true);let detail={type:f.get('type')==='payable'?'payable':'receivable',person,amount,date,accountId,note:String(f.get('note')||'').trim()};if(old)Object.assign(old,detail);else db.debts.push({id:uid(),...detail,settlements:[]});paxMarkSaved('debt',person);ui.debtEditId=null;save();render();toast('Catatan pinjaman disimpan.');return}
 if(id==='repay-form'){let d=db.debts.find(d=>d.id===f.get('debtId')),editId=f.get('editId'),old=d?.settlements?.find(s=>s.id===editId),amount=positive(f.get('amount')),accountId=f.get('accountId'),date=f.get('date');if(!d||!amount||amount>debtBalance(d)+(old?.amount||0)||!acc(accountId)||!/^(?:\d{4})-\d{2}-\d{2}$/.test(date))return toast('Jumlah cicilan melebihi sisa atau data tidak valid.',true);if(old)Object.assign(old,{date,amount,accountId});else d.settlements.push({id:uid(),date,amount,accountId});ui.debtSelected=null;ui.repayEditId=null;save();render();toast('Pembayaran disimpan.');return}
-if(id==='account-form'){let name=String(f.get('name')||'').trim(),opening=integer(f.get('opening')),editId=f.get('editId'),old=db.accounts.find(a=>a.id===editId);if(!name||!Number.isFinite(opening)||opening<0)return toast('Nama atau saldo awal tidak valid.',true);if(db.accounts.some(a=>a.id!==editId&&a.name.toLowerCase()===name.toLowerCase()))return toast('Nama rekening sudah ada.',true);if(old)Object.assign(old,{name,type:f.get('type'),opening});else db.accounts.push({id:uid(),name,type:f.get('type'),opening});ui.accountEditId=null;save();render();toast('Rekening berhasil disimpan.');return}
+if(id==='account-form'){let name=String(f.get('name')||'').trim(),opening=integer(f.get('opening')),editId=f.get('editId'),old=db.accounts.find(a=>a.id===editId);if(!name||!Number.isFinite(opening)||opening<0)return toast('Nama atau saldo awal tidak valid.',true);if(db.accounts.some(a=>a.id!==editId&&a.name.toLowerCase()===name.toLowerCase()))return toast('Nama rekening sudah ada.',true);if(old)Object.assign(old,{name,type:f.get('type'),opening});else db.accounts.push({id:uid(),name,type:f.get('type'),opening});paxMarkSaved('account',old?.id||db.accounts[db.accounts.length-1].id);ui.accountEditId=null;save();render();toast('Rekening berhasil disimpan.');return}
 if(id==='expense-group-form'){
   const editId=String(f.get('editId')||''),old=expenseGroups().find(g=>g.id===editId);
   const name=String(f.get('name')||'').trim().replace(/\s+/g,' ').slice(0,45),color=String(f.get('color')||'');
@@ -4306,6 +4458,7 @@ if(id==='expense-group-form'){
   if(editId&&!old)return toast('Kelompok yang diedit tidak ditemukan. Coba muat ulang.',true);
   if(old){const previous=old.name;old.name=name;old.color=color;if(previous!==name)db.categories.forEach(c=>{if(c.kind==='expense'&&c.group===previous)c.group=name});}
   else db.expenseGroups.push({id:uid(),name,color});
+  paxMarkSaved('group',old?.id||db.expenseGroups[db.expenseGroups.length-1].id);
   const draft=cachePendingBudgetInputs();closeFinanceEditor();save();render();restorePendingBudgetInputs(draft);toast(old?'Kelompok pengeluaran berhasil diperbarui.':'Kelompok pengeluaran berhasil ditambahkan.');return;
  }
  if(id==='category-form'||id==='budget-category-form'){
@@ -4315,6 +4468,7 @@ if(id==='expense-group-form'){
   if(db.categories.some(c=>c.id!==editId&&c.kind===kind&&c.group===group&&c.label.toLowerCase()===label.toLowerCase()))return toast('Kategori sudah ada.',true);
   const isPopup=id==='budget-category-form',draft=isPopup?cachePendingBudgetInputs():null;
   if(old)Object.assign(old,{label,group});else db.categories.push({id:uid(),label,kind,group});
+  paxMarkSaved('category',old?.id||db.categories[db.categories.length-1].id);
   if(isPopup)closeFinanceEditor();
   ui.categoryEditId=null;ui.budgetCategoryEditId=null;ui.budgetCategoryGroup=null;
   save();render();if(draft)restorePendingBudgetInputs(draft);

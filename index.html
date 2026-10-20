@@ -2965,7 +2965,7 @@ function paxDecoratePopupHeadings(root){
  headings.forEach(heading=>{
   if(heading.classList.contains('pax-modal-title'))return;
   const original=heading.textContent.replace(/\s+/g,' ').trim();
-  if(!original||heading.querySelector('input,button,select'))return;
+  if(!original||heading.querySelector('input,button,select,small'))return;
   const [emoji,tone]=paxPopupTheme(original);
   const offset=original.indexOf(' · ');
   const title=offset>=0?original.slice(0,offset):original;

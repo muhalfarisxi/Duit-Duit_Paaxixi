@@ -1906,6 +1906,27 @@ body:has(.tx-entry-backdrop),body:has(.tx-history-backdrop){overflow:hidden}
  .tx-entry-body .pill-tabs.tx-type-selector button.active::after{animation:none!important;transition:none!important}
 }
 
+
+/* #052 Pop-up konfirmasi hapus */
+.paaxixi-delete-backdrop{position:fixed;inset:0;z-index:2200;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,27,56,.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);animation:delete-fade .18s ease-out}
+.paaxixi-delete-card{display:flex;flex-direction:column;align-items:center;width:min(430px,100%);max-height:calc(100dvh - 32px);overflow-y:auto;margin:auto;padding:25px 23px 23px;border-radius:23px;background:linear-gradient(145deg,#fff,#fff7f6);border:1px solid #f1d8d4;box-shadow:0 24px 72px rgba(10,37,77,.3);text-align:center;animation:delete-pop .26s cubic-bezier(.2,.8,.25,1.1)}
+.paaxixi-delete-icon{display:grid;place-items:center;width:67px;height:67px;flex:none;font-size:30px;border:1px solid #f5d6d2;border-radius:21px;background:#fff0eb;margin-bottom:12px}
+.paaxixi-delete-card h3{font:600 clamp(22px,3.5vw,29px)/1.2 'Fredoka','Nunito',system-ui,sans-serif;color:#163d72;margin:0 0 10px}
+.paaxixi-delete-card p{font:600 13px/1.55 'Nunito',system-ui,sans-serif;color:#7085a2;margin:0}
+.paaxixi-delete-label{align-self:stretch;margin:14px 0;padding:12px;border-radius:13px;border:1px solid #dce8fa;background:#f2f7ff;color:#214879;font:850 15px/1.45 'Nunito',system-ui,sans-serif;overflow-wrap:anywhere}
+.paaxixi-delete-card .paaxixi-delete-note{line-height:1.55}
+.paaxixi-delete-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:24px;width:100%}
+.paaxixi-delete-actions button{border:1.5px solid #c9dbf3;min-height:48px;padding:11px 9px;border-radius:13px;background:#eef5ff;color:#31598a;font:850 14px/1.2 'Nunito',system-ui,sans-serif;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.paaxixi-delete-actions button.paaxixi-delete-yes{background:linear-gradient(130deg,#c34749,#e0695e);border-color:#c04c49;color:white;box-shadow:0 6px 17px rgba(189,63,69,.19)}
+.paaxixi-delete-actions button:hover{transform:translateY(-2px);box-shadow:0 8px 19px rgba(18,52,110,.16)}
+.paaxixi-delete-actions button:focus-visible{outline:3px solid #367dde;outline-offset:3px}
+body:has(.paaxixi-delete-backdrop){overflow:hidden}
+@keyframes delete-fade{from{opacity:0}to{opacity:1}}
+@keyframes delete-pop{from{opacity:0;transform:translateY(15px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:600px){.paaxixi-delete-card{padding:23px 16px 19px;border-radius:18px}.paaxixi-delete-actions{gap:7px}.paaxixi-delete-actions button{font-size:13px}}
+@media(prefers-reduced-motion:reduce){.paaxixi-delete-backdrop,.paaxixi-delete-card{animation:none!important}.paaxixi-delete-actions button{transition:none!important}}
+@media print{.paaxixi-delete-backdrop{display:none!important}}
+
 </style>
 </head>
 <body>
@@ -3480,6 +3501,60 @@ function renderReports(){let months=Object.keys(db.reports||{}).sort().reverse()
 <section class="card no-print" style="margin-bottom:16px"><div class="card-head"><div><h3>Riwayat Laporan Tersimpan</h3><p>Buka arsip untuk membandingkan angka; laporan lama tidak ikut berubah otomatis saat transaksi diedit.</p></div></div>${months.length?`<div class="inline-cards">${months.map(x=>`<div class="inline-line"><div><strong>${h(monthFmt(x))}</strong><small>Disimpan ${new Date(db.reports[x].createdAt).toLocaleString('id-ID')} · Keluar ${money(db.reports[x].expense)}</small></div><div class="action-buttons"><button class="btn sm" data-open-report="${h(x)}">Buka</button><button class="btn sm danger" data-delete-report="${h(x)}">Hapus</button></div></div>`).join('')}</div>`:empty('▣','Belum Ada Laporan','Klik Simpan laporan bulanan untuk mengarsipkan bulan pilihan.')}</section>
 ${r?`<section class="card" id="print-area"><div class="report-header"><div class="page-eyebrow">DUIT-DUIT PAAXIXI — LAPORAN KEUANGAN PRIBADI</div><h2 style="margin:5px 0">Laporan ${h(monthFmt(r.month))}</h2><div class="tiny">Arsip dibuat: ${new Date(r.createdAt).toLocaleString('id-ID')} · Periode ${h(r.month)}</div></div><div class="report-kpis"><div><small>Total Pemasukan</small><strong class="green">${money(r.income)}</strong></div><div><small>Total Pengeluaran</small><strong class="red">${money(r.expense)}</strong></div><div><small>Arus Kas Bersih</small><strong>${money(r.net)}</strong></div></div><div class="list-head">Rincian Pemasukan Per Kategori</div>${reportTable(r.incomeBreakdown.filter(x=>x.received>0),['Sumber Pemasukan','Jumlah'],x=>`<tr><td>${h(x.group)} / ${h(x.label)}</td><td>${money(x.received)}</td></tr>`)}<div class="list-head">Rincian Pengeluaran Dan Anggaran</div>${reportTable(r.expenseBreakdown.filter(x=>x.spent>0||x.budget>0),['Kategori','Anggaran','Terpakai','Sisa'],x=>`<tr><td>${h(x.group)} / ${h(x.label)}</td><td>${money(x.budget)}</td><td>${money(x.spent)}</td><td>${money(x.budget-x.spent)}</td></tr>`)}<div class="list-head">Saldo Setiap Rekening (Akhir Bulan)</div>${reportTable(r.balances,['Rekening','Saldo'],x=>`<tr><td>${h(x.name)} (${h(x.type)})</td><td>${money(x.balance)}</td></tr>`)}<div class="list-head">Utang & Piutang Yang Belum Lunas (Akhir Bulan)</div>${reportTable(r.debts.filter(x=>x.remaining>0),['Jenis · Nama','Saldo'],x=>`<tr><td>${x.type==='receivable'?'Piutang':'Utang'} · ${h(x.person)}</td><td>${money(x.remaining)}</td></tr>`)}<div class="list-head">Daftar Transaksi Lengkap (${r.transactions.length})</div>${reportTable(r.transactions,['Tanggal','Uraian','Kategori','Jumlah'],x=>`<tr><td>${dateFmt(x.date)}</td><td>${h(x.title)}${x.note?' · '+h(x.note):''}</td><td>${x.type==='transfer'?'Transfer '+h(x.accountLabel)+' → '+h(x.toAccountLabel):h(x.categoryLabel)}</td><td>${x.type==='expense'?'−':x.type==='income'?'+':'⇄ '}${money(x.amount)}</td></tr>`)}<div class="report-note">Arsip ini adalah salinan data ketika laporan disimpan. Semua nominal dalam rupiah. Transfer antar rekening serta pokok utang/piutang tidak dimasukkan ke total pemasukan/pengeluaran.</div><div class="form-actions no-print"><button class="btn teal" data-action="print-report">🖨 Cetak / Simpan PDF</button><button class="btn" data-action="csv-report">↓ Unduh rincian CSV</button></div></section>`:''}`}
 
+
+/* #052 Popup konfirmasi Hapus: dua aksi, tanpa prompt bawaan browser. */
+let deleteDialogPending=null;
+function askDelete(label,explanation,onConfirm,trigger=document.activeElement){
+ if(deleteDialogPending||typeof onConfirm!=='function')return;
+ const backdrop=document.createElement('div');
+ backdrop.id='paaxixi-delete-dialog';backdrop.className='paaxixi-delete-backdrop';
+ backdrop.innerHTML='<div class="paaxixi-delete-card" role="alertdialog" aria-modal="true" aria-labelledby="delete-title" aria-describedby="delete-note">'+
+  '<div class="paaxixi-delete-icon" aria-hidden="true">🗑️</div>'+
+  '<h3 id="delete-title">Apakah kamu yakin?</h3>'+
+  '<p>Catatan yang akan dihapus:</p>'+
+  '<strong class="paaxixi-delete-label"></strong>'+
+  '<p id="delete-note" class="paaxixi-delete-note"></p>'+
+  '<div class="paaxixi-delete-actions">'+
+  '<button type="button" data-delete-choice="cancel">Batal</button>'+
+  '<button type="button" class="paaxixi-delete-yes" data-delete-choice="yes">Yakin, Hapus</button>'+
+  '</div></div>';
+ backdrop.querySelector('.paaxixi-delete-label').textContent=label;
+ backdrop.querySelector('.paaxixi-delete-note').textContent=explanation;
+ deleteDialogPending={onConfirm,trigger};
+ const complete=yes=>{
+  const old=deleteDialogPending;
+  if(!old)return;
+  deleteDialogPending=null;backdrop.remove();
+  if(yes){old.onConfirm();return;}
+  if(old.trigger?.isConnected)old.trigger.focus({preventScroll:true});
+ };
+ backdrop.addEventListener('click',event=>{
+  event.stopPropagation();
+  const button=event.target.closest('[data-delete-choice]');
+  if(button){complete(button.dataset.deleteChoice==='yes');return;}
+  if(event.target===backdrop)complete(false);
+ });
+ backdrop.addEventListener('keydown',event=>{
+  event.stopPropagation();
+  if(event.key==='Escape'){event.preventDefault();complete(false);return;}
+  if(event.key==='Tab'){
+   const controls=[...backdrop.querySelectorAll('.paaxixi-delete-actions button')];
+   if(event.shiftKey&&document.activeElement===controls[0]){event.preventDefault();controls[1].focus();}
+   else if(!event.shiftKey&&document.activeElement===controls[1]){event.preventDefault();controls[0].focus();}
+  }
+ });
+ document.body.appendChild(backdrop);
+ backdrop.querySelector('[data-delete-choice="cancel"]')?.focus({preventScroll:true});
+}
+function saveDeletedTransaction(){
+ const current=document.querySelector('#review-modal-backdrop .review-modal-content, #tx-history-backdrop .tx-history-content');
+ const selector=current?.closest('#review-modal-backdrop')?'#review-modal-backdrop .review-modal-content':'#tx-history-backdrop .tx-history-content';
+ const scroll=current?.scrollTop||0;
+ save();render();
+ const next=document.querySelector(selector);
+ if(next)next.scrollTop=scroll;
+ document.querySelector('#review-modal-backdrop [data-review-close], #tx-history-backdrop [data-close-tx-history]')?.focus({preventScroll:true});
+}
 function setView(view){if(view==='transactions'){openTxHistory();return;}if(ui.view!==view){closeFinanceEditor();ui.reviewPopup=null;}ui.txModalOpen=false;ui.txEditId=null;ui.txHistoryOpen=false;ui.comp.menu=null;if(!['dashboard','review','budgets','debts','reports','accounts'].includes(view))return;ui.view=view;render();window.scrollTo({top:0,behavior:'smooth'})}
 function demo(){if(cloud.signedIn){toast('Keluar dari akun cloud sebelum memuat simulasi.',true);return}if(!confirm('Isi data SIMULASI bulan ini? Ini akan MENGGANTI seluruh data yang tersimpan di browser ini. Lanjutkan?'))return;db=fresh();db.accounts=[{id:'a-cash',name:'Tunai',type:'Tunai',opening:350000},{id:'a-bank',name:'Bank Contoh',type:'Bank',opening:1450000},{id:'a-wallet',name:'E-Wallet Contoh',type:'E-Wallet',opening:180000}];let budgetAmounts=[850000,1200000,450000,120000,200000,100000,250000,180000,250000,200000,150000,160000];expenses().forEach((c,i)=>db.budgets[ui.month+'|'+c.id]=budgetAmounts[i]);let add=(date,type,amount,categoryId,title,accountId='a-bank',toAccountId)=>db.transactions.push({id:uid(),date,type,amount,categoryId,title,accountId,toAccountId,createdAt:new Date().toISOString(),note:''});let m=ui.month;let at=n=>m+'-'+String(n).padStart(2,'0');let maxDay=Math.min(Number(today().slice(8)),21);let safe=n=>at(Math.min(n,maxDay));add(safe(1),'income',4200000,'c14','Gaji pokok bulan ini');add(safe(2),'income',3200000,'c15','Tukin bulan ini');add(safe(3),'income',1750000,'c13','Dividen Fastlink');add(safe(5),'income',650000,'c16','Uang makan');add(safe(6),'expense',825000,'c1','Kontrakan bulanan');add(safe(7),'expense',970000,'c2','Belanja makan dan bahan pokok');add(safe(8),'expense',345000,'c3','Bensin & transport');add(safe(9),'expense',112000,'c8','Skincare & pangkas rambut');add(safe(11),'expense',225000,'c7','Ngopi & jajan');add(safe(12),'expense',145000,'c11','Paket internet');add(safe(13),'expense',185000,'c9','Hadiah untuk diri sendiri');add(safe(15),'expense',255000,'c10','Obat & periksa');add(safe(17),'expense',190000,'c6','Infaq');add(safe(18),'expense',240000,'c2','Makan siang & malam');add(safe(19),'expense',95000,'c4','Laundry','a-cash');add(safe(20),'transfer',250000,null,'Top up e-wallet','a-bank','a-wallet');db.debts=[{id:uid(),type:'receivable',person:'Teman (contoh)',amount:200000,date:safe(10),accountId:'a-cash',note:'Contoh piutang',settlements:[]}];save();setView('dashboard');toast('Data simulasi telah dimuat. Hapus sebelum memulai pencatatan asli.')}
 function parseAmount(value){
@@ -3738,7 +3813,16 @@ if(x.dataset.editMove){ui.moveEditId=x.dataset.editMove;render();return}
 if(x.dataset.editRepay){let [id,pid]=x.dataset.editRepay.split('|');openRepayPopup(id,pid);return}
 if(x.dataset.openReport){ui.reportMonth=x.dataset.openReport;setView('reports');document.getElementById('print-area')?.scrollIntoView({behavior:'smooth'});return}
 if(x.dataset.deleteReport){let m=x.dataset.deleteReport;if(confirm('Hapus arsip '+monthFmt(m)+'? Transaksi asli tetap aman.')){delete db.reports[m];if(ui.reportMonth===m)ui.reportMonth=Object.keys(db.reports).sort().reverse()[0]||ui.month;save();render();toast('Arsip dihapus, transaksi tetap ada.')}return}
-if(x.dataset.deleteTx){let t=db.transactions.find(t=>t.id===x.dataset.deleteTx);if(t&&confirm('Hapus transaksi "'+t.title+'"?')){db.transactions=db.transactions.filter(z=>z.id!==t.id);if(ui.txEditId===t.id)ui.txEditId=null;save();render();toast('Transaksi dihapus.')}return}
+if(x.dataset.deleteTx){const t=db.transactions.find(v=>v.id===x.dataset.deleteTx);
+ if(t)askDelete('Transaksi: '+(t.title||'Tanpa judul')+' · '+money(t.amount),
+  dateFmt(t.date)+' · Penghapusan juga memperbarui saldo rekening dan ringkasan keuangan.',()=>{
+    if(!db.transactions.some(v=>v.id===t.id))return toast('Transaksi tidak ditemukan.',true);
+    db.transactions=db.transactions.filter(v=>v.id!==t.id);
+    if(ui.txEditId===t.id)ui.txEditId=null;
+    saveDeletedTransaction();
+    toast('Transaksi berhasil dihapus.');
+  },x);
+ return}
 if(x.dataset.deleteMove){let m=db.budgetMoves.find(v=>v.id===x.dataset.deleteMove);if(m&&confirm('Hapus riwayat pemindahan anggaran ini?')){db.budgetMoves=db.budgetMoves.filter(v=>v.id!==m.id);save();render();toast('Pemindahan dihapus.')}return}
 if(x.dataset.deleteRepay){let [id,pid]=x.dataset.deleteRepay.split('|'),d=db.debts.find(v=>v.id===id);if(d&&confirm('Hapus pembayaran cicilan ini?')){d.settlements=d.settlements.filter(v=>v.id!==pid);ui.debtSelected=null;ui.repayEditId=null;save();render();toast('Cicilan dihapus.')}return}
 if(x.dataset.deleteDebt){let d=db.debts.find(d=>d.id===x.dataset.deleteDebt);if(d&&(d.settlements||[]).length===0&&confirm('Hapus catatan pinjaman dengan '+d.person+'?')){db.debts=db.debts.filter(v=>v.id!==d.id);ui.debtEditId=null;save();render();toast('Pinjaman dihapus.')}return}

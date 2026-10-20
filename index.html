@@ -3826,6 +3826,17 @@ body:has(.tx-search-backdrop){overflow:hidden}
  .analytics-comp-trend .trend-panel .trend-series-picker.trend-series-single-row{gap:4px;padding:6px}
  .analytics-comp-trend .trend-panel .trend-series-single-row .trend-series-step{width:20px;height:29px}
 }
+/* #081 Match the actual graph tops (not merely the headings of two cards). */
+.analytics-comp-trend .analysis-visual-anchor{
+ display:block;min-width:0;margin-top:0;box-sizing:border-box;
+}
+.analytics-comp-trend #composition-card .analysis-visual-anchor,
+.analytics-comp-trend #trend-analysis .analysis-visual-anchor{
+ transition:none!important;
+}
+@media(max-width:1180px){
+ .analytics-comp-trend .analysis-visual-anchor{margin-top:0!important}
+}
 </style>
 </head>
 <body>
@@ -4299,6 +4310,55 @@ function paxDecoratePopups(root=document){
 }
 
 function labelNav(){const titles={dashboard:['Dashboard Keuangan',''],review:['Rincian Transaksi','Pilih tanggal atau kelompok untuk memeriksa transaksi dan membandingkan pengeluaran.'],budgets:['Anggaran Bulanan','Tetapkan batas tiap pos; alihkan sisa dari pos lain jika diperlukan.'],debts:['Utang & Piutang','Pilih status untuk melihat pinjaman yang belum lunas dan riwayat cicilannya.'],reports:['Arsip Laporan','Simpan laporan setiap akhir bulan agar angka periode tersebut terdokumentasi.'],accounts:['Rekening, Kategori & Sinkronisasi','Cocokkan saldo rekening, susun kategori, dan cadangkan data secara berkala.']};const item=titles[ui.view];decoratePaaxixiPageTitle(item[0]);document.getElementById('page-subtitle').textContent=ui.view==='dashboard'?tanggalWetonWIB():item[1];document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
+/* #081 Sejajarkan titik awal donut dan tren walau tinggi filternya berbeda. */
+let analysisChartResizeObserver=null,analysisChartAlignmentQueued=false;
+function alignAnalysisCharts(){
+ const area=document.querySelector('.analytics-comp-trend');
+ const donutAnchor=area?.querySelector('[data-analysis-graph="donut"]');
+ const trendAnchor=area?.querySelector('[data-analysis-graph="trend"]');
+ if(!donutAnchor||!trendAnchor)return;
+ // Hapus offset lama agar tidak menumpuk saat filter, mode, atau ukuran layar berubah.
+ donutAnchor.style.marginTop='0px';
+ trendAnchor.style.marginTop='0px';
+ const donutCard=area.querySelector('#composition-card');
+ const trendCard=area.querySelector('#trend-analysis');
+ if(!donutCard||!trendCard)return;
+ const leftRect=donutCard.getBoundingClientRect();
+ const rightRect=trendCard.getBoundingClientRect();
+ // Pada tata letak bertumpuk (HP/tablet), masing-masing kartu tetap rapat tanpa ruang palsu.
+ if(Math.abs(leftRect.top-rightRect.top)>4||Math.abs(leftRect.left-rightRect.left)<5)return;
+ const donutPlot=donutAnchor.querySelector('.comp-recap-stage,.comp-distribution,.distribution,.comp-empty')||donutAnchor;
+ const trendPlot=trendAnchor.querySelector('.trend-scroll,.comp-empty')||trendAnchor;
+ const donutTop=donutPlot.getBoundingClientRect().top;
+ const trendTop=trendPlot.getBoundingClientRect().top;
+ const difference=donutTop-trendTop;
+ if(difference>1)trendAnchor.style.marginTop=Math.ceil(difference)+'px';
+ else if(difference< -1)donutAnchor.style.marginTop=Math.ceil(-difference)+'px';
+}
+function scheduleAnalysisChartAlignment(){
+ if(analysisChartAlignmentQueued)return;
+ analysisChartAlignmentQueued=true;
+ requestAnimationFrame(()=>{analysisChartAlignmentQueued=false;alignAnalysisCharts();});
+}
+function observeAnalysisChartAlignment(){
+ if(analysisChartResizeObserver)analysisChartResizeObserver.disconnect();
+ const area=document.querySelector('.analytics-comp-trend');
+ if(!area)return;
+ if(typeof ResizeObserver!=='undefined'){
+  analysisChartResizeObserver=new ResizeObserver(scheduleAnalysisChartAlignment);
+  for(const selector of [
+   '#composition-card .comp-header','#composition-card .comp-direct-period',
+   '#composition-card .comp-direct-groups','#composition-card [data-analysis-graph="donut"]',
+   '#trend-analysis .card-head','#trend-analysis .trend-quick-tools',
+   '#trend-analysis .trend-series-picker','#trend-analysis .trend-label-toggle',
+   '#trend-analysis [data-analysis-graph="trend"]'
+  ]){const node=area.querySelector(selector);if(node)analysisChartResizeObserver.observe(node);}
+ }
+ scheduleAnalysisChartAlignment();
+}
+window.addEventListener('resize',scheduleAnalysisChartAlignment);
+document.fonts?.ready?.then(scheduleAnalysisChartAlignment);
+
 function render(){
  const prev=document.querySelector('.comp-popover');
  const oldKind=prev?.dataset?.compPopup,oldScroll=prev?.querySelector('.comp-popover-items')?.scrollTop||0;
@@ -4314,6 +4374,7 @@ function render(){
  const seriesScroller=document.querySelector('#trend-analysis .trend-series-buttons');
  if(seriesScroller&&oldSeriesScroll!==undefined)seriesScroller.scrollLeft=oldSeriesScroll;
  requestAnimationFrame(updateTrendSeriesArrows);
+ observeAnalysisChartAlignment();
  const newTrendScroll=document.querySelector('.trend-scroll');
  if(newTrendScroll&&oldTrendScroll!==undefined)newTrendScroll.scrollLeft=oldTrendScroll;
  const trendDialog=document.getElementById('trend-range-dialog');
@@ -4692,10 +4753,12 @@ function renderComposition(){
   <div class="comp-header-actions"><button type="button" class="comp-pos-launch" data-comp-pos-launch aria-haspopup="dialog">🍩 Rincian per Pos <span aria-hidden="true">↗</span></button></div>
  </div>
  ${renderCompositionQuickBar()}${renderCompositionControls()}
+ <div class="analysis-visual-anchor" data-analysis-graph="donut">
  ${total>0?`<div class="distribution"><div class="donut" style="background:conic-gradient(${gradient})"><div class="donut-middle"><span>Total Keluar</span>${shortMoney(total)}</div></div>
  <div class="legend comp-donut-legend">${rows.map(item=>`<div class="legend-row"><div class="legend-left"><span class="dot" style="background:${h(item.color)}"></span><div class="symbol-line"><span class="category-symbol compact" aria-hidden="true">${item.icon}</span><div class="symbol-text"><div style="font-weight:750">${h(item.label)}</div><small>${money(item.value)}</small></div></div></div><strong>${pct(item.value,total)}%</strong></div>`).join('')}</div></div>
  ${topCats.length?`<div class="insight comp-insight"><strong>↗ Paling Besar: ${pickSymbol(topCats[0].c.label,topCats[0].c.group)} ${h(topCats[0].c.label)} (${pct(topCats[0].total,total)}%)</strong><p>Paling Kecil: ${pickSymbol(topCats[topCats.length-1].c.label,topCats[topCats.length-1].c.group)} ${h(topCats[topCats.length-1].c.label)} (${pct(topCats[topCats.length-1].total,total)}%) Dari Total Pengeluaran Terfilter.</p></div>`:''}`:
  `<div class="comp-empty">Belum Ada Pengeluaran Yang Cocok Dengan Filter. Coba Rentang Tanggal Atau Pos Lain.</div>`}
+ </div>
  </section>`;
 }
 
@@ -5047,7 +5110,9 @@ function renderTrendPanel(){
   </div>
   ${renderTrendSeriesButtons(donutEntries)}
   <div class="trend-label-toggle"><label><input type="checkbox" id="trend-labels" ${c.trendLabels?'checked':''}> Tampilkan label nominal kecil</label></div>
+  <div class="analysis-visual-anchor" data-analysis-graph="trend">
   ${grandTotal>0?trendChartSVG(rows,donutEntries):'<div class="comp-empty">Tidak Ada Transaksi Pengeluaran Di Rentang Yang Dipilih.</div>'}
+  </div>
   ${periods.trimmed?`<p class="comp-tiny">Rentang sangat panjang. Ditampilkan ${periods.keys.length} periode terakhir; persempit rentang untuk melihat periode sebelumnya.</p>`:''}
   <details class="trend-insight-expand"><summary>✨ Buka Insight Tren & Perbandingan</summary><div class="trend-notes"><div class="trend-note"><strong>📈 Perubahan Periode</strong>${comparison}</div><div class="trend-note"><strong>🔎 Kontributor Utama</strong>${insight}</div>${renderTrendFinancialInsight(financialInsight)}</div></details>
  </section>`;

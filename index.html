@@ -3550,7 +3550,7 @@ function askDelete(label,explanation,onConfirm,trigger=document.activeElement,on
 function confirmDelete(question){
  return new Promise(resolve=>{
   const label=String(question||'Catatan ini').replace(/^Hapus\s+/i,'').replace(/\?$/,'').trim();
-  askDelete(label,'Tekan Yakin, Hapus untuk menghapus data, atau Batal agar tetap aman.',()=>resolve(true),document.activeElement,()=>resolve(false));
+  askDelete(label,'Data yang sudah dihapus tidak bisa dipulihkan tanpa cadangan.',()=>resolve(true),document.activeElement,()=>resolve(false));
  });
 }
 function saveDeletedTransaction(){
@@ -3822,7 +3822,7 @@ if(x.dataset.openReport){ui.reportMonth=x.dataset.openReport;setView('reports');
 if(x.dataset.deleteReport){let m=x.dataset.deleteReport;if(await confirmDelete('Hapus arsip '+monthFmt(m)+'? Transaksi asli tetap aman.')){delete db.reports[m];if(ui.reportMonth===m)ui.reportMonth=Object.keys(db.reports).sort().reverse()[0]||ui.month;save();render();toast('Arsip dihapus, transaksi tetap ada.')}return}
 if(x.dataset.deleteTx){const t=db.transactions.find(v=>v.id===x.dataset.deleteTx);
  if(t)askDelete('Transaksi: '+(t.title||'Tanpa judul')+' · '+money(t.amount),
-  dateFmt(t.date)+' · Penghapusan juga memperbarui saldo rekening dan ringkasan keuangan.',()=>{
+  dateFmt(t.date)+' · Salah catat? Pilih Batal lalu Edit. Penghapusan tidak bisa dibatalkan.',()=>{
     if(!db.transactions.some(v=>v.id===t.id))return toast('Transaksi tidak ditemukan.',true);
     db.transactions=db.transactions.filter(v=>v.id!==t.id);
     if(ui.txEditId===t.id)ui.txEditId=null;

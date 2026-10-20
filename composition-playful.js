@@ -237,7 +237,7 @@
     onCardRemoved.disconnect();
    }
   });
-  onCardRemoved.observe(card.parentElement||card,{childList:true});
+  onCardRemoved.observe(document.getElementById('content')||card.parentElement,{childList:true});
   // Hover untuk preview, klik kategori untuk popup. Data transaksi tetap tidak berubah.
   let locked=-1;
   function paint(index){

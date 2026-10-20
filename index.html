@@ -2128,6 +2128,121 @@ body:has(.tx-search-backdrop){overflow:hidden}
 @media(prefers-reduced-motion:reduce){.playful-review-icon,.playful-review-words::after,.playful-review-sparkle,.review-export-menu{animation:none!important}.review-export-menu button,.review-export-caret,.review-export-toggle{transition:none!important}}
 @media print{.review-export-wrap{display:none!important}}
 
+
+/* #059 Heading di Dashboard + seluruh menu mengikuti gaya Kalender Transaksi */
+.pax-page-title{
+ display:flex;align-items:center;flex-wrap:wrap;gap:9px;max-width:100%;
+ color:#153e73;font:600 clamp(24px,2.45vw,34px)/1.25 'Fredoka','Nunito',system-ui,sans-serif;
+ letter-spacing:-.45px;
+}
+.pax-page-icon{
+ flex:none;display:grid;place-items:center;width:45px;height:45px;
+ font-size:24px;border-radius:15px;border:1px solid #c7dcfb;
+ background:linear-gradient(130deg,#edf6ff,#d8e9ff);
+ box-shadow:0 5px 14px rgba(43,101,178,.12);
+ animation:pax-heading-float 4.2s ease-in-out infinite;
+}
+.pax-page-title[data-pax-tone="gold"] .pax-page-icon{background:linear-gradient(130deg,#fff9e6,#ffedc1);border-color:#f4dfa4}
+.pax-page-title[data-pax-tone="green"] .pax-page-icon{background:linear-gradient(130deg,#eafbf1,#d8f3e5);border-color:#b9e5d0}
+.pax-page-title[data-pax-tone="lavender"] .pax-page-icon{background:linear-gradient(130deg,#f4efff,#e6ddff);border-color:#d6c6f6}
+.pax-page-words{position:relative;min-width:0;max-width:100%;overflow-wrap:anywhere}
+.pax-page-words::after{
+ content:"";position:absolute;left:0;right:0;bottom:-4px;height:4px;border-radius:999px;
+ background:linear-gradient(90deg,#367cdb,#b4d2fc,transparent);
+ transform-origin:left;animation:pax-heading-appear .75s ease-out both;
+}
+.pax-page-title[data-pax-tone="green"] .pax-page-words::after{background:linear-gradient(90deg,#219775,#a3e6ca,transparent)}
+.pax-page-title[data-pax-tone="gold"] .pax-page-words::after{background:linear-gradient(90deg,#daa43d,#ffe7aa,transparent)}
+.pax-page-title[data-pax-tone="lavender"] .pax-page-words::after{background:linear-gradient(90deg,#8970d4,#e0d3ff,transparent)}
+.pax-title-sparkle{flex:none;font-size:20px;animation:pax-heading-shimmer 5.5s ease-in-out infinite}
+#content .card-head h3.pax-cute-heading,
+#content .review-visual-panel-head h4.pax-cute-heading{
+ display:flex;align-items:center;gap:9px;flex-wrap:nowrap;
+ max-width:100%;margin:0!important;padding:0!important;min-width:0;
+ text-align:left;letter-spacing:-.13px;text-shadow:none;
+ color:#193f72;font:600 clamp(16px,1.42vw,20px)/1.35 'Fredoka','Nunito',system-ui,sans-serif;
+ --pax-heading-light:#e8f2ff;--pax-heading-border:#c6ddfb;--pax-heading-shadow:rgba(39,100,174,.13);
+ --pax-heading-line:#3a7ed3;
+}
+#content .pax-cute-heading[data-pax-tone="green"]{
+ --pax-heading-light:#e5f9ef;--pax-heading-border:#bce8d2;--pax-heading-shadow:rgba(35,150,105,.11);
+ --pax-heading-line:#24a078;
+}
+#content .pax-cute-heading[data-pax-tone="coral"]{
+ --pax-heading-light:#ffedf0;--pax-heading-border:#f5cbd2;--pax-heading-shadow:rgba(205,95,111,.11);
+ --pax-heading-line:#d55c72;
+}
+#content .pax-cute-heading[data-pax-tone="gold"]{
+ --pax-heading-light:#fff5df;--pax-heading-border:#f4dfab;--pax-heading-shadow:rgba(188,134,34,.10);
+ --pax-heading-line:#e2ad43;
+}
+#content .pax-cute-heading[data-pax-tone="lavender"]{
+ --pax-heading-light:#f2edff;--pax-heading-border:#dcd0f9;--pax-heading-shadow:rgba(117,83,182,.11);
+ --pax-heading-line:#9272d8;
+}
+#content .pax-cute-heading .pax-heading-icon{
+ display:grid;place-items:center;flex:none;width:37px;height:37px;
+ border:1px solid var(--pax-heading-border);border-radius:13px;
+ background:var(--pax-heading-light);font-size:20px;line-height:1;
+ box-shadow:0 5px 13px var(--pax-heading-shadow);
+ animation:pax-heading-float 4.5s ease-in-out var(--pax-anim-delay,0s) infinite;
+}
+#content .pax-cute-heading .pax-heading-words{
+ display:inline-block;position:relative;flex:0 1 auto;min-width:0;overflow-wrap:anywhere;
+}
+#content .pax-cute-heading .pax-heading-words::after{
+ content:"";position:absolute;left:0;right:0;bottom:-4px;height:3px;
+ background:linear-gradient(90deg,var(--pax-heading-line),transparent);
+ border-radius:999px;transform-origin:left;
+ animation:pax-heading-appear .7s ease-out both;
+}
+#content .pax-cute-heading .pax-heading-sparkle{
+ color:var(--pax-heading-line);font-size:15px;flex:none;opacity:.65;
+ animation:pax-heading-shimmer 6.5s ease-in-out var(--pax-anim-delay,0s) infinite;
+}
+/* Hilangkan titik dekoratif lama yang bertabrakan dengan ikon baru. */
+#content .finance-spotlight-card .card-head h3.pax-cute-heading::before,
+#content .finance-spotlight-card .card-head h3.pax-cute-heading::after,
+#content .debt-main-list-card .card-head h3.pax-cute-heading::before,
+#content .debt-main-list-card .card-head h3.pax-cute-heading::after{content:none!important;animation:none!important}
+#content .card-head>div:first-child{min-width:0}
+@keyframes pax-heading-float{
+ 0%,100%{transform:translateY(0) rotate(-2deg)}
+ 50%{transform:translateY(-2px) rotate(2deg)}
+}
+@keyframes pax-heading-appear{
+ from{opacity:.2;transform:scaleX(.06)}to{opacity:1;transform:scaleX(1)}
+}
+@keyframes pax-heading-shimmer{
+ 0%,76%,100%{opacity:.46;transform:scale(.95) rotate(-8deg)}
+ 82%{opacity:1;transform:scale(1.13) rotate(8deg)}
+}
+@media(max-width:700px){
+ .pax-page-title{font-size:clamp(21px,5vw,27px);gap:7px;line-height:1.28}
+ .pax-page-icon{width:39px;height:39px;font-size:22px;border-radius:13px}
+ .pax-title-sparkle{font-size:16px}
+ #content .card-head h3.pax-cute-heading,
+ #content .review-visual-panel-head h4.pax-cute-heading{font-size:16px;gap:7px}
+ #content .pax-cute-heading .pax-heading-icon{width:32px;height:32px;font-size:18px;border-radius:11px}
+ #content .pax-cute-heading .pax-heading-sparkle{font-size:12px}
+}
+@media(max-width:380px){
+ #content .pax-cute-heading .pax-heading-icon{width:29px;height:29px;font-size:16px}
+ #content .card-head h3.pax-cute-heading{font-size:15px;gap:5px}
+ #content .pax-cute-heading .pax-heading-sparkle{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+ .pax-page-icon,.pax-page-words::after,.pax-title-sparkle,
+ #content .pax-cute-heading .pax-heading-icon,
+ #content .pax-cute-heading .pax-heading-words::after,
+ #content .pax-cute-heading .pax-heading-sparkle{animation:none!important}
+}
+@media print{
+ .pax-page-icon,.pax-title-sparkle,
+ #content .pax-cute-heading .pax-heading-icon,
+ #content .pax-cute-heading .pax-heading-sparkle{display:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -2396,13 +2511,75 @@ function tanggalWetonWIB(date=new Date()){
  const index=((3+days)%5+5)%5;
  return parts.weekday+' '+pasaran[index]+', '+day+' '+parts.month+' '+year;
 }
-function labelNav(){const titles={dashboard:['Dashboard Keuangan',''],review:['Rincian Transaksi','Pilih tanggal atau kelompok untuk memeriksa transaksi dan membandingkan pengeluaran.'],budgets:['Anggaran Bulanan','Tetapkan batas tiap pos; alihkan sisa dari pos lain jika diperlukan.'],debts:['Utang & Piutang','Pilih status untuk melihat pinjaman yang belum lunas dan riwayat cicilannya.'],reports:['Arsip Laporan','Simpan laporan setiap akhir bulan agar angka periode tersebut terdokumentasi.'],accounts:['Rekening, Kategori & Sinkronisasi','Cocokkan saldo rekening, susun kategori, dan cadangkan data secara berkala.']};const item=titles[ui.view];document.getElementById('page-title').textContent=item[0];document.getElementById('page-subtitle').textContent=ui.view==='dashboard'?tanggalWetonWIB():item[1];document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
+
+/* #059 Judul interaktif bertema Paaxixi: konsisten di semua halaman dan kartu. */
+const PAX_CUTE_PAGE_ICONS={
+ dashboard:'🏠',review:'📊',budgets:'🎯',debts:'🤝',reports:'🗃️',accounts:'⚙️'
+};
+const PAX_CUTE_CARD_TITLES={
+ 'Komposisi Pengeluaran':['🍩','blue'],
+ 'Tren & Perbandingan Pengeluaran':['📈','lavender'],
+ 'Peringatan Anggaran':['🔔','coral'],
+ 'Penggunaan Anggaran':['🏷️','gold'],
+ 'Asal Pemasukan':['💵','green'],
+ 'Transaksi Terbaru':['🧾','blue'],
+ 'Grafik Pengeluaran Per Kelompok':['📉','coral'],
+ 'Grafik Pemasukan Per Kelompok':['📈','green'],
+ 'Kelola Kelompok Pengeluaran':['🧩','lavender'],
+ 'Atur Batas Tiap Kategori':['🎯','gold'],
+ 'Alihkan Sisa Anggaran':['🔀','blue'],
+ 'Riwayat Alih Anggaran':['📒','lavender'],
+ 'Ringkasan Utang & Piutang':['💳','blue'],
+ 'Catat Utang / Piutang Baru':['✍️','green'],
+ 'Daftar Utang & Piutang':['🤝','lavender'],
+ 'Sinkronisasi Cloud • HP & Laptop':['☁️','blue'],
+ 'Saldo Per Rekening':['🏦','green'],
+ 'Tambah Rekening / Dompet':['👛','blue'],
+ 'Edit Rekening':['✏️','blue'],
+ 'Pengaturan Kategori':['🗂️','lavender'],
+ 'Cadangkan & Pulihkan':['📦','gold'],
+ 'Tutup Bulan & Buat Laporan':['🗓️','gold'],
+ 'Riwayat Laporan Tersimpan':['📚','lavender']
+};
+function decoratePaaxixiPageTitle(title){
+ const heading=document.getElementById('page-title');
+ if(!heading)return;
+ const emoji=PAX_CUTE_PAGE_ICONS[ui.view]||'✨';
+ const symbol=document.createElement('span');symbol.className='pax-page-icon';
+ symbol.setAttribute('aria-hidden','true');symbol.textContent=emoji;
+ const words=document.createElement('span');words.className='pax-page-words';words.textContent=title;
+ const star=document.createElement('span');star.className='pax-title-sparkle';star.setAttribute('aria-hidden','true');star.textContent='✨';
+ heading.classList.add('pax-page-title');heading.replaceChildren(symbol,words,star);
+ heading.dataset.paxTone=ui.view==='debts'?'lavender':ui.view==='budgets'||ui.view==='reports'?'gold':
+  ui.view==='accounts'?'green':'blue';
+}
+function decoratePaaxixiSectionTitles(){
+ const selector='#content .card-head h3:not(.playful-review-title):not(.tx-calendar-title), #content .review-visual-panel-head h4';
+ document.querySelectorAll(selector).forEach((heading,index)=>{
+  if(heading.classList.contains('pax-cute-heading')||heading.querySelector('button,input,select'))return;
+  const label=heading.textContent.replace(/\s+/g,' ').trim();
+  if(!label)return;
+  const [emoji,tone]=PAX_CUTE_CARD_TITLES[label]||['✨','blue'];
+  const symbol=document.createElement('span');symbol.className='pax-heading-icon';
+  symbol.setAttribute('aria-hidden','true');symbol.textContent=emoji;
+  const words=document.createElement('span');words.className='pax-heading-words';words.textContent=label;
+  const star=document.createElement('span');star.className='pax-heading-sparkle';
+  star.setAttribute('aria-hidden','true');star.textContent='✦';
+  heading.classList.add('pax-cute-heading');
+  heading.dataset.paxTone=tone;
+  heading.style.setProperty('--pax-anim-delay',(-0.6*(index%6))+'s');
+  heading.replaceChildren(symbol,words,star);
+ });
+}
+
+function labelNav(){const titles={dashboard:['Dashboard Keuangan',''],review:['Rincian Transaksi','Pilih tanggal atau kelompok untuk memeriksa transaksi dan membandingkan pengeluaran.'],budgets:['Anggaran Bulanan','Tetapkan batas tiap pos; alihkan sisa dari pos lain jika diperlukan.'],debts:['Utang & Piutang','Pilih status untuk melihat pinjaman yang belum lunas dan riwayat cicilannya.'],reports:['Arsip Laporan','Simpan laporan setiap akhir bulan agar angka periode tersebut terdokumentasi.'],accounts:['Rekening, Kategori & Sinkronisasi','Cocokkan saldo rekening, susun kategori, dan cadangkan data secara berkala.']};const item=titles[ui.view];decoratePaaxixiPageTitle(item[0]);document.getElementById('page-subtitle').textContent=ui.view==='dashboard'?tanggalWetonWIB():item[1];document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
 function render(){
  const prev=document.querySelector('.comp-popover');
  const oldKind=prev?.dataset?.compPopup,oldScroll=prev?.querySelector('.comp-popover-items')?.scrollTop||0;
  const oldTrendScroll=document.querySelector('.trend-scroll')?.scrollLeft;
  labelNav();
  document.getElementById('content').innerHTML=({dashboard:renderDash,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])()+renderTxHistoryPopup()+renderTxSearchPopup()+renderTxModal();
+ decoratePaaxixiSectionTitles();
  const newTrendScroll=document.querySelector('.trend-scroll');
  if(newTrendScroll&&oldTrendScroll!==undefined)newTrendScroll.scrollLeft=oldTrendScroll;
  if(ui.view==='dashboard'&&ui.comp.menu){

@@ -3585,6 +3585,89 @@ body:has(.tx-search-backdrop){overflow:hidden}
  .analytics-comp-trend #composition-card .comp-recap-glint{opacity:0!important}
 }
 
+
+
+/* #077 Tren pengeluaran: chip Harian / Bulanan / Tahunan senada filter donut */
+.analytics-comp-trend .trend-panel .trend-quick-tools{
+ display:grid;gap:9px;margin:11px 0 9px;
+}
+.analytics-comp-trend .trend-panel .trend-mode-switch{
+ display:flex;flex-wrap:wrap;align-items:center;gap:7px;
+ border:1px solid #dfeafa;border-radius:14px;background:linear-gradient(110deg,#f1f7ff,#fafcff);
+ padding:9px;
+}
+.analytics-comp-trend .trend-panel .trend-mode-chip{
+ appearance:none;border:1px solid #d6e5fa;border-radius:11px;
+ background:#fff;color:#6381a5;font:900 11px/1.25 Nunito,sans-serif;
+ min-height:37px;padding:8px 12px;cursor:pointer;
+ transition:transform .18s,box-shadow .18s,background .18s,border-color .18s;
+}
+.analytics-comp-trend .trend-panel .trend-mode-chip:hover:not(:disabled){
+ transform:translateY(-2px);background:#eaf4ff;border-color:#9bc0f4;
+ box-shadow:0 5px 12px #315b9224;
+}
+.analytics-comp-trend .trend-panel .trend-mode-chip[aria-pressed=true]{
+ background:linear-gradient(120deg,#296ac5,#2858ac);color:#fff;border-color:#2e62b1;
+ box-shadow:0 5px 13px #2557a531;
+}
+.analytics-comp-trend .trend-panel .trend-mode-chip:disabled{
+ opacity:.46;cursor:not-allowed;background:#eef2fa;color:#8195b2;
+ border-style:dashed;box-shadow:none;
+}
+.analytics-comp-trend .trend-panel .trend-mode-chip:focus-visible,
+.analytics-comp-trend .trend-panel .trend-reset-button:focus-visible{
+ outline:3px solid #86b9fe;outline-offset:2px;
+}
+.analytics-comp-trend .trend-panel .trend-mode-hint{
+ margin:-2px 2px 0;color:#8197b4;font:750 10px/1.4 Nunito,sans-serif;
+}
+.analytics-comp-trend .trend-panel .trend-range-filters.trend-range-compact{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:8px;margin:0;border:1px solid #e2ecfa;border-radius:13px;
+ padding:10px;background:#f8fbff;
+}
+.analytics-comp-trend .trend-panel .trend-range-compact label,
+.analytics-comp-trend .trend-panel .trend-range-compact label:first-child{
+ grid-column:auto;display:flex;flex-direction:column;gap:5px;
+ min-width:0;color:#58749b;font:850 11px/1.3 Nunito,sans-serif;
+}
+.analytics-comp-trend .trend-panel .trend-range-compact input{
+ box-sizing:border-box;display:block;width:100%;min-width:0;
+ min-height:39px;padding:8px 10px;background:#fff;border:1px solid #cddff8;
+ border-radius:10px;color:#204b84;font:850 11px/1.2 Nunito,sans-serif;
+}
+.analytics-comp-trend .trend-panel .trend-range-compact input:focus{
+ outline:2px solid #9ec4f5;outline-offset:1px;
+}
+.analytics-comp-trend .trend-panel .trend-range-compact .trend-range-actions{
+ grid-column:1/-1;display:flex;justify-content:flex-end;margin:0;
+}
+.analytics-comp-trend .trend-panel .trend-reset-button{
+ border:1px solid #d7e6fb;background:#fff;color:#366ba9;
+ border-radius:10px;padding:7px 11px;min-height:30px;cursor:pointer;
+ font:900 10px/1.25 Nunito,sans-serif;
+ transition:transform .18s,background .18s;
+}
+.analytics-comp-trend .trend-panel .trend-reset-button:hover{
+ background:#eaf3ff;transform:translateY(-1px);
+}
+.analytics-comp-trend .trend-panel .trend-label-toggle{
+ display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 8px;align-items:center;
+}
+.analytics-comp-trend .trend-panel .trend-label-toggle .comp-tiny{font-size:10px}
+@media(max-width:510px){
+ .analytics-comp-trend .trend-panel .trend-mode-switch{padding:7px;gap:5px}
+ .analytics-comp-trend .trend-panel .trend-mode-chip{
+  padding:7px 9px;min-height:34px;font-size:10px;
+ }
+ .analytics-comp-trend .trend-panel .trend-range-filters.trend-range-compact{gap:6px;padding:8px}
+ .analytics-comp-trend .trend-panel .trend-range-compact input{font-size:10px;padding:7px}
+}
+@media(prefers-reduced-motion:reduce){
+ .analytics-comp-trend .trend-panel .trend-mode-chip,
+ .analytics-comp-trend .trend-panel .trend-reset-button{transition:none!important}
+}
+
 </style>
 </head>
 <body>

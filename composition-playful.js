@@ -1,0 +1,226 @@
+/* Duit-Duit Paaxixi: Komposisi Pengeluaran v3.
+   Tampilan saja: membaca nilai yang sudah dihitung oleh dashboard. */
+(()=>{
+ 'use strict';
+ const $=(root,sel)=>root?.querySelector(sel);
+ const all=(root,sel)=>[...(root?.querySelectorAll(sel)||[])];
+ const rupiah=n=>'Rp'+Math.round(n).toLocaleString('id-ID');
+ const compact=n=>n>=1e9?'Rp'+(n/1e9).toLocaleString('id-ID',{maximumFractionDigits:1})+' M':n>=1e6?'Rp'+(n/1e6).toLocaleString('id-ID',{maximumFractionDigits:1})+' jt':n>=1e3?'Rp'+(n/1e3).toLocaleString('id-ID',{maximumFractionDigits:0})+' rb':rupiah(n);
+ const el=(tag,cls,text)=>{
+  const node=document.createElement(tag);
+  if(cls)node.className=cls;
+  if(text!==undefined)node.textContent=text;
+  return node;
+ };
+ function arc(a,b){
+  const radius=89,c=120,size=b-a,gap=Math.min(.85,size*.16);
+  a+=gap;b-=gap;
+  if(b-a>=359.9)b=a+359.8;
+  const pt=t=>[c+radius*Math.cos((t-90)*Math.PI/180),c+radius*Math.sin((t-90)*Math.PI/180)];
+  const p=pt(a),q=pt(b);
+  return 'M '+p.map(v=>v.toFixed(3)).join(' ')+' A 89 89 0 '+(b-a>180?'1':'0')+' 1 '+q.map(v=>v.toFixed(3)).join(' ');
+ }
+ function enhance(){
+  const card=document.getElementById('composition-card');
+  if(!card||card.dataset.liveChart==='ready')return;
+  const legend=$(card,'.comp-donut-legend'),donut=$(card,'.comp-donut'),original=$(card,'.comp-insight');
+  if(!legend||!donut||!original)return;
+  const originalRows=all(legend,'.comp-legend-item');
+  const rows=originalRows.map((node,index)=>{
+   const title=$(node,'.comp-legend-name')?.textContent?.trim()||'Kelompok';
+   const full=$(node,'.comp-legend-amount')?.textContent?.trim()||'Rp0';
+   const amount=Number(full.replace(/[^0-9]/g,''))||0;
+   const percent=parseInt($(node,'.comp-legend-percent')?.textContent||'0',10)||0;
+   const symbol=$(node,'.category-symbol')?.textContent?.trim()||'💰';
+   const color=node.dataset.compColor||'#2563eb';
+   return {title,amount,percent,symbol,color,index};
+  }).filter(r=>r.amount>0);
+  if(!rows.length)return;
+  card.dataset.liveChart='ready';
+  const total=rows.reduce((sum,row)=>sum+row.amount,0),top=rows[0],runner=rows[1]||null;
+  const topCat=$($(original,'.comp-insight-big'),'strong')||$(original,'.comp-insight-big strong');
+  const biggestPos=topCat?.textContent?.trim()||'';
+  const topPosPercent=$(original,'.comp-insight-big .comp-insight-pct')?.textContent?.trim()||'';
+  const dates=$(card,'.comp-summary')?.textContent||'';
+  const countMatch=dates.match(/(\d+)\s*Transaksi/i);
+  const txCount=countMatch?Number(countMatch[1]):null;
+  const overview=(top.percent>=60?'Pengeluaran cukup terkonsentrasi. ':'Porsi pengeluaran terbagi di beberapa kategori. ')+
+   top.title+' menempati urutan pertama dengan '+top.percent+'% ('+rupiah(top.amount)+') dari '+rupiah(total)+'.'+
+   (runner?' Posisi berikutnya '+runner.title+' sebesar '+runner.percent+'%.':'')+
+   (biggestPos?' Pada tingkat pos, sorotan terbesar adalah '+biggestPos+(topPosPercent?' ('+topPosPercent+')':'')+'.':'');
+  const advice=(top.percent>=60?'Karena '+top.title+' menyerap lebih dari setengah pengeluaran, mulailah meninjau rincian pos di kelompok ini. ':
+   'Bandingkan beberapa kategori terbesar terlebih dahulu sebelum memutuskan penghematan. ')+
+   'Gunakan “Atur Analisis → Per Pos Pengeluaran” untuk melihat penyusunnya. Bandingkan dengan kebutuhan dan anggaran; porsi besar tidak otomatis berarti boros. '+
+   'Cocokkan catatan dengan mutasi rekening, e-wallet, dan transaksi tunai untuk mengecek kelengkapannya.';
+  // Cute but factual headline.
+  const intro=el('div','comp-live-intro');
+  intro.append(
+   el('span','comp-live-pill',(txCount===null?'📊 Komposisi terfilter':'🧾 '+txCount+' transaksi')),
+   el('span','comp-live-pill live-champion','👑 Terbesar: '+top.title+' '+top.percent+'%')
+  );
+  $(card,'.comp-header')?.after(intro);
+  // Replace the visual ring only, preserving the center created by the existing page.
+  donut.style.background='none';
+  const center=$(card,'#composition-donut-center');
+  center?.prepend(el('span','comp-live-mascot','🪙'));
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('class','comp-live-svg');
+  svg.setAttribute('viewBox','0 0 240 240');
+  svg.setAttribute('role','group');
+  svg.setAttribute('aria-label','Diagram cincin interaktif. Tekan Tab lalu Enter untuk memilih kategori.');
+  const track=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  for(const [name,value] of [['cx','120'],['cy','120'],['r','89'],['class','comp-live-track']])track.setAttribute(name,value);
+  svg.appendChild(track);
+  const slices=[];
+  let cursor=0;
+  rows.forEach((row,i)=>{
+   const start=cursor;cursor+=row.amount/total*360;
+   const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+   path.setAttribute('d',arc(start,cursor));
+   path.setAttribute('stroke',row.color);
+   path.setAttribute('class','comp-live-segment'+(i===0?' champion':''));
+   path.setAttribute('role','button');
+   path.setAttribute('tabindex','0');
+   path.setAttribute('aria-pressed','false');
+   path.setAttribute('aria-label',row.title+', '+rupiah(row.amount)+', '+row.percent+' persen');
+   const mid=(start+cursor)*Math.PI/360-Math.PI/2;
+   path.style.setProperty('--push-x',(Math.cos(mid)*4).toFixed(2)+'px');
+   path.style.setProperty('--push-y',(Math.sin(mid)*4).toFixed(2)+'px');
+   path.style.setProperty('--appearance-delay',i*70+'ms');
+   svg.appendChild(path);slices.push(path);
+  });
+  donut.prepend(svg);
+  // New interactive legend keeps the same values as the built-in breakdown.
+  const legendButtons=[];
+  legend.replaceChildren();
+  rows.forEach((row,i)=>{
+   const button=el('button','comp-live-legend'+(i===0?' champion':''));
+   button.type='button';
+   button.setAttribute('aria-pressed','false');
+   button.setAttribute('aria-label','Lihat rincian '+row.title+', '+row.percent+' persen');
+   button.style.setProperty('--live-color',row.color);
+   button.style.setProperty('--appearance-delay',i*55+'ms');
+   const main=el('span','comp-live-legend-top');
+   const icon=el('span','comp-live-legend-emoji',row.symbol);
+   icon.setAttribute('aria-hidden','true');
+   const label=el('span','comp-live-legend-copy');
+   label.append(el('strong','',row.title),el('small','',rupiah(row.amount)));
+   main.append(icon,label,el('span','comp-live-legend-percent',row.percent+'%'));
+   const bar=el('span','comp-live-bar');
+   bar.setAttribute('aria-hidden','true');
+   const fill=el('i','');
+   fill.style.width=Math.max(.5,row.amount/total*100)+'%';
+   bar.append(fill);
+   button.append(main,bar);
+   if(i===0)button.append(el('span','comp-live-crown','👑 PORSI TERBESAR'));
+   legend.appendChild(button);
+   legendButtons.push(button);
+  });
+  const focus=el('section','comp-live-focus');
+  focus.setAttribute('aria-live','polite');
+  const face=el('span','comp-live-focus-face','🐻');
+  face.setAttribute('aria-hidden','true');
+  const focusCopy=el('div','comp-live-focus-copy');
+  const focusHeading=el('strong','', '👑 '+top.title+' · '+top.percent+'%');
+  const focusDescription=el('p','', 'Klik irisan atau legend untuk membedah komposisi pengeluaran ini.');
+  focusCopy.append(focusHeading,focusDescription);focus.append(face,focusCopy);
+  $(card,'.comp-distribution')?.after(focus);
+  // Three actual analysis views: overall, selected, action.
+  const box=el('section','comp-live-insights');
+  box.setAttribute('aria-label','Insight interaktif pengeluaran');
+  const title=el('div','comp-live-insight-head');
+  title.append(el('strong','','🧠 Uangnya Lari ke Mana?'),el('span','','✦ INSIGHT PAAXIXI'));
+  const tabs=el('div','comp-live-tabs');
+  tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Jenis insight');
+  const pages=el('div','comp-live-pages');
+  const descriptions=[
+   {id:'overview',label:'✨ Sorotan',title:'📊 Ini yang paling menonjol',text:overview,foot:'Persentase dihitung dari pengeluaran sesuai filter saat ini, bukan saldo rekening.'},
+   {id:'detail',label:'🔎 Bedah Pilihan',title:'🧩 Intip rincian kategori',text:'Klik legend atau potongan donut, nanti ceritanya berubah mengikuti pilihanmu.',foot:'Klik kategori yang sama lagi untuk kembali ke total pengeluaran.'},
+   {id:'action',label:'💡 Saran Pintar',title:'💌 Catatan kecil untuk dompetmu',text:advice,foot:'Insight bersifat indikasi, bukan bukti pemborosan atau transaksi yang tertinggal.'}
+  ];
+  let detailText=null;
+  function showTab(id){
+   all(tabs,'[data-live-tab]').forEach(node=>node.setAttribute('aria-selected',String(node.dataset.liveTab===id)));
+   all(pages,'[data-live-pane]').forEach(node=>node.hidden=node.dataset.livePane!==id);
+  }
+  descriptions.forEach(page=>{
+   const button=el('button','comp-live-tab',page.label);
+   button.type='button';button.dataset.liveTab=page.id;
+   button.setAttribute('role','tab');button.setAttribute('aria-selected',String(page.id==='overview'));
+   button.setAttribute('aria-controls','comp-live-pane-'+page.id);
+   button.id='comp-live-tab-'+page.id;
+   button.addEventListener('click',()=>showTab(page.id));
+   tabs.append(button);
+   const pane=el('div','comp-live-pane');
+   pane.dataset.livePane=page.id;pane.id='comp-live-pane-'+page.id;
+   pane.setAttribute('role','tabpanel');pane.setAttribute('aria-labelledby',button.id);
+   pane.hidden=page.id!=='overview';
+   const story=el('p','',page.text);
+   if(page.id==='detail')detailText=story;
+   pane.append(el('h4','',page.title),story,el('small','',page.foot));
+   pages.append(pane);
+  });
+  box.append(title,tabs,pages);
+  original.replaceWith(box);
+  // Hover previews, click locks/unlocks. The existing data model is unaffected.
+  let locked=-1;
+  function paint(index){
+   const picked=index<0?null:rows[index];
+   svg.classList.toggle('is-exploring',!!picked);
+   slices.forEach((slice,i)=>{
+    slice.classList.toggle('is-active',i===index);
+    slice.setAttribute('aria-pressed',String(i===locked));
+   });
+   legendButtons.forEach((button,i)=>{
+    button.classList.toggle('is-active',i===index);
+    button.setAttribute('aria-pressed',String(i===locked));
+   });
+   const caption=$(center,'[data-comp-center-caption]');
+   const amount=$(center,'[data-comp-center-value]');
+   const name=$(center,'[data-comp-center-label]');
+   if(caption)caption.textContent=picked?'PORSI PILIHAN':'TOTAL KELUAR';
+   if(amount)amount.textContent=picked?compact(picked.amount):compact(total);
+   if(name)name.textContent=picked?picked.title:'Seluruh Pengeluaran';
+   if(focusHeading)focusHeading.textContent=picked?'🎯 '+picked.title+' · '+picked.percent+'%':'👑 '+top.title+' · '+top.percent+'%';
+   if(focusDescription)focusDescription.textContent=picked?
+    'Sebesar '+rupiah(picked.amount)+' dari '+rupiah(total)+' total terfilter. '+(picked.amount>total/2?'Lebih besar daripada gabungan kategori lainnya.':'Sisa kategori lain '+rupiah(total-picked.amount)+'.'):
+    'Kategorinya bisa kamu eksplorasi satu per satu. Klik untuk menyematkan pilihan.';
+   if(detailText)detailText.textContent=picked?
+    picked.title+' mengambil '+picked.percent+'% ('+rupiah(picked.amount)+') dari total pengeluaran yang dianalisis. '+(runner&&picked.title===top.title?'Selisih dari '+runner.title+' sebesar '+rupiah(Math.max(0,top.amount-runner.amount))+'. ':'')+
+     'Gunakan filter Per Pos bila ingin melihat penyebab pengeluaran di dalam kategori tersebut.':
+    overview;
+  }
+  function toggle(index){
+   locked=locked===index?-1:index;
+   paint(locked);
+   if(locked>=0)showTab('detail');
+  }
+  rows.forEach((row,i)=>{
+   const button=legendButtons[i],path=slices[i];
+   button.addEventListener('mouseenter',()=>paint(i));
+   button.addEventListener('mouseleave',()=>paint(locked));
+   button.addEventListener('focus',()=>paint(i));
+   button.addEventListener('blur',()=>paint(locked));
+   button.addEventListener('click',()=>toggle(i));
+   path.addEventListener('mouseenter',()=>paint(i));
+   path.addEventListener('mouseleave',()=>paint(locked));
+   path.addEventListener('focus',()=>paint(i));
+   path.addEventListener('blur',()=>paint(locked));
+   path.addEventListener('click',()=>toggle(i));
+   path.addEventListener('keydown',event=>{
+    if(event.key==='Enter'||event.key===' '){event.preventDefault();toggle(i);}
+   });
+  });
+  paint(-1);
+ }
+ // The dashboard replaces #content after filter/date/cloud changes.
+ function init(){
+  const content=document.getElementById('content');
+  if(!content)return;
+  const observer=new MutationObserver(enhance);
+  observer.observe(content,{childList:true});
+  enhance();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+ else init();
+})();

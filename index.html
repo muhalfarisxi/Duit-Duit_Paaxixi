@@ -2595,6 +2595,99 @@ body:has(.tx-search-backdrop){overflow:hidden}
  #content .kpis .kpi-detail-trigger .metric-label.pax-mini-label>.pax-mini-icon{animation:none!important}
 }
 
+
+/* #064 Judul KPI ringkas + periode kecil: tanpa pemotongan judul. */
+#content .kpis .kpi-detail-trigger>.row-between.kpi-new-heading{
+ display:grid!important;grid-template-columns:minmax(0,1fr) 31px;gap:9px;
+ align-items:start!important;min-height:65px;width:100%;
+}
+#content .kpis .kpi-detail-trigger>.kpi-new-heading>.card-icon{
+ grid-column:2;grid-row:1;justify-self:end;align-self:start;
+ width:31px!important;height:31px!important;flex:none;
+}
+#content .kpis .kpi-detail-trigger .kpi-heading-block{
+ grid-column:1;grid-row:1;display:flex;flex-direction:column;gap:5px;min-width:0;align-items:flex-start;
+}
+#content .kpis .kpi-detail-trigger .kpi-heading-line{
+ display:flex;align-items:center;gap:7px;min-width:0;width:100%;
+}
+#content .kpis .kpi-detail-trigger .kpi-heading-emoji{
+ flex:0 0 28px;display:inline-grid;place-items:center;width:28px;height:28px;
+ background:#e9f8f0;border:1px solid #c9e9d5;border-radius:10px;
+ font:normal 16px/1 system-ui,sans-serif;animation:pax-mini-float 4.4s ease-in-out infinite;
+}
+#content .kpis .cashflow-card-expense .kpi-heading-emoji{
+ background:#fff0f2;border-color:#f4cdd5;
+}
+#content .kpis .focus-card-balance .kpi-heading-emoji{
+ background:#eaf2ff;border-color:#cbdef9;
+}
+#content .kpis .kpi-detail-trigger .kpi-heading-title{
+ display:inline-block;position:relative;min-width:0;
+ color:#214775;font:600 clamp(16px,1.42vw,20px)/1.24 'Fredoka','Nunito',system-ui,sans-serif;
+ text-align:left;letter-spacing:-.17px;white-space:normal;word-break:normal;overflow-wrap:normal;
+}
+#content .kpis .kpi-detail-trigger .kpi-heading-title::after{
+ content:"";position:absolute;left:0;right:0;bottom:-4px;
+ height:2px;border-radius:99px;background:linear-gradient(90deg,#317ad4,transparent);
+}
+#content .kpis .cashflow-card-income .kpi-heading-title::after,
+#content .kpis .focus-card-budget .kpi-heading-title::after{
+ background:linear-gradient(90deg,#229674,transparent);
+}
+#content .kpis .cashflow-card-expense .kpi-heading-title::after{
+ background:linear-gradient(90deg,#ce6172,transparent);
+}
+#content .kpis .kpi-detail-trigger .kpi-heading-period{
+ display:block;padding-left:35px;max-width:100%;white-space:normal;text-align:left;
+ color:#758ba8;font:750 12px/1.35 'Nunito',system-ui,sans-serif;
+}
+#content .kpis .kpi-detail-trigger>.metric{margin-top:9px}
+#content .kpis .kpi-detail-trigger>.metric-sub{color:#768ba5;line-height:1.48}
+#content .card-head h3.pax-cute-heading,
+#content .review-visual-panel-head h4.pax-cute-heading{
+ display:grid;grid-template-columns:37px minmax(0,1fr) auto;gap:8px;
+ align-items:center;white-space:normal;word-break:normal;
+}
+#content .pax-cute-heading .pax-heading-icon{grid-column:1;justify-self:start}
+#content .pax-cute-heading .pax-heading-words{
+ grid-column:2;min-width:0;white-space:normal;word-break:normal;overflow-wrap:normal;
+}
+#content .pax-cute-heading .pax-heading-sparkle{grid-column:3}
+@media(max-width:1170px){
+ #content .card-head h3.pax-cute-heading,
+ #content .review-visual-panel-head h4.pax-cute-heading{
+  grid-template-columns:32px minmax(0,1fr) auto;gap:7px;
+ }
+}
+@media(max-width:620px){
+ #content .kpis .kpi-detail-trigger>.row-between.kpi-new-heading{
+  grid-template-columns:minmax(0,1fr) 28px;gap:6px;min-height:67px;
+ }
+ #content .kpis .kpi-detail-trigger>.kpi-new-heading>.card-icon{width:28px!important;height:28px!important}
+ #content .kpis .kpi-detail-trigger .kpi-heading-line{gap:5px}
+ #content .kpis .kpi-detail-trigger .kpi-heading-emoji{
+  flex-basis:22px;width:22px;height:22px;font-size:12px;border-radius:7px;
+ }
+ #content .kpis .kpi-detail-trigger .kpi-heading-title{font-size:clamp(13px,3vw,17px)}
+ #content .kpis .kpi-detail-trigger .kpi-heading-period{padding-left:27px;font-size:10px}
+}
+@media(max-width:445px){
+ #content .kpis:not(.budget-kpis){grid-template-columns:minmax(0,1fr)}
+ #content .kpis .kpi-detail-trigger>.row-between.kpi-new-heading{
+  grid-template-columns:minmax(0,1fr) 31px;min-height:62px;
+ }
+ #content .kpis .kpi-detail-trigger>.kpi-new-heading>.card-icon{width:31px!important;height:31px!important}
+ #content .kpis .kpi-detail-trigger .kpi-heading-title{font-size:19px}
+ #content .kpis .kpi-detail-trigger .kpi-heading-emoji{
+  flex-basis:28px;width:28px;height:28px;font-size:16px;
+ }
+ #content .kpis .kpi-detail-trigger .kpi-heading-period{padding-left:35px;font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+ #content .kpis .kpi-heading-emoji{animation:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -2905,6 +2998,22 @@ function decoratePaaxixiPageTitle(title){
  heading.dataset.paxTone=ui.view==='debts'?'lavender':ui.view==='budgets'||ui.view==='reports'?'gold':
   ui.view==='accounts'?'green':'blue';
 }
+
+/* #064 Persingkat judul panel panjang tanpa kehilangan label aksesibilitas. */
+const PAX_SHORT_HEADING={
+ 'Tren & Perbandingan Pengeluaran':'Tren Pengeluaran',
+ 'Grafik Pengeluaran Per Kelompok':'Pengeluaran per Kelompok',
+ 'Grafik Pemasukan Per Kelompok':'Pemasukan per Kelompok',
+ 'Kelola Kelompok Pengeluaran':'Kelompok Pengeluaran',
+ 'Atur Batas Tiap Kategori':'Batas Anggaran per Pos',
+ 'Sinkronisasi Cloud • HP & Laptop':'Sinkronisasi Cloud',
+ 'Riwayat Laporan Tersimpan':'Arsip Laporan',
+ 'Tutup Bulan & Buat Laporan':'Tutup Buku Bulanan',
+ 'Tambah Rekening / Dompet':'Tambah Rekening',
+ 'Daftar Utang & Piutang':'Daftar Utang-Piutang',
+ 'Catat Utang / Piutang Baru':'Tambah Utang / Piutang'
+};
+
 function decoratePaaxixiSectionTitles(){
  const selector='#content .card-head h3:not(.playful-review-title):not(.tx-calendar-title), #content .review-visual-panel-head h4';
  document.querySelectorAll(selector).forEach((heading,index)=>{
@@ -2914,7 +3023,8 @@ function decoratePaaxixiSectionTitles(){
   const [emoji,tone]=PAX_CUTE_CARD_TITLES[label]||['✨','blue'];
   const symbol=document.createElement('span');symbol.className='pax-heading-icon';
   symbol.setAttribute('aria-hidden','true');symbol.textContent=emoji;
-  const words=document.createElement('span');words.className='pax-heading-words';words.textContent=label;
+  const words=document.createElement('span');words.className='pax-heading-words';words.textContent=PAX_SHORT_HEADING[label]||label;
+  if(PAX_SHORT_HEADING[label])heading.setAttribute('aria-label',label);
   const star=document.createElement('span');star.className='pax-heading-sparkle';
   star.setAttribute('aria-hidden','true');star.textContent='✦';
   heading.classList.add('pax-cute-heading');
@@ -3810,13 +3920,23 @@ function metricCard(label,value,icon,color,sub){
  const focusClass=focus?'focus-card focus-card-'+focus+(color==='red'?' is-negative':''):'';
  const cls='card '+(flow?'cashflow-card cashflow-card-'+flow:'')+' '+focusClass;
  const amountClass='metric '+color+' '+(flow?'cashflow-number cashflow-number-'+flow:'')+' '+(focus?'focus-value focus-value-'+focus:'');
+ const shortTitle=flow==='income'?'Pemasukan':flow==='expense'?'Pengeluaran':focus==='balance'?'Saldo Rekening':label;
+ const emoji=flow==='income'?'💰':flow==='expense'?'💸':focus==='budget'?'🌱':'🏦';
+ const period=focus==='balance'?'Sepanjang waktu':monthFmt(ui.month);
+ const informativeSub=flow?monthly().filter(t=>t.type===flow).length+' transaksi tercatat':focus==='balance'?db.accounts.length+' rekening / dompet':sub;
  if(flow||focus){
   const key=flow||focus;
   return `<button type="button" class="${cls} kpi-detail-trigger" data-dashboard-kpi="${key}"
     aria-haspopup="dialog" aria-label="Lihat rincian ${h(label)}: ${money(value)}">
-   <span class="row-between"><span class="metric-label">${label}</span><span class="card-icon ${focus?'focus-card-icon':''}" style="width:31px;height:31px">${icon}</span></span>
+   <span class="row-between kpi-new-heading">
+    <span class="kpi-heading-block">
+     <span class="kpi-heading-line"><span class="kpi-heading-emoji" aria-hidden="true">${emoji}</span><strong class="kpi-heading-title">${h(shortTitle)}</strong></span>
+     <span class="kpi-heading-period">${h(period)}</span>
+    </span>
+    <span class="card-icon ${focus?'focus-card-icon':''}" aria-hidden="true" style="width:31px;height:31px">${icon}</span>
+   </span>
    <span class="${amountClass}">${money(value)}</span>
-   <span class="metric-sub">${sub}</span>
+   <span class="metric-sub">${h(informativeSub)}</span>
    <span class="kpi-hint" aria-hidden="true">Klik untuk melihat rincian <span>↗</span></span>
   </button>`;
  }

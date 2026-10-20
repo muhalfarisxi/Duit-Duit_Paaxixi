@@ -3443,6 +3443,25 @@ body:has(.tx-search-backdrop){overflow:hidden}
  }
 }
 
+
+
+/* #073: Kotak label kecil + garis lurus sesuai referensi */
+.analytics-comp-trend #composition-card .comp-recap-callout rect{
+ fill:#f8fbff!important;
+ stroke-width:1.2!important;
+}
+.analytics-comp-trend #composition-card .comp-recap-callout-name{
+ font:900 12px/1.15 Nunito,system-ui,sans-serif!important;
+ fill:var(--recap-color,#24558d)!important;
+}
+.analytics-comp-trend #composition-card .comp-recap-callout-data{
+ font:800 11px/1.2 Nunito,system-ui,sans-serif!important;
+ fill:var(--recap-color,#24558d)!important;
+ opacity:.86;
+}
+.analytics-comp-trend #composition-card .comp-recap-callout:is(:hover,.is-active,:focus-visible) rect{
+ fill:color-mix(in srgb,var(--recap-color,#2563eb) 7%,#fff)!important;
+}
 </style>
 </head>
 <body>
@@ -6618,59 +6637,55 @@ document.addEventListener('visibilitychange',()=>{
    mini.append(top,detail);mini.setAttribute('aria-label',entry.name+', '+entry.percentage+' persen, '+money(entry.amount));
    smallRail.append(mini);mobileLabels.push(mini);connect(mini,i);
   });
-  // Setiap garis dimulai tepat setelah tepi irisan donut dan bergerak RADIAL
-  // sesuai sudut irisan, baru melengkung halus ke sisi kotak label.
-  // Distribusi vertikal label menjaga urutan posisi dan mencegah tabrakan.
+  // Label seperti referensi: kotak ringkas di kiri/kanan, dengan garis pendek
+  // lurus dari tepi warna irisan yang bersangkutan.
+  // Hanya geser label bila berpotensi bertumpuk, tanpa garis liar di luar diagram.
   for(const list of [left,right]){
    const margin=27,minGap=55;
-   const placed=list.map(entry=>({
+   const entries=list.map(entry=>({
     entry,
-    radialStart:xy(entry.mid,radius+18,cx,cy),
-    radialElbow:xy(entry.mid,radius+39,cx,cy)
-   })).sort((a,b)=>a.radialStart.y-b.radialStart.y);
-   if(!placed.length)continue;
-   let slots=placed.map(p=>Math.min(height-margin,Math.max(margin,p.radialStart.y)));
+    source:xy(entry.mid,radius+16,cx,cy)
+   })).sort((a,b)=>a.source.y-b.source.y);
+   if(!entries.length)continue;
+   const slots=entries.map(p=>Math.max(margin,Math.min(height-margin,p.source.y)));
    for(let i=1;i<slots.length;i++)slots[i]=Math.max(slots[i],slots[i-1]+minGap);
    if(slots[slots.length-1]>height-margin){
-    const shift=slots[slots.length-1]-(height-margin);
-    slots=slots.map(y=>y-shift);
+    const overflow=slots[slots.length-1]-(height-margin);
+    for(let i=0;i<slots.length;i++)slots[i]-=overflow;
    }
    if(slots[0]<margin){
-    const shift=margin-slots[0];
-    slots=slots.map(y=>y+shift);
+    const correction=margin-slots[0];
+    for(let i=0;i<slots.length;i++)slots[i]+=correction;
    }
-   placed.forEach(({entry,radialStart,radialElbow},j)=>{
+   entries.forEach(({entry,source},j)=>{
     const x=entry.side==='left'?7:471,slot=slots[j];
-    const dir=entry.side==='left'?-1:1;
-    // Tepi kotak: kiri = 7 + 162; kanan = 471. Tidak ada gap mengambang.
     const edgeX=entry.side==='left'?x+162:x;
-    const p1x=radialStart.x.toFixed(2),p1y=radialStart.y.toFixed(2);
-    const p2x=radialElbow.x.toFixed(2),p2y=radialElbow.y.toFixed(2);
-    const slotY=slot.toFixed(2);
-    const control1X=(radialElbow.x+dir*24).toFixed(2);
-    const control2X=(edgeX-dir*21).toFixed(2);
-    const pathData='M '+p1x+' '+p1y+
-     ' L '+p2x+' '+p2y+
-     ' C '+control1X+' '+p2y+
-     ' '+control2X+' '+slotY+
-     ' '+edgeX+' '+slotY;
-    const connector=vector('path',{
-     d:pathData,stroke:entry.color,fill:'none','stroke-width':1.65,
-     'stroke-linecap':'round','stroke-linejoin':'round',opacity:.85,
-     'pointer-events':'none'
+    const direction=entry.side==='left'?-1:1;
+    const startX=source.x.toFixed(2),startY=source.y.toFixed(2);
+    const endY=slot.toFixed(2);
+    // Umumnya horizontal sempurna. Saat label bergeser, hanya sambungkan
+    // dengan diagonal pendek lalu garis horizontal; tidak ada siku radial panjang.
+    const diff=Math.abs(source.y-slot);
+    const bendX=(source.x+direction*Math.min(22,Math.max(12,diff*.7))).toFixed(2);
+    const pathData=diff<2.5?
+     'M '+startX+' '+startY+' H '+edgeX:
+     'M '+startX+' '+startY+' L '+bendX+' '+endY+' H '+edgeX;
+    connectorLayer.append(
+     vector('path',{
+      d:pathData,stroke:entry.color,fill:'none','stroke-width':1.45,
+      'stroke-linecap':'round','stroke-linejoin':'round',opacity:.78,
+      'pointer-events':'none'
+     })
+    );
+    const g=vector('g',{
+     class:'comp-recap-callout',role:'button',tabindex:0,'aria-pressed':'false',
+     'aria-label':entry.name+', '+entry.percentage+' persen, '+money(entry.amount)
     });
-    const anchor=vector('circle',{
-     cx:p1x,cy:p1y,r:2.35,fill:entry.color,opacity:.96,
-     'pointer-events':'none'
-    });
-    connectorLayer.append(connector,anchor);
-    const g=vector('g',{class:'comp-recap-callout',role:'button',tabindex:0,
-     'aria-pressed':'false',
-     'aria-label':entry.name+', '+entry.percentage+' persen, '+money(entry.amount)});
-    // Satu sumber warna untuk kedua baris teks dan border, sama persis dengan slice.
     g.style.setProperty('--recap-color',entry.color);
-    const plate=vector('rect',{x,y:slot-24,width:162,height:48,rx:12,
-     fill:'#f8fbff',stroke:entry.color,'stroke-opacity':.62,'stroke-width':1.35});
+    const plate=vector('rect',{
+     x,y:slot-24,width:162,height:48,rx:12,
+     fill:'#f9fbff',stroke:entry.color,'stroke-opacity':.5,'stroke-width':1.2
+    });
     const name=vector('text',{
      x:x+10,y:slot-6,class:'comp-recap-callout-name',fill:entry.color
     });
@@ -6679,8 +6694,10 @@ document.addEventListener('visibilitychange',()=>{
      x:x+10,y:slot+13,class:'comp-recap-callout-data',fill:entry.color
     });
     detail.textContent=entry.percentage+'% · '+money(entry.amount);
-    g.append(plate,name,detail);labelLayer.append(g);
-    labels[entry.index]=g;connect(g,entry.index);
+    g.append(plate,name,detail);
+    labelLayer.append(g);
+    labels[entry.index]=g;
+    connect(g,entry.index);
    });
   }
   distribution.replaceWith(stage);

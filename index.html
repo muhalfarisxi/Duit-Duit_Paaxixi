@@ -6371,6 +6371,14 @@ if(x.dataset.compHighlight!==undefined){
  if(!was)x.setAttribute('aria-pressed','true');
  paxCompRestore(card);return;
 }
+if(x.dataset.trendChoice!==undefined){
+ const selected=x.dataset.trendChoice;
+ const available=trendAvailability();
+ if(!['day','month','year'].includes(selected)||!available[selected])return;
+ ui.comp.trend=selected;
+ ui.comp.trendFrom='';ui.comp.trendTo='';
+ render();return;
+}
 if(x.dataset.compQuickPreset!==undefined){
  const next=x.dataset.compQuickPreset;
  if(!['month','range','all'].includes(next))return;

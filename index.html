@@ -3078,6 +3078,115 @@ body:has(.tx-search-backdrop){overflow:hidden}
 }
 @media(prefers-reduced-motion:reduce){.budget-alert-dialog .budget-alert-filter{transition:none!important}}
 
+
+
+/* #069 Peringatan Anggaran: mini chart batas/pemakaian/sisa dengan overflow nyata. */
+.budget-alert-dialog .budget-alert-entry{overflow:visible}
+.budget-alert-dialog .budget-alert-visual{
+ --budget-used:0%;--budget-limit:100%;--budget-regular:0%;--budget-overrun:0%;
+ margin:13px 0 9px;
+}
+.budget-alert-dialog .budget-alert-visual-values{
+ display:flex;justify-content:space-between;align-items:flex-start;gap:10px;
+ margin-bottom:15px;
+}
+.budget-alert-dialog .budget-alert-visual-values>span{
+ display:flex;flex-direction:column;min-width:0;gap:3px
+}
+.budget-alert-dialog .budget-alert-visual-values>span:last-child{text-align:right}
+.budget-alert-dialog .budget-alert-visual-values small{
+ display:block;font:800 10px/1.35 Nunito,sans-serif;color:#8a9eb8
+}
+.budget-alert-dialog .budget-alert-visual-values strong{
+ font:900 14px/1.25 Nunito,sans-serif;color:#2c5381;
+ font-variant-numeric:tabular-nums
+}
+.budget-alert-dialog .budget-alert-chart{
+ display:block;position:relative;width:100%;height:14px;border-radius:999px;
+ background:#e9f0fa;overflow:visible;isolation:isolate;box-shadow:inset 0 1px 3px #35629b13;
+}
+.budget-alert-dialog .budget-alert-chart-base{
+ position:absolute;inset:0;display:block;border-radius:inherit;
+ background:linear-gradient(115deg,#eaf0fa,#dde8f7);
+}
+.budget-alert-dialog .budget-alert-chart-fill{
+ display:block;position:absolute;left:0;top:0;bottom:0;
+ width:var(--budget-regular);border-radius:999px 0 0 999px;
+ background:linear-gradient(105deg,#6ab7d8,#399ec7 55%,#51c5db);
+ box-shadow:inset 0 -2px 2px #16487020;
+ transform-origin:left center;animation:budgetFillGrow .8s cubic-bezier(.21,.8,.29,1) backwards;
+}
+.budget-alert-dialog .budget-alert-entry.is-warn .budget-alert-chart-fill{
+ background:linear-gradient(105deg,#f4c776,#f0a944,#e9a030);
+}
+.budget-alert-dialog .budget-alert-entry.is-ok .budget-alert-chart-fill{
+ background:linear-gradient(105deg,#73d5b0,#3aaf89,#26a984);
+}
+.budget-alert-dialog .budget-alert-entry.is-danger .budget-alert-chart-fill{
+ background:linear-gradient(105deg,#efa7a0,#e77e71,#d75c54);
+}
+.budget-alert-dialog .budget-alert-chart-overflow{
+ display:block;position:absolute;top:0;bottom:0;left:var(--budget-limit);
+ width:var(--budget-overrun);border-radius:0 999px 999px 0;
+ background:repeating-linear-gradient(115deg,#df514e 0,#df514e 11px,#f47d72 11px,#f47d72 20px);
+ box-shadow:inset 0 -2px 2px #a12c2c25;
+ transform-origin:left center;animation:budgetFillGrow .82s .15s cubic-bezier(.21,.8,.29,1) backwards;
+}
+.budget-alert-dialog .budget-alert-chart-limit{
+ position:absolute;left:var(--budget-limit);top:-8px;bottom:-7px;
+ z-index:4;width:2px;border-radius:3px;background:#235789;
+ box-shadow:0 0 0 2px #ffffffd9,0 1px 3px #17365b3b;
+ transform:translateX(-50%);
+}
+.budget-alert-dialog .budget-alert-chart-limit i{
+ position:absolute;bottom:100%;left:50%;transform:translateX(-50%);
+ width:11px;height:6px;background:#235789;border-radius:3px 3px 0 0;
+}
+.budget-alert-dialog .budget-alert-chart-used{
+ position:absolute;left:var(--budget-used);top:50%;z-index:5;
+ width:11px;height:11px;border:2px solid #fff;border-radius:50%;
+ background:#1f70ac;transform:translate(-50%,-50%);
+ box-shadow:0 0 0 2px #2688b848,0 2px 5px #153e7135;
+ animation:budgetDotPop .58s .65s ease backwards;
+}
+.budget-alert-dialog .budget-alert-entry.is-danger .budget-alert-chart-used{background:#c94342;box-shadow:0 0 0 2px #e16b614d}
+.budget-alert-dialog .budget-alert-entry.is-warn .budget-alert-chart-used{background:#d48e21;box-shadow:0 0 0 2px #dda7474d}
+.budget-alert-dialog .budget-alert-entry.is-ok .budget-alert-chart-used{background:#199e75;box-shadow:0 0 0 2px #45b88f44}
+.budget-alert-dialog .budget-alert-chart-foot{
+ display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 8px;
+ padding-top:15px;
+}
+.budget-alert-dialog .budget-alert-usage-pill,
+.budget-alert-dialog .budget-alert-difference{
+ display:inline-flex;align-items:center;flex-wrap:wrap;gap:4px;
+ border-radius:9px;padding:5px 8px;font:850 10px/1.3 Nunito,sans-serif;
+ font-variant-numeric:tabular-nums;
+}
+.budget-alert-dialog .budget-alert-usage-pill{
+ background:#ecf4ff;color:#346a9f;border:1px solid #dbeafb;
+}
+.budget-alert-dialog .budget-alert-difference{background:#f0f9f5;border:1px solid #d2e9dc;color:#28775d}
+.budget-alert-dialog .budget-alert-difference.is-over{background:#fff0ed;border-color:#f5d2ca;color:#af4d43}
+.budget-alert-dialog .budget-alert-difference.is-exact{background:#eff5ff;border-color:#d4e5fb;color:#35669f}
+.budget-alert-dialog .budget-alert-difference strong{font-weight:950}
+.budget-alert-dialog .budget-alert-entry.is-danger .budget-alert-usage-pill{color:#aa5149;background:#fff1ee;border-color:#f5d5ce}
+.budget-alert-dialog .budget-alert-entry.is-warn .budget-alert-usage-pill{color:#986820;background:#fff6e6;border-color:#f1e0b9}
+.budget-alert-dialog .budget-alert-entry.is-ok .budget-alert-usage-pill{color:#2a8464;background:#effaf4;border-color:#d3ebde}
+.budget-alert-dialog .budget-alert-entry-tip{margin:9px 0 0}
+@keyframes budgetFillGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes budgetDotPop{from{opacity:0;transform:translate(-50%,-50%) scale(.35)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@media(max-width:430px){
+ .budget-alert-dialog .budget-alert-visual-values strong{font-size:12px}
+ .budget-alert-dialog .budget-alert-visual-values small{font-size:9px}
+ .budget-alert-dialog .budget-alert-chart-foot{gap:5px}
+ .budget-alert-dialog .budget-alert-usage-pill,.budget-alert-dialog .budget-alert-difference{font-size:9px;padding:5px 7px}
+}
+@media(prefers-reduced-motion:reduce){
+ .budget-alert-dialog .budget-alert-chart-fill,
+ .budget-alert-dialog .budget-alert-chart-overflow,
+ .budget-alert-dialog .budget-alert-chart-used{animation:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -4240,18 +4349,46 @@ function renderBudgetAlertDialog(items,hasBudgetValue){
  const entries=[...items,...safeItems].map(c=>{
   const st=status(c.id),limit=effectiveBudget(c.id),spent=spentByCat(c.id),left=limit-spent,
    type=st.s==='danger'?'danger':st.s==='warn'?'warn':'ok';
-  const usage=limit>0?Math.round(spent/limit*100):spent>0?100:0;
+  // Pakai skala dinamis. Jika melebihi batas, garis batas bergeser ke kiri
+  // dan bagian berlebih digambar di kanannya (bukan dipotong di 100%).
+  const safeLimit=Math.max(0,limit),safeSpent=Math.max(0,spent);
+  const scale=Math.max(1,safeLimit,safeSpent);
+  const markLimit=safeLimit/scale*100;
+  const markUsed=safeSpent/scale*100;
+  const normalFill=Math.min(safeSpent,safeLimit)/scale*100;
+  const overflowFill=Math.max(0,safeSpent-safeLimit)/scale*100;
+  const percentUsed=safeLimit>0?Math.round(safeSpent/safeLimit*100):null;
   const advice=type==='danger'?'Cek transaksi, lalu evaluasi batas atau alihkan anggaran dari pos lain.':
    type==='warn'?'Pantau sisa anggaran dan prioritaskan kebutuhan yang mendesak.':
    'Masih aman. Tetap catat pengeluaran dan pantau penggunaan anggaran.';
+  const differenceLabel=left<0?'Melebihi':left===0?'Tepat batas':'Sisa';
+  const differenceAmount=money(Math.abs(left));
+  const chartLabel='Terpakai '+money(spent)+', batas '+money(limit)+', '+
+   (left<0?'melebihi '+money(-left):'tersisa '+money(Math.max(0,left)))+'.';
+  const usedPercentLabel=percentUsed===null?'Tanpa batas positif':percentUsed.toLocaleString('id-ID')+'% terpakai';
   return '<article class="budget-alert-entry is-'+type+'" data-budget-alert-status="'+type+'"'+(type==='ok'?' hidden':'')+'>'+
    '<div class="budget-alert-entry-top"><span class="budget-alert-entry-icon" aria-hidden="true">'+pickSymbol(c.label,c.group)+'</span>'+
    '<span class="budget-alert-entry-name"><strong>'+h(c.label)+'</strong><small>'+h(c.group||'Pengeluaran')+'</small></span>'+
    '<span class="budget-alert-entry-state">'+(type==='danger'?'🚨':type==='warn'?'🔔':'🌱')+' '+h(st.label)+'</span></div>'+
-   '<div class="budget-alert-entry-numbers"><span>Terpakai<strong>'+money(spent)+'</strong></span>'+
-   '<span>Batas<strong>'+money(limit)+'</strong></span>'+
-   '<span>'+(left<0?'Melebihi':'Sisa')+'<strong>'+money(Math.abs(left))+'</strong></span></div>'+
-   '<div class="budget-alert-entry-track"><i style="width:'+Math.max(0,Math.min(100,usage))+'%"></i></div>'+
+   '<div class="budget-alert-visual" style="--budget-used:'+markUsed.toFixed(3)+'%;--budget-limit:'+markLimit.toFixed(3)+'%;'+
+     '--budget-regular:'+normalFill.toFixed(3)+'%;--budget-overrun:'+overflowFill.toFixed(3)+'%;">'+
+    '<div class="budget-alert-visual-values">'+
+      '<span class="budget-alert-number-used"><small>💸 Sudah digunakan</small><strong>'+money(spent)+'</strong></span>'+
+      '<span class="budget-alert-number-limit"><small>🚩 Batas anggaran</small><strong>'+money(limit)+'</strong></span>'+
+    '</div>'+
+    '<div class="budget-alert-chart" role="img" aria-label="'+h(chartLabel)+'" title="'+h(chartLabel)+'">'+
+      '<span class="budget-alert-chart-base" aria-hidden="true"></span>'+
+      '<span class="budget-alert-chart-fill" aria-hidden="true"></span>'+
+      (overflowFill>0?'<span class="budget-alert-chart-overflow" aria-hidden="true"></span>':'')+
+      '<span class="budget-alert-chart-limit" aria-hidden="true"><i></i></span>'+
+      '<span class="budget-alert-chart-used" aria-hidden="true"></span>'+
+    '</div>'+
+    '<div class="budget-alert-chart-foot">'+
+      '<span class="budget-alert-usage-pill">'+(type==='danger'?'🚨':type==='warn'?'🔔':'🌱')+' '+usedPercentLabel+'</span>'+
+      '<span class="budget-alert-difference is-'+(left<0?'over':left===0?'exact':'remaining')+'">'+
+      (left<0?'↗ ':left===0?'✓ ':'✨ ')+differenceLabel+' <strong>'+differenceAmount+'</strong></span>'+
+    '</div>'+
+   '</div>'+
    '<p class="budget-alert-entry-tip">💡 '+h(advice)+'</p></article>';
  }).join('');
  const empty=hasBudgetValue>0?'Tidak ada pos yang menipis atau melewati batas.':'Tetapkan batas pada pos pengeluaran untuk mulai memantau anggaran.';

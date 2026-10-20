@@ -4216,6 +4216,8 @@ function render(){
  paxAnimateSaved();
  const newTrendScroll=document.querySelector('.trend-scroll');
  if(newTrendScroll&&oldTrendScroll!==undefined)newTrendScroll.scrollLeft=oldTrendScroll;
+ const monthInput=document.getElementById('month-input');
+ if(monthInput)monthInput.max=analysisToday().slice(0,7);
  if(ui.view==='dashboard'&&ui.comp.menu){
   const next=document.querySelector('.comp-popover');
   if(next&&oldKind===ui.comp.menu){const list=next.querySelector('.comp-popover-items');if(list)list.scrollTop=oldScroll;}
@@ -4353,15 +4355,28 @@ function analysisPosColor(category){
  return index===0&&/^#[0-9a-f]{6}$/i.test(group?.color||'')?group.color:ANALYTICS_COLORS[index%3];
 }
 const dateISO=(date)=>date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+/* Analitik selalu berakhir pada hari ini menurut WIB, bukan akhir kalender bulan. */
+function analysisToday(){
+ const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+ const data=Object.fromEntries(parts.filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+ return data.year+'-'+data.month+'-'+data.day;
+}
 function monthBounds(month){
- const [year,m]=month.split('-').map(Number);
- return {from:month+'-01',to:dateISO(new Date(year,m,0))};
+ const [year,m]=month.split('-').map(Number),cutoff=analysisToday();
+ const from=month+'-01',to=dateISO(new Date(year,m,0));
+ return {from:from>cutoff?cutoff:from,to:to>cutoff?cutoff:to};
 }
 function analysisDates(){
- const c=ui.comp,base=monthBounds(ui.month);
+ const c=ui.comp,base=monthBounds(ui.month),cutoff=analysisToday();
  if(c.preset==='month')return {...base,title:monthFmt(ui.month)};
- if(c.preset==='range')return {from:c.from||base.from,to:c.to||base.to,title:'Rentang Tanggal'};
- const dates=db.transactions.filter(t=>t.type==='expense').map(t=>t.date).filter(t=>/^\d{4}-\d{2}-\d{2}$/.test(t)).sort();
+ if(c.preset==='range'){
+  const from=c.from&&c.from<=cutoff?c.from:base.from;
+  const to=c.to&&c.to<=cutoff?c.to:cutoff;
+  // Nilai filter lama yang menunjuk masa depan otomatis dikembalikan ke hari ini.
+  return from<=to?{from,to,title:'Rentang Tanggal'}:{...base,title:'Rentang Tanggal'};
+ }
+ const dates=db.transactions.filter(t=>t.type==='expense')
+  .map(t=>t.date).filter(t=>/^\d{4}-\d{2}-\d{2}$/.test(t)&&t<=cutoff).sort();
  if(!dates.length)return {...base,title:'Semua Data'};
  return {from:dates[0],to:dates[dates.length-1],title:'Semua Data'};
 }
@@ -4399,8 +4414,8 @@ function renderCompositionQuickBar(){
  const c=ui.comp,choices=[['month','📅 Bulan Ini'],['range','🗓️ Rentang'],['all','♾️ Semua Data']];
  const buttons=choices.map(([id,label])=>'<button type="button" class="comp-quick-choice" data-comp-quick-preset="'+id+'" aria-pressed="'+(c.preset===id)+'">'+label+'</button>').join('');
  const dates=c.preset==='range'?'<div class="comp-quick-dates">'+
-  '<label>Mulai <input id="comp-start" type="date" value="'+h(c.from||monthBounds(ui.month).from)+'"></label>'+
-  '<label>Selesai <input id="comp-end" type="date" value="'+h(c.to||monthBounds(ui.month).to)+'"></label></div>':'';
+  '<label>Mulai <input id="comp-start" type="date" max="'+h(analysisToday())+'" value="'+h(analysisDates().from)+'"></label>'+
+  '<label>Selesai <input id="comp-end" type="date" max="'+h(analysisToday())+'" value="'+h(analysisDates().to)+'"></label></div>':'';
  return '<div class="comp-direct-period"><div class="comp-period-buttons" role="group" aria-label="Pilih periode pengeluaran">'+buttons+'</div>'+dates+'</div>';
 }
 function renderCompositionControls(){
@@ -4869,7 +4884,7 @@ function renderTrendPanel(){
  const wantedTo=periods.range.to+(mode==='year'?'-12-31':mode==='month'?'-31':'');
  const rangeStart=wantedFrom>donut.from?wantedFrom:donut.from;
  const rangeEnd=wantedTo<donut.to?wantedTo:donut.to;
- const filtered=db.transactions.filter(t=>t.type==='expense'&&categoryIds.has(t.categoryId)&&t.date>=rangeStart&&t.date<=rangeEnd&&(mode!=='year'||t.date<=today()));
+ const filtered=db.transactions.filter(t=>t.type==='expense'&&categoryIds.has(t.categoryId)&&t.date>=rangeStart&&t.date<=rangeEnd&&t.date<=analysisToday());
  const rows=periods.keys.map(key=>{
   const tx=filtered.filter(t=>trendRowTransaction(t,key,mode));
   return {key,tx,count:tx.length,total:tx.reduce((sum,t)=>sum+num(t.amount),0)};
@@ -4901,8 +4916,8 @@ function renderTrendPanel(){
  const controls=mode==='year'?
   '<label>Mulai Tahun<input id="trend-start" type="number" min="'+h(dflt.from)+'" max="'+h(dflt.to)+'" value="'+h(from)+'"></label><label>Sampai Tahun<input id="trend-end" type="number" min="'+h(dflt.from)+'" max="'+h(dflt.to)+'" value="'+h(to)+'"></label>':
   '<label>'+(mode==='day'?'Dari Tanggal':'Dari Bulan')+'<input id="trend-start" type="'+(mode==='day'?'date':'month')+'" min="'+h(dflt.from)+'" max="'+h(dflt.to)+'" value="'+h(from)+'"></label><label>'+(mode==='day'?'Sampai Tanggal':'Sampai Bulan')+'<input id="trend-end" type="'+(mode==='day'?'date':'month')+'" min="'+h(dflt.from)+'" max="'+h(dflt.to)+'" value="'+h(to)+'"></label>';
- const currentYear=today().slice(0,4),selectedCurrentYear=mode==='year'&&periods.keys.includes(currentYear);
- const cutoff=rangeEnd<today()?rangeEnd:today();
+ const currentYear=analysisToday().slice(0,4),selectedCurrentYear=mode==='year'&&periods.keys.includes(currentYear);
+ const cutoff=rangeEnd<analysisToday()?rangeEnd:analysisToday();
  const subtitle=selectedCurrentYear&&rangeStart<=cutoff&&cutoff.slice(0,4)===currentYear
   ?'⚠️ Tahun '+currentYear+' belum genap — hanya sampai tanggal '+dateFmt(cutoff)+'. Jangan bandingkan langsung dengan total satu tahun penuh.'
   :mode==='month'&&periods.keys.includes(currentMonth())&&rangeEnd>=today()
@@ -6877,14 +6892,19 @@ if(x.id==='trend-start'||x.id==='trend-end'){
  ui.comp[key]=entered;render();return;
 }
 if(x.id==='comp-start'||x.id==='comp-end'){
- const key=x.id==='comp-start'?'from':'to',alternate=key==='from'?'to':'from';
- if(!x.value)return toast('Tanggal harus diisi.',true);
- if((key==='from'&&x.value>ui.comp[alternate])||(key==='to'&&x.value<ui.comp[alternate])){
+ const key=x.id==='comp-start'?'from':'to';
+ const current=analysisDates(),cutoff=analysisToday(),entered=x.value;
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(entered)){
+  toast('Tanggal harus diisi dengan benar.',true);render();return;
+ }
+ if(entered>cutoff){toast('Tanggal analisis paling akhir adalah hari ini ('+dateFmt(cutoff)+').',true);render();return;}
+ const from=key==='from'?entered:current.from,to=key==='to'?entered:current.to;
+ if(from>to){
   toast('Tanggal mulai tidak boleh melewati tanggal selesai.',true);render();return;
  }
- ui.comp[key]=x.value;resetTrendFromDonut();render();return;
+ ui.comp.from=from;ui.comp.to=to;resetTrendFromDonut();render();return;
 }
-if(x.id==='month-input'){ui.reviewPopup=null;ui.txModalOpen=false;ui.txHistoryOpen=false;ui.txSearchOpen=false;ui.txSearchQuery='';let next=x.value||currentMonth(),prev=ui.month;if(next>prev&&db.transactions.some(t=>t.date.slice(0,7)===prev)&&!db.reports[prev]&&confirm('Bulan '+monthFmt(prev)+' belum diarsipkan. Simpan laporan bulan ini sebelum berpindah?')){db.reports[prev]=buildReport(prev);save();toast('Arsip '+monthFmt(prev)+' disimpan.')}ui.month=next;ui.txEditId=null;ui.moveEditId=null;ui.comp.preset='month';ui.comp.from='';ui.comp.to='';resetTrendFromDonut();render()}
+if(x.id==='month-input'){ui.reviewPopup=null;ui.txModalOpen=false;ui.txHistoryOpen=false;ui.txSearchOpen=false;ui.txSearchQuery='';let next=x.value||currentMonth(),prev=ui.month;if(next>analysisToday().slice(0,7)){toast('Bulan yang dipilih tidak boleh melewati bulan berjalan.',true);render();return;}if(next>prev&&db.transactions.some(t=>t.date.slice(0,7)===prev)&&!db.reports[prev]&&confirm('Bulan '+monthFmt(prev)+' belum diarsipkan. Simpan laporan bulan ini sebelum berpindah?')){db.reports[prev]=buildReport(prev);save();toast('Arsip '+monthFmt(prev)+' disimpan.')}ui.month=next;ui.txEditId=null;ui.moveEditId=null;ui.comp.preset='month';ui.comp.from='';ui.comp.to='';resetTrendFromDonut();render()}
 if(x.id==='report-month'){ui.month=x.value||currentMonth();render()}
 if(x.id==='tx-history-filter'){ui.txFilter=x.value;render();document.getElementById('tx-history-filter')?.focus({preventScroll:true})}
 

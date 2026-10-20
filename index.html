@@ -4699,20 +4699,23 @@ function renderTrendPanel(){
  }).sort((a,b)=>b.delta-a.delta);
  if(jumps[0]?.delta>0&&comparable)insight+=' Kenaikan terbesar: '+jumps[0].icon+' '+h(jumps[0].label)+' (+'+money(jumps[0].delta)+').';
  const financialInsight=trendFinancialInsight(rows,entries,all,grandTotal,mode);
- const dflt=trendDefaultRange(),from=c.trendFrom||dflt.from,to=c.trendTo||dflt.to;
- const inputs=mode==='year'?
-  `<label>Dari Tahun<input id="trend-start" type="number" min="1900" max="2200" step="1" value="${h(from)}"></label><label>Sampai Tahun<input id="trend-end" type="number" min="1900" max="2200" step="1" value="${h(to)}"></label>`:
-  `<label>Dari ${mode==='day'?'Tanggal':'Bulan'}<input id="trend-start" type="${mode==='day'?'date':'month'}" value="${h(from)}"></label><label>Sampai ${mode==='day'?'Tanggal':'Bulan'}<input id="trend-end" type="${mode==='day'?'date':'month'}" value="${h(to)}"></label>`;
+ const available=trendAvailability(),dflt=trendDefaultRange(mode),dateRange=trendRange();
+ const from=dateRange.from,to=dateRange.to;
+ const choices=[['day','📅','Harian'],['month','🗓️','Bulanan'],['year','📊','Tahunan']];
+ const chips=choices.map(([id,icon,name])=>'<button type="button" class="trend-mode-chip" data-trend-choice="'+id+'" aria-pressed="'+(mode===id)+'" '+(available[id]?'':'disabled aria-disabled="true"')+' title="'+(available[id]?'Tampilkan tren '+name:id==='month'?'Rentang donut perlu melintasi dua bulan':'Rentang donut perlu melintasi dua tahun')+'">'+icon+' '+name+'</button>').join('');
+ const controls=mode==='year'?
+  '<label>Mulai Tahun<input id="trend-start" type="number" min="'+h(dflt.from)+'" max="'+h(dflt.to)+'" value="'+h(from)+'"></label><label>Sampai Tahun<input id="trend-end" type="number" min="'+h(dflt.from)+'" max="'+h(dflt.to)+'" value="'+h(to)+'"></label>':
+  '<label>'+(mode==='day'?'Dari Tanggal':'Dari Bulan')+'<input id="trend-start" type="'+(mode==='day'?'date':'month')+'" min="'+h(dflt.from)+'" max="'+h(dflt.to)+'" value="'+h(from)+'"></label><label>'+(mode==='day'?'Sampai Tanggal':'Sampai Bulan')+'<input id="trend-end" type="'+(mode==='day'?'date':'month')+'" min="'+h(dflt.from)+'" max="'+h(dflt.to)+'" value="'+h(to)+'"></label>';
+ const subtitle=available.year?'Tahunan aktif karena periode donut melintasi tahun.':available.month?'Bulanan aktif karena rentang donut melintasi bulan.':'Bulanan dan Tahunan aktif jika rentang donut lebih panjang.';
  return `<section class="card trend-panel" id="trend-analysis">
-  <div class="card-head"><div><h3>Tren & Perbandingan Pengeluaran</h3><p>Ubah periode atau kelompok, lalu klik titik grafik untuk memeriksa transaksi penyebab perubahan.</p></div></div>
-  <div class="trend-range-filters">
-    <label>Jenis Perbandingan<select id="comp-trend-mode">
-      <option value="day" ${mode==='day'?'selected':''}>Antartanggal (Harian)</option>
-      <option value="month" ${mode==='month'?'selected':''}>Antarbulan (Bulanan)</option>
-      <option value="year" ${mode==='year'?'selected':''}>Antartahun (Tahunan)</option>
-    </select></label>
-    ${inputs}
-    <div class="trend-range-actions"><button type="button" class="btn sm" data-comp-action="trend-default">↺ Rentang Default</button></div>
+  <div class="card-head"><div><h3>Tren Pengeluaran</h3><p>Ikuti filter donut · Klik titik grafik untuk melihat transaksi.</p></div></div>
+  <div class="trend-quick-tools">
+    <div class="trend-mode-switch" role="group" aria-label="Jenis tren">${chips}</div>
+    <p class="trend-mode-hint">${h(subtitle)}</p>
+    <div class="trend-range-filters trend-range-compact">
+      ${controls}
+      <div class="trend-range-actions"><button type="button" class="trend-reset-button" data-comp-action="trend-default">↺ Ikuti Donut</button></div>
+    </div>
   </div>
   <div class="trend-label-toggle"><label><input type="checkbox" id="trend-labels" ${c.trendLabels?'checked':''}> Tampilkan Label Nominal Di Titik Grafik</label><span class="comp-tiny">Klik titik atau nominal pada grafik untuk melihat daftar pengeluarannya.</span></div>
   ${grandTotal>0?trendChartSVG(rows,entries):'<div class="comp-empty">Tidak Ada Transaksi Pengeluaran Di Rentang Yang Dipilih.</div>'}

@@ -1979,6 +1979,41 @@ body:has(.tx-search-backdrop){overflow:hidden}
 }
 @media print{.tx-search-backdrop{display:none!important}}
 
+
+/* #054 Rekening cepat untuk pencarian transaksi, termasuk kedua sisi transfer. */
+.tx-search-account-shortcuts{
+ display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:12px;
+ padding-top:11px;border-top:1px dashed #d5e4f7;
+}
+.tx-search-account-shortcuts>span{
+ margin-right:3px;font:800 11px/1.45 'Nunito',system-ui,sans-serif;color:#7188a4;
+}
+.tx-search-account-shortcuts button{
+ min-height:33px;padding:7px 10px;border-radius:11px;border:1px solid #cbdffa;
+ background:#eff6ff;color:#285b98;font:800 11px/1.3 'Nunito',system-ui,sans-serif;
+ transition:background .18s,transform .18s,box-shadow .18s;overflow-wrap:anywhere;
+}
+.tx-search-account-shortcuts button:hover{
+ background:#dfedff;transform:translateY(-1px);box-shadow:0 4px 10px rgba(30,88,150,.09)
+}
+.tx-search-account-shortcuts button.active{
+ background:linear-gradient(120deg,#174677,#377cc2);color:#fff;border-color:#245b97;
+ box-shadow:0 5px 12px rgba(27,83,148,.18);
+}
+.tx-search-account-shortcuts button:focus-visible{outline:3px solid #3b82e5;outline-offset:2px}
+.tx-search-account-badge{
+ display:inline-block;vertical-align:middle;margin-left:7px;padding:3px 7px;border-radius:999px;
+ background:#e1efff;color:#2360a1;font:800 10px/1.3 'Nunito',system-ui,sans-serif;
+}
+@media(max-width:600px){
+ .tx-search-account-shortcuts{gap:6px}
+ .tx-search-account-shortcuts>span{width:100%;margin-bottom:1px}
+ .tx-search-account-shortcuts button{font-size:11px;padding:7px 9px}
+}
+@media(prefers-reduced-motion:reduce){
+ .tx-search-account-shortcuts button{transition:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -3157,24 +3192,48 @@ function txSearchTitleScore(title,query){
  })))return 5;
  return -1;
 }
+/* Cari rekening sumber/penerima transfer dan transaksi rekening utama. */
+function txSearchAccountScore(t,term){
+ const accountNames=[acc(t.accountId)?.name];
+ if(t.type==='transfer')accountNames.push(acc(t.toAccountId)?.name);
+ const values=accountNames.map(name=>txSearchTitleScore(name,term)).filter(score=>score>=0);
+ return values.length?Math.min(...values):-1;
+}
+function txSearchAccountMatch(t,ids){
+ return ids.includes(t.accountId)||(t.type==='transfer'&&ids.includes(t.toAccountId));
+}
 function txSearchResults(query){
- const text=String(query||'').trim(),amountMode=txSearchIsAmount(text);
- const digits=text.replace(/\D/g,'');
+ const text=String(query||'').trim();
+ const forcedAccount=/^rekening\s*:\s*/i.test(text);
+ const term=forcedAccount?text.replace(/^rekening\s*:\s*/i,'').trim():text;
+ const amountMode=!forcedAccount&&txSearchIsAmount(term);
+ const digits=term.replace(/\D/g,'');
+ const recent=(a,b)=>String(b.transaction.date||'').localeCompare(String(a.transaction.date||''))||
+  String(b.transaction.createdAt||'').localeCompare(String(a.transaction.createdAt||''));
  if(amountMode&&digits.length){
   const results=db.transactions.filter(t=>t.type==='expense').map(t=>{
    const amount=String(Math.trunc(num(t.amount)));
-   return {transaction:t,score:amount===digits?0:amount.startsWith(digits)?1:amount.includes(digits)?2:-1};
-  }).filter(item=>item.score>=0)
-   .sort((a,b)=>a.score-b.score||String(b.transaction.date||'').localeCompare(String(a.transaction.date||''))||
-    String(b.transaction.createdAt||'').localeCompare(String(a.transaction.createdAt||'')));
+   return {transaction:t,score:amount===digits?0:amount.startsWith(digits)?1:amount.includes(digits)?2:-1,matchedBy:'amount'};
+  }).filter(item=>item.score>=0).sort((a,b)=>a.score-b.score||recent(a,b));
   const exact=results.filter(item=>item.score===0);
   return exact.length?exact:results;
  }
- if(txSearchNormalize(text).length<2)return [];
- return db.transactions.map(t=>({transaction:t,score:txSearchTitleScore(t.title,text)}))
-  .filter(item=>item.score>=0)
-  .sort((a,b)=>a.score-b.score||String(b.transaction.date||'').localeCompare(String(a.transaction.date||''))||
-   String(b.transaction.createdAt||'').localeCompare(String(a.transaction.createdAt||'')));
+ if(txSearchNormalize(term).length<2)return [];
+ if(forcedAccount){
+  const exactAccounts=(db.accounts||[]).filter(a=>txSearchNormalize(a.name)===txSearchNormalize(term));
+  if(exactAccounts.length){
+   const ids=exactAccounts.map(a=>a.id);
+   return db.transactions.filter(t=>txSearchAccountMatch(t,ids))
+    .map(t=>({transaction:t,score:0,matchedBy:'account'})).sort(recent);
+  }
+  return db.transactions.map(t=>({transaction:t,score:txSearchAccountScore(t,term),matchedBy:'account'}))
+   .filter(item=>item.score>=0).sort((a,b)=>a.score-b.score||recent(a,b));
+ }
+ return db.transactions.map(t=>{
+  const title=txSearchTitleScore(t.title,term),account=txSearchAccountScore(t,term);
+  if(account>=0&&(title<0||account<title))return {transaction:t,score:account,matchedBy:'account'};
+  return {transaction:t,score:title,matchedBy:'name'};
+ }).filter(item=>item.score>=0).sort((a,b)=>a.score-b.score||recent(a,b));
 }
 function txSearchHighlight(title,term){
  const value=String(title||'Transaksi');
@@ -3184,29 +3243,37 @@ function txSearchHighlight(title,term){
  return h(value.slice(0,at))+'<mark class="tx-search-match">'+h(value.slice(at,at+term.length))+'</mark>'+h(value.slice(at+term.length));
 }
 function renderTxSearchResults(){
- const text=String(ui.txSearchQuery||'').trim(),numeric=txSearchIsAmount(text);
- if((!numeric&&txSearchNormalize(text).length<2)||(!text)){
+ const text=String(ui.txSearchQuery||'').trim(),accountMode=/^rekening\s*:\s*/i.test(text);
+ const query=accountMode?text.replace(/^rekening\s*:\s*/i,'').trim():text;
+ const numeric=!accountMode&&txSearchIsAmount(text);
+ if(!text||(!numeric&&txSearchNormalize(query).length<2)){
   return '<div class="tx-search-empty"><span aria-hidden="true">🔍</span><strong>Temukan transaksi dengan cepat</strong>'+
-   '<p>Ketik nama seperti “makan” atau “laundri”, atau nominal seperti “95.000” maupun “95000”.</p></div>';
+   '<p>Cari nama, nominal pengeluaran, atau nama rekening. Kamu juga bisa memilih rekening di atas.</p></div>';
  }
  const rows=txSearchResults(text);
  if(!rows.length)return '<div class="tx-search-empty"><span aria-hidden="true">🧐</span><strong>Tidak ada transaksi yang cocok</strong>'+
-  '<p>'+ (numeric?'Tidak ada pengeluaran dengan nominal tersebut. Coba beberapa digit saja.':'Coba nama yang lebih singkat atau ejaan lainnya.')+'</p></div>';
+  '<p>'+(numeric?'Coba beberapa digit nominal yang lebih singkat.':accountMode?'Belum ada transaksi pada rekening ini. Coba rekening lainnya.':'Coba nama transaksi atau rekening yang lebih singkat.')+'</p></div>';
  const LIMIT=70,visible=rows.slice(0,LIMIT);
- const header='<p class="tx-search-count" role="status">'+rows.length+' '+(numeric?'pengeluaran':'transaksi')+' cocok'+
+ const category=accountMode?'transaksi rekening':numeric?'pengeluaran':'transaksi';
+ const mode=accountMode?'Rekening':numeric?'Nominal':'Nama atau rekening';
+ const header='<p class="tx-search-count" role="status">'+rows.length+' '+category+' cocok'+
  (rows.length>LIMIT?' · '+LIMIT+' hasil teratas':'')+
- '<span> · '+(numeric?'Berdasarkan nominal · Semua bulan':'Berdasarkan nama · Semua bulan')+'</span></p>';
+ '<span> · Berdasarkan '+mode+' · Semua bulan</span></p>';
  return header+visible.map(item=>{
   const t=item.transaction,from=acc(t.accountId)?.name||'Rekening tidak tersedia';
-  const detail=t.type==='transfer'?'Transfer · '+from+' → '+(acc(t.toAccountId)?.name||'Rekening tidak tersedia'):
-   (cat(t.categoryId)?.label||'Kategori tidak tersedia')+' · '+from;
+  const to=t.type==='transfer'?acc(t.toAccountId)?.name||'Rekening tidak tersedia':'';
+  const accountHtml=(!numeric)?txSearchHighlight(from,query):h(from);
+  const destinationHtml=(!numeric)?txSearchHighlight(to,query):h(to);
+  const detail=t.type==='transfer'?h('Transfer · ')+accountHtml+h(' → ')+destinationHtml:
+   h((cat(t.categoryId)?.label||'Kategori tidak tersedia')+' · ')+accountHtml;
   const typeClass=t.type==='expense'?'red':t.type==='income'?'green':'blue';
   const sign=t.type==='expense'?'−':t.type==='income'?'+':'⇄ ';
-  const label=txSearchHighlight(t.title||'Transaksi',text);
-  const similar=!numeric&&item.score===5?'<span class="tx-search-similar">Nama mirip</span>':'';
+  const label=accountMode?h(t.title||'Transaksi'):txSearchHighlight(t.title||'Transaksi',text);
+  const similar=!numeric&&!accountMode&&item.matchedBy==='name'&&item.score===5?'<span class="tx-search-similar">Nama mirip</span>':'';
+  const accountBadge=item.matchedBy==='account'?'<span class="tx-search-account-badge">Rekening cocok</span>':'';
   return '<article class="tx-history-item tx-search-result">'+
-   '<div class="tx-history-item-head"><div><strong>'+label+similar+'</strong>'+
-   '<small>'+h(dateFmt(t.date))+' · '+h(detail)+'</small></div>'+
+   '<div class="tx-history-item-head"><div><strong>'+label+similar+accountBadge+'</strong>'+
+   '<small>'+h(dateFmt(t.date))+' · '+detail+'</small></div>'+
    '<b class="'+typeClass+'">'+sign+money(t.amount)+'</b></div>'+
    (t.note?'<p>'+h(t.note)+'</p>':'')+
    '<div class="tx-history-item-actions"><button type="button" class="btn sm" data-edit-tx="'+h(t.id)+'">✎ Edit</button>'+
@@ -3218,13 +3285,17 @@ function renderTxSearchPopup(){
  return '<div class="tx-history-backdrop tx-search-backdrop" id="tx-search-backdrop">'+
   '<div class="tx-history-dialog tx-search-dialog" role="dialog" aria-modal="true" aria-labelledby="tx-search-title" aria-describedby="tx-search-desc">'+
    '<div class="tx-entry-heading"><span class="tx-entry-symbol" aria-hidden="true">🔍</span>'+
-    '<div><h3 id="tx-search-title">Cari Transaksi</h3><p id="tx-search-desc">Cari berdasarkan nama atau nominal pengeluaran dari seluruh bulan.</p></div>'+
+    '<div><h3 id="tx-search-title">Cari Transaksi</h3><p id="tx-search-desc">Cari nama transaksi, nominal pengeluaran, atau rekening dari seluruh bulan.</p></div>'+
     '<button type="button" class="tx-entry-close" data-tx-search-close aria-label="Tutup pencarian transaksi">✕</button></div>'+
-   '<div class="tx-search-form"><label for="tx-search-input">Nama atau nominal transaksi</label>'+
+   '<div class="tx-search-form"><label for="tx-search-input">Nama transaksi, nominal, atau rekening</label>'+
     '<div class="tx-search-input-row"><span aria-hidden="true">⌕</span>'+
      '<input id="tx-search-input" class="field" type="search" autocomplete="off" spellcheck="false" maxlength="100"'+
-     ' placeholder="Contoh: Makan siang atau Rp95.000" value="'+h(ui.txSearchQuery)+'"></div>'+
-    '<p>Masukkan nama untuk mencari transaksi yang mirip. Ketik nominal untuk mencari pengeluaran dengan jumlah tersebut.</p></div>'+
+     ' placeholder="Contoh: Makan siang, Rp95.000, Bank Contoh" value="'+h(ui.txSearchQuery)+'"></div>'+
+    '<p>Nama dan rekening bisa dicari langsung. Untuk nominal, ketik angka pengeluaran, misalnya 95000.</p>'+
+    (db.accounts?.length?'<div class="tx-search-account-shortcuts" role="group" aria-label="Pilih rekening untuk pencarian cepat">'+
+     '<span>Rekening cepat</span>'+
+     db.accounts.map(a=>'<button type="button" data-tx-search-account="'+h(a.id)+'" aria-pressed="'+(ui.txSearchQuery==='rekening: '+a.name?'true':'false')+'" class="'+(ui.txSearchQuery==='rekening: '+a.name?'active':'')+'">'+h(a.name)+'</button>').join('')+
+    '</div>':'')+'</div>'+
    '<div class="tx-history-content tx-search-content" id="tx-search-results" aria-live="polite">'+renderTxSearchResults()+'</div>'+
   '</div></div>';
 }
@@ -3766,6 +3837,12 @@ document.addEventListener('input',rupiahInputHandler);
 document.addEventListener('input',event=>{
  if(event.target.id==='tx-search-input'){
   ui.txSearchQuery=event.target.value;
+  document.querySelectorAll('[data-tx-search-account]').forEach(button=>{
+   const linked=db.accounts.find(a=>a.id===button.dataset.txSearchAccount);
+   const pressed=!!linked&&ui.txSearchQuery==='rekening: '+linked.name;
+   button.classList.toggle('active',pressed);
+   button.setAttribute('aria-pressed',String(pressed));
+  });
   const results=document.getElementById('tx-search-results');
   if(results){results.innerHTML=renderTxSearchResults();results.scrollTop=0;}
   return;
@@ -3965,6 +4042,21 @@ if(x.dataset.debtOverview){
  if(!['income','expense','budget','balance'].includes(x.dataset.dashboardKpi))return;
  ui.reviewPopup={type:'dashboard-kpi',key:x.dataset.dashboardKpi};
  render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});return;
+}
+if(x.dataset.txSearchAccount!==undefined){
+ const account=db.accounts.find(a=>a.id===x.dataset.txSearchAccount);
+ if(!account)return;
+ ui.txSearchQuery='rekening: '+account.name;
+ const input=document.getElementById('tx-search-input');
+ if(input){input.value=ui.txSearchQuery;input.focus({preventScroll:true});}
+ document.querySelectorAll('[data-tx-search-account]').forEach(button=>{
+  const selected=button.dataset.txSearchAccount===account.id;
+  button.classList.toggle('active',selected);
+  button.setAttribute('aria-pressed',String(selected));
+ });
+ const results=document.getElementById('tx-search-results');
+ if(results){results.innerHTML=renderTxSearchResults();results.scrollTop=0;}
+ return;
 }
 if(x.dataset.txSearch!==undefined){openTxSearch();return;}
  if(x.dataset.txHistory!==undefined){openTxHistory();return;}

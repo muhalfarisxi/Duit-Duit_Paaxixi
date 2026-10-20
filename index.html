@@ -3504,7 +3504,7 @@ ${r?`<section class="card" id="print-area"><div class="report-header"><div class
 
 /* #052 Popup konfirmasi Hapus: dua aksi, tanpa prompt bawaan browser. */
 let deleteDialogPending=null;
-function askDelete(label,explanation,onConfirm,trigger=document.activeElement){
+function askDelete(label,explanation,onConfirm,trigger=document.activeElement,onCancel=null){
  if(deleteDialogPending||typeof onConfirm!=='function')return;
  const backdrop=document.createElement('div');
  backdrop.id='paaxixi-delete-dialog';backdrop.className='paaxixi-delete-backdrop';
@@ -3527,6 +3527,7 @@ function askDelete(label,explanation,onConfirm,trigger=document.activeElement){
   deleteDialogPending=null;backdrop.remove();
   if(yes){old.onConfirm();return;}
   if(old.trigger?.isConnected)old.trigger.focus({preventScroll:true});
+  if(typeof onCancel==='function')onCancel();
  };
  backdrop.addEventListener('click',event=>{
   event.stopPropagation();
@@ -3545,6 +3546,12 @@ function askDelete(label,explanation,onConfirm,trigger=document.activeElement){
  });
  document.body.appendChild(backdrop);
  backdrop.querySelector('[data-delete-choice="cancel"]')?.focus({preventScroll:true});
+}
+function confirmDelete(question){
+ return new Promise(resolve=>{
+  const label=String(question||'Catatan ini').replace(/^Hapus\s+/i,'').replace(/\?$/,'').trim();
+  askDelete(label,'Tekan Yakin, Hapus untuk menghapus data, atau Batal agar tetap aman.',()=>resolve(true),document.activeElement,()=>resolve(false));
+ });
 }
 function saveDeletedTransaction(){
  const current=document.querySelector('#review-modal-backdrop .review-modal-content, #tx-history-backdrop .tx-history-content');
@@ -3798,7 +3805,7 @@ if(x.hasAttribute('data-add-expense-group')){openFinanceEditor('group');return;}
  if(expenseGroups().length<=1)return toast('Minimal harus ada satu kelompok pengeluaran.',true);
  const pos=expenses().filter(c=>c.group===g.name);
  if(pos.length)return toast('Pindahkan dahulu '+pos.length+' pos dari '+g.name+' ke kelompok lain sebelum menghapusnya.',true);
- if(confirm('Hapus kelompok "'+g.name+'"? Kelompok ini sudah tidak berisi pos.')){
+ if(await confirmDelete('Hapus kelompok "'+g.name+'"? Kelompok ini sudah tidak berisi pos.')){
    db.expenseGroups=db.expenseGroups.filter(x=>x.id!==g.id);
    if(ui.expenseGroupEditId===g.id)ui.expenseGroupEditId=null;
    if(ui.budgetCategoryGroup===g.name)ui.budgetCategoryGroup=null;
@@ -3812,7 +3819,7 @@ if(x.hasAttribute('data-add-expense-group')){openFinanceEditor('group');return;}
 if(x.dataset.editMove){ui.moveEditId=x.dataset.editMove;render();return}
 if(x.dataset.editRepay){let [id,pid]=x.dataset.editRepay.split('|');openRepayPopup(id,pid);return}
 if(x.dataset.openReport){ui.reportMonth=x.dataset.openReport;setView('reports');document.getElementById('print-area')?.scrollIntoView({behavior:'smooth'});return}
-if(x.dataset.deleteReport){let m=x.dataset.deleteReport;if(confirm('Hapus arsip '+monthFmt(m)+'? Transaksi asli tetap aman.')){delete db.reports[m];if(ui.reportMonth===m)ui.reportMonth=Object.keys(db.reports).sort().reverse()[0]||ui.month;save();render();toast('Arsip dihapus, transaksi tetap ada.')}return}
+if(x.dataset.deleteReport){let m=x.dataset.deleteReport;if(await confirmDelete('Hapus arsip '+monthFmt(m)+'? Transaksi asli tetap aman.')){delete db.reports[m];if(ui.reportMonth===m)ui.reportMonth=Object.keys(db.reports).sort().reverse()[0]||ui.month;save();render();toast('Arsip dihapus, transaksi tetap ada.')}return}
 if(x.dataset.deleteTx){const t=db.transactions.find(v=>v.id===x.dataset.deleteTx);
  if(t)askDelete('Transaksi: '+(t.title||'Tanpa judul')+' · '+money(t.amount),
   dateFmt(t.date)+' · Penghapusan juga memperbarui saldo rekening dan ringkasan keuangan.',()=>{
@@ -3823,18 +3830,18 @@ if(x.dataset.deleteTx){const t=db.transactions.find(v=>v.id===x.dataset.deleteTx
     toast('Transaksi berhasil dihapus.');
   },x);
  return}
-if(x.dataset.deleteMove){let m=db.budgetMoves.find(v=>v.id===x.dataset.deleteMove);if(m&&confirm('Hapus riwayat pemindahan anggaran ini?')){db.budgetMoves=db.budgetMoves.filter(v=>v.id!==m.id);save();render();toast('Pemindahan dihapus.')}return}
-if(x.dataset.deleteRepay){let [id,pid]=x.dataset.deleteRepay.split('|'),d=db.debts.find(v=>v.id===id);if(d&&confirm('Hapus pembayaran cicilan ini?')){d.settlements=d.settlements.filter(v=>v.id!==pid);ui.debtSelected=null;ui.repayEditId=null;save();render();toast('Cicilan dihapus.')}return}
-if(x.dataset.deleteDebt){let d=db.debts.find(d=>d.id===x.dataset.deleteDebt);if(d&&(d.settlements||[]).length===0&&confirm('Hapus catatan pinjaman dengan '+d.person+'?')){db.debts=db.debts.filter(v=>v.id!==d.id);ui.debtEditId=null;save();render();toast('Pinjaman dihapus.')}return}
-if(x.dataset.deleteCategory){let id=x.dataset.deleteCategory;if(db.transactions.some(t=>t.categoryId===id)||db.budgetMoves.some(t=>t.from===id||t.to===id)||Object.keys(db.budgets).some(k=>k.endsWith('|'+id)&&num(db.budgets[k])!==0))return toast('Kategori masih digunakan transaksi/anggaran. Ubah atau hapus rujukannya dahulu.',true);if(confirm('Hapus kategori '+cat(id)?.label+'?')){db.categories=db.categories.filter(c=>c.id!==id);save();render();toast('Kategori dihapus.')}return}
-if(x.dataset.deleteAccount){let id=x.dataset.deleteAccount;if(db.accounts.length===1)return toast('Harus ada setidaknya satu rekening.',true);if(db.transactions.some(t=>t.accountId===id||t.toAccountId===id)||db.debts.some(d=>d.accountId===id||(d.settlements||[]).some(s=>s.accountId===id)))return toast('Rekening sudah dipakai transaksi/pinjaman dan tidak dapat dihapus.',true);if(confirm('Hapus rekening yang belum digunakan ini?')){db.accounts=db.accounts.filter(a=>a.id!==id);save();render();toast('Rekening dihapus.')}return}
+if(x.dataset.deleteMove){let m=db.budgetMoves.find(v=>v.id===x.dataset.deleteMove);if(m&&await confirmDelete('Hapus riwayat pemindahan anggaran ini?')){db.budgetMoves=db.budgetMoves.filter(v=>v.id!==m.id);save();render();toast('Pemindahan dihapus.')}return}
+if(x.dataset.deleteRepay){let [id,pid]=x.dataset.deleteRepay.split('|'),d=db.debts.find(v=>v.id===id);if(d&&await confirmDelete('Hapus pembayaran cicilan ini?')){d.settlements=d.settlements.filter(v=>v.id!==pid);ui.debtSelected=null;ui.repayEditId=null;save();render();toast('Cicilan dihapus.')}return}
+if(x.dataset.deleteDebt){let d=db.debts.find(d=>d.id===x.dataset.deleteDebt);if(d&&(d.settlements||[]).length===0&&await confirmDelete('Hapus catatan pinjaman dengan '+d.person+'?')){db.debts=db.debts.filter(v=>v.id!==d.id);ui.debtEditId=null;save();render();toast('Pinjaman dihapus.')}return}
+if(x.dataset.deleteCategory){let id=x.dataset.deleteCategory;if(db.transactions.some(t=>t.categoryId===id)||db.budgetMoves.some(t=>t.from===id||t.to===id)||Object.keys(db.budgets).some(k=>k.endsWith('|'+id)&&num(db.budgets[k])!==0))return toast('Kategori masih digunakan transaksi/anggaran. Ubah atau hapus rujukannya dahulu.',true);if(await confirmDelete('Hapus kategori '+cat(id)?.label+'?')){db.categories=db.categories.filter(c=>c.id!==id);save();render();toast('Kategori dihapus.')}return}
+if(x.dataset.deleteAccount){let id=x.dataset.deleteAccount;if(db.accounts.length===1)return toast('Harus ada setidaknya satu rekening.',true);if(db.transactions.some(t=>t.accountId===id||t.toAccountId===id)||db.debts.some(d=>d.accountId===id||(d.settlements||[]).some(s=>s.accountId===id)))return toast('Rekening sudah dipakai transaksi/pinjaman dan tidak dapat dihapus.',true);if(await confirmDelete('Hapus rekening yang belum digunakan ini?')){db.accounts=db.accounts.filter(a=>a.id!==id);save();render();toast('Rekening dihapus.')}return}
 if(x.dataset.repay){openRepayPopup(x.dataset.repay);return}
 if(x.dataset.action){let a=x.dataset.action;
 if(cloud.pendingDecision&&!['cloud-upload','cloud-empty','cloud-logout','export','export-precloud'].includes(a))return toast('Cloud kosong. Putuskan dahulu apakah akan mengunggah data lokal atau mulai dari kosong.',true);
 if(a==='demo')demo();if(a==='export')exportJSON();if(a==='export-precloud'){let old=localStorage.getItem('arus-cadangan-sebelum-cloud');if(old)downloadFile('Duit-Duit-Paaxixi-cadangan-sebelum-cloud.json',old,'application/json');}if(a==='import')document.getElementById('import-file').click();
 if(a==='cancel-expense-group'||a==='cancel-budget-category'){closeFinanceEditor();return;}
  if(a==='cancel-edit-tx'){dismissTxModal();return}if(a==='cancel-edit-debt'){ui.debtEditId=null;render()}if(a==='cancel-account-edit'){ui.accountEditId=null;render()}if(a==='cancel-category-edit'){ui.categoryEditId=null;render()}if(a==='cancel-move-edit'){ui.moveEditId=null;render()}
-if(a==='reset'&&confirm('HAPUS seluruh transaksi, anggaran, pinjaman, arsip laporan, dan rekening'+(cloud.signedIn?' pada SEMUA PERANGKAT tersinkron':' di browser ini')+'? Tindakan ini tidak dapat dibatalkan tanpa file cadangan.')){db=fresh();save();ui.debtSelected=null;ui.txEditId=null;setView('dashboard');toast('Data dibersihkan.')}
+if(a==='reset'&&await confirmDelete('HAPUS seluruh transaksi, anggaran, pinjaman, arsip laporan, dan rekening'+(cloud.signedIn?' pada SEMUA PERANGKAT tersinkron':' di browser ini')+'? Tindakan ini tidak dapat dibatalkan tanpa file cadangan.')){db=fresh();save();ui.debtSelected=null;ui.txEditId=null;setView('dashboard');toast('Data dibersihkan.')}
 if(a==='new-transfer'){openTxModal('transfer');return}
 if(a==='close-repay'){dismissRepayPopup();return}
 if(a==='save-report')saveReport();if(a==='print-report'&&db.reports[ui.reportMonth])window.print();

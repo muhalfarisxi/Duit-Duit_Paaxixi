@@ -2092,6 +2092,42 @@ body:has(.tx-search-backdrop){overflow:hidden}
  .topbar .top-controls #top-add{grid-column:1/-1;width:100%;min-height:46px;white-space:nowrap;justify-content:center}
 }
 
+
+/* #057 Rincian pemasukan/pengeluaran playful + dropdown export */
+.playful-review-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:18px}
+.playful-review-main{flex:1 1 315px;min-width:0}
+.playful-review-title{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin:0 0 9px!important;font:600 clamp(18px,1.7vw,22px)/1.35 'Fredoka','Nunito',system-ui,sans-serif!important;color:#193e71}
+.playful-review-icon{flex:none;width:43px;height:43px;display:grid;place-items:center;border-radius:14px;border:1px solid #f0c6cf;background:linear-gradient(130deg,#fff0f3,#ffdce3);font-size:23px;animation:review-head-float 3.5s ease-in-out infinite}
+.playful-income .playful-review-icon{background:linear-gradient(130deg,#edfdf5,#d8f6e6);border-color:#bee5d0}
+.playful-review-words{position:relative;white-space:nowrap}
+.playful-review-words::after{content:"";position:absolute;bottom:-4px;left:0;right:0;height:3px;border-radius:9px;background:linear-gradient(90deg,#d3596e,#f6b5c2,transparent);animation:review-head-underline .7s ease-out both;transform-origin:left}
+.playful-income .playful-review-words::after{background:linear-gradient(90deg,#168967,#a7e9ca,transparent)}
+.playful-review-month{padding:7px 11px;border-radius:999px;border:1px solid #f1d89e;background:#fff6df;color:#94690c;font:850 13px/1.2 'Nunito',system-ui,sans-serif}
+.playful-review-sparkle{font-size:20px;animation:review-head-twinkle 3s ease-in-out infinite}
+.playful-review-main>p{font-size:12px;color:#7188a4;margin:0;line-height:1.65}
+.review-export-wrap{position:relative;flex:none}
+.playful-review-head .review-export-toggle{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:10px 16px;white-space:nowrap;border-radius:14px;border:1.5px solid #edc6d1;background:linear-gradient(115deg,#fff7f9,#ffe9ee);color:#a43f54;font:850 12px/1.3 'Nunito',system-ui,sans-serif;box-shadow:0 6px 16px rgba(174,72,103,.11);transition:transform .18s,box-shadow .18s}
+.playful-income .review-export-toggle{border-color:#bde5cf;background:linear-gradient(115deg,#f3fcf6,#e0f8e9);color:#147e57}
+.playful-review-head .review-export-toggle:hover{transform:translateY(-2px);box-shadow:0 9px 20px rgba(119,77,106,.18)}
+.review-export-caret{display:inline-block;transition:transform .18s}
+.review-export-wrap.open .review-export-caret{transform:rotate(180deg)}
+.review-export-menu[hidden]{display:none!important}
+.review-export-menu{position:absolute;top:calc(100% + 8px);right:0;z-index:80;min-width:265px;display:grid;gap:5px;padding:8px;border-radius:16px;border:1px solid #dae5f6;background:#fff;box-shadow:0 17px 38px rgba(20,56,100,.19);animation:review-export-appear .2s ease-out both}
+.review-export-menu button{display:flex;align-items:center;gap:11px;min-height:57px;width:100%;padding:10px 12px;background:#fff;border:1px solid transparent;border-radius:12px;color:#234a7a;text-align:left;transition:background .18s,transform .18s}
+.review-export-menu button>span:first-child{font-size:22px;line-height:1}
+.review-export-menu button>span:last-child{display:flex;flex-direction:column;gap:3px;min-width:0}
+.review-export-menu strong{font:850 13px/1.2 'Nunito',system-ui,sans-serif}
+.review-export-menu small{font:650 11px/1.3 'Nunito',system-ui,sans-serif;color:#8597ad}
+.review-export-menu button:hover{background:#f0f6ff;transform:translateX(2px)}
+.review-export-menu button:focus-visible,.review-export-toggle:focus-visible{outline:3px solid #3a85e3;outline-offset:3px}
+@keyframes review-head-float{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-3px) rotate(4deg)}}
+@keyframes review-head-underline{from{opacity:.1;transform:scaleX(.1)}to{opacity:1;transform:scaleX(1)}}
+@keyframes review-head-twinkle{0%,72%,100%{transform:scale(.95) rotate(-5deg);opacity:.7}82%{transform:scale(1.18) rotate(7deg);opacity:1}}
+@keyframes review-export-appear{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:700px){.playful-review-main{flex-basis:100%}.playful-review-head{align-items:flex-start;gap:11px}.playful-review-title{font-size:17px!important;gap:7px}.playful-review-icon{width:38px;height:38px;font-size:20px}.playful-review-month{font-size:12px}.review-export-wrap{width:100%}.playful-review-head .review-export-toggle{width:100%;justify-content:center}.review-export-menu{left:0;right:0;min-width:0}}
+@media(prefers-reduced-motion:reduce){.playful-review-icon,.playful-review-words::after,.playful-review-sparkle,.review-export-menu{animation:none!important}.review-export-menu button,.review-export-caret,.review-export-toggle{transition:none!important}}
+@media print{.review-export-wrap{display:none!important}}
+
 </style>
 </head>
 <body>
@@ -3656,9 +3692,19 @@ function renderReview(){
  const isIncome=ui.reviewType==='income';
  return `${renderTransactionCalendar()}
   <section class="card">
-   <div class="card-head"><div><h3>Rincian ${kind} · ${h(monthFmt(ui.month))}</h3>
-    <p>Klik kelompok dan pos untuk melihat grafik serta daftar transaksi. Kalender di atas mencakup seluruh uang masuk, keluar, dan transfer.</p></div>
-    <button class="btn sm" data-action="csv-review">↓ CSV ${kind}</button>
+   <div class="card-head playful-review-head ${isIncome?'playful-income':'playful-expense'}">
+    <div class="playful-review-main">
+     <h3 class="playful-review-title"><span class="playful-review-icon" aria-hidden="true">${isIncome?'💰':'💸'}</span><span class="playful-review-words">Rincian ${kind}</span><span class="playful-review-month">${h(monthFmt(ui.month))}</span><span class="playful-review-sparkle" aria-hidden="true">✨</span></h3>
+     <p>Klik kelompok untuk melihat pos dan transaksi. Export mengambil data ${kind.toLowerCase()} pada bulan yang dipilih.</p>
+    </div>
+    <div class="review-export-wrap">
+     <button type="button" class="btn sm review-export-toggle" data-review-export-toggle aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">📤</span> Export ${kind} <span class="review-export-caret" aria-hidden="true">▾</span></button>
+     <div class="review-export-menu" role="menu" aria-label="Format export ${kind}" hidden>
+      <button type="button" role="menuitem" data-review-export-format="xlsx"><span aria-hidden="true">📗</span><span><strong>Excel (.xlsx)</strong><small>Bisa diolah di spreadsheet</small></span></button>
+      <button type="button" role="menuitem" data-review-export-format="csv"><span aria-hidden="true">📄</span><span><strong>CSV (.csv)</strong><small>Data tabel yang ringan</small></span></button>
+      <button type="button" role="menuitem" data-review-export-format="pdf"><span aria-hidden="true">🧾</span><span><strong>PDF (.pdf)</strong><small>Laporan siap dibagikan</small></span></button>
+     </div>
+    </div>
    </div>
    <div class="review-type-switch" role="group" aria-label="Jenis rincian transaksi">
     <button type="button" data-review-type="income" class="review-type-button income ${isIncome?'active':''}" aria-pressed="${isIncome?'true':'false'}">↗ Pemasukan</button>
@@ -3997,6 +4043,37 @@ if(id==='expense-group-form'){
   save();render();if(draft)restorePendingBudgetInputs(draft);
   toast(old?'Pos / Kategori berhasil diperbarui.':'Pos / Kategori berhasil ditambahkan.');return;
  }}
+
+/* #057 Export rinci bulan dan jenis transaksi aktif. */
+function reviewExportData(){
+ const type=ui.reviewType==='income'?'income':'expense';
+ const items=monthly().filter(t=>t.type===type).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+ const label=type==='income'?'Pemasukan':'Pengeluaran';
+ const columns=['Tanggal','Nama Transaksi','Kelompok','Kategori','Rekening','Nominal (Rp)','Catatan'];
+ const rows=items.map(t=>[t.date||'',t.title||'',t.group||cat(t.categoryId)?.group||'',
+  t.categoryLabel||cat(t.categoryId)?.label||'',t.accountLabel||acc(t.accountId)?.name||'',num(t.amount),t.note||'']);
+ return {month:ui.month,period:monthFmt(ui.month),label,columns,rows,total:items.reduce((n,t)=>n+num(t.amount),0)};
+}
+function reviewExportCSV(data){
+ const quoted=x=>'"'+String(x??'').replace(/"/g,'""')+'"';
+ return '\ufeff'+[data.columns,...data.rows].map(row=>row.map(quoted).join(',')).join('\r\n');
+}
+function closeReviewExportMenu(refocus=false){
+ const wrap=document.querySelector('.review-export-wrap'),menu=wrap?.querySelector('.review-export-menu');
+ const button=wrap?.querySelector('[data-review-export-toggle]');
+ if(!wrap||!menu||!button)return;
+ menu.hidden=true;wrap.classList.remove('open');button.setAttribute('aria-expanded','false');
+ if(refocus)button.focus({preventScroll:true});
+}
+function toggleReviewExportMenu(){
+ const wrap=document.querySelector('.review-export-wrap'),menu=wrap?.querySelector('.review-export-menu');
+ const button=wrap?.querySelector('[data-review-export-toggle]');
+ if(!wrap||!menu||!button)return;
+ const opened=menu.hidden;menu.hidden=!opened;wrap.classList.toggle('open',opened);
+ button.setAttribute('aria-expanded',String(opened));
+ if(opened)menu.querySelector('button')?.focus({preventScroll:true});else button.focus({preventScroll:true});
+}
+
 function downloadFile(name,body,mime){let blob=new Blob([body],{type:mime||'text/plain'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),500)}
 function asCSV(items){let fields=['Tanggal','Jenis','Nama Pengeluaran / Pemasukan','Kelompok','Kategori','Rekening','Nominal (Rp)','Catatan'];let rows=[fields,...items.map(t=>[t.date,t.type==='expense'?'Pengeluaran':t.type==='income'?'Pemasukan':'Transfer',t.title,t.group||cat(t.categoryId)?.group||'',t.categoryLabel||cat(t.categoryId)?.label||'',t.accountLabel||acc(t.accountId)?.name||'',t.amount,t.note||''])];return '\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n')}
 function saveReport(){let m=ui.month;if(!db.transactions.some(t=>t.date.slice(0,7)===m)&&!expenses().some(c=>num(db.budgets[m+'|'+c.id])>0))return toast('Belum ada transaksi/anggaran bulan itu untuk diarsipkan.',true);if(db.reports[m]&&!confirm('Timpa arsip '+monthFmt(m)+' dengan keadaan transaksi sekarang?'))return;db.reports[m]=buildReport(m);ui.reportMonth=m;save();setView('reports');toast('Arsip laporan '+monthFmt(m)+' telah disimpan.');}
@@ -4027,6 +4104,7 @@ document.addEventListener('pointerdown',event=>{
  if(ui.comp.menu&&!event.target.closest('.comp-picker'))dismissCompositionPopup();
 });
 document.addEventListener('keydown',event=>{
+ if(event.key==='Escape'&&document.querySelector('.review-export-wrap.open')){event.preventDefault();closeReviewExportMenu(true);return;}
  if(ui.txModalOpen){
   if(event.key==='Escape'){event.preventDefault();dismissTxModal();return;}
   if(event.key==='Tab'){
@@ -4105,6 +4183,16 @@ document.addEventListener('keydown',event=>{
  if(event.key==='Escape'&&ui.comp.menu){const kind=ui.comp.menu;dismissCompositionPopup();document.querySelector('[data-comp-menu="'+kind+'"].comp-popup-trigger')?.focus();}
 });
 document.addEventListener('click',async e=>{
+ const reviewToggle=e.target.closest('[data-review-export-toggle]');
+ if(reviewToggle){toggleReviewExportMenu();return;}
+ const reviewChoice=e.target.closest('[data-review-export-format]');
+ if(reviewChoice){
+  const format=reviewChoice.dataset.reviewExportFormat;
+  closeReviewExportMenu();
+  try{exportReviewFile(format);}catch(err){toast('Gagal membuat file: '+(err?.message||'kesalahan tidak diketahui'),true);}
+  return;
+ }
+ if(!e.target.closest('.review-export-wrap'))closeReviewExportMenu();
  if(e.target.closest('[data-close-repay-popup]')||e.target.id==='repay-popup-backdrop'){dismissRepayPopup();return;}
   if(e.target.closest('[data-close-tx-modal]')||e.target.id==='tx-entry-backdrop'){dismissTxModal();return;}
  if(e.target.closest('[data-close-tx-history]')||e.target.id==='tx-history-backdrop'){dismissTxHistory();return;}

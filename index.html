@@ -2549,6 +2549,52 @@ body:has(.tx-search-backdrop){overflow:hidden}
  .pax-modal-title .pax-modal-words::after{display:none}
 }
 
+
+/* #063 Fix KPI dashboard: icon + title never split into separate lines. */
+#content .kpis .kpi-detail-trigger>.row-between{
+ display:grid!important;grid-template-columns:minmax(0,1fr) 31px;
+ align-items:center!important;gap:7px;min-height:36px;width:100%;
+}
+#content .kpis .kpi-detail-trigger>.row-between>.card-icon{
+ grid-column:2;justify-self:end;align-self:center;flex:none;
+ width:31px!important;height:31px!important;
+}
+#content .kpis .kpi-detail-trigger>.row-between>.metric-label.pax-mini-label{
+ grid-column:1;grid-row:1;display:flex!important;flex-direction:row!important;
+ flex-wrap:nowrap!important;align-items:center;justify-content:flex-start;
+ gap:5px;white-space:nowrap;min-width:0;width:100%;max-width:none;
+ font-size:clamp(11px,.92vw,13.5px)!important;line-height:1.25!important;
+}
+#content .kpis .kpi-detail-trigger .metric-label.pax-mini-label>.pax-mini-icon{
+ display:inline-grid;flex:0 0 22px;min-width:22px;width:22px;height:22px;
+ font-size:12px;border-radius:8px;align-self:center;
+}
+#content .kpis .kpi-detail-trigger .metric-label.pax-mini-label>.pax-mini-word{
+ display:block;flex:1 1 auto;min-width:0;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+#content .kpis .kpi-detail-trigger .metric-label.pax-mini-label>.pax-mini-star{
+ display:none!important;
+}
+/* On narrow phones, wrap text within the text column but never below the icon. */
+@media(max-width:620px){
+ #content .kpis .kpi-detail-trigger>.row-between{
+  grid-template-columns:minmax(0,1fr) 29px;gap:5px;min-height:43px;
+ }
+ #content .kpis .kpi-detail-trigger>.row-between>.metric-label.pax-mini-label{
+  font-size:clamp(10px,2.55vw,12.5px)!important;gap:4px;white-space:normal;
+ }
+ #content .kpis .kpi-detail-trigger .metric-label.pax-mini-label>.pax-mini-icon{
+  flex-basis:20px;min-width:20px;width:20px;height:20px;font-size:11px;
+ }
+ #content .kpis .kpi-detail-trigger .metric-label.pax-mini-label>.pax-mini-word{
+  white-space:normal;overflow-wrap:normal;word-break:normal;text-overflow:clip;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ #content .kpis .kpi-detail-trigger .metric-label.pax-mini-label>.pax-mini-icon{animation:none!important}
+}
+
 </style>
 </head>
 <body>

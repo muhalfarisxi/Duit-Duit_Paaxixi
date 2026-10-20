@@ -2074,6 +2074,14 @@ body:has(.tx-search-backdrop){overflow:hidden}
  .topbar .top-controls .month-pill{flex:0 0 auto}
  .topbar .top-controls #top-add{flex:0 0 auto;white-space:nowrap}
 }
+/* Laptop dengan sidebar: batasi lebar kontrol supaya tidak melewati kontainer. */
+@media(min-width:821px) and (max-width:1000px){
+ .topbar .top-controls{gap:7px}
+ .topbar .top-controls .cloud-state{flex:0 1 145px;max-width:145px}
+ .topbar .top-controls .month-pill{padding:9px 8px;gap:5px}
+ .topbar .top-controls .month-pill input{width:119px;max-width:119px}
+ .topbar .top-controls #top-add{font-size:12px;padding:10px 11px}
+}
 /* HP: dua kontrol atas, lalu tombol catat selebar kontainer. */
 @media(max-width:630px){
  .topbar{display:block}

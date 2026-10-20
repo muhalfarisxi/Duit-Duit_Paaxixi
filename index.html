@@ -3462,6 +3462,67 @@ body:has(.tx-search-backdrop){overflow:hidden}
 .analytics-comp-trend #composition-card .comp-recap-callout:is(:hover,.is-active,:focus-visible) rect{
  fill:color-mix(in srgb,var(--recap-color,#2563eb) 7%,#fff)!important;
 }
+
+
+/* #074 — PERBAIKAN UTAMA: jangan pindah ke legend rail pada kartu kecil.
+   Donut dan kotak label kiri/kanan harus selalu menggunakan SVG yang sama.
+   CSS @container versi lama sebelumnya menimpa layout wide pada mobile. */
+.analytics-comp-trend #composition-card .comp-recap-stage{
+ width:100%;min-width:0;overflow:visible;margin:8px auto 0;
+}
+.analytics-comp-trend #composition-card .comp-recap-wide{
+ display:block!important;position:relative!important;width:100%!important;
+ min-width:0!important;max-width:730px!important;margin:0 auto!important;
+ overflow:visible!important;
+}
+.analytics-comp-trend #composition-card .comp-recap-wide>svg{
+ display:block!important;width:100%!important;height:auto!important;
+ overflow:visible!important;
+}
+.analytics-comp-trend #composition-card .comp-recap-narrow{
+ display:none!important;
+}
+.analytics-comp-trend #composition-card .comp-recap-center{
+ position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+ width:23%;max-width:none;min-width:0;display:flex;align-items:center;
+ justify-content:center;text-align:center;pointer-events:none;
+}
+.analytics-comp-trend #composition-card .comp-recap-center strong{
+ display:block;max-width:100%;white-space:nowrap!important;
+ font:700 clamp(13px,1.7vw,24px)/1 Fredoka,Nunito,sans-serif!important;
+ letter-spacing:-.55px!important;
+ color:#174884!important;
+}
+.analytics-comp-trend #composition-card .comp-recap-callout rect{
+ fill:#f8fbff!important;stroke-width:1.2!important;
+}
+.analytics-comp-trend #composition-card .comp-recap-callout-name{
+ font:900 12px/1.15 Nunito,system-ui,sans-serif!important;
+ fill:var(--recap-color,#24558d)!important;
+}
+.analytics-comp-trend #composition-card .comp-recap-callout-data{
+ font:800 11px/1.2 Nunito,system-ui,sans-serif!important;
+ fill:var(--recap-color,#24558d)!important;
+}
+@container (max-width:490px){
+ .analytics-comp-trend #composition-card .comp-recap-wide{
+  display:block!important;
+ }
+ .analytics-comp-trend #composition-card .comp-recap-narrow{
+  display:none!important;
+ }
+ .analytics-comp-trend #composition-card .comp-recap-center strong{
+  font:700 clamp(11px,3.4cqw,16px)/1 Fredoka,Nunito,sans-serif!important;
+ }
+}
+@media(max-width:670px){
+ .analytics-comp-trend #composition-card .comp-recap-wide{display:block!important}
+ .analytics-comp-trend #composition-card .comp-recap-narrow{display:none!important}
+ .analytics-comp-trend #composition-card .comp-recap-center strong{
+  font-size:clamp(11px,3.5vw,17px)!important;
+ }
+}
+
 </style>
 </head>
 <body>

@@ -3668,6 +3668,68 @@ body:has(.tx-search-backdrop){overflow:hidden}
  .analytics-comp-trend .trend-panel .trend-reset-button{transition:none!important}
 }
 
+/* #078 Tombol warna seri tren — warna identik dengan bagian donat. */
+.analytics-comp-trend .trend-panel .trend-series-picker{
+ margin:11px 0 9px;padding:12px;border:1px solid #e1eafa;
+ border-radius:16px;background:linear-gradient(125deg,#f7faff,#fff);
+}
+.analytics-comp-trend .trend-panel .trend-series-heading{
+ display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin-bottom:10px;
+}
+.analytics-comp-trend .trend-panel .trend-series-heading strong{
+ color:#204876;font:900 12px/1.3 Nunito,sans-serif;
+}
+.analytics-comp-trend .trend-panel .trend-series-heading small{
+ color:#7d8fa8;font:750 10px/1.4 Nunito,sans-serif;
+}
+.analytics-comp-trend .trend-panel .trend-series-buttons{
+ display:flex;flex-wrap:wrap;gap:7px;
+}
+.analytics-comp-trend .trend-panel .trend-series-pill{
+ appearance:none;display:inline-flex;align-items:center;justify-content:center;
+ gap:6px;min-height:36px;padding:8px 12px;border-radius:12px;cursor:pointer;
+ background:#fff;color:#6c809c;border:1px solid #d9e4f4;
+ font:850 11px/1.3 Nunito,sans-serif;
+ box-shadow:0 2px 3px #284b7610;
+ transition:transform .18s ease,box-shadow .18s ease,background .18s ease,color .18s ease;
+}
+.analytics-comp-trend .trend-panel .trend-series-pill[aria-pressed=true]{
+ background:var(--trend-chip-color);border-color:var(--trend-chip-color);
+ color:var(--trend-chip-text);box-shadow:0 5px 12px #3c5c8833;
+}
+.analytics-comp-trend .trend-panel .trend-series-pill:hover{
+ transform:translateY(-2px);box-shadow:0 7px 14px #284b762b;
+}
+.analytics-comp-trend .trend-panel .trend-series-pill:focus-visible{
+ outline:3px solid #92b7ed;outline-offset:2px;
+}
+.analytics-comp-trend .trend-panel .trend-series-pill-icon{
+ font-size:12px;line-height:1;
+}
+.analytics-comp-trend .trend-panel .trend-series-on{
+ border-radius:50%;background:#ffffff35;padding:0 4px;font-weight:900;
+}
+.analytics-comp-trend .trend-panel .trend-useful-note{
+ color:#a36b26;background:#fff7e8;border:1px solid #f2dfbf;
+ border-radius:10px;padding:8px 10px;margin:0;font:800 11px/1.5 Nunito,sans-serif;
+}
+.analytics-comp-trend .trend-panel .trend-point-small-label{
+ pointer-events:none;font-family:Nunito,sans-serif;letter-spacing:-.1px;
+}
+.analytics-comp-trend .trend-panel .trend-select-empty{
+ min-height:180px;display:flex;align-items:center;justify-content:center;text-align:center;
+}
+@media(max-width:510px){
+ .analytics-comp-trend .trend-panel .trend-series-picker{padding:9px}
+ .analytics-comp-trend .trend-panel .trend-series-buttons{gap:6px}
+ .analytics-comp-trend .trend-panel .trend-series-pill{
+  min-height:32px;padding:7px 9px;font-size:10px;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .analytics-comp-trend .trend-panel .trend-series-pill{transition:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -3841,7 +3903,7 @@ const expenseGroups=()=>db.expenseGroups;
 const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],debts:[],reports:{}});
 function load(){try{let v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.accounts)&&Array.isArray(v.categories)&&Array.isArray(v.transactions)&&Array.isArray(v.debts)&&v.budgets&&Array.isArray(v.budgetMoves))return normalizeExpenseGroups(v);}catch(e){}return fresh()}
 let db=load();db.reports=db.reports||{};
-let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupFilter:'open',reportMonth:currentMonth()};
+let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupFilter:'open',reportMonth:currentMonth()};
 let cloud={configured:false,signedIn:false,ready:false,email:'',busy:false,error:'',empty:false,pendingDecision:false};
 function syncBadge(){let b=document.getElementById('cloud-status');if(!b)return;
  b.className='cloud-state'+(cloud.signedIn&&cloud.ready&&!cloud.pendingDecision?' online':cloud.busy?' wait':'');
@@ -4567,34 +4629,83 @@ function trendLabel(key,mode){
 function trendRowTransaction(t,key,mode){
  return mode==='day'?t.date===key:mode==='month'?t.date.startsWith(key):t.date.slice(0,4)===key;
 }
+/* Seri tren mengikuti kelompok/pos dan warna yang digunakan donat. */
+function trendSeriesId(item){return ui.comp.breakdown+':'+item.id}
+function trendSeriesSelected(entries){
+ const saved=ui.comp.trendVisible;
+ if(!Array.isArray(saved))return new Set(['total']);
+ const selected=new Set(saved);
+ // Saat filter donut berubah total tetap bisa dilihat tanpa membawa
+ // pilihan pos lama yang sudah tidak ada di filter baru.
+ if(saved.length&&!selected.has('total')&&!entries.some(item=>selected.has(trendSeriesId(item))))
+  return new Set(['total']);
+ return selected;
+}
+function trendSeriesContrast(hex){
+ const rgb=String(hex).replace('#','');
+ if(!/^[0-9a-f]{6}$/i.test(rgb))return '#fff';
+ const components=[0,2,4].map(i=>{
+  const n=parseInt(rgb.slice(i,i+2),16)/255;
+  return n<=.04045?n/12.92:Math.pow((n+.055)/1.055,2.4);
+ });
+ return components[0]*.2126+components[1]*.7152+components[2]*.0722>.43?'#17385c':'#fff';
+}
+function renderTrendSeriesButtons(entries){
+ const selected=trendSeriesSelected(entries),all=[{id:'total',label:'Total Pengeluaran',color:'#174ea6',icon:'📈'},...entries.map(item=>({
+  id:trendSeriesId(item),label:item.label,color:item.color,icon:item.icon
+ }))];
+ return '<div class="trend-series-picker"><div class="trend-series-heading">'+
+  '<strong>🎨 Tampilkan Garis</strong><small>Tap tombol untuk menampilkan atau menyembunyikan tren '+(ui.comp.breakdown==='group'?'kelompok':'pos')+'.</small></div>'+
+  '<div class="trend-series-buttons" role="group" aria-label="Pilih garis tren pengeluaran">'+
+  all.map(item=>{
+   const active=selected.has(item.id);
+   return '<button type="button" class="trend-series-pill" data-trend-line-toggle="'+h(item.id)+'"'+
+    ' aria-pressed="'+active+'" style="--trend-chip-color:'+h(item.color)+';--trend-chip-text:'+trendSeriesContrast(item.color)+'"'+
+    ' title="'+(active?'Sembunyikan':'Tampilkan')+' grafik '+h(item.label)+'">'+
+    '<span class="trend-series-pill-icon" aria-hidden="true">'+item.icon+'</span><span>'+h(item.label)+'</span>'+
+    (active?'<span class="trend-series-on" aria-hidden="true">✓</span>':'')+'</button>';
+  }).join('')+'</div></div>';
+}
+function trendCompactValue(value){
+ const n=Math.abs(num(value)),negative=value<0?'-':'';
+ if(n>=1e9)return negative+'Rp'+(n/1e9).toLocaleString('id-ID',{maximumFractionDigits:1})+'M';
+ if(n>=1e6)return negative+'Rp'+(n/1e6).toLocaleString('id-ID',{maximumFractionDigits:1})+'jt';
+ if(n>=1e3)return negative+'Rp'+(n/1e3).toLocaleString('id-ID',{maximumFractionDigits:1})+'rb';
+ return negative+money(n);
+}
 function trendChartSVG(rows,entries){
- const n=rows.length,w=Math.max(690,n*88+100),height=338,left=65,right=40,top=57,bottom=45;
- const plotWidth=w-left-right,plotHeight=height-top-bottom;
- const max=Math.max(1,...rows.map(row=>row.total)),y=value=>top+plotHeight-value/max*plotHeight;
- const x=i=>left+(n===1?plotWidth/2:i*plotWidth/(n-1));
+ const selected=trendSeriesSelected(entries);
  const breakdown=ui.comp.breakdown,mode=ui.comp.trend;
- const series=[{id:'total',scope:'total',label:'Total Pengeluaran',color:'#174ea6',width:3.5,values:rows.map(row=>row.count?row.total:null)}];
- // Jumlah untuk setiap titik harus berasal dari transaksi yang sama dengan grafik.
- for(const e of entries.slice(0,4)){
+ const fullSeries=[{
+  id:'total',scope:'total',label:'Total Pengeluaran',color:'#174ea6',width:3.5,
+  values:rows.map(row=>row.count?row.total:null)
+ }];
+ for(const item of entries){
   const values=rows.map(row=>{
    if(!row.count)return null;
-   let val=0;
-   for(const t of row.tx){
-    const c=cat(t.categoryId);
-    if(breakdown==='group'?c?.group===e.label:t.categoryId===e.id)val+=num(t.amount);
-   }
-   return val;
+   return row.tx.reduce((value,t)=>{
+    const matches=breakdown==='group'?cat(t.categoryId)?.group===item.label:t.categoryId===item.id;
+    return value+(matches?num(t.amount):0);
+   },0);
   });
-  if(values.some((v,i)=>v!==null&&Math.abs(v-rows[i].total)>.001))
-   series.push({id:e.id,scope:breakdown,label:e.label,color:e.color,width:2,values});
+  fullSeries.push({id:trendSeriesId(item),scope:breakdown,sourceId:item.id,
+   label:item.label,color:item.color,width:2.5,values});
  }
+ const series=fullSeries.filter(item=>selected.has(item.id));
+ if(!series.length)return '<div class="comp-empty trend-select-empty">🎨 Pilih tombol berwarna di atas untuk menampilkan grafik.</div>';
+ const n=rows.length,w=Math.max(690,n*99+125),height=355,left=75,right=52,top=60,bottom=46;
+ const plotWidth=w-left-right,plotHeight=height-top-bottom;
+ const max=Math.max(1,...series.flatMap(s=>s.values.filter(v=>v!==null)));
+ const y=value=>top+plotHeight-value/max*plotHeight;
+ const x=i=>left+(n===1?plotWidth/2:i*plotWidth/(n-1));
  const grid=[0,.25,.5,.75,1].map(rate=>{
   const pos=y(rate*max);
-  return `<line x1="${left}" y1="${pos}" x2="${w-right}" y2="${pos}" stroke="#e1eaf8" stroke-dasharray="3 5"/><text x="${left-8}" y="${pos+4}" fill="#7387a6" font-size="10" text-anchor="end">${shortMoney(rate*max)}</text>`;
+  return '<line x1="'+left+'" y1="'+pos+'" x2="'+(w-right)+'" y2="'+pos+'" stroke="#e1eaf8" stroke-dasharray="3 5"/>'+
+   '<text x="'+(left-9)+'" y="'+(pos+4)+'" fill="#7387a6" font-size="10" text-anchor="end">'+shortMoney(rate*max)+'</text>';
  }).join('');
- const makeSegments=vals=>{
+ const makeSegments=values=>{
   const list=[];let part=[];
-  vals.forEach((value,i)=>{
+  values.forEach((value,i)=>{
    if(value===null){if(part.length)list.push(part);part=[];}
    else part.push([x(i),y(value)]);
   });
@@ -4602,41 +4713,39 @@ function trendChartSVG(rows,entries){
   return list;
  };
  const paths=series.map((ser,si)=>makeSegments(ser.values).map((part,j)=>{
-  const d=part.map((pt,i)=>(i===0?'M':'L')+pt[0].toFixed(1)+','+pt[1].toFixed(1)).join(' ');
-  return `<path class="trend-animated-line" pathLength="1" d="${d}" fill="none" stroke="${ser.color}" stroke-width="${ser.width}" stroke-linejoin="round" stroke-linecap="round" ${si?'stroke-opacity=".78"':''} style="--trend-delay:${(si*.2+j*.1).toFixed(2)}s"/>`;
+  const d=part.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  return '<path class="trend-animated-line" pathLength="1" d="'+d+'" fill="none" stroke="'+ser.color+
+   '" stroke-width="'+ser.width+'" stroke-linejoin="round" stroke-linecap="round"'+
+   (si?' stroke-opacity=".84"':'')+' style="--trend-delay:'+(si*.18+j*.09).toFixed(2)+'s"/>';
  }).join('')).join('');
  const pointLabels=series.map((ser,si)=>ser.values.map((value,i)=>{
-  // Nol pada seri turunan bukan transaksi nyata. Hindari titik nol bertumpuk.
-  if(value===null||(si>0&&value===0))return '';
-  const xx=x(i),yy=y(value),display=shortMoney(value);
-  const show=ui.comp.trendLabels&&si===0&&value>0&&(i%(n<=15?1:Math.ceil(n/15))===0||i===n-1);
-  const labelWidth=Math.min(103,Math.max(54,display.length*6.6+13)),labelY=Math.max(8,yy-36);
-  const amountLabel=show?`<g class="trend-point-label">
-    <rect x="${xx-labelWidth/2}" y="${labelY}" width="${labelWidth}" height="23" rx="8" fill="#eaf2ff" stroke="#8fb4f0" stroke-width="1"/>
-    <text x="${xx}" y="${labelY+15.5}" font-size="11" font-weight="850" text-anchor="middle" fill="#143e79">${h(display)}</text>
-  </g>`:'';
-  return `<g class="trend-click-point" data-trend-point="1" data-trend-key="${h(rows[i].key)}"
-    data-trend-mode="${h(mode)}" data-trend-series="${h(ser.id)}" data-trend-scope="${h(ser.scope)}"
-    role="button" tabindex="0" focusable="true"
-    aria-label="Lihat rincian ${h(ser.label)}, ${h(trendLabel(rows[i].key,mode))}, ${money(value)}"
-    style="--trend-point-color:${ser.color};--trend-point-delay:-${((i%9)*.58+si*.25).toFixed(2)}s">
-   <title>Klik untuk rincian: ${h(ser.label)} · ${h(trendLabel(rows[i].key,mode))} · ${money(value)}</title>
-   <circle class="trend-touch-target" cx="${xx}" cy="${yy}" r="17" fill="transparent" stroke="none"/>
-   <circle class="trend-point-ring" cx="${xx}" cy="${yy}" r="${si?9:11}" fill="${ser.color}" fill-opacity=".12" stroke="${ser.color}" stroke-opacity=".40" stroke-width="1.2"/>
-   <circle class="trend-point-dot" cx="${xx}" cy="${yy}" r="${si?4.5:5.6}" fill="${ser.color}" stroke="#fff" stroke-width="1.8"/>
-   ${amountLabel}
-  </g>`;
+  // Setiap titik yang memiliki transaksi diberikan nominal ringkas, bukan hanya seri Total.
+  if(value===null||value===0)return '';
+  const xx=x(i),yy=y(value),display=trendCompactValue(value);
+  const labelOffset=si===0?-18:si%2===1?20:-23;
+  const labelY=Math.min(height-bottom-7,Math.max(16,yy+labelOffset+((i%3)-1)*3));
+  const amountLabel=ui.comp.trendLabels?'<text class="trend-point-small-label" x="'+xx+'" y="'+labelY+
+   '" fill="'+ser.color+'" font-size="'+(ser.id==='total'?10.5:9.4)+'" font-weight="850" text-anchor="middle"'+
+   ' stroke="#fff" stroke-width="3.5" stroke-linejoin="round" paint-order="stroke fill">'+h(display)+'</text>':'';
+  return '<g class="trend-click-point" data-trend-point="1" data-trend-key="'+h(rows[i].key)+
+   '" data-trend-mode="'+h(mode)+'" data-trend-series="'+h(ser.sourceId||ser.id)+'" data-trend-scope="'+h(ser.scope)+
+   '" role="button" tabindex="0" focusable="true"'+
+   ' aria-label="Lihat rincian '+h(ser.label)+', '+h(trendLabel(rows[i].key,mode))+', '+money(value)+'"'+
+   ' style="--trend-point-color:'+ser.color+';--trend-point-delay:-'+((i%9)*.58+si*.25).toFixed(2)+'s">'+
+   '<title>Klik untuk rincian: '+h(ser.label)+' · '+h(trendLabel(rows[i].key,mode))+' · '+money(value)+'</title>'+
+   '<circle class="trend-touch-target" cx="'+xx+'" cy="'+yy+'" r="17" fill="transparent" stroke="none"/>'+
+   '<circle class="trend-point-ring" cx="'+xx+'" cy="'+yy+'" r="'+(si?9:11)+'" fill="'+ser.color+'" fill-opacity=".12" stroke="'+ser.color+'" stroke-opacity=".40" stroke-width="1.2"/>'+
+   '<circle class="trend-point-dot" cx="'+xx+'" cy="'+yy+'" r="'+(si?4.5:5.6)+'" fill="'+ser.color+'" stroke="#fff" stroke-width="1.8"/>'+
+   amountLabel+'</g>';
  }).join('')).join('');
  const axisLabels=rows.map((row,i)=>{
   const show=n<=16||i%Math.ceil(n/15)===0||i===n-1;
-  return show?`<text x="${x(i)}" y="${height-20}" text-anchor="middle" fill="#6682a5" font-size="11">${h(trendLabel(row.key,mode))}</text>`:'';
+  return show?'<text x="'+x(i)+'" y="'+(height-20)+'" text-anchor="middle" fill="#6682a5" font-size="11">'+h(trendLabel(row.key,mode))+'</text>':'';
  }).join('');
- const lineLegend=series.map(ser=>`<span class="trend-line-key"><i style="background:${h(ser.color)}"></i>${h(ser.label)}</span>`).join('');
- return `<div class="trend-scroll"><svg class="trend-interactive-svg" xmlns="http://www.w3.org/2000/svg"
-  viewBox="0 0 ${w} ${height}" width="${w}" height="${height}"
-  role="group" aria-label="Grafik tren pengeluaran interaktif. Klik titik atau label nominal untuk membuka transaksi periode terkait; grafik dapat digeser."
-  style="display:block;max-width:none">${grid}${paths}${pointLabels}${axisLabels}</svg></div>
-  <div class="trend-line-legend">${lineLegend}</div>`;
+ return '<div class="trend-scroll"><svg class="trend-interactive-svg" xmlns="http://www.w3.org/2000/svg"'+
+  ' viewBox="0 0 '+w+' '+height+'" width="'+w+'" height="'+height+'"'+
+  ' role="group" aria-label="Grafik tren pengeluaran interaktif. Klik titik untuk membuka transaksi; grafik dapat digeser."'+
+  ' style="display:block;max-width:none">'+grid+paths+pointLabels+axisLabels+'</svg></div>';
 }
 
 /* #037 Insight pengeluaran: arti data, tindakan konkret, dan pemeriksaan pencatatan. */
@@ -4765,7 +4874,7 @@ function renderTrendPanel(){
   const tx=filtered.filter(t=>trendRowTransaction(t,key,mode));
   return {key,tx,count:tx.length,total:tx.reduce((sum,t)=>sum+num(t.amount),0)};
  });
- const all=rows.flatMap(row=>row.tx),entries=analysisEntries(all),grandTotal=all.reduce((sum,t)=>sum+num(t.amount),0);
+ const all=rows.flatMap(row=>row.tx),entries=analysisEntries(expenseSelection().transactions),grandTotal=all.reduce((sum,t)=>sum+num(t.amount),0);
  const previous=rows[rows.length-2],last=rows[rows.length-1],third=rows[rows.length-3];
  const comparable=!!previous&&!!last&&previous.count>0&&last.count>0&&previous.total>0;
  const lastDate=last?.key||'',now=new Date(),incomplete=mode==='day'?lastDate===dateISO(now):
@@ -4792,18 +4901,24 @@ function renderTrendPanel(){
  const controls=mode==='year'?
   '<label>Mulai Tahun<input id="trend-start" type="number" min="'+h(dflt.from)+'" max="'+h(dflt.to)+'" value="'+h(from)+'"></label><label>Sampai Tahun<input id="trend-end" type="number" min="'+h(dflt.from)+'" max="'+h(dflt.to)+'" value="'+h(to)+'"></label>':
   '<label>'+(mode==='day'?'Dari Tanggal':'Dari Bulan')+'<input id="trend-start" type="'+(mode==='day'?'date':'month')+'" min="'+h(dflt.from)+'" max="'+h(dflt.to)+'" value="'+h(from)+'"></label><label>'+(mode==='day'?'Sampai Tanggal':'Sampai Bulan')+'<input id="trend-end" type="'+(mode==='day'?'date':'month')+'" min="'+h(dflt.from)+'" max="'+h(dflt.to)+'" value="'+h(to)+'"></label>';
- const subtitle=available.year?'Tahunan aktif karena periode donut melintasi tahun.':available.month?'Bulanan aktif karena rentang donut melintasi bulan.':'Bulanan dan Tahunan aktif jika rentang donut lebih panjang.';
+ const currentYear=today().slice(0,4),selectedCurrentYear=mode==='year'&&periods.keys.includes(currentYear);
+ const cutoff=rangeEnd<today()?rangeEnd:today();
+ const subtitle=selectedCurrentYear&&rangeStart<=cutoff&&cutoff.slice(0,4)===currentYear
+  ?'⚠️ Tahun '+currentYear+' belum genap — hanya sampai tanggal '+dateFmt(cutoff)+'. Jangan bandingkan langsung dengan total satu tahun penuh.'
+  :mode==='month'&&periods.keys.includes(currentMonth())&&rangeEnd>=today()
+   ?'Bulan berjalan belum selesai. Total masih bisa bertambah seiring transaksi dicatat.':'';
  return `<section class="card trend-panel" id="trend-analysis">
-  <div class="card-head"><div><h3>Tren Pengeluaran</h3><p>Ikuti filter donut · Klik titik grafik untuk melihat transaksi.</p></div></div>
+  <div class="card-head"><div><h3>Tren Pengeluaran</h3><p>Klik titik grafik untuk membuka rincian transaksinya.</p></div></div>
   <div class="trend-quick-tools">
     <div class="trend-mode-switch" role="group" aria-label="Jenis tren">${chips}</div>
-    <p class="trend-mode-hint">${h(subtitle)}</p>
+    ${subtitle?`<p class="trend-mode-hint trend-useful-note">${h(subtitle)}</p>`:''}
     <div class="trend-range-filters trend-range-compact">
       ${controls}
       <div class="trend-range-actions"><button type="button" class="trend-reset-button" data-comp-action="trend-default">↺ Ikuti Donut</button></div>
     </div>
   </div>
-  <div class="trend-label-toggle"><label><input type="checkbox" id="trend-labels" ${c.trendLabels?'checked':''}> Tampilkan Label Nominal Di Titik Grafik</label><span class="comp-tiny">Klik titik atau nominal pada grafik untuk melihat daftar pengeluarannya.</span></div>
+  ${renderTrendSeriesButtons(entries)}
+  <div class="trend-label-toggle"><label><input type="checkbox" id="trend-labels" ${c.trendLabels?'checked':''}> Tampilkan label nominal kecil</label></div>
   ${grandTotal>0?trendChartSVG(rows,entries):'<div class="comp-empty">Tidak Ada Transaksi Pengeluaran Di Rentang Yang Dipilih.</div>'}
   ${periods.trimmed?`<p class="comp-tiny">Rentang sangat panjang. Ditampilkan ${periods.keys.length} periode terakhir; persempit rentang untuk melihat periode sebelumnya.</p>`:''}
   <details class="trend-insight-expand"><summary>✨ Buka Insight Tren & Perbandingan</summary><div class="trend-notes"><div class="trend-note"><strong>📈 Perubahan Periode</strong>${comparison}</div><div class="trend-note"><strong>🔎 Kontributor Utama</strong>${insight}</div>${renderTrendFinancialInsight(financialInsight)}</div></details>
@@ -6536,6 +6651,19 @@ if(x.dataset.compHighlight!==undefined){
  if(!was)x.setAttribute('aria-pressed','true');
  paxCompRestore(card);return;
 }
+if(x.dataset.trendLineToggle!==undefined){
+ const itemId=x.dataset.trendLineToggle,all=analysisEntries(expenseSelection().transactions);
+ const valid=new Set(['total',...all.map(item=>trendSeriesId(item))]);
+ if(!valid.has(itemId))return;
+ const next=trendSeriesSelected(all);
+ if(next.has(itemId))next.delete(itemId);else next.add(itemId);
+ ui.comp.trendVisible=[...next];
+ render();
+ document.querySelectorAll('[data-trend-line-toggle]').forEach(button=>{
+  if(button.dataset.trendLineToggle===itemId)button.focus({preventScroll:true});
+ });
+ return;
+}
 if(x.dataset.trendChoice!==undefined){
  const selected=x.dataset.trendChoice;
  const available=trendAvailability();
@@ -6587,7 +6715,7 @@ if(x.hasAttribute('data-comp-quick-more')){
 if(x.dataset.compAction){
  const cmd=x.dataset.compAction;
  if(cmd==='toggle'){ui.comp.open=!ui.comp.open;ui.comp.menu=null;}
- if(cmd==='reset'){ui.comp={preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,open:true,menu:null,showMore:false};}
+ if(cmd==='reset'){ui.comp={preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,open:true,menu:null,showMore:false};}
  if(cmd==='all-groups'){ui.comp.groups=null;ui.comp.categories=null;}
  if(cmd==='clear-groups'){ui.comp.groups=[];ui.comp.categories=null;}
  if(cmd==='all-categories'){ui.comp.categories=null;}

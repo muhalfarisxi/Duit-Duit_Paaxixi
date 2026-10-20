@@ -148,3 +148,21 @@ body.comp-live-dialog-open{overflow:hidden}
 @media(max-width:480px){.comp-live-backdrop{padding:12px}.comp-live-dialog{width:100%;max-height:83vh;padding:14px;border-radius:19px}}
 @media(prefers-reduced-motion:reduce){.comp-live-backdrop,.comp-live-dialog,.comp-live-dialog-icon{animation:none!important}}
 @media print{.comp-live-backdrop{display:none!important}}
+
+
+/* Popup berada di document.body, sehingga atur tampilannya secara mandiri. */
+.comp-live-dialog .comp-live-focus{display:flex;align-items:flex-start;border:1px solid #d7e8fd}
+.comp-live-dialog .comp-live-focus-face{flex:none;display:block}
+.comp-live-dialog .comp-live-focus-copy{flex:1;min-width:0}
+.comp-live-dialog .comp-live-insight-head{display:flex;align-items:center;justify-content:space-between;gap:7px;flex-wrap:wrap}
+.comp-live-dialog .comp-live-insight-head>strong{font-family:Fredoka,Nunito,sans-serif;color:#23518a;font-weight:700}
+.comp-live-dialog .comp-live-insight-head>span{border-radius:999px;background:#f6f1ff;border:1px solid #e5def6;color:#855ca5;font-family:Nunito,sans-serif;font-weight:900}
+.comp-live-dialog .comp-live-tab{border:1px solid #dce7fb;background:#fff;color:#6d84a3;font-family:Nunito,sans-serif;font-weight:900;line-height:1.25;cursor:pointer;transition:transform .18s,background .18s}
+.comp-live-dialog .comp-live-tab[aria-selected=true]{background:#285fae;border-color:#285fae;color:#fff;box-shadow:0 4px 12px #285fae36}
+.comp-live-dialog .comp-live-tab:hover{transform:translateY(-1px)}
+.comp-live-dialog .comp-live-tab:focus-visible{outline:3px solid #88b8fb;outline-offset:2px}
+.comp-live-dialog .comp-live-pane{display:block;background:#f8fbff;border:1px solid #e0eafa}
+.comp-live-dialog .comp-live-pane[hidden]{display:none}
+.comp-live-dialog .comp-live-pane h4{font-family:Fredoka,Nunito,sans-serif;font-weight:700;color:#23568b}
+.comp-live-dialog .comp-live-pane p{font-family:Nunito,sans-serif;font-weight:750;color:#5e789c}
+.comp-live-dialog .comp-live-pane small{font-family:Nunito,sans-serif;color:#8094ac}

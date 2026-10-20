@@ -157,3 +157,76 @@ body.comp-pos-modal-open{overflow:hidden}
 }
 @media(max-width:335px){.comp-multi-card-body{grid-template-columns:1fr}.comp-multi-donut{width:150px}.comp-multi-rows{max-height:160px}}
 @media(prefers-reduced-motion:reduce){.comp-multi-donut,.comp-multi-arc,.comp-multi-meter i{animation:none!important;transition:none!important}}
+
+
+/* v7 — tombol kelompok merupakan legend; label nominal & persen menempel pada donut. */
+#composition-card .comp-direct-groups{gap:8px;padding:8px 0 11px;border-bottom:1px solid #e9eff8}
+#composition-card .comp-direct-groups .comp-group-colored{
+ --comp-group-color:#2563eb;
+ border:1.5px solid color-mix(in srgb,var(--comp-group-color) 50%,#fff)!important;
+ background:color-mix(in srgb,var(--comp-group-color) 9%,#fff)!important;
+ color:color-mix(in srgb,var(--comp-group-color) 70%,#173d65)!important;
+ transition:transform .18s,box-shadow .18s,background .18s!important;
+}
+#composition-card .comp-direct-groups .comp-group-colored:hover{
+ transform:translateY(-2px);
+ background:color-mix(in srgb,var(--comp-group-color) 17%,#fff)!important;
+ box-shadow:0 5px 12px #244a8021!important;
+}
+#composition-card .comp-direct-groups .comp-group-colored[aria-pressed=true]{
+ background:var(--comp-group-color)!important;
+ border-color:var(--comp-group-color)!important;
+ color:#fff!important;
+ box-shadow:0 5px 13px color-mix(in srgb,var(--comp-group-color) 32%,transparent)!important;
+}
+#composition-card .comp-recap-stage{width:100%;margin:0 auto 2px;min-width:0}
+#composition-card .comp-recap-wide{position:relative;width:100%;max-width:730px;margin:auto;isolation:isolate}
+#composition-card .comp-recap-wide>svg{display:block;width:100%;height:auto;max-width:100%;overflow:visible}
+#composition-card .comp-recap-arc{stroke-width:32;stroke-linecap:butt;cursor:pointer;outline:none;transform-origin:320px center;transition:stroke-width .24s,opacity .2s,filter .24s;animation:compRecapAppear .65s ease both;animation-delay:var(--recap-delay,0ms)}
+#composition-card .comp-recap-wide .comp-recap-arc{transform-origin:center;transform-box:view-box}
+#composition-card .comp-recap-arc:is(.is-active,:hover,:focus-visible){stroke-width:39;filter:drop-shadow(0 4px 4px #19458b60)}
+#composition-card .comp-recap-arc:focus-visible{stroke-width:41}
+#composition-card .is-exploring .comp-recap-arc:not(.is-active){opacity:.27}
+#composition-card .comp-recap-center{
+ position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+ width:22%;max-width:145px;aspect-ratio:1;display:flex;justify-content:center;
+ align-items:center;text-align:center;pointer-events:none;padding:0 7px;
+}
+#composition-card .comp-recap-center strong{
+ color:#174884;font:700 clamp(17px,2.9vw,27px)/1.12 Fredoka,Nunito,sans-serif;
+ letter-spacing:-.55px;white-space:nowrap;text-shadow:0 2px 7px #edf4ff;
+}
+#composition-card .comp-recap-callout{cursor:pointer;outline:none;transition:filter .18s,opacity .18s}
+#composition-card .comp-recap-callout:hover,#composition-card .comp-recap-callout:focus-visible,#composition-card .comp-recap-callout.is-active{
+ filter:drop-shadow(0 3px 5px #315b9230);
+}
+#composition-card .comp-recap-callout:hover rect,#composition-card .comp-recap-callout:focus-visible rect,#composition-card .comp-recap-callout.is-active rect{stroke-width:2.3;fill:#edf6ff}
+#composition-card .comp-recap-callout-name{font:850 12px/1.2 Nunito,system-ui,sans-serif;letter-spacing:-.15px}
+#composition-card .comp-recap-callout-data{font:800 11px/1.2 Nunito,system-ui,sans-serif;fill:#506e96}
+#composition-card .comp-recap-narrow{display:none}
+#composition-card .comp-insight,#composition-card .comp-live-mini,#composition-card .comp-live-focus,#composition-card .comp-donut-legend{display:none!important}
+@keyframes compRecapAppear{from{opacity:.2;filter:blur(1px)}to{opacity:1;filter:blur(0)}}
+@media(max-width:670px){
+ #composition-card .comp-recap-wide{display:none}
+ #composition-card .comp-recap-narrow{display:grid;grid-template-columns:minmax(125px,.85fr) minmax(0,1.15fr);align-items:center;gap:10px;min-height:180px;margin-top:5px}
+ #composition-card .comp-recap-small-ring{position:relative;width:100%;max-width:205px;aspect-ratio:1;margin:auto}
+ #composition-card .comp-recap-small-ring>svg{display:block;width:100%;height:auto;overflow:visible}
+ #composition-card .comp-recap-small-center{position:absolute;inset:25%;pointer-events:none;display:flex;align-items:center;justify-content:center;text-align:center}
+ #composition-card .comp-recap-small-center strong{font:700 clamp(15px,3vw,23px)/1.18 Fredoka,Nunito,sans-serif;color:#164984;white-space:nowrap}
+ #composition-card .comp-recap-narrow .comp-recap-arc{stroke-width:33;transform-origin:center;transform-box:view-box}
+ #composition-card .comp-recap-narrow .comp-recap-arc:is(:hover,:focus-visible,.is-active){stroke-width:39}
+ #composition-card .comp-recap-rail{display:grid;align-content:start;gap:6px;max-height:244px;overflow-y:auto;scrollbar-width:thin;min-width:0;padding:4px 3px}
+ #composition-card .comp-recap-rail-label{appearance:none;text-align:left;display:flex;flex-direction:column;gap:2px;width:100%;min-width:0;cursor:pointer;background:color-mix(in srgb,var(--recap-color) 7%,#fff);border:1.3px solid color-mix(in srgb,var(--recap-color) 40%,#fff);border-radius:11px;padding:7px 8px;transition:transform .18s,box-shadow .18s}
+ #composition-card .comp-recap-rail-label:is(:hover,.is-active,:focus-visible){transform:translateY(-1px);border-color:var(--recap-color);box-shadow:0 4px 10px #335b9221;background:color-mix(in srgb,var(--recap-color) 13%,#fff)}
+ #composition-card .comp-recap-rail-label:focus-visible{outline:2px solid #86b8fa;outline-offset:2px}
+ #composition-card .comp-recap-rail-name{font:900 10px/1.3 Nunito,sans-serif;color:color-mix(in srgb,var(--recap-color) 75%,#203955);overflow-wrap:anywhere}
+ #composition-card .comp-recap-rail-data{font:750 10px/1.3 Nunito,sans-serif;color:#597598;white-space:normal}
+}
+@media(max-width:420px){
+ #composition-card .comp-recap-narrow{grid-template-columns:minmax(120px,.82fr) minmax(0,1.18fr);gap:6px}
+ #composition-card .comp-recap-rail{max-height:205px;gap:5px}
+ #composition-card .comp-recap-rail-label{padding:6px}
+ #composition-card .comp-recap-small-center strong{font-size:16px}
+ #composition-card .comp-direct-groups{gap:5px}
+}
+@media(prefers-reduced-motion:reduce){#composition-card .comp-recap-arc,#composition-card .comp-recap-callout,#composition-card .comp-recap-rail-label{animation:none!important;transition:none!important}}

@@ -6387,7 +6387,7 @@ if(x.dataset.compQuickPreset!==undefined){
   const bounds=monthBounds(ui.month);
   ui.comp.from=ui.comp.from||bounds.from;ui.comp.to=ui.comp.to||bounds.to;
  }
- render();return;
+ resetTrendFromDonut();render();return;
 }
 if(x.dataset.compQuickBreakdown!==undefined){
  if(!['group','category'].includes(x.dataset.compQuickBreakdown))return;
@@ -6591,9 +6591,9 @@ if(x.id==='comp-start'||x.id==='comp-end'){
  if((key==='from'&&x.value>ui.comp[alternate])||(key==='to'&&x.value<ui.comp[alternate])){
   toast('Tanggal mulai tidak boleh melewati tanggal selesai.',true);render();return;
  }
- ui.comp[key]=x.value;render();return;
+ ui.comp[key]=x.value;resetTrendFromDonut();render();return;
 }
-if(x.id==='month-input'){ui.reviewPopup=null;ui.txModalOpen=false;ui.txHistoryOpen=false;ui.txSearchOpen=false;ui.txSearchQuery='';let next=x.value||currentMonth(),prev=ui.month;if(next>prev&&db.transactions.some(t=>t.date.slice(0,7)===prev)&&!db.reports[prev]&&confirm('Bulan '+monthFmt(prev)+' belum diarsipkan. Simpan laporan bulan ini sebelum berpindah?')){db.reports[prev]=buildReport(prev);save();toast('Arsip '+monthFmt(prev)+' disimpan.')}ui.month=next;ui.txEditId=null;ui.moveEditId=null;ui.comp.preset='month';ui.comp.from='';ui.comp.to='';ui.comp.trendFrom='';ui.comp.trendTo='';render()}
+if(x.id==='month-input'){ui.reviewPopup=null;ui.txModalOpen=false;ui.txHistoryOpen=false;ui.txSearchOpen=false;ui.txSearchQuery='';let next=x.value||currentMonth(),prev=ui.month;if(next>prev&&db.transactions.some(t=>t.date.slice(0,7)===prev)&&!db.reports[prev]&&confirm('Bulan '+monthFmt(prev)+' belum diarsipkan. Simpan laporan bulan ini sebelum berpindah?')){db.reports[prev]=buildReport(prev);save();toast('Arsip '+monthFmt(prev)+' disimpan.')}ui.month=next;ui.txEditId=null;ui.moveEditId=null;ui.comp.preset='month';ui.comp.from='';ui.comp.to='';resetTrendFromDonut();render()}
 if(x.id==='report-month'){ui.month=x.value||currentMonth();render()}
 if(x.id==='tx-history-filter'){ui.txFilter=x.value;render();document.getElementById('tx-history-filter')?.focus({preventScroll:true})}
 

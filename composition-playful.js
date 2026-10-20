@@ -66,12 +66,21 @@
   const cx=320,cy=height/2,radius=87;
   const canvas=vector('svg',{viewBox:'0 0 640 '+height,role:'group',
    'aria-label':'Donut dengan label nominal dan persentase untuk setiap '+(selectedGroup?'pos':'kelompok')});
+  // Pisahkan cincin donut dari garis/label agar animasi tidak menggeser legend.
   const track=vector('circle',{cx,cy,r:radius,fill:'none',stroke:'#e8effa','stroke-width':32});
-  canvas.append(track);
+  const motionLayer=vector('g',{class:'comp-recap-ring-motion'});
+  motionLayer.style.setProperty('--donut-center-y',cy+'px');
+  const depthLayer=vector('g',{class:'comp-recap-ring-depth','aria-hidden':'true'});
   const connectorLayer=vector('g',{class:'comp-recap-connectors'});
   const arcLayer=vector('g',{class:'comp-recap-arcs'});
+  const shineLayer=vector('g',{class:'comp-recap-ring-shine','aria-hidden':'true'});
+  const shimmer=vector('circle',{cx,cy,r:radius,fill:'none',stroke:'#fff',
+   'stroke-width':28,'stroke-dasharray':'29 520','stroke-linecap':'round',
+   class:'comp-recap-glint'});
+  shineLayer.append(shimmer);
+  motionLayer.append(track,depthLayer,arcLayer,shineLayer);
   const labelLayer=vector('g',{class:'comp-recap-labels'});
-  canvas.append(connectorLayer,arcLayer,labelLayer);
+  canvas.append(motionLayer,connectorLayer,labelLayer);
   const center=node('div','comp-recap-center');
   const value=node('strong','',compact(total));center.append(value);
   desktop.append(canvas,center);
@@ -119,7 +128,11 @@
    const props={stroke:entry.color,fill:'none',role:'button',tabindex:0,
     'aria-label':entry.name+', '+entry.percentage+' persen, '+money(entry.amount),
     'aria-pressed':'false'};
-   const wide=vector('path',{...props,d:arc(entry.start,entry.end,radius,cx,cy),class:'comp-recap-arc'});
+   const ringPath=arc(entry.start,entry.end,radius,cx,cy);
+   const depth=vector('path',{d:ringPath,stroke:entry.color,fill:'none',
+    class:'comp-recap-depth-arc','aria-hidden':'true'});
+   depthLayer.append(depth);
+   const wide=vector('path',{...props,d:ringPath,class:'comp-recap-arc'});
    const mobilePath=vector('path',{...props,d:arc(entry.start,entry.end,88,120,120),class:'comp-recap-arc'});
    const push=xy(entry.mid,4,0,0);
    wide.style.setProperty('--recap-push-x',push.x.toFixed(2)+'px');

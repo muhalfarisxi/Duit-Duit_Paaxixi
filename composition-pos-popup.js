@@ -93,7 +93,6 @@
     (money(picked.value)+' ('+pct(picked.value,total)+'%) pada periode ini. '+(picked.value?'Angka besar belum otomatis berarti boros.':'Belum ada transaksi tercatat pada pos ini.')):
     (largest&&total?largest.label+' menyumbang '+pct(largest.value,total)+'% dari '+money(total)+'. Pilih salah satu pos untuk melihat bagiannya.':'Belum ada pengeluaran yang tercatat dalam filter ini.');
   }
-  function choose(i){paint(active===i?-1:i);}
   let angle=0;
   entries.forEach((item,i)=>{
    const ratio=pct(item.value,total);
@@ -109,7 +108,7 @@
    line.append(emoji,label,amount,ratioText);
    const bar=make('span','comp-pos-bar');bar.setAttribute('aria-hidden','true');
    const fill=make('i','');fill.style.width=(total>0?item.value/total*100:0)+'%';bar.append(fill);
-   row.append(line,bar);row.addEventListener('click',()=>choose(i));list.append(row);rows.push(row);
+   row.append(line,bar);list.append(row);rows.push(row);
    if(item.value>0&&total>0){
     const start=angle;angle+=item.value/total*360;
     const mid=(start+angle)*Math.PI/360-Math.PI/2;
@@ -117,8 +116,7 @@
      'aria-label':item.label+' '+ratio+' persen','aria-pressed':'false',class:'comp-pos-arc'});
     path.style.setProperty('--px',(Math.cos(mid)*4).toFixed(2)+'px');
     path.style.setProperty('--py',(Math.sin(mid)*4).toFixed(2)+'px');
-    path.addEventListener('click',()=>choose(i));
-    path.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose(i);}});
+    path.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();chosen=chosen===i?-1:i;paint(chosen);}});
     path.addEventListener('mouseenter',()=>paint(i));
     path.addEventListener('mouseleave',()=>paint(active)); // click selection is persistent below
     svg.append(path);paths.push({item,segment:path});

@@ -2410,6 +2410,145 @@ body:has(.tx-search-backdrop){overflow:hidden}
 }
 @media print{.pax-mini-icon,.pax-mini-star{display:none!important}.pax-mini-word::after{display:none!important}}
 
+
+/* #062 Pop-up: judul, tanggal dan subjudul senada dengan Dashboard, tanpa animasi teks bantuan atau nominal. */
+:is(.review-modal-top,.tx-entry-heading,.finance-editor-heading,.repay-popup-head) .pax-modal-title{
+ display:flex!important;align-items:center;flex-wrap:wrap;gap:8px;
+ max-width:100%;min-width:0;margin:0!important;
+ font:600 clamp(18px,1.95vw,25px)/1.32 'Fredoka','Nunito',system-ui,sans-serif!important;
+ letter-spacing:-.24px!important;color:#183f73!important;
+ overflow-wrap:anywhere;
+ --pax-popup-accent:#3b81da;--pax-popup-light:#e8f2ff;--pax-popup-border:#c9def8;
+}
+.pax-modal-title[data-pax-tone="coral"]{--pax-popup-accent:#cf6071;--pax-popup-light:#fff0f2;--pax-popup-border:#f5cad3}
+.pax-modal-title[data-pax-tone="green"]{--pax-popup-accent:#198967;--pax-popup-light:#e9f9f0;--pax-popup-border:#c5e7d4}
+.pax-modal-title[data-pax-tone="gold"]{--pax-popup-accent:#c18a2c;--pax-popup-light:#fff7df;--pax-popup-border:#f1dda4}
+.pax-modal-title[data-pax-tone="lavender"]{--pax-popup-accent:#9071d1;--pax-popup-light:#f0eaff;--pax-popup-border:#dccff7}
+.pax-modal-title .pax-modal-icon{
+ display:inline-grid;place-items:center;flex:none;width:41px;height:41px;
+ border-radius:14px;background:var(--pax-popup-light);border:1px solid var(--pax-popup-border);
+ font:normal 23px/1 system-ui,sans-serif;box-shadow:0 6px 15px rgba(35,82,150,.09);
+ animation:pax-popup-float 4s ease-in-out infinite;
+}
+.pax-modal-title .pax-modal-words{display:inline-block;position:relative;max-width:100%;min-width:0}
+.pax-modal-title .pax-modal-words::after{
+ content:"";position:absolute;bottom:-4px;left:0;right:0;height:3px;border-radius:99px;
+ background:linear-gradient(90deg,var(--pax-popup-accent),transparent);
+ transform-origin:left;animation:pax-popup-underline .65s ease-out both;
+}
+.pax-modal-title .pax-modal-period{
+ display:inline-flex;align-items:center;max-width:100%;padding:6px 10px;
+ background:#fff7e2;border:1px solid #efdba6;border-radius:999px;
+ color:#8e691b;font:800 clamp(12px,1.05vw,14px)/1.3 'Nunito',system-ui,sans-serif;
+ box-shadow:0 3px 10px rgba(187,143,55,.08);
+}
+.pax-modal-title .pax-modal-sparkle{
+ flex:none;display:inline-block;color:var(--pax-popup-accent);
+ font-size:16px;animation:pax-popup-sparkle 5.2s ease-in-out infinite;
+}
+/* Heading yang sudah memiliki ikon bawaan memakai animasi simbol itu, tanpa ikon kembar. */
+:is(.tx-history-dialog,.tx-search-dialog,.tx-entry-dialog) .tx-entry-heading .tx-entry-symbol,
+.finance-editor-heading .finance-editor-symbol,.repay-popup-head .repay-popup-emoji{
+ animation:pax-popup-float 4.2s ease-in-out infinite;
+}
+.review-modal-top:has(.pax-modal-title),.tx-history-dialog .tx-entry-heading:has(.pax-modal-title),
+.tx-search-dialog .tx-entry-heading:has(.pax-modal-title){
+ background:linear-gradient(110deg,#fff,#f0f7ff);
+}
+.review-modal-top>div:first-child,.tx-entry-heading>div:has(>.pax-modal-title),
+.finance-editor-heading>div:has(>.pax-modal-title),.repay-popup-head>div:has(>.pax-modal-title){min-width:0;flex:1 1 auto}
+/* Tanggal dalam modal: penekanan lembut dan animasi ikon, angka di sisi kanan tetap statis. */
+.review-modal-dialog .tx-calendar-date-group>summary,.tx-search-dialog .tx-search-date-group>summary,
+.review-modal-dialog .kpi-date-group>summary{
+ background:linear-gradient(110deg,#f4f8ff,#eaf3ff);
+ border-bottom:1px solid #dce8fa;
+ transition:background .2s ease,border-color .2s ease;
+}
+.review-modal-dialog .tx-calendar-date-group>summary:hover,.tx-search-dialog .tx-search-date-group>summary:hover,
+.review-modal-dialog .kpi-date-group>summary:hover{background:linear-gradient(110deg,#eaf3ff,#e0eeff)}
+.review-modal-dialog .tx-calendar-date-group>summary>span:first-child,
+.review-modal-dialog .kpi-date-group>summary>span:first-child{
+ display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px;min-width:0;
+ color:#173e73;font:600 clamp(13px,1.28vw,16px)/1.35 'Fredoka','Nunito',system-ui,sans-serif;
+}
+.review-modal-dialog .tx-calendar-date-group>summary>span:first-child::before,
+.review-modal-dialog .kpi-date-group>summary>span:first-child::before{
+ content:'🗓️';display:inline-grid;place-items:center;
+ flex:none;width:28px;height:28px;border-radius:10px;
+ background:#e4efff;border:1px solid #cfdefa;
+ font:normal 16px/1 system-ui,sans-serif;
+ animation:pax-popup-float 4.2s ease-in-out infinite;
+}
+.review-modal-dialog .tx-calendar-date-group>summary .review-meta,
+.review-modal-dialog .kpi-date-group>summary .review-meta{font:700 11px/1.4 'Nunito',system-ui,sans-serif;color:#7287a4}
+.review-modal-dialog .tx-calendar-date-group>summary:focus-visible,
+.tx-search-dialog .tx-search-date-group>summary:focus-visible{outline:3px solid #3b85d9;outline-offset:-3px}
+/* Subjudul daftar dan nama transaksi menjadi hangat, tanpa menggoyang angka/harga. */
+.review-modal-dialog :is(.review-item strong,.debt-quick-entry .debt-quick-person strong,
+ .budget-bygroup-title strong,.budget-bygroup-poshead strong),
+.tx-history-dialog .tx-history-item-head strong,.repay-popup-dialog .repay-popup-totals span{
+ font-family:'Fredoka','Nunito',system-ui,sans-serif;font-weight:600;
+ color:#1d4578;letter-spacing:-.05px;
+}
+.review-modal-dialog .debt-quick-section h4{
+ color:#1d4475;font:600 clamp(14px,1.25vw,17px)/1.35 'Fredoka','Nunito',system-ui,sans-serif;
+}
+.review-modal-dialog .debt-quick-section h4::before{content:'🤝';display:inline-grid;place-items:center;flex:none;
+ width:29px;height:29px;border-radius:10px;background:#f0eaff;border:1px solid #ded0f9;
+ font:normal 16px/1 system-ui,sans-serif;animation:pax-popup-float 4s ease-in-out infinite}
+.review-modal-dialog .review-item strong,
+.tx-history-dialog .tx-history-item-head strong{transition:color .18s ease}
+.review-modal-dialog .review-item:hover strong,
+.tx-history-dialog .tx-history-item:hover .tx-history-item-head strong{color:#286bc1}
+.review-modal-dialog .tx-popup-summary{
+ gap:10px;padding:12px;border-radius:15px;background:linear-gradient(110deg,#f5f9ff,#edf5ff)
+}
+.review-modal-dialog .tx-popup-summary>span{
+ display:inline-flex;align-items:center;min-height:34px;padding:6px 10px;border-radius:11px;
+ font-family:'Nunito',system-ui,sans-serif;font-weight:850;
+}
+.review-modal-dialog .tx-popup-summary>span.green{background:#e6f7ef}
+.review-modal-dialog .tx-popup-summary>span.red{background:#fff0f0}
+.review-modal-dialog .tx-popup-summary>span.blue{background:#e4eeff}
+.tx-history-dialog .tx-history-item,.tx-search-dialog .tx-search-result{
+ transition:border-color .2s ease,background .2s ease;
+}
+.tx-history-dialog .tx-history-item:hover,.tx-search-dialog .tx-search-result:hover{border-color:#9cc2f2;background:#f8fbff}
+/* Mini-label pada editor modal mempertahankan relasi label/input. */
+.finance-editor-form .editor-field>.pax-mini-label,
+.repay-popup-form .pax-mini-label{font-family:'Fredoka','Nunito',system-ui,sans-serif!important}
+@keyframes pax-popup-float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-2px) rotate(3deg)}}
+@keyframes pax-popup-underline{from{opacity:.16;transform:scaleX(.08)}to{opacity:1;transform:scaleX(1)}}
+@keyframes pax-popup-sparkle{0%,75%,100%{opacity:.5;transform:scale(.95) rotate(-6deg)}83%{opacity:1;transform:scale(1.15) rotate(8deg)}}
+@media(max-width:650px){
+ :is(.review-modal-top,.tx-entry-heading,.finance-editor-heading,.repay-popup-head) .pax-modal-title{
+  gap:6px;font-size:clamp(16px,4.6vw,20px)!important
+ }
+ .pax-modal-title .pax-modal-icon{width:33px;height:33px;border-radius:11px;font-size:19px}
+ .pax-modal-title .pax-modal-period{font-size:11px;padding:5px 8px}
+ .pax-modal-title .pax-modal-sparkle{font-size:12px}
+ .review-modal-dialog .tx-calendar-date-group>summary>span:first-child::before,
+ .review-modal-dialog .kpi-date-group>summary>span:first-child::before{width:23px;height:23px;font-size:13px}
+ .review-modal-dialog .tx-calendar-date-group>summary>span:first-child,
+ .review-modal-dialog .kpi-date-group>summary>span:first-child{font-size:13px;gap:4px}
+ .review-modal-dialog .tx-popup-summary>span{min-height:29px;padding:5px 7px}
+}
+@media(prefers-reduced-motion:reduce){
+ .pax-modal-title .pax-modal-icon,.pax-modal-title .pax-modal-words::after,
+ .pax-modal-title .pax-modal-sparkle,
+ :is(.tx-history-dialog,.tx-search-dialog,.tx-entry-dialog) .tx-entry-heading .tx-entry-symbol,
+ .finance-editor-heading .finance-editor-symbol,.repay-popup-head .repay-popup-emoji,
+ .review-modal-dialog .tx-calendar-date-group>summary>span:first-child::before,
+ .review-modal-dialog .kpi-date-group>summary>span:first-child::before,
+ .review-modal-dialog .debt-quick-section h4::before{animation:none!important}
+ .review-modal-dialog .tx-calendar-date-group>summary,.tx-search-dialog .tx-search-date-group>summary,
+ .review-modal-dialog .review-item strong,.tx-history-dialog .tx-history-item-head strong{transition:none!important}
+}
+@media print{
+ .pax-modal-title .pax-modal-icon,.pax-modal-title .pax-modal-sparkle{display:none!important}
+ .pax-modal-title .pax-modal-words::after{display:none}
+}
+
 </style>
 </head>
 <body>
@@ -2762,7 +2901,7 @@ function paxMiniPreset(name){
 }
 function paxDecorateMini(root){
  if(!root)return;
- root.querySelectorAll('.form-field>label.field-label,.tx-search-form>label,.metric-label').forEach(el=>{
+ root.querySelectorAll('.form-field>label.field-label,.tx-search-form>label,.metric-label,.repay-popup-form .field-label,.finance-editor-form .editor-field>span').forEach(el=>{
   if(el.classList.contains('pax-mini-label')||el.children.length||el.querySelector('input,select,button'))return;
   const label=el.textContent.trim();if(!label)return;
   const [emoji,tone]=paxMiniPreset(label);
@@ -2803,6 +2942,68 @@ function paxAnimateSaved(){
  paxPulse(el);
 }
 
+
+/* #062 Semarak judul/subjudul dalam semua pop-up tanpa mengubah semantik kontrol. */
+function paxPopupTheme(name){
+ const text=String(name||'').toLocaleLowerCase('id-ID');
+ if(/utang|piutang|cicilan|pembayaran/.test(text))return ['🤝','lavender'];
+ if(/saldo|rekening/.test(text))return ['🏦','green'];
+ if(/sisa anggaran|kelompok|pos|kategori/.test(text))return ['🎯','gold'];
+ if(/pengeluaran|edit transaksi/.test(text))return ['💸','coral'];
+ if(/pemasukan/.test(text))return ['💰','green'];
+ if(/cari/.test(text))return ['🔎','blue'];
+ if(/semua transaksi|seluruh transaksi|tanggal|transaksi/.test(text))return ['🧾','blue'];
+ return ['✨','blue'];
+}
+function paxDecoratePopupHeadings(root){
+ if(!root)return;
+ const headings=root.querySelectorAll(
+  '.review-modal-top h3,.tx-history-dialog .tx-entry-heading h3,'+
+  '.tx-entry-dialog .tx-entry-heading h3,.finance-editor-heading h3,'+
+  '.repay-popup-head h3,.debt-quick-section h4'
+ );
+ headings.forEach(heading=>{
+  if(heading.classList.contains('pax-modal-title'))return;
+  const original=heading.textContent.replace(/\s+/g,' ').trim();
+  if(!original||heading.querySelector('input,button,select'))return;
+  const [emoji,tone]=paxPopupTheme(original);
+  const offset=original.indexOf(' · ');
+  const title=offset>=0?original.slice(0,offset):original;
+  const month=offset>=0?original.slice(offset+3):'';
+  const hasSymbol=!!heading.closest('.tx-entry-heading,.finance-editor-heading,.repay-popup-head')?.querySelector(
+   '.tx-entry-symbol,.finance-editor-symbol,.repay-popup-emoji'
+  );
+  const make=(kind,value)=>{
+   const node=document.createElement('span');node.className=kind;node.textContent=value;return node;
+  };
+  const items=[];
+  if(!hasSymbol){
+   const icon=make('pax-modal-icon',emoji);icon.setAttribute('aria-hidden','true');items.push(icon);
+  }
+  items.push(make('pax-modal-words',title));
+  if(month){
+   const pill=make('pax-modal-period',month);
+   items.push(pill);
+  }
+  const sparkle=make('pax-modal-sparkle','✦');sparkle.setAttribute('aria-hidden','true');
+  items.push(sparkle);
+  heading.classList.add('pax-modal-title');
+  heading.dataset.paxTone=tone;
+  heading.replaceChildren(...items);
+ });
+}
+function paxDecoratePopups(root=document){
+ if(!root)return;
+ const modals=root.querySelectorAll(
+  '.review-modal-backdrop,.tx-history-backdrop,.tx-search-backdrop,.tx-entry-backdrop,'+
+  '.repay-popup-backdrop,.finance-editor-backdrop'
+ );
+ modals.forEach(modal=>{
+  paxDecoratePopupHeadings(modal);
+  paxDecorateMini(modal);
+ });
+}
+
 function labelNav(){const titles={dashboard:['Dashboard Keuangan',''],review:['Rincian Transaksi','Pilih tanggal atau kelompok untuk memeriksa transaksi dan membandingkan pengeluaran.'],budgets:['Anggaran Bulanan','Tetapkan batas tiap pos; alihkan sisa dari pos lain jika diperlukan.'],debts:['Utang & Piutang','Pilih status untuk melihat pinjaman yang belum lunas dan riwayat cicilannya.'],reports:['Arsip Laporan','Simpan laporan setiap akhir bulan agar angka periode tersebut terdokumentasi.'],accounts:['Rekening, Kategori & Sinkronisasi','Cocokkan saldo rekening, susun kategori, dan cadangkan data secara berkala.']};const item=titles[ui.view];decoratePaaxixiPageTitle(item[0]);document.getElementById('page-subtitle').textContent=ui.view==='dashboard'?tanggalWetonWIB():item[1];document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
 function render(){
  const prev=document.querySelector('.comp-popover');
@@ -2812,6 +3013,7 @@ function render(){
  document.getElementById('content').innerHTML=({dashboard:renderDash,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])()+renderTxHistoryPopup()+renderTxSearchPopup()+renderTxModal();
  decoratePaaxixiSectionTitles();
  paxDecorateMini(document.getElementById('content'));
+ paxDecoratePopups(document.getElementById('content'));
  paxAnimateSaved();
  const newTrendScroll=document.querySelector('.trend-scroll');
  if(newTrendScroll&&oldTrendScroll!==undefined)newTrendScroll.scrollLeft=oldTrendScroll;
@@ -4191,7 +4393,7 @@ function openFinanceEditor(kind,id=null,groupName=null){
  financeEditorReturnFocus=document.activeElement;
  document.getElementById('finance-editor-backdrop')?.remove();
  document.body.insertAdjacentHTML('beforeend',financeEditorMarkup(kind));
- paxDecorateMini(document.getElementById('finance-editor-backdrop'));
+ paxDecoratePopups(document);
  document.querySelector('#finance-editor-backdrop [data-editor-focus]')?.focus({preventScroll:true});
 }
 function closeFinanceEditor(){

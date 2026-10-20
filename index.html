@@ -3523,6 +3523,68 @@ body:has(.tx-search-backdrop){overflow:hidden}
  }
 }
 
+
+
+/* #075 — Gerakan donut 3D ringan + pantulan lembut + kilau berkala.
+   Hanya cincin yang dianimasikan, posisi connector dan kotak legend tetap statis. */
+.analytics-comp-trend #composition-card .comp-recap-wide .comp-recap-ring-motion{
+ transform-box:view-box;
+ transform-origin:320px var(--donut-center-y,157.5px);
+ animation:paaxixiDonutFloat3D 6.8s ease-in-out infinite;
+ filter:drop-shadow(0 4px 3px rgba(25,64,137,.21))
+        drop-shadow(0 8px 8px rgba(39,92,177,.13));
+ will-change:transform;
+}
+.analytics-comp-trend #composition-card .comp-recap-ring-depth{
+ pointer-events:none;
+}
+.analytics-comp-trend #composition-card .comp-recap-depth-arc{
+ stroke-width:34px;stroke-linecap:butt;opacity:.22;
+ transform:translateY(5px);
+ filter:brightness(.67);
+}
+.analytics-comp-trend #composition-card .comp-recap-ring-shine{
+ pointer-events:none;
+}
+.analytics-comp-trend #composition-card .comp-recap-glint{
+ stroke:#fff;
+ stroke-width:25px;
+ opacity:0;
+ transform-box:view-box;
+ transform-origin:320px var(--donut-center-y,157.5px);
+ animation:paaxixiDonutGlint 11.5s linear infinite;
+ filter:drop-shadow(0 0 3px #fff8);
+ mix-blend-mode:screen;
+}
+.analytics-comp-trend #composition-card .comp-recap-wide .comp-recap-arc:is(:hover,:focus-visible,.is-active){
+ stroke-width:40px;
+ filter:drop-shadow(0 3px 5px #17477b60) brightness(1.08);
+}
+.analytics-comp-trend #composition-card .comp-recap-center strong{
+ text-shadow:0 1px 0 #ffffffaa,0 3px 9px #3971b936;
+}
+@keyframes paaxixiDonutFloat3D{
+ 0%,100%{transform:translateY(0) scale(1) rotate(0deg)}
+ 27%{transform:translateY(-2px) scale(1.005) rotate(-.3deg)}
+ 47%{transform:translateY(-5px) scale(1.012) rotate(.35deg)}
+ 65%{transform:translateY(-1px) scale(1.002) rotate(0deg)}
+ 80%{transform:translateY(-3px) scale(1.006) rotate(-.18deg)}
+}
+@keyframes paaxixiDonutGlint{
+ 0%,10%,34%,100%{opacity:0;transform:rotate(-100deg)}
+ 13%{opacity:.6;transform:rotate(-55deg)}
+ 22%{opacity:.5;transform:rotate(145deg)}
+ 28%{opacity:.1;transform:rotate(245deg)}
+ 32%{opacity:0;transform:rotate(270deg)}
+}
+@media(prefers-reduced-motion:reduce){
+ .analytics-comp-trend #composition-card .comp-recap-wide .comp-recap-ring-motion,
+ .analytics-comp-trend #composition-card .comp-recap-glint{
+  animation:none!important;transform:none!important;will-change:auto!important;
+ }
+ .analytics-comp-trend #composition-card .comp-recap-glint{opacity:0!important}
+}
+
 </style>
 </head>
 <body>
@@ -6626,12 +6688,21 @@ document.addEventListener('visibilitychange',()=>{
   const cx=320,cy=height/2,radius=87;
   const canvas=vector('svg',{viewBox:'0 0 640 '+height,role:'group',
    'aria-label':'Donut dengan label nominal dan persentase untuk setiap '+(selectedGroup?'pos':'kelompok')});
+  // Pisahkan cincin donut dari garis/label agar animasi tidak menggeser legend.
   const track=vector('circle',{cx,cy,r:radius,fill:'none',stroke:'#e8effa','stroke-width':32});
-  canvas.append(track);
+  const motionLayer=vector('g',{class:'comp-recap-ring-motion'});
+  motionLayer.style.setProperty('--donut-center-y',cy+'px');
+  const depthLayer=vector('g',{class:'comp-recap-ring-depth','aria-hidden':'true'});
   const connectorLayer=vector('g',{class:'comp-recap-connectors'});
   const arcLayer=vector('g',{class:'comp-recap-arcs'});
+  const shineLayer=vector('g',{class:'comp-recap-ring-shine','aria-hidden':'true'});
+  const shimmer=vector('circle',{cx,cy,r:radius,fill:'none',stroke:'#fff',
+   'stroke-width':28,'stroke-dasharray':'29 520','stroke-linecap':'round',
+   class:'comp-recap-glint'});
+  shineLayer.append(shimmer);
+  motionLayer.append(track,depthLayer,arcLayer,shineLayer);
   const labelLayer=vector('g',{class:'comp-recap-labels'});
-  canvas.append(connectorLayer,arcLayer,labelLayer);
+  canvas.append(motionLayer,connectorLayer,labelLayer);
   const center=node('div','comp-recap-center');
   const value=node('strong','',compact(total));center.append(value);
   desktop.append(canvas,center);
@@ -6679,7 +6750,11 @@ document.addEventListener('visibilitychange',()=>{
    const props={stroke:entry.color,fill:'none',role:'button',tabindex:0,
     'aria-label':entry.name+', '+entry.percentage+' persen, '+money(entry.amount),
     'aria-pressed':'false'};
-   const wide=vector('path',{...props,d:arc(entry.start,entry.end,radius,cx,cy),class:'comp-recap-arc'});
+   const ringPath=arc(entry.start,entry.end,radius,cx,cy);
+   const depth=vector('path',{d:ringPath,stroke:entry.color,fill:'none',
+    class:'comp-recap-depth-arc','aria-hidden':'true'});
+   depthLayer.append(depth);
+   const wide=vector('path',{...props,d:ringPath,class:'comp-recap-arc'});
    const mobilePath=vector('path',{...props,d:arc(entry.start,entry.end,88,120,120),class:'comp-recap-arc'});
    const push=xy(entry.mid,4,0,0);
    wide.style.setProperty('--recap-push-x',push.x.toFixed(2)+'px');

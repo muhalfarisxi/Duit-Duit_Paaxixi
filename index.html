@@ -4672,8 +4672,11 @@ function renderTrendFinancialInsight(data){
 function renderTrendPanel(){
  const c=ui.comp,periods=trendPeriods(),mode=periods.mode;
  const categoryIds=new Set(analysisCategories().map(x=>x.id));
- const rangeStart=periods.range.from+(mode==='year'?'-01-01':mode==='month'?'-01':'');
- const rangeEnd=periods.range.to+(mode==='year'?'-12-31':mode==='month'?'-31':'');
+ const donut=analysisDates();
+ const wantedFrom=periods.range.from+(mode==='year'?'-01-01':mode==='month'?'-01':'');
+ const wantedTo=periods.range.to+(mode==='year'?'-12-31':mode==='month'?'-31':'');
+ const rangeStart=wantedFrom>donut.from?wantedFrom:donut.from;
+ const rangeEnd=wantedTo<donut.to?wantedTo:donut.to;
  const filtered=db.transactions.filter(t=>t.type==='expense'&&categoryIds.has(t.categoryId)&&t.date>=rangeStart&&t.date<=rangeEnd);
  const rows=periods.keys.map(key=>{
   const tx=filtered.filter(t=>trendRowTransaction(t,key,mode));

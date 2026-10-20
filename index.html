@@ -4869,12 +4869,12 @@ function renderTrendPanel(){
  const wantedTo=periods.range.to+(mode==='year'?'-12-31':mode==='month'?'-31':'');
  const rangeStart=wantedFrom>donut.from?wantedFrom:donut.from;
  const rangeEnd=wantedTo<donut.to?wantedTo:donut.to;
- const filtered=db.transactions.filter(t=>t.type==='expense'&&categoryIds.has(t.categoryId)&&t.date>=rangeStart&&t.date<=rangeEnd);
+ const filtered=db.transactions.filter(t=>t.type==='expense'&&categoryIds.has(t.categoryId)&&t.date>=rangeStart&&t.date<=rangeEnd&&(mode!=='year'||t.date<=today()));
  const rows=periods.keys.map(key=>{
   const tx=filtered.filter(t=>trendRowTransaction(t,key,mode));
   return {key,tx,count:tx.length,total:tx.reduce((sum,t)=>sum+num(t.amount),0)};
  });
- const all=rows.flatMap(row=>row.tx),entries=analysisEntries(expenseSelection().transactions),grandTotal=all.reduce((sum,t)=>sum+num(t.amount),0);
+ const all=rows.flatMap(row=>row.tx),entries=analysisEntries(all),donutEntries=analysisEntries(expenseSelection().transactions),grandTotal=all.reduce((sum,t)=>sum+num(t.amount),0);
  const previous=rows[rows.length-2],last=rows[rows.length-1],third=rows[rows.length-3];
  const comparable=!!previous&&!!last&&previous.count>0&&last.count>0&&previous.total>0;
  const lastDate=last?.key||'',now=new Date(),incomplete=mode==='day'?lastDate===dateISO(now):
@@ -4917,9 +4917,9 @@ function renderTrendPanel(){
       <div class="trend-range-actions"><button type="button" class="trend-reset-button" data-comp-action="trend-default">↺ Ikuti Donut</button></div>
     </div>
   </div>
-  ${renderTrendSeriesButtons(entries)}
+  ${renderTrendSeriesButtons(donutEntries)}
   <div class="trend-label-toggle"><label><input type="checkbox" id="trend-labels" ${c.trendLabels?'checked':''}> Tampilkan label nominal kecil</label></div>
-  ${grandTotal>0?trendChartSVG(rows,entries):'<div class="comp-empty">Tidak Ada Transaksi Pengeluaran Di Rentang Yang Dipilih.</div>'}
+  ${grandTotal>0?trendChartSVG(rows,donutEntries):'<div class="comp-empty">Tidak Ada Transaksi Pengeluaran Di Rentang Yang Dipilih.</div>'}
   ${periods.trimmed?`<p class="comp-tiny">Rentang sangat panjang. Ditampilkan ${periods.keys.length} periode terakhir; persempit rentang untuk melihat periode sebelumnya.</p>`:''}
   <details class="trend-insight-expand"><summary>✨ Buka Insight Tren & Perbandingan</summary><div class="trend-notes"><div class="trend-note"><strong>📈 Perubahan Periode</strong>${comparison}</div><div class="trend-note"><strong>🔎 Kontributor Utama</strong>${insight}</div>${renderTrendFinancialInsight(financialInsight)}</div></details>
  </section>`;

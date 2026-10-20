@@ -3837,6 +3837,15 @@ body:has(.tx-search-backdrop){overflow:hidden}
 @media(max-width:1180px){
  .analytics-comp-trend .analysis-visual-anchor{margin-top:0!important}
 }
+/* #082 Petunjuk interaktif singkat tanpa judul berulang di tombol seri. */
+.analytics-comp-trend .trend-panel .trend-series-hint{
+ margin:1px 2px 8px;padding:6px 9px;border-left:3px solid #86b7f5;
+ border-radius:8px;background:#eef6ff;color:#416c9b;
+ font:800 10px/1.4 Nunito,sans-serif;
+}
+@media(max-width:510px){
+ .analytics-comp-trend .trend-panel .trend-series-hint{padding:5px 8px;font-size:10px}
+}
 </style>
 </head>
 <body>
@@ -4834,8 +4843,7 @@ function renderTrendSeriesButtons(entries){
  const selected=trendSeriesSelected(entries),all=[{id:'total',label:'Total Pengeluaran',color:'#174ea6',icon:'📈'},...entries.map(item=>({
   id:trendSeriesId(item),label:item.label,color:item.color,icon:item.icon
  }))];
- return '<div class="trend-series-picker trend-series-single-row"><div class="trend-series-heading">'+
-  '<strong>🎨 Garis</strong></div>'+ 
+ return '<div class="trend-series-picker trend-series-single-row">'+
   '<button type="button" class="trend-series-step trend-series-step-prev" data-trend-series-scroll="-1" aria-label="Geser pilihan garis ke kiri">‹</button>'+
   '<div class="trend-series-buttons" role="group" aria-label="Pilih garis tren pengeluaran">'+
   all.map(item=>{
@@ -4846,7 +4854,8 @@ function renderTrendSeriesButtons(entries){
     '<span class="trend-series-pill-icon" aria-hidden="true">'+item.icon+'</span><span>'+h(item.label)+'</span>'+
     (active?'<span class="trend-series-on" aria-hidden="true">✓</span>':'')+'</button>';
   }).join('')+'</div>'+ 
-  '<button type="button" class="trend-series-step trend-series-step-next" data-trend-series-scroll="1" aria-label="Geser pilihan garis ke kanan">›</button></div>';
+  '<button type="button" class="trend-series-step trend-series-step-next" data-trend-series-scroll="1" aria-label="Geser pilihan garis ke kanan">›</button></div>'+ 
+  '<p class="trend-series-hint">👆 Klik pos untuk menampilkan atau menyembunyikan garis.</p>';
 }
 /* Panah navigasi pilihan garis menyesuaikan posisi dan lebar panel. */
 function updateTrendSeriesArrows(){
@@ -5109,7 +5118,7 @@ function renderTrendPanel(){
     <div class="trend-period-compact"><span class="trend-period-current" title="${h(activePeriod)}">📅 ${h(activePeriod)}</span><button type="button" class="trend-period-follow" data-comp-action="trend-default">↺ Ikuti Donut</button></div>
   </div>
   ${renderTrendSeriesButtons(donutEntries)}
-  <div class="trend-label-toggle"><label><input type="checkbox" id="trend-labels" ${c.trendLabels?'checked':''}> Tampilkan label nominal kecil</label></div>
+  <div class="trend-label-toggle"><label><input type="checkbox" id="trend-labels" ${c.trendLabels?'checked':''}> Nominal pada titik</label></div>
   <div class="analysis-visual-anchor" data-analysis-graph="trend">
   ${grandTotal>0?trendChartSVG(rows,donutEntries):'<div class="comp-empty">Tidak Ada Transaksi Pengeluaran Di Rentang Yang Dipilih.</div>'}
   </div>

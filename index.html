@@ -1559,6 +1559,134 @@ body:has(.tx-entry-backdrop),body:has(.tx-history-backdrop){overflow:hidden}
 }
 @media print{.tx-entry-backdrop,.tx-history-backdrop{display:none!important}}
 
+
+/* #048 Jenis transaksi tetap terang saat disabled di mode Edit, header & aksi lebih jelas. */
+.tx-entry-dialog{border-color:#bdd5f8;box-shadow:0 26px 85px rgba(9,37,83,.35),0 0 0 1px rgba(82,140,220,.08)}
+.tx-entry-dialog .tx-entry-heading{
+ padding:19px 22px 17px;gap:13px;
+ background:linear-gradient(115deg,#f9fcff 0%,#edf5ff 63%,#e3efff 100%);
+ border-bottom:1px solid #cbdff8;position:relative;
+}
+.tx-entry-dialog .tx-entry-heading::after{
+ content:"";position:absolute;bottom:0;left:20px;width:min(220px,48%);height:3px;
+ background:linear-gradient(90deg,#2866bb,#72b2f6,transparent);
+ border-radius:999px;transform-origin:left;animation:tx-edit-line-enter .65s ease-out both;
+}
+.tx-entry-dialog .tx-entry-symbol{
+ width:48px;height:48px;border-radius:14px;
+ color:#215ba6;background:linear-gradient(145deg,#d8eaff,#c7dfff);
+ border:1px solid #b6d0f3;box-shadow:0 5px 16px rgba(41,98,174,.13);
+ font-size:23px;
+}
+.tx-entry-dialog.is-edit-mode .tx-entry-symbol{
+ color:#fff;background:linear-gradient(135deg,#174479,#3477c8);
+ border-color:#255da4;box-shadow:0 7px 18px rgba(34,95,175,.25);
+}
+.tx-heading-title-row{display:flex;align-items:center;flex-wrap:wrap;gap:7px 10px}
+.tx-entry-dialog .tx-entry-heading h3{font-size:clamp(20px,2.6vw,25px);font-weight:900;letter-spacing:-.55px;color:#103c73}
+.tx-entry-dialog .tx-entry-heading p{color:#627fa1;font-size:12px;line-height:1.55}
+.tx-mode-label{padding:4px 9px;font-size:10px;font-weight:900;letter-spacing:.2px;
+ border:1px solid #c2daf8;border-radius:999px;background:#fff;color:#245d9f}
+.is-edit-mode .tx-mode-label{color:#fff;background:#235c9d;border-color:#235c9d}
+.tx-entry-body .pill-tabs.tx-type-selector{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;
+ background:#eaf2ff;border:1px solid #c9dcf8;border-radius:17px;
+ padding:7px;margin-bottom:20px;box-shadow:inset 0 1px 3px rgba(23,76,149,.045);
+}
+.tx-entry-body .pill-tabs.tx-type-selector button{
+ position:relative;display:flex;justify-content:center;align-items:center;gap:7px;
+ width:100%;min-width:0;min-height:53px;padding:10px 8px;
+ border:1px solid transparent;border-radius:12px;background:transparent;
+ color:#53749c;font-size:13px;font-weight:850;white-space:normal;
+ transition:transform .2s ease,color .2s ease,background .2s ease,box-shadow .2s ease;
+}
+.tx-entry-body .pill-tabs.tx-type-selector .tx-type-glyph{
+ display:inline-grid;place-items:center;flex:none;width:25px;height:25px;border-radius:8px;
+ font-size:20px;font-weight:900;color:#386eb5;background:rgba(255,255,255,.5);
+}
+.tx-entry-body .pill-tabs.tx-type-selector button:hover:not(:disabled){
+ background:#f8fbff;color:#24578f;transform:translateY(-1px);
+}
+.tx-entry-body .pill-tabs.tx-type-selector button.active,
+.tx-entry-body .pill-tabs.tx-type-selector button.active:disabled{
+ color:#fff!important;background:linear-gradient(120deg,#123c73,#2868b6)!important;
+ border:1px solid #174e91;opacity:1!important;
+ box-shadow:0 8px 17px rgba(23,78,155,.25),inset 0 1px 0 rgba(255,255,255,.22);
+ transform:translateY(-1px);
+}
+.tx-entry-body .pill-tabs.tx-type-selector button.active .tx-type-glyph{
+ color:#103e75;background:#f5faff;
+}
+.tx-entry-body .pill-tabs.tx-type-selector button.active::after{
+ content:"";position:absolute;bottom:5px;left:24%;width:52%;height:3px;
+ background:rgba(255,255,255,.88);border-radius:999px;
+ animation:tx-edit-tab-underline .5s ease-out both;transform-origin:left;
+}
+.tx-entry-body .pill-tabs.tx-type-selector button:disabled{opacity:1!important;cursor:default}
+.tx-entry-body .pill-tabs.tx-type-selector button:not(.active):disabled{
+ color:#879bb6;background:transparent;opacity:.8!important;box-shadow:none;transform:none;
+}
+.tx-entry-body .pill-tabs.tx-type-selector button:not(.active):disabled .tx-type-glyph{
+ color:#8c9fba;background:rgba(255,255,255,.25);
+}
+.tx-entry-body .pill-tabs.tx-type-selector button:focus-visible{
+ outline:3px solid #3185e9;outline-offset:3px;
+}
+.tx-entry-body .tx-entry-actions{
+ display:flex;align-items:center;justify-content:flex-end;gap:10px;
+ margin-top:19px;padding-top:15px;border-top:1px solid #e3ecf8;
+}
+.tx-entry-body .tx-entry-actions .tx-submit-highlight[type="submit"]{
+ position:relative;overflow:hidden;isolation:isolate;
+ min-height:45px;padding:11px 21px;
+ border-radius:12px;border:1px solid #174a88;
+ color:#fff;background:linear-gradient(115deg,#102f59,#235da5);
+ box-shadow:0 7px 18px rgba(17,68,132,.24);
+ font-weight:900;letter-spacing:.1px;
+ transition:transform .2s ease,box-shadow .2s ease,filter .2s ease;
+}
+.tx-entry-body .tx-entry-actions .tx-submit-highlight[type="submit"]::before{
+ content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+ background:linear-gradient(115deg,transparent 15%,rgba(255,255,255,.2) 50%,transparent 80%);
+ transform:translateX(-110%);transition:transform .58s ease;
+}
+.tx-entry-body .tx-entry-actions .tx-submit-highlight[type="submit"]:hover{
+ transform:translateY(-2px);box-shadow:0 11px 24px rgba(17,68,132,.32);filter:brightness(1.08);
+}
+.tx-entry-body .tx-entry-actions .tx-submit-highlight[type="submit"]:hover::before{transform:translateX(110%)}
+.tx-entry-body .tx-entry-actions .tx-submit-highlight[type="submit"]:active{transform:translateY(0)}
+.tx-entry-body .tx-submit-icon{
+ display:inline-grid;place-items:center;width:22px;height:22px;border-radius:7px;
+ background:rgba(255,255,255,.17);font-size:14px;font-weight:900;
+}
+.tx-entry-body .tx-entry-actions .tx-cancel-button{
+ min-height:44px;padding:10px 17px;border-color:#cbdcf3;background:#fff;color:#46688f;
+}
+@keyframes tx-edit-line-enter{from{opacity:.2;transform:scaleX(.06)}to{opacity:1;transform:scaleX(1)}}
+@keyframes tx-edit-tab-underline{from{opacity:0;transform:scaleX(.35)}to{opacity:1;transform:scaleX(1)}}
+@media(max-width:600px){
+ .tx-entry-dialog .tx-entry-heading{padding:15px 12px 13px;gap:9px}
+ .tx-entry-dialog .tx-entry-heading h3{font-size:19px}
+ .tx-entry-dialog .tx-entry-symbol{width:39px;height:39px;font-size:20px;border-radius:12px}
+ .tx-mode-label{font-size:9px;padding:3px 7px}
+ .tx-entry-body .pill-tabs.tx-type-selector{gap:5px;padding:5px;margin-bottom:16px;border-radius:14px}
+ .tx-entry-body .pill-tabs.tx-type-selector button{min-height:49px;gap:4px;padding:8px 4px;font-size:11px;border-radius:10px}
+ .tx-entry-body .pill-tabs.tx-type-selector .tx-type-glyph{width:21px;height:21px;font-size:17px;border-radius:6px}
+ .tx-entry-body .tx-entry-actions{display:flex;gap:7px}
+ .tx-entry-body .tx-entry-actions .tx-submit-highlight[type="submit"]{flex:1;padding:10px 8px;font-size:12px}
+ .tx-entry-body .tx-entry-actions .tx-cancel-button{flex:none;padding:10px 12px;font-size:12px}
+}
+@media(max-width:350px){
+ .tx-entry-body .pill-tabs.tx-type-selector button{flex-direction:column;gap:2px;min-height:55px;font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){
+ .tx-entry-dialog .tx-entry-heading::after,.tx-entry-body .pill-tabs.tx-type-selector button.active::after{
+  animation:none!important;transform:none!important
+ }
+ .tx-entry-body .pill-tabs.tx-type-selector button,.tx-entry-body .tx-entry-actions .tx-submit-highlight[type="submit"],
+ .tx-entry-body .tx-entry-actions .tx-submit-highlight[type="submit"]::before{transition:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -2622,20 +2750,21 @@ function renderTxModal(){
  group=(editing&&cat(editing.categoryId)?.group)||groupList[0],
  cs=(kind==='income'?incomes():expenses()).filter(c=>c.group===group);
  return `<div class="tx-entry-backdrop" id="tx-entry-backdrop">
-  <div class="tx-entry-dialog" role="dialog" aria-modal="true" aria-labelledby="tx-entry-heading" aria-describedby="tx-entry-desc">
+  <div class="tx-entry-dialog ${editing?'is-edit-mode':'is-create-mode'}" role="dialog" aria-modal="true" aria-labelledby="tx-entry-heading" aria-describedby="tx-entry-desc">
    <div class="tx-entry-heading">
-    <span class="tx-entry-symbol" aria-hidden="true">🧾</span>
-    <div><h3 id="tx-entry-heading">${editing?'Edit Transaksi':'Catat Transaksi Baru'}</h3>
-     <p id="tx-entry-desc">${editing?'Ubah data transaksi tanpa berpindah halaman.':'Pilih jenis transaksi, isi nominal, dan pilih rekening.'}</p></div>
+    <span class="tx-entry-symbol" aria-hidden="true">${editing?'✎':'🧾'}</span>
+    <div><div class="tx-heading-title-row"><h3 id="tx-entry-heading">${editing?'Edit Transaksi':'Catat Transaksi Baru'}</h3>
+     <span class="tx-mode-label">${editing?'Mode Edit':'Transaksi Baru'}</span></div>
+     <p id="tx-entry-desc">${editing?'Perbarui transaksi dengan aman. Jenis transaksi tidak dapat diubah saat edit.':'Catat pengeluaran, pemasukan, atau transfer tanpa berpindah halaman.'}</p></div>
     <button type="button" class="tx-entry-close" data-close-tx-modal aria-label="Tutup form transaksi">✕</button>
    </div>
    <div class="tx-entry-body">
-    <div class="pill-tabs">${[['expense','Pengeluaran'],['income','Pemasukan'],['transfer','Transfer']].map(x=>`<button type="button" data-txtype="${x[0]}" ${editing?'disabled':''} class="${kind===x[0]?'active':''}">${x[1]}</button>`).join('')}</div>
+    <div class="pill-tabs tx-type-selector" role="group" aria-label="Jenis transaksi">${[['expense','↘','Pengeluaran'],['income','↗','Pemasukan'],['transfer','⇄','Transfer']].map(x=>`<button type="button" data-txtype="${x[0]}" aria-pressed="${kind===x[0]?'true':'false'}" ${editing?'disabled title="Jenis transaksi tetap saat mengedit"':''} class="${kind===x[0]?'active':''}"><span class="tx-type-glyph" aria-hidden="true">${x[1]}</span><span class="tx-type-label">${x[2]}</span></button>`).join('')}</div>
 <form id="tx-form" class="tx-entry-form"><input name="type" type="hidden" value="${kind}"><input name="editId" type="hidden" value="${h(editing?.id||'')}"><div class="form-grid"><div class="form-field"><label class="field-label">Tanggal</label><input class="field" type="date" name="date" value="${editing?.date|| (ui.month===currentMonth()?today():ui.month+'-01')}" required></div><div class="form-field"><label class="field-label">Jumlah (Rp)</label><input class="field" name="amount" type="text" inputmode="decimal" data-rupiah="1" placeholder="50.000" value="${editing?fmtAmount(editing.amount):''}" required></div>
 ${kind!=='transfer'?`<div class="form-field"><label class="field-label">Kelompok</label><select class="field" name="group" id="tx-group">${groupList.map(g=>`<option value="${h(g)}" ${g===group?'selected':''}>${pickSymbol(g,g)} ${h(g)}</option>`).join('')}</select></div><div class="form-field"><label class="field-label">Kategori</label><select class="field" name="categoryId" id="tx-category" required>${cs.map(c=>`<option value="${h(c.id)}" ${c.id===editing?.categoryId?'selected':''}>${pickSymbol(c.label,c.group)} ${h(c.label)}</option>`).join('')}</select></div>`:''}
 <div class="form-field"><label class="field-label">${kind==='income'?'Masuk Ke Rekening':kind==='transfer'?'Dari Rekening':'Bayar Dari Rekening'}</label>${selectAcc('accountId',editing?.accountId||'')}</div>${kind==='transfer'?`<div class="form-field"><label class="field-label">Ke Rekening</label>${selectAcc('toAccountId',editing?.toAccountId||'')}</div>`:''}
 <div class="form-field full"><label class="field-label">Nama / Keterangan Transaksi</label><input class="field" name="title" value="${h(editing?.title||'')}" placeholder="Misalnya: Beli nasi ayam" required maxlength="130"></div><div class="form-field full"><label class="field-label">Catatan (Opsional)</label><textarea class="field" name="note" rows="2" maxlength="500">${h(editing?.note||'')}</textarea></div></div>
-<div class="form-actions"><button class="btn teal" type="submit">${editing?'✓ Simpan perubahan':'＋ Simpan transaksi'}</button><button class="btn" type="button" data-close-tx-modal>Batal</button></div></form>
+<div class="form-actions tx-entry-actions"><button class="btn teal tx-submit-highlight" type="submit"><span class="tx-submit-icon" aria-hidden="true">✓</span>${editing?'Simpan Perubahan':'Simpan Transaksi'}</button><button class="btn tx-cancel-button" type="button" data-close-tx-modal>Batal</button></div></form>
    </div>
   </div>
  </div>`;

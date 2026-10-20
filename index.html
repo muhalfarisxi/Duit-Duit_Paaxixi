@@ -3758,7 +3758,7 @@ const expenseGroups=()=>db.expenseGroups;
 const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],debts:[],reports:{}});
 function load(){try{let v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.accounts)&&Array.isArray(v.categories)&&Array.isArray(v.transactions)&&Array.isArray(v.debts)&&v.budgets&&Array.isArray(v.budgetMoves))return normalizeExpenseGroups(v);}catch(e){}return fresh()}
 let db=load();db.reports=db.reports||{};
-let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'month',trendFrom:'',trendTo:'',trendLabels:true,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupFilter:'open',reportMonth:currentMonth()};
+let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupFilter:'open',reportMonth:currentMonth()};
 let cloud={configured:false,signedIn:false,ready:false,email:'',busy:false,error:'',empty:false,pendingDecision:false};
 function syncBadge(){let b=document.getElementById('cloud-status');if(!b)return;
  b.className='cloud-state'+(cloud.signedIn&&cloud.ready&&!cloud.pendingDecision?' online':cloud.busy?' wait':'');
@@ -4438,24 +4438,31 @@ function renderComposition(){
 }
 
 
-/* Tren interaktif: harian / bulanan / tahunan dan rentang awal–akhir independen. */
+/* #076 Trend mengikuti rentang donut */
+function trendAvailability(){
+ const dates=analysisDates();
+ return {dates,day:true,month:dates.from.slice(0,7)<dates.to.slice(0,7),year:dates.from.slice(0,4)<dates.to.slice(0,4)};
+}
+function trendRecommendedMode(){
+ const a=trendAvailability();
+ return a.year?'year':a.month?'month':'day';
+}
 function trendDefaultRange(mode=ui.comp.trend){
- const m=ui.month,year=Number(m.slice(0,4)),month=Number(m.slice(5,7));
- if(mode==='day'){
-  const todayDate=dateISO(new Date()),end=m===currentMonth()?todayDate:monthBounds(m).to;
-  const d=new Date(end+'T12:00:00');d.setDate(d.getDate()-13);
-  return {from:dateISO(d),to:end};
- }
- if(mode==='year')return {from:String(year-4),to:String(year)};
- const end=year*12+month-1,begin=end-11;
- return {from:Math.floor(begin/12)+'-'+String(begin%12+1).padStart(2,'0'),to:m};
+ const {from,to}=trendAvailability().dates;
+ return mode==='year'?{from:from.slice(0,4),to:to.slice(0,4)}:mode==='month'?{from:from.slice(0,7),to:to.slice(0,7)}:{from,to};
 }
 function trendRange(){
- const fallback=trendDefaultRange(),from=ui.comp.trendFrom||fallback.from,to=ui.comp.trendTo||fallback.to;
- return {from,to};
+ const dflt=trendDefaultRange(),a=ui.comp.trendFrom,b=ui.comp.trendTo;
+ const from=a&&a>=dflt.from&&a<=dflt.to?a:dflt.from,to=b&&b>=dflt.from&&b<=dflt.to?b:dflt.to;
+ return from>to?dflt:{from,to};
+}
+function resetTrendFromDonut(){
+ ui.comp.trend=trendRecommendedMode();
+ ui.comp.trendFrom='';ui.comp.trendTo='';
 }
 function trendPeriods(){
- const mode=ui.comp.trend,range=trendRange(),limit=mode==='day'?60:mode==='month'?36:20;
+ const avail=trendAvailability(),mode=avail[ui.comp.trend]?ui.comp.trend:trendRecommendedMode();
+ const range=trendRange(),limit=mode==='day'?60:mode==='month'?36:20;
  const keys=[];
  if(mode==='day'){
   let d=new Date(range.from+'T12:00:00'),end=new Date(range.to+'T12:00:00');
@@ -6404,7 +6411,7 @@ if(x.hasAttribute('data-comp-quick-more')){
 if(x.dataset.compAction){
  const cmd=x.dataset.compAction;
  if(cmd==='toggle'){ui.comp.open=!ui.comp.open;ui.comp.menu=null;}
- if(cmd==='reset'){ui.comp={preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'month',trendFrom:'',trendTo:'',trendLabels:true,open:true,menu:null,showMore:false};}
+ if(cmd==='reset'){ui.comp={preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,open:true,menu:null,showMore:false};}
  if(cmd==='all-groups'){ui.comp.groups=null;ui.comp.categories=null;}
  if(cmd==='clear-groups'){ui.comp.groups=[];ui.comp.categories=null;}
  if(cmd==='all-categories'){ui.comp.categories=null;}

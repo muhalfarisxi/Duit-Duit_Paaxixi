@@ -138,22 +138,50 @@
    mini.append(top,detail);mini.setAttribute('aria-label',entry.name+', '+entry.percentage+' persen, '+money(entry.amount));
    smallRail.append(mini);mobileLabels.push(mini);connect(mini,i);
   });
-  // Label positions are distributed separately on either side of the ring to prevent collisions.
+  // Rapikan connector: dimulai DI LUAR tepi donut dan berakhir tepat di tepi label.
+  // Label mengikuti titik tengah irisan; pergeseran hanya dilakukan ketika saling bertumpuk.
   for(const list of [left,right]){
-   list.sort((a,b)=>xy(a.mid,118,cx,cy).y-xy(b.mid,118,cx,cy).y);
-   list.forEach((entry,j)=>{
+   const margin=27,minGap=55;
+   const placed=list.map(entry=>({
+    entry,
+    origin:xy(entry.mid,radius+22,cx,cy)
+   })).sort((a,b)=>a.origin.y-b.origin.y);
+   if(!placed.length)continue;
+   let slots=placed.map(p=>Math.min(height-margin,Math.max(margin,p.origin.y)));
+   for(let i=1;i<slots.length;i++)slots[i]=Math.max(slots[i],slots[i-1]+minGap);
+   if(slots[slots.length-1]>height-margin){
+    const shift=slots[slots.length-1]-(height-margin);
+    slots=slots.map(y=>y-shift);
+   }
+   if(slots[0]<margin){
+    const shift=margin-slots[0];
+    slots=slots.map(y=>y+shift);
+   }
+   placed.forEach(({entry,origin},j)=>{
     const x=entry.side==='left'?7:471;
-    const slot=cy+(j-(list.length-1)/2)*56;
-    const origin=xy(entry.mid,109,cx,cy);
-    const destX=entry.side==='left'?181:459;
-    const elbowX=entry.side==='left'?222:418;
+    const slot=slots[j];
+    const dir=entry.side==='left'?-1:1;
+    const edgeX=entry.side==='left'?x+171:x-9;
+    const startX=Number(origin.x.toFixed(2));
+    const startY=Number(origin.y.toFixed(2));
+    const endY=Number(slot.toFixed(2));
+    // Posisi normal: horizontal lurus; jika label bergeser karena padat, lengkung halus.
+    const d=Math.abs(startY-endY)<3
+     ?'M '+startX+' '+startY+' H '+edgeX
+     :'M '+startX+' '+startY+
+      ' C '+(startX+dir*19).toFixed(2)+' '+startY+
+      ' '+(edgeX-dir*19).toFixed(2)+' '+endY+
+      ' '+edgeX+' '+endY;
     const connector=vector('path',{
-     d:'M '+origin.x.toFixed(2)+' '+origin.y.toFixed(2)+
-       ' L '+elbowX+' '+slot.toFixed(2)+' L '+destX+' '+slot.toFixed(2),
-     stroke:entry.color,fill:'none','stroke-width':1.7,
-     'stroke-linecap':'round',opacity:.72
+     d,stroke:entry.color,fill:'none','stroke-width':1.4,
+     'stroke-linecap':'round','stroke-linejoin':'round',opacity:.64,
+     'pointer-events':'none'
     });
-    connectorLayer.append(connector);
+    const anchor=vector('circle',{
+     cx:startX,cy:startY,r:2,fill:entry.color,opacity:.8,
+     'pointer-events':'none'
+    });
+    connectorLayer.append(connector,anchor);
     const g=vector('g',{class:'comp-recap-callout',role:'button',tabindex:0,'aria-pressed':'false',
      'aria-label':entry.name+', '+entry.percentage+' persen, '+money(entry.amount)});
     const plate=vector('rect',{x,y:slot-24,width:162,height:48,rx:12,fill:'#f8fbff',

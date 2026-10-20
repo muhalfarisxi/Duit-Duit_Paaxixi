@@ -4922,7 +4922,7 @@ function renderBudgetAlertDialog(items,hasBudgetValue){
 }
 
 function renderDash(){let all=monthly(),exp=totalType('expense'),inc=totalType('income'),bt=budgetTotal(),accountBalances=balances(),kas=Object.values(accountBalances).reduce((s,x)=>s+x,0),alert=expenses().filter(c=>hasBudget(c.id)&&['danger','warn'].includes(status(c.id).s)).sort((a,b)=>{const priority={danger:0,warn:1};return (priority[status(a.id).s]??9)-(priority[status(b.id).s]??9)||pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1));}),budgets=expenses().filter(c=>hasBudget(c.id)).sort((a,b)=>pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1))),bySource=incomes().map(c=>({...c,amount:all.filter(t=>t.type==='income'&&t.categoryId===c.id).reduce((s,t)=>s+num(t.amount),0)})).filter(c=>c.amount>0).sort((a,b)=>b.amount-a.amount),debt=totalsDebt();
-return `${welcomeModal()}${all.length===0?`<div class="callout"><span>✦</span><div><strong>Mulai catatan pertamamu.</strong> Dashboard akan otomatis terisi. Mau melihat simulasi lebih dulu? <button class="btn sm" type="button" data-action="demo" style="margin-left:7px">Isi data contoh</button></div></div>`:''}
+return `${welcomeModal()}${all.length===0?`<div class="callout"><span>✦</span><div><strong>Mulai catatan pertamamu.</strong> Dashboard akan otomatis terisi. Mau melihat simulasi lebih dulu? <button class="btn sm" type="button" data-action="demo" style="margin-left:7px">Isi contoh 24 bulan</button></div></div>`:''}
 <div class="grid kpis">
 ${metricCard('Pemasukan Bulan Ini',inc,'↑','green','Transaksi Pemasukan')}${metricCard('Pengeluaran Bulan Ini',exp,'↓','red','Transaksi Pengeluaran')}${metricCard('Sisa Anggaran',bt>0?bt-budgetUsed():0,'◴',bt>0&&bt-budgetUsed()<0?'red':'green',bt>0?`Dari Total ${money(bt)}`:'Belum Ada Anggaran')}${metricCard('Total Saldo Rekening',kas,'▤',kas<0?'red':'blue','Saldo Seluruh Rekening, Sepanjang Waktu')}
 </div>
@@ -5894,7 +5894,7 @@ ${cloud.error?`<div class="callout" style="margin-top:12px;border:1px solid #e8b
 <div class="grid layout-2"><section class="card"><div class="card-head"><div><h3>Saldo Per Rekening</h3><p>Cocokkan saldo dengan rekening asli; periksa jika ada transaksi yang belum dicatat.</p></div><span class="card-icon">▤</span></div><div style="background:#edf4ff;border-radius:14px;padding:17px;margin-bottom:10px"><div class="metric-label">Total Seluruh Rekening</div><div class="metric">${money(total)}</div></div>${db.accounts.map(a=>`<div class="account-row"><span class="account-avatar">${a.type==='Bank'?'▤':a.type==='E-Wallet'?'◉':'▣'}</span><div class="account-info"><strong>${h(a.name)}</strong><small>${h(a.type)} • Saldo awal ${money(a.opening)}</small></div><div style="text-align:right"><div class="account-balance ${bal[a.id]<0?'red':''}">${money(bal[a.id])}</div><div class="action-buttons"><button class="btn sm" data-edit-account="${h(a.id)}">Edit</button><button class="btn sm danger" data-delete-account="${h(a.id)}">Hapus</button></div></div></div>`).join('')}<div class="form-actions"><button class="btn sm full" data-action="new-transfer">⇄ Transfer antar rekening</button></div></section>
 <section class="card"><div class="card-head"><div><h3>${aEdit?'Edit Rekening':'Tambah Rekening / Dompet'}</h3><p>Contoh BRI, BCA, SeaBank, GoPay, DANA, Tunai</p></div></div><form id="account-form"><input name="editId" type="hidden" value="${h(aEdit?.id||'')}"><div class="form-grid"><div class="form-field full"><label class="field-label">Nama Rekening</label><input class="field" maxlength="60" name="name" value="${h(aEdit?.name||'')}" required placeholder="Misalnya BRI Gaji"></div><div class="form-field"><label class="field-label">Jenis</label><select class="field" name="type">${['Bank','E-Wallet','Tunai'].map(x=>`<option ${aEdit?.type===x?'selected':''}>${x}</option>`).join('')}</select></div><div class="form-field"><label class="field-label">Saldo Awal (Rp)</label><input class="field" name="opening" type="text" inputmode="decimal" data-rupiah="1" value="${fmtAmount(aEdit?.opening||0)}" required></div></div><div class="form-actions"><button type="submit" class="btn teal">${aEdit?'✓ Simpan perubahan':'＋ Tambah rekening'}</button>${aEdit?'<button type="button" class="btn" data-action="cancel-account-edit">Batal</button>':''}</div></form><div class="tip" style="margin-top:17px">Saldo awal adalah saldo saat pertama menggunakan aplikasi, tidak dihitung sebagai pemasukan baru.</div></section></div>
 <div class="grid layout-equal"><section class="card"><div class="card-head"><div><h3>Pengaturan Kategori</h3><p>Pilih kategori dan kelompok yang sesuai agar rekap transaksi dan anggaran akurat.</p></div><button class="btn sm" type="button" data-nav="budgets">⚙ Kelola Kelompok</button></div><form id="category-form"><input type="hidden" name="editId" value="${h(cEdit?.id||'')}"><div class="form-grid"><div class="form-field"><label class="field-label">Jenis Kategori</label><select class="field" name="kind" id="new-cat-kind" ${cEdit?'disabled':''}><option value="expense" ${cEdit?.kind==='expense'?'selected':''}>Pengeluaran</option><option value="income" ${cEdit?.kind==='income'?'selected':''}>Pemasukan</option></select></div><div class="form-field"><label class="field-label">Kelompok</label><select class="field" name="group" id="new-cat-group">${(cEdit?.kind==='income'?['BPS','Fastlink','Lainnya']:cEdit?.kind==='expense'?expenseGroups().map(g=>g.name):expenseGroups().map(g=>g.name)).map(g=>`<option value="${h(g)}" ${cEdit?.group===g?'selected':''}>${pickSymbol(g,g)} ${h(g)}</option>`).join('')}</select></div><div class="form-field full"><label class="field-label">Nama Kategori</label><input class="field" required maxlength="70" name="label" value="${h(cEdit?.label||'')}" placeholder="Contoh: Pendidikan"></div></div><div class="form-actions"><button class="btn primary" type="submit">${cEdit?'Simpan kategori':'＋ Tambah kategori'}</button>${cEdit?'<button class="btn" type="button" data-action="cancel-category-edit">Batal</button>':''}</div></form><div class="linebreak"></div><div class="inline-cards">${db.categories.map(c=>`<div class="inline-line"><div class="symbol-line">${symbolBadge(c.label,c.group,true)}<div class="symbol-text"><strong>${h(c.label)}</strong><small>${h(c.group)} · ${c.kind==='income'?'Pemasukan':'Pengeluaran'}</small></div></div><div class="action-buttons"><button class="btn sm" data-edit-category="${h(c.id)}">Edit</button><button class="btn sm danger" data-delete-category="${h(c.id)}">Hapus</button></div></div>`).join('')}</div></section>
-<section class="card"><div class="card-head"><div><h3>Cadangkan & Pulihkan</h3><p>Unduh cadangan sebelum mengimpor data atau melakukan perubahan besar pada akun.</p></div><span class="card-icon">⇩</span></div><div class="callout"><span>ⓘ</span><div>Saat login, data cloud akan menjadi sumber utama. Ekspor JSON berkala sangat disarankan sebelum penghapusan atau pemulihan massal.</div></div><button data-action="export" class="btn teal full">↓ Ekspor semua data (JSON)</button>${localStorage.getItem('arus-cadangan-sebelum-cloud')?'<button class="btn full" data-action="export-precloud" style="margin-top:9px">↓ Unduh cadangan sebelum login cloud</button>':''}<button data-action="import" class="btn full" style="margin-top:9px">↑ Impor / pulihkan data (JSON)</button><div class="linebreak"></div><button data-action="demo" class="btn sm" ${cloud.signedIn?'disabled title="Keluar akun cloud dulu"':''}>Isi data contoh (lokal)</button> <button data-action="reset" class="btn sm danger">Hapus semua data</button><div class="tip" style="margin-top:15px">Jika tersinkron, reset akan menghapus data di seluruh perangkat yang login pada akun ini. Buat cadangan dahulu.</div><button class="btn full" data-nav="reports" style="margin-top:15px">▣ Buka arsip laporan bulanan →</button><button class="btn full" data-nav="debts" style="margin-top:9px">◈ Buka utang & piutang →</button></section></div>`}
+<section class="card"><div class="card-head"><div><h3>Cadangkan & Pulihkan</h3><p>Unduh cadangan sebelum mengimpor data atau melakukan perubahan besar pada akun.</p></div><span class="card-icon">⇩</span></div><div class="callout"><span>ⓘ</span><div>Saat login, data cloud akan menjadi sumber utama. Ekspor JSON berkala sangat disarankan sebelum penghapusan atau pemulihan massal.</div></div><button data-action="export" class="btn teal full">↓ Ekspor semua data (JSON)</button>${localStorage.getItem('arus-cadangan-sebelum-cloud')?'<button class="btn full" data-action="export-precloud" style="margin-top:9px">↓ Unduh cadangan sebelum login cloud</button>':''}<button data-action="import" class="btn full" style="margin-top:9px">↑ Impor / pulihkan data (JSON)</button>${localStorage.getItem('arus-cadangan-sebelum-demo')?'<button data-action="export-pre-demo" class="btn full" style="margin-top:9px">↓ Unduh cadangan sebelum simulasi</button>':''}<div class="linebreak"></div><button data-action="demo" class="btn sm" ${cloud.signedIn?'disabled title="Keluar akun cloud dulu"':''}>Isi contoh 24 bulan (lokal)</button> <button data-action="reset" class="btn sm danger">Hapus semua data</button><div class="tip" style="margin-top:15px">Jika tersinkron, reset akan menghapus data di seluruh perangkat yang login pada akun ini. Buat cadangan dahulu.</div><button class="btn full" data-nav="reports" style="margin-top:15px">▣ Buka arsip laporan bulanan →</button><button class="btn full" data-nav="debts" style="margin-top:9px">◈ Buka utang & piutang →</button></section></div>`}
 function buildReport(month){let tx=db.transactions.filter(t=>t.date.slice(0,7)===month).map(t=>({...t,categoryLabel:cat(t.categoryId)?.label||'',group:cat(t.categoryId)?.group||'',accountLabel:acc(t.accountId)?.name||'',toAccountLabel:acc(t.toAccountId)?.name||''})).sort((a,b)=>a.date.localeCompare(b.date)),sum=kind=>tx.filter(t=>t.type===kind).reduce((n,t)=>n+num(t.amount),0);
 let expenseBreakdown=expenses().map(c=>({label:c.label,group:c.group,budget:num(db.budgets[month+'|'+c.id])+db.budgetMoves.filter(m=>m.month===month).reduce((v,m)=>v+(m.to===c.id?num(m.amount):0)-(m.from===c.id?num(m.amount):0),0),spent:tx.filter(t=>t.type==='expense'&&t.categoryId===c.id).reduce((v,t)=>v+num(t.amount),0)}));
 let incomeBreakdown=incomes().map(c=>({label:c.label,group:c.group,received:tx.filter(t=>t.type==='income'&&t.categoryId===c.id).reduce((v,t)=>v+num(t.amount),0)}));
@@ -5966,7 +5966,86 @@ function saveDeletedTransaction(){
  document.querySelector('#tx-search-backdrop #tx-search-input, #review-modal-backdrop [data-review-close], #tx-history-backdrop [data-close-tx-history]')?.focus({preventScroll:true});
 }
 function setView(view){if(view==='transactions'){openTxHistory();return;}if(ui.view!==view){closeFinanceEditor();ui.reviewPopup=null;}ui.txModalOpen=false;ui.txEditId=null;ui.txHistoryOpen=false;ui.txSearchOpen=false;ui.txSearchQuery='';ui.comp.menu=null;if(!['dashboard','review','budgets','debts','reports','accounts'].includes(view))return;ui.view=view;render();window.scrollTo({top:0,behavior:'smooth'})}
-function demo(){if(cloud.signedIn){toast('Keluar dari akun cloud sebelum memuat simulasi.',true);return}if(!confirm('Isi data SIMULASI bulan ini? Ini akan MENGGANTI seluruh data yang tersimpan di browser ini. Lanjutkan?'))return;db=fresh();db.accounts=[{id:'a-cash',name:'Tunai',type:'Tunai',opening:350000},{id:'a-bank',name:'Bank Contoh',type:'Bank',opening:1450000},{id:'a-wallet',name:'E-Wallet Contoh',type:'E-Wallet',opening:180000}];let budgetAmounts=[850000,1200000,450000,120000,200000,100000,250000,180000,250000,200000,150000,160000];expenses().forEach((c,i)=>db.budgets[ui.month+'|'+c.id]=budgetAmounts[i]);let add=(date,type,amount,categoryId,title,accountId='a-bank',toAccountId)=>db.transactions.push({id:uid(),date,type,amount,categoryId,title,accountId,toAccountId,createdAt:new Date().toISOString(),note:''});let m=ui.month;let at=n=>m+'-'+String(n).padStart(2,'0');let maxDay=Math.min(Number(today().slice(8)),21);let safe=n=>at(Math.min(n,maxDay));add(safe(1),'income',4200000,'c14','Gaji pokok bulan ini');add(safe(2),'income',3200000,'c15','Tukin bulan ini');add(safe(3),'income',1750000,'c13','Dividen Fastlink');add(safe(5),'income',650000,'c16','Uang makan');add(safe(6),'expense',825000,'c1','Kontrakan bulanan');add(safe(7),'expense',970000,'c2','Belanja makan dan bahan pokok');add(safe(8),'expense',345000,'c3','Bensin & transport');add(safe(9),'expense',112000,'c8','Skincare & pangkas rambut');add(safe(11),'expense',225000,'c7','Ngopi & jajan');add(safe(12),'expense',145000,'c11','Paket internet');add(safe(13),'expense',185000,'c9','Hadiah untuk diri sendiri');add(safe(15),'expense',255000,'c10','Obat & periksa');add(safe(17),'expense',190000,'c6','Infaq');add(safe(18),'expense',240000,'c2','Makan siang & malam');add(safe(19),'expense',95000,'c4','Laundry','a-cash');add(safe(20),'transfer',250000,null,'Top up e-wallet','a-bank','a-wallet');db.debts=[{id:uid(),type:'receivable',person:'Teman (contoh)',amount:200000,date:safe(10),accountId:'a-cash',note:'Contoh piutang',settlements:[]}];save();setView('dashboard');toast('Data simulasi telah dimuat. Hapus sebelum memulai pencatatan asli.')}
+function demo(){
+ if(cloud.signedIn){toast('Keluar dari akun cloud sebelum memuat simulasi.',true);return}
+ const lastMonth=currentMonth();
+ const firstMonthDate=new Date(Number(lastMonth.slice(0,4)),Number(lastMonth.slice(5,7))-24,1);
+ const firstMonth=dateISO(firstMonthDate).slice(0,7);
+ const warning='Muat data SIMULASI 24 bulan ('+monthFmt(firstMonth)+' – '+monthFmt(lastMonth)+')? Ini akan MENGGANTI seluruh data di browser ini. Data lama akan dicadangkan secara lokal terlebih dahulu. Lanjutkan?';
+ if(!confirm(warning))return;
+ const before=db;
+ const hasOldData=before.transactions.length||before.debts.length||Object.keys(before.budgets||{}).length||Object.keys(before.reports||{}).length||before.accounts.length>1;
+ if(hasOldData){
+  try{localStorage.setItem('arus-cadangan-sebelum-demo',JSON.stringify(before))}
+  catch(e){toast('Gagal mencadangkan data lama. Ekspor JSON dahulu sebelum memuat simulasi.',true);return}
+ }
+ db=fresh();
+ db.accounts=[
+  {id:'a-cash',name:'Tunai (Simulasi)',type:'Tunai',opening:1200000},
+  {id:'a-bank',name:'Bank Contoh (Simulasi)',type:'Bank',opening:10500000},
+  {id:'a-wallet',name:'E-Wallet (Simulasi)',type:'E-Wallet',opening:550000}
+ ];
+ const baseBudgets=[900000,1750000,580000,210000,420000,190000,440000,250000,420000,320000,190000,240000];
+ const stamp=new Date().toISOString();
+ const add=(date,type,amount,categoryId,title,accountId='a-bank',toAccountId)=>db.transactions.push({
+  id:uid(),date,type,amount,categoryId,title,accountId,toAccountId,
+  createdAt:stamp,note:'Data contoh / simulasi (bukan transaksi asli)'
+ });
+ const inc=(index,slot,step=10000)=>((index*7+slot*3)%6)*step;
+ for(let i=0;i<24;i++){
+  const date=new Date(firstMonthDate.getFullYear(),firstMonthDate.getMonth()+i,1);
+  const m=dateISO(date).slice(0,7),years=Math.floor(i/12);
+  const lastDay=new Date(date.getFullYear(),date.getMonth()+1,0).getDate();
+  const cap=m===lastMonth?Math.min(lastDay,Number(today().slice(8))):lastDay;
+  const at=day=>m+'-'+String(Math.min(day,cap)).padStart(2,'0');
+  const addAt=(day,type,amount,categoryId,title,accountId='a-bank',toAccountId)=>add(at(day),type,amount,categoryId,title,accountId,toAccountId);
+  expenses().forEach((category,index)=>{
+   db.budgets[m+'|'+category.id]=baseBudgets[index]+((i%6===0&&index===1)?50000:0);
+  });
+  addAt(2,'income',4200000+years*300000+inc(i,1,20000),'c14','Gaji bulanan (simulasi)');
+  addAt(4,'income',2750000+years*180000+inc(i,2,25000),'c15','Tunjangan bulanan (simulasi)');
+  addAt(7,'income',430000+inc(i,3,25000),'c16','Uang makan bulanan (simulasi)');
+  if(i%3===0)addAt(9,'income',1300000+inc(i,4,100000),'c13','Dividen triwulanan (simulasi)');
+  if(i%4===2)addAt(18,'income',250000+inc(i,5,40000),'c17','Tambahan lembur (simulasi)');
+  if(i%7===3)addAt(26,'income',175000+inc(i,6,30000),'c18','Pemasukan sampingan (simulasi)','a-cash');
+  addAt(3,'transfer',340000,null,'Tarik tunai bulanan (simulasi)','a-bank','a-cash');
+  addAt(5,'transfer',480000,null,'Top up dompet digital (simulasi)','a-bank','a-wallet');
+  addAt(1,'expense',850000+years*25000,'c1','Sewa tempat tinggal (simulasi)');
+  [3,7,11,15,19,23,27].forEach((day,j)=>addAt(day,'expense',170000+inc(i,j+8,15000),'c2',
+   ['Belanja bahan masak','Makan siang & malam','Belanja pasar','Belanja kebutuhan dapur','Makan harian','Belanja mingguan','Belanja kebutuhan pokok'][j]+' (simulasi)'));
+  [4,12,20,28].forEach((day,j)=>addAt(day,'expense',75000+inc(i,j+17,10000),'c3',
+   ['Bensin kendaraan','Ongkos transportasi','Bensin & parkir','Transport akhir bulan'][j]+' (simulasi)'));
+  [6,13,21,26].forEach((day,j)=>addAt(day,'expense',55000+inc(i,j+24,10000),'c7',
+   ['Jajan sore','Ngopi bersama teman','Camilan','Jajan akhir pekan'][j]+' (simulasi)','a-wallet'));
+  [9,24].forEach((day,j)=>addAt(day,'expense',65000+inc(i,j+31,5000),'c4',
+   (j?'Laundry mingguan kedua':'Laundry mingguan')+' (simulasi)','a-cash'));
+  addAt(10,'expense',100000+inc(i,35,10000),'c6','Infaq rutin (simulasi)');
+  addAt(14,'expense',(i%7===4?580000:230000)+inc(i,36,20000),'c5','Bantuan keluarga (simulasi)');
+  addAt(17,'expense',125000+inc(i,37,15000),'c8','Perawatan diri (simulasi)');
+  addAt(22,'expense',(i%8===5?920000:140000)+inc(i,38,25000),'c9','Hiburan & self reward (simulasi)');
+  addAt(8,'expense',155000+inc(i,39,5000),'c11','Paket internet (simulasi)');
+  if(i%3!==2)addAt(25,'expense',75000+inc(i,40,35000),'c10','Obat / biaya kesehatan (simulasi)');
+  if(i%2===0)addAt(16,'expense',60000+inc(i,41,30000),'c12','Kebutuhan tak terduga (simulasi)');
+  if(i===17)db.budgetMoves.push({id:uid(),month:m,date:at(10),from:'c12',to:'c7',amount:90000});
+ }
+ const debtDate=(index,day)=>{
+  const d=new Date(firstMonthDate.getFullYear(),firstMonthDate.getMonth()+index,1);
+  const m=dateISO(d).slice(0,7),limit=m===lastMonth?Number(today().slice(8)):new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  return m+'-'+String(Math.min(day,limit)).padStart(2,'0');
+ };
+ db.debts=[
+  {id:uid(),type:'receivable',person:'Teman A (Simulasi)',amount:300000,date:debtDate(5,8),accountId:'a-cash',note:'Piutang contoh yang sudah lunas',settlements:[{id:uid(),date:debtDate(6,12),amount:300000,accountId:'a-cash'}]},
+  {id:uid(),type:'payable',person:'Kerabat B (Simulasi)',amount:750000,date:debtDate(14,7),accountId:'a-bank',note:'Utang contoh dengan cicilan',settlements:[{id:uid(),date:debtDate(15,6),amount:300000,accountId:'a-bank'},{id:uid(),date:debtDate(16,6),amount:450000,accountId:'a-bank'}]},
+  {id:uid(),type:'payable',person:'Kerabat C (Simulasi)',amount:600000,date:debtDate(22,9),accountId:'a-bank',note:'Contoh utang yang belum lunas',settlements:[{id:uid(),date:debtDate(23,5),amount:200000,accountId:'a-bank'}]},
+  {id:uid(),type:'receivable',person:'Teman D (Simulasi)',amount:450000,date:debtDate(23,10),accountId:'a-cash',note:'Contoh piutang belum lunas',settlements:[]}
+ ];
+ ui.month=lastMonth;
+ ui.reportMonth=lastMonth;
+ ui.comp={...ui.comp,preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,open:false,menu:null};
+ if(!save()){db=before;return}
+ setView('dashboard');
+ toast('Simulasi 24 bulan dimuat ('+monthFmt(firstMonth)+' – '+monthFmt(lastMonth)+'). Coba filter Semua Data untuk tren Tahunan!');
+}
 function parseAmount(value){
  const raw=String(value??'').trim();
  if(!/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/.test(raw))return NaN;
@@ -6611,7 +6690,7 @@ if(x.dataset.deleteAccount){let id=x.dataset.deleteAccount;if(db.accounts.length
 if(x.dataset.repay){openRepayPopup(x.dataset.repay);return}
 if(x.dataset.action){let a=x.dataset.action;
 if(cloud.pendingDecision&&!['cloud-upload','cloud-empty','cloud-logout','export','export-precloud'].includes(a))return toast('Cloud kosong. Putuskan dahulu apakah akan mengunggah data lokal atau mulai dari kosong.',true);
-if(a==='demo')demo();if(a==='export')exportJSON();if(a==='export-precloud'){let old=localStorage.getItem('arus-cadangan-sebelum-cloud');if(old)downloadFile('Duit-Duit-Paaxixi-cadangan-sebelum-cloud.json',old,'application/json');}if(a==='import')document.getElementById('import-file').click();
+if(a==='demo')demo();if(a==='export-pre-demo'){let old=localStorage.getItem('arus-cadangan-sebelum-demo');if(old)downloadFile('Duit-Duit-Paaxixi-cadangan-sebelum-simulasi.json',old,'application/json');}if(a==='export')exportJSON();if(a==='export-precloud'){let old=localStorage.getItem('arus-cadangan-sebelum-cloud');if(old)downloadFile('Duit-Duit-Paaxixi-cadangan-sebelum-cloud.json',old,'application/json');}if(a==='import')document.getElementById('import-file').click();
 if(a==='cancel-expense-group'||a==='cancel-budget-category'){closeFinanceEditor();return;}
  if(a==='cancel-edit-tx'){dismissTxModal();return}if(a==='cancel-edit-debt'){ui.debtEditId=null;render()}if(a==='cancel-account-edit'){ui.accountEditId=null;render()}if(a==='cancel-category-edit'){ui.categoryEditId=null;render()}if(a==='cancel-move-edit'){ui.moveEditId=null;render()}
 if(a==='reset'&&await confirmDelete('HAPUS seluruh transaksi, anggaran, pinjaman, arsip laporan, dan rekening'+(cloud.signedIn?' pada SEMUA PERANGKAT tersinkron':' di browser ini')+'? Tindakan ini tidak dapat dibatalkan tanpa file cadangan.')){db=fresh();save();ui.debtSelected=null;ui.txEditId=null;setView('dashboard');toast('Data dibersihkan.')}

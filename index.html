@@ -2688,6 +2688,109 @@ body:has(.tx-search-backdrop){overflow:hidden}
  #content .kpis .kpi-heading-emoji{animation:none!important}
 }
 
+
+/* #065 Komposisi Pengeluaran playful + donut, legend mini-cards & insight */
+#composition-card{position:relative;overflow:visible}
+#composition-card .comp-header{align-items:flex-start;flex-wrap:wrap;gap:13px}
+#composition-card .comp-header>div:first-child{min-width:0;flex:1 1 290px}
+#composition-card .comp-subline{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:10px 0 2px}
+#composition-card .comp-mode-badge,#composition-card .comp-month-badge{
+ display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;
+ background:#eaf3ff;border:1px solid #d0e2fb;color:#2e5d98;
+ font:850 11px/1.3 'Nunito',system-ui,sans-serif}
+#composition-card .comp-month-badge{background:#fff7e0;border-color:#f1dda5;color:#956e18}
+#composition-card .comp-header-sparkle{font-size:15px;animation:pax-comp-sparkle 4.6s ease-in-out infinite}
+#composition-card .comp-summary-pills{display:flex;flex-wrap:wrap;gap:6px;margin:9px 0 0}
+#composition-card .comp-summary-chip{
+ display:inline-flex;gap:4px;align-items:center;padding:5px 8px;
+ background:#f4f8ff;border:1px solid #dfeaf9;border-radius:9px;
+ color:#6481a4;font:800 10px/1.3 'Nunito',system-ui,sans-serif}
+#composition-card .comp-filter-toggle{
+ min-height:45px;display:inline-flex;align-items:center;justify-content:center;gap:7px;
+ padding:10px 13px;border-radius:14px;border:1.5px solid #a8c9f5;
+ background:linear-gradient(120deg,#f1f7ff,#dcecff);color:#215995;
+ font:850 12px/1.3 'Nunito',system-ui,sans-serif;white-space:nowrap;
+ box-shadow:0 5px 15px rgba(38,96,180,.13);
+ transition:transform .18s,box-shadow .18s;animation:pax-comp-glow 5s ease-in-out infinite}
+#composition-card .comp-filter-emoji{font-size:18px}
+#composition-card .comp-filter-toggle:hover{transform:translateY(-2px);box-shadow:0 9px 22px rgba(37,98,180,.2)}
+#composition-card .comp-filter-toggle:focus-visible{outline:3px solid #3680d9;outline-offset:3px}
+#composition-card .comp-distribution{display:grid;grid-template-columns:minmax(190px,.83fr) minmax(0,1.5fr);gap:18px;align-items:center}
+#composition-card .comp-donut-area{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0}
+#composition-card .comp-donut{
+ width:clamp(175px,18vw,218px);height:clamp(175px,18vw,218px);
+ border:5px solid #fff;box-shadow:0 13px 29px rgba(36,82,159,.15),0 0 0 1px #d3e2f8;
+ animation:pax-comp-pop .65s cubic-bezier(.25,.8,.3,1.1) both;
+ transition:box-shadow .2s,filter .2s}
+#composition-card .comp-donut:before{inset:25px;background:linear-gradient(145deg,#fff,#f5f9ff);box-shadow:inset 0 0 12px rgba(34,94,173,.08)}
+#composition-card .comp-donut:hover{filter:saturate(1.15);box-shadow:0 15px 32px rgba(35,84,155,.19)}
+#composition-card .comp-donut.comp-donut-active{
+ box-shadow:0 13px 31px rgba(35,89,170,.19),0 0 0 3px var(--comp-active-color,#91bceb)}
+#composition-card .comp-donut-middle{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ gap:5px;max-width:calc(100% - 61px);font-size:initial}
+#composition-card .comp-donut-caption{font:850 9px/1.3 'Nunito',sans-serif;letter-spacing:1px;color:#8498b3}
+#composition-card .comp-donut-value{font:600 clamp(18px,2vw,25px)/1.2 'Fredoka','Nunito',sans-serif;color:#174474;white-space:nowrap}
+#composition-card .comp-donut-name{max-width:130px;font:800 10px/1.3 'Nunito',sans-serif;color:#8296b1;overflow-wrap:anywhere}
+#composition-card .comp-donut-help{margin:0;font:750 11px/1.4 'Nunito',sans-serif;color:#7f93b0;text-align:center}
+#composition-card .comp-donut-legend{gap:8px;padding:5px;max-height:395px;overflow-x:hidden}
+#composition-card .comp-legend-item{
+ width:100%;min-height:65px;display:flex;align-items:center;justify-content:space-between;gap:9px;
+ padding:10px 12px;border:1.5px solid #e1eaf8;border-radius:16px;
+ background:linear-gradient(110deg,#fff,#f8fbff);
+ box-shadow:0 4px 11px rgba(24,74,138,.05);text-align:left;
+ transition:transform .2s,background .2s,box-shadow .2s,border-color .2s}
+#composition-card .comp-legend-item:is(:hover,:focus-visible,.comp-is-preview){
+ transform:translateY(-2px);background:#f2f7ff;border-color:#a9c9f5;
+ box-shadow:0 7px 17px rgba(32,82,148,.12)}
+#composition-card .comp-legend-item[aria-pressed="true"]{
+ background:linear-gradient(110deg,#e7f2ff,#f7fbff);border-color:#6ea7e6}
+#composition-card .comp-legend-item:focus-visible{outline:3px solid #478ddd;outline-offset:2px}
+#composition-card .comp-legend-item .legend-left{min-width:0;flex:1;gap:8px}
+#composition-card .comp-legend-dot{width:9px;height:9px;box-shadow:0 0 0 4px rgba(70,122,199,.13);background:var(--comp-item-color,#3974d9)}
+#composition-card .comp-legend-item .symbol-line{display:flex;min-width:0;gap:9px}
+#composition-card .comp-legend-item .category-symbol{width:37px;height:37px;border-radius:12px;font-size:20px;transition:transform .22s}
+#composition-card .comp-legend-item:hover .category-symbol{transform:scale(1.09) rotate(-5deg)}
+#composition-card .comp-legend-name{font:600 clamp(13px,1.1vw,17px)/1.3 'Fredoka','Nunito',sans-serif!important;color:#264877;overflow-wrap:anywhere}
+#composition-card .comp-legend-amount{font:750 11px/1.35 'Nunito',sans-serif;color:#8799b0}
+#composition-card .comp-legend-percent{display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:43px;
+ padding:6px 9px;border-radius:999px;background:#e8f1ff;color:#2862a8;font:900 13px/1.2 'Nunito',sans-serif}
+#composition-card .comp-insight{
+ margin-top:15px;padding:15px;border-radius:18px;border:1px solid #dce8f9;
+ background:linear-gradient(115deg,#f0f6ff,#f8fbff)}
+#composition-card .comp-insight-heading{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+#composition-card .comp-insight-icon{display:grid;place-items:center;width:34px;height:34px;flex:none;
+ border-radius:12px;background:#fff5d8;border:1px solid #f3dfa9;font-size:19px;
+ animation:pax-comp-sparkle 4.6s ease-in-out infinite}
+#composition-card .comp-insight-heading>strong{color:#235385;font:600 17px/1.3 'Fredoka','Nunito',sans-serif}
+#composition-card .comp-insight-star{animation:pax-comp-sparkle 4.6s ease-in-out infinite}
+#composition-card .comp-insight-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#composition-card .comp-insight-point{display:flex;flex-wrap:wrap;align-items:center;gap:7px 9px;padding:12px;
+ min-width:0;border:1px solid #d9e8fb;border-radius:13px;background:rgba(255,255,255,.86)}
+#composition-card .comp-insight-small{background:#f2fbf7;border-color:#d5ebdf}
+#composition-card .comp-insight-tag{width:100%;color:#6580a1;font:900 11px/1.35 'Nunito',sans-serif}
+#composition-card .comp-insight-point>strong{flex:1;min-width:0;color:#254a7c;font:600 14px/1.35 'Fredoka','Nunito',sans-serif}
+#composition-card .comp-insight-pct{padding:5px 8px;border-radius:10px;background:#e1efff;color:#245f9f;font:900 12px/1.3 'Nunito',sans-serif}
+#composition-card .comp-insight-small .comp-insight-pct{background:#def6e7;color:#178264}
+#composition-card .comp-insight-foot{margin:10px 0 0;color:#8095af;font:650 11px/1.45 'Nunito',sans-serif}
+@keyframes pax-comp-pop{from{opacity:.35;transform:scale(.89) rotate(-8deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes pax-comp-sparkle{0%,72%,100%{opacity:.7;transform:scale(.94) rotate(-5deg)}82%{opacity:1;transform:scale(1.13) rotate(9deg)}}
+@keyframes pax-comp-glow{0%,100%{box-shadow:0 5px 15px rgba(38,96,180,.13)}50%{box-shadow:0 7px 20px rgba(42,112,203,.23)}}
+@media(max-width:1000px){#composition-card .comp-distribution{grid-template-columns:minmax(0,1fr)}#composition-card .comp-donut{width:194px;height:194px}}
+@media(max-width:640px){
+ #composition-card .comp-filter-toggle{width:100%;min-height:42px}
+ #composition-card .comp-donut{width:181px;height:181px}
+ #composition-card .comp-insight-list{grid-template-columns:minmax(0,1fr)}
+ #composition-card .comp-legend-item{padding:10px}
+ #composition-card .comp-donut-legend{max-height:340px}
+}
+@media(prefers-reduced-motion:reduce){
+ #composition-card .comp-donut,#composition-card .comp-filter-toggle,
+ #composition-card .comp-insight-icon,#composition-card .comp-insight-star,
+ #composition-card .comp-header-sparkle{animation:none!important;transition:none!important}
+ #composition-card .comp-legend-item,#composition-card .comp-legend-item .category-symbol{transition:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -3168,6 +3271,7 @@ function render(){
  labelNav();
  document.getElementById('content').innerHTML=({dashboard:renderDash,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])()+renderTxHistoryPopup()+renderTxSearchPopup()+renderTxModal();
  decoratePaaxixiSectionTitles();
+ paxCompDecorate();
  paxDecorateMini(document.getElementById('content'));
  paxDecoratePopups(document.getElementById('content'));
  paxAnimateSaved();
@@ -3374,6 +3478,145 @@ function renderCompositionControls(){
    <div class="comp-compact-bottom"><button type="button" class="comp-compact-reset" data-comp-action="reset">↺ Reset Filter</button><span>Filter hanya memengaruhi analisis.</span></div>
  </div>`;
 }
+
+/* #065 Komposisi Pengeluaran interaktif, menjaga perhitungan dan filter yang sudah ada. */
+function paxCompEl(tag,cls,value){
+ const node=document.createElement(tag);
+ if(cls)node.className=cls;
+ if(value!==undefined)node.textContent=value;
+ return node;
+}
+function paxCompDecorate(){
+ const card=document.getElementById('composition-card');
+ if(!card)return;
+ const header=card.querySelector('.comp-header');
+ const description=header?.querySelector('p');
+ if(description){
+  const pieces=description.textContent.split(/\s*•\s*/);
+  const line=paxCompEl('div','comp-subline');
+  line.append(
+   paxCompEl('span','comp-mode-badge',(pieces[0].includes('Kelompok')?'🧩 ':'🏷️ ')+pieces[0]),
+   paxCompEl('span','comp-month-badge',pieces.slice(1).join(' • ')),
+   paxCompEl('span','comp-header-sparkle','✨')
+  );
+  line.lastChild.setAttribute('aria-hidden','true');
+  description.replaceWith(line);
+ }
+ const summary=header?.querySelector('.comp-summary');
+ if(summary){
+  const parts=summary.textContent.split(/\s*·\s*/);
+  const icons=['📅','🧾','🧩','🏷️'];
+  summary.replaceChildren(...parts.map((value,index)=>
+   paxCompEl('span','comp-summary-chip',icons[index%icons.length]+' '+value)));
+  summary.classList.add('comp-summary-pills');
+ }
+ const filter=header?.querySelector('.comp-filter-toggle');
+ if(filter&&!filter.querySelector('.comp-filter-emoji')){
+  const symbol=paxCompEl('span','comp-filter-emoji','🎛️');symbol.setAttribute('aria-hidden','true');
+  filter.prepend(symbol);
+  const controls=card.querySelector('.comp-controls');
+  if(controls){controls.id='comp-analysis-controls';filter.setAttribute('aria-controls',controls.id);}
+ }
+ const donut=card.querySelector('.donut');
+ const center=donut?.querySelector('.donut-middle');
+ if(center){
+  const original=center.textContent.replace(/^Total Keluar/i,'').trim();
+  const caption=paxCompEl('span','comp-donut-caption','Total Keluar');caption.dataset.compCenterCaption='';
+  const amount=paxCompEl('strong','comp-donut-value',original);amount.dataset.compCenterValue='';
+  const label=paxCompEl('small','comp-donut-name','Seluruh pengeluaran');label.dataset.compCenterLabel='';
+  center.replaceChildren(caption,amount,label);
+  center.id='composition-donut-center';
+  center.classList.add('comp-donut-middle');
+  card.dataset.compDefaultValue=original;
+  donut.classList.add('comp-donut');
+  const area=paxCompEl('div','comp-donut-area');
+  donut.replaceWith(area);area.appendChild(donut);
+  area.appendChild(paxCompEl('p','comp-donut-help','👆 Pilih kelompok untuk melihat porsinya'));
+ }
+ const distribution=card.querySelector('.distribution');
+ if(distribution)distribution.classList.add('comp-distribution');
+ const legend=card.querySelector('.comp-donut-legend');
+ if(legend){
+  [...legend.querySelectorAll('.legend-row')].forEach((row,index)=>{
+   const title=row.querySelector('.symbol-text > div')?.textContent.trim()||'Kelompok';
+   const full=row.querySelector('.symbol-text small')?.textContent.trim()||'';
+   const ratio=row.querySelector(':scope > strong')?.textContent.trim()||'';
+   const color=row.querySelector('.dot')?.style.backgroundColor||'#3974d9';
+   const button=paxCompEl('button','legend-row comp-legend-item');
+   button.type='button';button.dataset.compHighlight=String(index);
+   button.dataset.compPart=title;button.dataset.compValue=shortMoney(Number(full.replace(/\D/g,''))||0);
+   button.dataset.compColor=color;
+   button.setAttribute('aria-pressed','false');
+   button.setAttribute('aria-label','Lihat '+title+': '+full+', '+ratio+' dari total pengeluaran');
+   while(row.firstChild)button.appendChild(row.firstChild);
+   row.replaceWith(button);
+   const dot=button.querySelector('.dot');
+   if(dot){dot.classList.add('comp-legend-dot');dot.style.setProperty('--comp-item-color',color);}
+   const name=button.querySelector('.symbol-text > div');if(name)name.classList.add('comp-legend-name');
+   const percentage=button.querySelector(':scope > strong');
+   if(percentage)percentage.classList.add('comp-legend-percent');
+   const amount=button.querySelector('.symbol-text small');if(amount)amount.classList.add('comp-legend-amount');
+  });
+ }
+ const insight=card.querySelector('.comp-insight');
+ if(insight){
+  const large=insight.querySelector(':scope > strong')?.textContent||'';
+  const small=insight.querySelector(':scope > p')?.textContent||'';
+  if(large&&small){
+   const header=paxCompEl('div','comp-insight-heading');
+   const bulb=paxCompEl('span','comp-insight-icon','💡');bulb.setAttribute('aria-hidden','true');
+   const star=paxCompEl('span','comp-insight-star','✨');star.setAttribute('aria-hidden','true');
+   header.append(bulb,paxCompEl('strong','','Sorotan Pengeluaran'),star);
+   const list=paxCompEl('div','comp-insight-list');
+   const point=(heading,line,type)=>{
+    const item=paxCompEl('div','comp-insight-point comp-insight-'+type);
+    const match=line.match(/\((\d+(?:[.,]\d+)?%)\)/);
+    const text=line.replace(/^.*?Paling (?:Besar|Kecil):\s*/i,'').replace(/\s*\(\d+(?:[.,]\d+)?%\).*$/,'').trim();
+    item.append(paxCompEl('span','comp-insight-tag',heading),
+     paxCompEl('strong','',text),paxCompEl('span','comp-insight-pct',match?match[1]:'—'));
+    return item;
+   };
+   list.append(point('📈 Paling Besar',large,'big'),point('🌱 Paling Kecil',small,'small'));
+   insight.replaceChildren(header,list,
+    paxCompEl('p','comp-insight-foot','Persentase dari total pengeluaran sesuai filter analisis.'));
+  }
+ }
+}
+function paxCompPreview(button){
+ const card=button?.closest('#composition-card'),center=card?.querySelector('#composition-donut-center');
+ if(!center)return;
+ const selected=button?.dataset;
+ card.querySelectorAll('[data-comp-highlight]').forEach(node=>
+  node.classList.toggle('comp-is-preview',node===button));
+ const value=center.querySelector('[data-comp-center-value]');
+ const caption=center.querySelector('[data-comp-center-caption]');
+ const label=center.querySelector('[data-comp-center-label]');
+ if(value)value.textContent=selected?.compValue||card.dataset.compDefaultValue||'—';
+ if(caption)caption.textContent=selected?'Porsi Pengeluaran':'Total Keluar';
+ if(label)label.textContent=selected?.compPart||'Seluruh pengeluaran';
+ const chart=card.querySelector('.comp-donut');
+ if(chart){
+  chart.classList.toggle('comp-donut-active',!!selected);
+  if(selected)chart.style.setProperty('--comp-active-color',selected.compColor);
+  else chart.style.removeProperty('--comp-active-color');
+ }
+}
+function paxCompRestore(card){
+ if(!card)return;
+ paxCompPreview(card.querySelector('[data-comp-highlight][aria-pressed="true"]'));
+ if(!card.querySelector('[data-comp-highlight][aria-pressed="true"]')){
+  card.querySelectorAll('.comp-is-preview').forEach(el=>el.classList.remove('comp-is-preview'));
+  const value=card.querySelector('[data-comp-center-value]');
+  const cap=card.querySelector('[data-comp-center-caption]');
+  const label=card.querySelector('[data-comp-center-label]');
+  if(value)value.textContent=card.dataset.compDefaultValue||value.textContent;
+  if(cap)cap.textContent='Total Keluar';
+  if(label)label.textContent='Seluruh pengeluaran';
+  const chart=card.querySelector('.comp-donut');
+  if(chart){chart.classList.remove('comp-donut-active');chart.style.removeProperty('--comp-active-color');}
+ }
+}
+
 function renderComposition(){
  const selected=expenseSelection(),rows=analysisEntries(selected.transactions),total=selected.transactions.reduce((sum,t)=>sum+num(t.amount),0),dates=selected.dates;
  let cursor=0;
@@ -4779,6 +5022,25 @@ document.addEventListener('input',event=>{
  if(icon)icon.textContent=pickSymbol(event.target.value,document.querySelector('#finance-editor-backdrop [data-editor-group]')?.value||'');
 });
 
+
+/* Pratinjau pilihan donut menggunakan hover atau fokus keyboard. */
+document.addEventListener('mouseover',event=>{
+ const button=event.target.closest?.('#composition-card [data-comp-highlight]');
+ if(button&&!button.contains(event.relatedTarget))paxCompPreview(button);
+});
+document.addEventListener('mouseout',event=>{
+ const button=event.target.closest?.('#composition-card [data-comp-highlight]');
+ if(button&&!button.contains(event.relatedTarget))paxCompRestore(button.closest('#composition-card'));
+});
+document.addEventListener('focusin',event=>{
+ const button=event.target.closest?.('#composition-card [data-comp-highlight]');
+ if(button)paxCompPreview(button);
+});
+document.addEventListener('focusout',event=>{
+ const button=event.target.closest?.('#composition-card [data-comp-highlight]');
+ if(button&&!button.contains(event.relatedTarget))paxCompRestore(button.closest('#composition-card'));
+});
+
 /* Respons visual segera ketika input, kelompok, pos, atau rekening dipilih. */
 document.addEventListener('focusin',e=>{
  const el=e.target.closest?.('.form-field');
@@ -5147,6 +5409,13 @@ document.addEventListener('click',async e=>{
 if(x.dataset.compMenu){
  ui.comp.menu=ui.comp.menu===x.dataset.compMenu?null:x.dataset.compMenu;
  render();document.querySelector('[data-comp-menu="'+x.dataset.compMenu+'"].comp-popup-trigger')?.focus({preventScroll:true});return;
+}
+if(x.dataset.compHighlight!==undefined){
+ const card=x.closest('#composition-card'),was=x.getAttribute('aria-pressed')==='true';
+ if(!card)return;
+ card.querySelectorAll('[data-comp-highlight]').forEach(node=>node.setAttribute('aria-pressed','false'));
+ if(!was)x.setAttribute('aria-pressed','true');
+ paxCompRestore(card);return;
 }
 if(x.dataset.compAction){
  const cmd=x.dataset.compAction;

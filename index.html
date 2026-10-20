@@ -3441,43 +3441,38 @@ function analysisEntries(transactions){
  }
  return items.filter(item=>item.value>0).sort((a,b)=>b.value-a.value);
 }
+function renderCompositionQuickBar(){
+ const c=ui.comp;
+ const preset=[['month','📅 Bulan Ini'],['range','🗓️ Rentang'],['all','♾️ Semua']];
+ const breakdown=[['group','🧩 Kelompok'],['category','🏷️ Per Pos']];
+ const options=(items,field,chosen)=>items.map(([id,label])=>
+  '<button type="button" class="comp-quick-choice" data-comp-quick-'+field+'="'+id+'" aria-pressed="'+String(chosen===id)+'">'+label+'</button>').join('');
+ const dates=c.preset==='range'?'<div class="comp-quick-dates">'+
+  '<label>Mulai <input id="comp-start" type="date" value="'+h(c.from||monthBounds(ui.month).from)+'"></label>'+
+  '<label>Selesai <input id="comp-end" type="date" value="'+h(c.to||monthBounds(ui.month).to)+'"></label></div>':'';
+ return '<div class="comp-quickbar" aria-label="Filter cepat komposisi pengeluaran">'+
+  '<div class="comp-quick-group"><span class="comp-quick-label">📆 Periode</span><div class="comp-quick-options" role="group" aria-label="Periode">'+options(preset,'preset',c.preset)+'</div></div>'+
+  '<div class="comp-quick-group"><span class="comp-quick-label">🍩 Tampilan</span><div class="comp-quick-options" role="group" aria-label="Tampilan">'+options(breakdown,'breakdown',c.breakdown)+'</div></div>'+dates+
+  '</div>';
+}
 function renderCompositionControls(){
- const c=ui.comp,groupList=expenseGroups(),groups=analysisGroups(),names=new Set(groups.map(g=>g.name));
- const catList=expenses().filter(cat=>names.has(cat.group));
- const count=(value,total)=>value===null?'Semua':value.length===0?'Tidak Ada':value.length+' / '+total;
- const groupsOptions=groupList.map(g=>`<label class="comp-popitem"><input type="checkbox" data-comp-group="${h(g.id)}" ${c.groups===null||c.groups.includes(g.id)?'checked':''}><span>${pickSymbol(g.name,g.name)} ${h(g.name)}</span></label>`).join('');
- const categoryOptions=catList.map(cat=>`<label class="comp-popitem"><input type="checkbox" data-comp-category="${h(cat.id)}" ${c.categories===null||c.categories.includes(cat.id)?'checked':''}><span>${pickSymbol(cat.label,cat.group)} ${h(cat.label)}<small>${h(cat.group)}</small></span></label>`).join('');
- const dropdown=(kind,title,summary,body,disabled=false)=>{
-   const opened=c.menu===kind,id='comp-'+kind+'-popup';
-   return `<div class="comp-compact-field comp-picker ${opened?'is-open':''}">
-    <span class="comp-compact-label">${title}</span>
-    <button type="button" class="comp-popup-trigger" data-comp-menu="${kind}" aria-haspopup="true" aria-controls="${id}" aria-expanded="${opened?'true':'false'}" ${disabled?'disabled':''}><span class="comp-trigger-value">${h(summary)}</span><span class="comp-chevron" aria-hidden="true">⌄</span></button>
-    ${opened?`<div class="comp-popover" id="${id}" data-comp-popup="${kind}" role="group" aria-label="Pilihan ${title}">
-      <div class="comp-popover-header"><strong>${title}</strong><button type="button" class="comp-popup-close" data-comp-menu="${kind}" aria-label="Tutup pilihan ${title}">✕</button></div>
-      <div class="comp-popover-actions"><button type="button" data-comp-action="all-${kind==='group'?'groups':'categories'}">Pilih Semua</button><button type="button" data-comp-action="clear-${kind==='group'?'groups':'categories'}">Hapus Semua</button></div>
-      <div class="comp-popover-items">${body||'<div class="comp-popover-empty">Belum Ada Pilihan</div>'}</div>
-      <div class="comp-popover-foot">${kind==='group'?'Pilih beberapa kelompok. Pos akan mengikuti pilihanmu.':'Centang satu atau beberapa pos untuk dianalisis.'}</div>
-     </div>`:''}
-   </div>`;
- };
- const presetOpts=[['month','Bulan Ini'],['range','Rentang Tanggal'],['all','Seluruh Data']];
- return `<div class="comp-controls comp-controls-compact">
-   <div class="comp-compact-grid">
-    <label class="comp-compact-field"><span class="comp-compact-label">1 · Periode</span>
-     <select id="comp-preset">${presetOpts.map(([val,label])=>`<option value="${val}" ${c.preset===val?'selected':''}>${label}</option>`).join('')}</select>
-    </label>
-    ${dropdown('group','2 · Kelompok',count(c.groups,groupList.length),groupsOptions)}
-    ${dropdown('category','3 · Pos',catList.length?count(c.categories,catList.length):'Tidak Ada Pos',categoryOptions,!catList.length)}
-    <label class="comp-compact-field"><span class="comp-compact-label">4 · Komposisi</span>
-     <select id="comp-breakdown"><option value="group" ${c.breakdown==='group'?'selected':''}>Per Kelompok</option><option value="category" ${c.breakdown==='category'?'selected':''}>Per Pos Pengeluaran</option></select>
-    </label>
-   </div>
-   ${c.preset==='range'?`<div class="comp-compact-dates">
-    <label class="comp-compact-field"><span class="comp-compact-label">Tanggal Mulai</span><input id="comp-start" type="date" value="${h(c.from||monthBounds(ui.month).from)}"></label>
-    <label class="comp-compact-field"><span class="comp-compact-label">Tanggal Selesai</span><input id="comp-end" type="date" value="${h(c.to||monthBounds(ui.month).to)}"></label>
-   </div>`:''}
-   <div class="comp-compact-bottom"><button type="button" class="comp-compact-reset" data-comp-action="reset">↺ Reset Filter</button><span>Filter hanya memengaruhi analisis.</span></div>
- </div>`;
+ const c=ui.comp,groupList=expenseGroups(),groups=analysisGroups();
+ const names=new Set(groups.map(g=>g.name));
+ const catList=expenses().filter(item=>names.has(item.group));
+ const chosen=(values,id)=>values===null||values.includes(id);
+ const groupChips='<button type="button" class="comp-filter-chip comp-all-chip" data-comp-quick-group="all" aria-pressed="'+(c.groups===null)+'">✨ Semua</button>'+
+   groupList.map(g=>'<button type="button" class="comp-filter-chip" data-comp-quick-group="'+h(g.id)+'" aria-pressed="'+chosen(c.groups,g.id)+'">'+pickSymbol(g.name,g.name)+' '+h(g.name)+'</button>').join('');
+ const visible=c.showMore?catList:catList.slice(0,6);
+ const categoryChips='<button type="button" class="comp-filter-chip comp-all-chip" data-comp-quick-category="all" aria-pressed="'+(c.categories===null)+'">✨ Semua Pos</button>'+
+   visible.map(item=>'<button type="button" class="comp-filter-chip" data-comp-quick-category="'+h(item.id)+'" aria-pressed="'+chosen(c.categories,item.id)+'">'+pickSymbol(item.label,item.group)+' '+h(item.label)+'</button>').join('');
+ const expand=catList.length>6?'<button type="button" class="comp-filter-more" data-comp-quick-more aria-expanded="'+!!c.showMore+'">'+(c.showMore?'Tampilkan Sedikit':'+'+(catList.length-6)+' Pos Lainnya')+' ↗</button>':'';
+ const selectedPosCount=c.categories===null?'Semua pos':c.categories.length+' pos dipilih';
+ return '<div class="comp-controls comp-controls-inline" aria-label="Filter kategori pengeluaran">'+
+  '<div class="comp-filter-row"><div class="comp-filter-caption"><strong>🧩 Pilih Kelompok</strong><small>Klik satu atau beberapa kategori</small></div>'+
+   '<div class="comp-filter-chips" role="group" aria-label="Kelompok pengeluaran">'+groupChips+'</div></div>'+
+  '<div class="comp-filter-row"><div class="comp-filter-caption"><strong>🏷️ Pilih Pos</strong><small>'+h(selectedPosCount)+'</small></div>'+
+   '<div class="comp-filter-chips" role="group" aria-label="Pos pengeluaran">'+categoryChips+(catList.length?expand:'<span class="comp-filter-none">Tidak ada pos di kelompok terpilih</span>')+'</div></div>'+
+  '<div class="comp-filter-footer"><button type="button" data-comp-action="reset" class="comp-compact-reset">↺ Reset Filter</button><span>Filter hanya berlaku untuk grafik dan insight.</span></div></div>';
 }
 
 /* #065 Komposisi Pengeluaran interaktif, menjaga perhitungan dan filter yang sudah ada. */
@@ -3629,8 +3624,9 @@ function renderComposition(){
  const range=dates.from===dates.to?dateFmt(dates.from):dateFmt(dates.from)+' – '+dateFmt(dates.to);
  return `<section class="card" id="composition-card">
  <div class="card-head comp-header"><div><h3>Komposisi Pengeluaran</h3><p>${h(ui.comp.breakdown==='group'?'Per Kelompok':'Per Pos')} • ${h(dates.title)}</p><div class="comp-summary">${h(range)} · ${selected.transactions.length} Transaksi · ${selected.groups.length} Kelompok · ${selected.categories.length} Pos</div></div>
-  <button type="button" class="btn sm comp-filter-toggle" data-comp-action="toggle" aria-expanded="${ui.comp.open?'true':'false'}"><svg class="filter-funnel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5h16l-6.5 7.5v5l-3 1.5v-6.5L4 5z"/></svg><span>${ui.comp.open?'Tutup Filter':'Atur Analisis'}</span></button>
+  <button type="button" class="btn sm comp-filter-toggle" data-comp-action="toggle" aria-expanded="${ui.comp.open?'true':'false'}"><svg class="filter-funnel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5h16l-6.5 7.5v5l-3 1.5v-6.5L4 5z"/></svg><span>${ui.comp.open?'Tutup Pos':'Filter Pos'}</span></button>
  </div>
+ ${renderCompositionQuickBar()}
  ${ui.comp.open?renderCompositionControls():''}
  ${total>0?`<div class="distribution"><div class="donut" style="background:conic-gradient(${gradient})"><div class="donut-middle"><span>Total Keluar</span>${shortMoney(total)}</div></div>
  <div class="legend comp-donut-legend">${rows.map(item=>`<div class="legend-row"><div class="legend-left"><span class="dot" style="background:${h(item.color)}"></span><div class="symbol-line"><span class="category-symbol compact" aria-hidden="true">${item.icon}</span><div class="symbol-text"><div style="font-weight:750">${h(item.label)}</div><small>${money(item.value)}</small></div></div></div><strong>${pct(item.value,total)}%</strong></div>`).join('')}</div></div>
@@ -5418,10 +5414,54 @@ if(x.dataset.compHighlight!==undefined){
  if(!was)x.setAttribute('aria-pressed','true');
  paxCompRestore(card);return;
 }
+if(x.dataset.compQuickPreset!==undefined){
+ const next=x.dataset.compQuickPreset;
+ if(!['month','range','all'].includes(next))return;
+ ui.comp.preset=next;ui.comp.menu=null;
+ if(next==='range'){
+  const bounds=monthBounds(ui.month);
+  ui.comp.from=ui.comp.from||bounds.from;ui.comp.to=ui.comp.to||bounds.to;
+ }
+ render();return;
+}
+if(x.dataset.compQuickBreakdown!==undefined){
+ if(!['group','category'].includes(x.dataset.compQuickBreakdown))return;
+ ui.comp.breakdown=x.dataset.compQuickBreakdown;render();return;
+}
+if(x.dataset.compQuickGroup!==undefined){
+ const id=x.dataset.compQuickGroup,allIds=expenseGroups().map(g=>g.id);
+ if(id==='all')ui.comp.groups=null;
+ else if(allIds.includes(id)){
+  const active=ui.comp.groups;
+  if(active===null)ui.comp.groups=[id];
+  else {
+   const next=active.includes(id)?active.filter(x=>x!==id):[...active,id];
+   ui.comp.groups=next.length===0||next.length===allIds.length?null:next;
+  }
+ }
+ ui.comp.categories=null;ui.comp.showMore=false;render();return;
+}
+if(x.dataset.compQuickCategory!==undefined){
+ const id=x.dataset.compQuickCategory,groupNames=new Set(analysisGroups().map(g=>g.name));
+ const allIds=expenses().filter(c=>groupNames.has(c.group)).map(c=>c.id);
+ if(id==='all')ui.comp.categories=null;
+ else if(allIds.includes(id)){
+  const active=ui.comp.categories;
+  if(active===null)ui.comp.categories=[id];
+  else {
+   const next=active.includes(id)?active.filter(x=>x!==id):[...active,id];
+   ui.comp.categories=next.length===0||next.length===allIds.length?null:next;
+  }
+ }
+ render();return;
+}
+if(x.hasAttribute('data-comp-quick-more')){
+ ui.comp.showMore=!ui.comp.showMore;render();return;
+}
 if(x.dataset.compAction){
  const cmd=x.dataset.compAction;
  if(cmd==='toggle'){ui.comp.open=!ui.comp.open;ui.comp.menu=null;}
- if(cmd==='reset'){ui.comp={preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'month',trendFrom:'',trendTo:'',trendLabels:true,open:true,menu:null};}
+ if(cmd==='reset'){ui.comp={preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'month',trendFrom:'',trendTo:'',trendLabels:true,open:true,menu:null,showMore:false};}
  if(cmd==='all-groups'){ui.comp.groups=null;ui.comp.categories=null;}
  if(cmd==='clear-groups'){ui.comp.groups=[];ui.comp.categories=null;}
  if(cmd==='all-categories'){ui.comp.categories=null;}

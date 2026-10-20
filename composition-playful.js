@@ -310,7 +310,7 @@
    const more=el('button','comp-live-show-more','🧩 Lihat '+(rows.length-3)+' kategori lainnya ↗');
    more.type='button';
    more.addEventListener('click',()=>{locked=-1;paint(-1);openModal('detail');});
-   legend.after(more);
+   legend.append(more);
   }
   paint(-1);
  }

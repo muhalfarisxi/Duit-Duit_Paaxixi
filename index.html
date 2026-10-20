@@ -3442,34 +3442,20 @@ function analysisEntries(transactions){
  }
  return items.filter(item=>item.value>0).sort((a,b)=>b.value-a.value);
 }
+/* Filter satu sentuhan: periode + satu kelompok, tanpa dropdown. */
 function renderCompositionQuickBar(){
- const c=ui.comp;
- const presets=[['month','📅 Bulan Ini'],['range','🗓️ Rentang'],['all','♾️ Semua']];
- const options=presets.map(([id,label])=>'<button type="button" class="comp-quick-choice" data-comp-quick-preset="'+id+'" aria-pressed="'+(c.preset===id)+'">'+label+'</button>').join('');
+ const c=ui.comp,choices=[['month','📅 Bulan Ini'],['range','🗓️ Rentang'],['all','♾️ Semua Data']];
+ const buttons=choices.map(([id,label])=>'<button type="button" class="comp-quick-choice" data-comp-quick-preset="'+id+'" aria-pressed="'+(c.preset===id)+'">'+label+'</button>').join('');
  const dates=c.preset==='range'?'<div class="comp-quick-dates">'+
   '<label>Mulai <input id="comp-start" type="date" value="'+h(c.from||monthBounds(ui.month).from)+'"></label>'+
   '<label>Selesai <input id="comp-end" type="date" value="'+h(c.to||monthBounds(ui.month).to)+'"></label></div>':'';
- return '<div class="comp-quickbar comp-quickbar-slim"><div class="comp-quick-group"><span class="comp-quick-label">📆 Periode</span>'+
-  '<div class="comp-quick-options" role="group" aria-label="Periode">'+options+'</div></div>'+dates+'</div>';
+ return '<div class="comp-direct-period"><div class="comp-period-buttons" role="group" aria-label="Pilih periode pengeluaran">'+buttons+'</div>'+dates+'</div>';
 }
 function renderCompositionControls(){
- const c=ui.comp,groupList=expenseGroups(),groups=analysisGroups();
- const names=new Set(groups.map(g=>g.name));
- const catList=expenses().filter(item=>names.has(item.group));
- const chosen=(values,id)=>values===null||values.includes(id);
- const groupChips='<button type="button" class="comp-filter-chip comp-all-chip" data-comp-quick-group="all" aria-pressed="'+(c.groups===null)+'">✨ Semua</button>'+
-   groupList.map(g=>'<button type="button" class="comp-filter-chip" data-comp-quick-group="'+h(g.id)+'" aria-pressed="'+chosen(c.groups,g.id)+'">'+pickSymbol(g.name,g.name)+' '+h(g.name)+'</button>').join('');
- const visible=c.showMore?catList:catList.slice(0,6);
- const categoryChips='<button type="button" class="comp-filter-chip comp-all-chip" data-comp-quick-category="all" aria-pressed="'+(c.categories===null)+'">✨ Semua Pos</button>'+
-   visible.map(item=>'<button type="button" class="comp-filter-chip" data-comp-quick-category="'+h(item.id)+'" aria-pressed="'+chosen(c.categories,item.id)+'">'+pickSymbol(item.label,item.group)+' '+h(item.label)+'</button>').join('');
- const expand=catList.length>6?'<button type="button" class="comp-filter-more" data-comp-quick-more aria-expanded="'+!!c.showMore+'">'+(c.showMore?'Tampilkan Sedikit':'+'+(catList.length-6)+' Pos Lainnya')+' ↗</button>':'';
- const selectedPosCount=c.categories===null?'Semua pos':c.categories.length+' pos dipilih';
- return '<div class="comp-controls comp-controls-inline" aria-label="Filter kategori pengeluaran">'+
-  '<div class="comp-filter-row"><div class="comp-filter-caption"><strong>🧩 Pilih Kelompok</strong><small>Klik satu atau beberapa kategori</small></div>'+
-   '<div class="comp-filter-chips" role="group" aria-label="Kelompok pengeluaran">'+groupChips+'</div></div>'+
-  '<div class="comp-filter-row"><div class="comp-filter-caption"><strong>🏷️ Pilih Pos</strong><small>'+h(selectedPosCount)+'</small></div>'+
-   '<div class="comp-filter-chips" role="group" aria-label="Pos pengeluaran">'+categoryChips+(catList.length?expand:'<span class="comp-filter-none">Tidak ada pos di kelompok terpilih</span>')+'</div></div>'+
-  '<div class="comp-filter-footer"><button type="button" data-comp-action="reset" class="comp-compact-reset">↺ Reset Filter</button><span>Filter hanya berlaku untuk grafik dan insight.</span></div></div>';
+ const c=ui.comp,groupList=expenseGroups(),active=c.groups?.length===1?c.groups[0]:null;
+ const choices='<button type="button" class="comp-filter-chip comp-all-chip" data-comp-quick-group="all" aria-pressed="'+(!active)+'">✨ Semua Kelompok</button>'+
+  groupList.map(g=>'<button type="button" class="comp-filter-chip" data-comp-quick-group="'+h(g.id)+'" aria-pressed="'+(active===g.id)+'">'+pickSymbol(g.name,g.name)+' '+h(g.name)+'</button>').join('');
+ return '<div class="comp-direct-groups" role="group" aria-label="Pilih kelompok pengeluaran">'+choices+'</div>';
 }
 
 /* #065 Komposisi Pengeluaran interaktif, menjaga perhitungan dan filter yang sudah ada. */
@@ -3612,7 +3598,16 @@ function paxCompRestore(card){
 
 function renderComposition(){
  const selected=expenseSelection(),rows=analysisEntries(selected.transactions),total=selected.transactions.reduce((sum,t)=>sum+num(t.amount),0),dates=selected.dates;
- const posPayload=selected.categories.map(c=>({id:c.id,label:c.label,group:c.group,icon:pickSymbol(c.label,c.group),color:ANALYTICS_COLORS[Math.max(0,expenses().findIndex(e=>e.id===c.id))%ANALYTICS_COLORS.length],value:selected.transactions.reduce((n,t)=>n+(t.categoryId===c.id?num(t.amount):0),0)}));
+ // Popup memuat semua kelompok; pilihan kelompok di dashboard tidak membatasi popup.
+ const allExpenseTransactions=db.transactions.filter(t=>t.type==='expense'&&t.date>=dates.from&&t.date<=dates.to);
+ const posGroups=expenseGroups().map(g=>{
+  const items=expenses().filter(c=>c.group===g.name).map(c=>({
+   id:c.id,label:c.label,group:g.name,icon:pickSymbol(c.label,c.group),
+   color:ANALYTICS_COLORS[Math.max(0,expenses().findIndex(e=>e.id===c.id))%ANALYTICS_COLORS.length],
+   value:allExpenseTransactions.reduce((n,t)=>n+(t.categoryId===c.id?num(t.amount):0),0)
+  }));
+  return {id:g.id,name:g.name,color:g.color,icon:pickSymbol(g.name,g.name),items};
+ });
  let cursor=0;
  const gradient=rows.map((item,i)=>{
   const until=i===rows.length-1?100:cursor+item.value/total*100,seg=item.color+' '+cursor.toFixed(4)+'% '+until.toFixed(4)+'%';
@@ -3620,11 +3615,11 @@ function renderComposition(){
  }).join(', ');
  const topCats=selected.categories.map(c=>({c,total:selected.transactions.filter(t=>t.categoryId===c.id).reduce((sum,t)=>sum+num(t.amount),0)})).filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
  const range=dates.from===dates.to?dateFmt(dates.from):dateFmt(dates.from)+' – '+dateFmt(dates.to);
- return `<section class="card" id="composition-card" data-comp-pos-list="${h(JSON.stringify(posPayload))}" data-comp-pos-period="${h(dates.title)}">
+ return `<section class="card" id="composition-card" data-comp-pos-groups="${h(JSON.stringify(posGroups))}" data-comp-pos-period="${h(dates.title)}">
  <div class="card-head comp-header"><div><h3>Komposisi Pengeluaran</h3><p class="comp-compact-subtitle">${h(dates.title)} · ${selected.transactions.length} transaksi</p><div class="comp-summary">${h(range)} · ${selected.transactions.length} Transaksi · ${selected.groups.length} Kelompok · ${selected.categories.length} Pos</div></div>
-  <div class="comp-header-actions"><button type="button" class="comp-pos-launch" data-comp-pos-launch aria-haspopup="dialog">🏷️ Per Pos ↗</button><button type="button" class="btn sm comp-filter-toggle" data-comp-action="toggle" aria-expanded="${ui.comp.open?'true':'false'}"><svg class="filter-funnel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5h16l-6.5 7.5v5l-3 1.5v-6.5L4 5z"/></svg><span>${ui.comp.open?'Tutup':'Filter'}</span></button></div>
+  <div class="comp-header-actions"><button type="button" class="comp-pos-launch" data-comp-pos-launch aria-haspopup="dialog">🍩 Per Pos <span aria-hidden="true">↗</span></button></div>
  </div>
- ${ui.comp.open?renderCompositionQuickBar()+renderCompositionControls():''}
+ ${renderCompositionQuickBar()}${renderCompositionControls()}
  ${total>0?`<div class="distribution"><div class="donut" style="background:conic-gradient(${gradient})"><div class="donut-middle"><span>Total Keluar</span>${shortMoney(total)}</div></div>
  <div class="legend comp-donut-legend">${rows.map(item=>`<div class="legend-row"><div class="legend-left"><span class="dot" style="background:${h(item.color)}"></span><div class="symbol-line"><span class="category-symbol compact" aria-hidden="true">${item.icon}</span><div class="symbol-text"><div style="font-weight:750">${h(item.label)}</div><small>${money(item.value)}</small></div></div></div><strong>${pct(item.value,total)}%</strong></div>`).join('')}</div></div>
  ${topCats.length?`<div class="insight comp-insight"><strong>↗ Paling Besar: ${pickSymbol(topCats[0].c.label,topCats[0].c.group)} ${h(topCats[0].c.label)} (${pct(topCats[0].total,total)}%)</strong><p>Paling Kecil: ${pickSymbol(topCats[topCats.length-1].c.label,topCats[topCats.length-1].c.group)} ${h(topCats[topCats.length-1].c.label)} (${pct(topCats[topCats.length-1].total,total)}%) Dari Total Pengeluaran Terfilter.</p></div>`:''}`:
@@ -5426,15 +5421,11 @@ if(x.dataset.compQuickBreakdown!==undefined){
  ui.comp.breakdown=x.dataset.compQuickBreakdown;render();return;
 }
 if(x.dataset.compQuickGroup!==undefined){
- const id=x.dataset.compQuickGroup,allIds=expenseGroups().map(g=>g.id);
- if(id==='all')ui.comp.groups=null;
- else if(allIds.includes(id)){
-  const active=ui.comp.groups;
-  if(active===null)ui.comp.groups=[id];
-  else {
-   const next=active.includes(id)?active.filter(x=>x!==id):[...active,id];
-   ui.comp.groups=next.length===0||next.length===allIds.length?null:next;
-  }
+ const id=x.dataset.compQuickGroup,group=expenseGroups().find(g=>g.id===id);
+ if(id==='all'||!group||ui.comp.groups?.[0]===id){
+  ui.comp.groups=null;ui.comp.breakdown='group';
+ }else{
+  ui.comp.groups=[group.id];ui.comp.breakdown='category';
  }
  ui.comp.categories=null;ui.comp.showMore=false;render();return;
 }

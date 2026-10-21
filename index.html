@@ -5454,7 +5454,7 @@ function renderPaaxixiSmartFinanceInsight(){
     ${!aiReady?`<div class="paax-ai-setup">
       <strong>Aktivasi AI generatif diperlukan</strong>
       <p>Aktifkan Firebase AI Logic (Gemini Developer API) dan App Check reCAPTCHA Enterprise untuk domain website, lalu isi <code>ARUS_AI_APP_CHECK_SITE_KEY</code> di <code>firebase-config.js</code>. Sementara itu, analisis statistik di bawah tetap berfungsi.</p>
-      <a href="https://console.firebase.google.com/project/duit-duit-paaxixi/ai" target="_blank" rel="noopener noreferrer">Buka Firebase Console ↗</a>
+      <a href="https://console.firebase.google.com/project/duit-duit-paaxixi/overview" target="_blank" rel="noopener noreferrer">Buka Firebase Console ↗</a>
      </div>`:''}
     ${paaxAiUi.error?`<p class="paax-ai-error" role="alert">${h(paaxAiUi.error)}</p>`:''}
     <div class="paax-ai-hero"><span class="paax-ai-hero-eyebrow">${generated?'✨ HASIL GEMINI':'✨ TEMUAN BERDASARKAN DATA'}</span>

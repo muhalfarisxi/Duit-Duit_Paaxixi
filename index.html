@@ -3984,6 +3984,14 @@ body:has(.tx-search-backdrop){overflow:hidden}
 .paax-ai-method,.paax-ai-privacy{color:#7d94b0;font:700 10px/1.55 Nunito,sans-serif;margin:10px 1px 0}
 @media(max-width:790px){.paax-ai-popup-grid{grid-template-columns:1fr}.paax-ai-dialog{height:min(89dvh,850px)}.paax-ai-dialog-header{padding:13px}.paax-ai-dialog-body{padding:12px}.paax-ai-strip{padding:10px!important}}
 @media(max-width:440px){.paax-ai-strip-info small{max-width:250px}.paax-ai-dialog-header h3{font-size:16px}.paax-ai-ai-toolbar button{width:100%}}
+/* #086 Automatic AI insights keep popup headings concise. */
+.paax-ai-strip .paax-ai-strip-info small{font-weight:800;line-height:1.35}
+.paax-ai-dialog .paax-ai-dialog-header{padding-top:13px;padding-bottom:13px}
+.paax-ai-dialog .paax-ai-dialog-header h3{font-size:19px}
+.paax-ai-dialog .paax-ai-ai-toolbar{margin-bottom:9px}
+.paax-ai-dialog .paax-ai-ai-toolbar small{color:#6987ab}
+.paax-ai-dialog .paax-ai-hero{margin-top:0}
+.paax-ai-dialog .paax-ai-privacy{padding-top:9px;border-top:1px solid #e7eef8;margin-top:13px}
 </style>
 </head>
 <body>
@@ -4511,6 +4519,7 @@ function render(){
  const oldKind=prev?.dataset?.compPopup,oldScroll=prev?.querySelector('.comp-popover-items')?.scrollTop||0;
  const oldTrendScroll=document.querySelector('.trend-scroll')?.scrollLeft;
  const oldSeriesScroll=document.querySelector('#trend-analysis .trend-series-buttons')?.scrollLeft;
+ const oldAiScroll=document.querySelector('.paax-ai-dialog-body')?.scrollTop||0;
  labelNav();
  document.getElementById('content').innerHTML=({dashboard:renderDash,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])()+renderTxHistoryPopup()+renderTxSearchPopup()+renderTxModal()+renderTrendRangePopup();
  decoratePaaxixiSectionTitles();
@@ -4528,6 +4537,7 @@ function render(){
  if(trendDialog&&!trendDialog.open){trendDialog.showModal();trendDialog.querySelector('input')?.focus({preventScroll:true});}
  const aiDialog=document.getElementById('paax-ai-dialog');
  if(aiDialog&&!aiDialog.open){aiDialog.showModal();aiDialog.querySelector('[data-paax-ai-close]')?.focus({preventScroll:true});}
+ const aiBody=document.querySelector('.paax-ai-dialog-body');if(aiBody&&oldAiScroll)aiBody.scrollTop=oldAiScroll;
  const monthInput=document.getElementById('month-input');
  if(monthInput)monthInput.max=analysisToday().slice(0,7);
  if(ui.view==='dashboard'&&ui.comp.menu){
@@ -4535,6 +4545,7 @@ function render(){
   if(next&&oldKind===ui.comp.menu){const list=next.querySelector('.comp-popover-items');if(list)list.scrollTop=oldScroll;}
   adjustCompositionPopup();
  }
+ paaxAiSchedule();
 }
 const QUOTES_GEN_Z=[
  'Kalau lagu Bernadya bisa di-repeat, pengeluaranmu juga wajib di-review, Alfa. 🎧',
@@ -5370,7 +5381,12 @@ function buildPaaxixiFinanceInsight(){
 }
 
 /* #085 Ringkas dashboard: insight penuh hanya di dialog + Gemini bila aktif. */
-const paaxAiUi={open:false,loading:false,request:0,report:null,signature:'',error:''};
+const paaxAiUi={open:false};
+// Cache only in this browser tab. Never persist AI results/finance data to third-party storage.
+const paaxAiAuto={
+ cache:new Map(),timer:null,inFlight:null,lastStarted:0,autoCalls:0,maxAutoCalls:20,
+ debounceMs:1200,cooldownMs:15000
+};
 function paaxAiText(value){
  return String(value||'').replace(/\b[\w.+-]+@[\w.-]+\.[a-z]{2,}\b/gi,'[email]')
   .replace(/(?:\+62|62|0)8\d[\d -]{7,15}/g,'[nomor]')
@@ -5411,6 +5427,92 @@ function paaxAiSummaryPayload(){
   anggaranPerPos:budget
  };
 }
+
+/* #086 Auto insight: precompute only on dashboard; debounce + session budget + cache.
+   Auto requests transfer aggregate financial data to Firebase AI Logic, not raw transactions. */
+function paaxAiCurrent(){
+ if(ui.view!=='dashboard')return null;
+ const payload=paaxAiSummaryPayload();
+ return {payload,signature:JSON.stringify(payload)};
+}
+function paaxAiCachePut(signature,entry){
+ paaxAiAuto.cache.delete(signature);
+ paaxAiAuto.cache.set(signature,entry);
+ while(paaxAiAuto.cache.size>14){
+  paaxAiAuto.cache.delete(paaxAiAuto.cache.keys().next().value);
+ }
+}
+function paaxAiCacheGet(signature){
+ const entry=paaxAiAuto.cache.get(signature);
+ if(entry?.error&&Date.now()>entry.retryAfter){
+  paaxAiAuto.cache.delete(signature);return null;
+ }
+ return entry||null;
+}
+function paaxAiStopScheduled(){
+ if(paaxAiAuto.timer!==null){clearTimeout(paaxAiAuto.timer);paaxAiAuto.timer=null;}
+}
+function paaxAiSchedule(urgent=false){
+ paaxAiStopScheduled();
+ if(ui.view!=='dashboard'||!window.ARUS_AI_APP_CHECK_SITE_KEY)return;
+ const current=paaxAiCurrent();
+ if(!current||current.payload.pengeluaran.jumlahTransaksi===0)return;
+ if(paaxAiCacheGet(current.signature)||paaxAiAuto.inFlight?.signature===current.signature)return;
+ if(paaxAiAuto.autoCalls>=paaxAiAuto.maxAutoCalls)return;
+ const elapsed=Date.now()-paaxAiAuto.lastStarted;
+ const delay=Math.max(urgent?0:paaxAiAuto.debounceMs,paaxAiAuto.lastStarted?paaxAiAuto.cooldownMs-elapsed:0);
+ paaxAiAuto.timer=setTimeout(()=>{
+  paaxAiAuto.timer=null;
+  const latest=paaxAiCurrent();
+  if(!latest||latest.signature!==current.signature){paaxAiSchedule();return;}
+  if(paaxAiAuto.inFlight){paaxAiSchedule();return;}
+  if(typeof window.PAAX_AI_GENERATE!=='function'){
+   // The ES module can still be loading at page startup.
+   paaxAiAuto.timer=setTimeout(()=>{paaxAiAuto.timer=null;paaxAiSchedule(true);},2500);
+   return;
+  }
+  void paaxAiStart(latest,false);
+ },Math.max(0,delay));
+}
+async function paaxAiStart(current,manual=false){
+ if(!current)return;
+ paaxAiStopScheduled();
+ if(paaxAiAuto.inFlight){
+  if(paaxAiAuto.inFlight.signature!==current.signature)paaxAiSchedule(true);
+  return paaxAiAuto.inFlight.promise;
+ }
+ if(!manual&&paaxAiCacheGet(current.signature))return;
+ const fn=window.PAAX_AI_GENERATE;
+ if(typeof fn!=='function'){
+  if(manual){paaxAiCachePut(current.signature,{error:'Modul Gemini masih dimuat. Coba sebentar lagi.',retryAfter:Date.now()+5000});if(paaxAiUi.open)render();}
+  return;
+ }
+ if(manual)paaxAiAuto.cache.delete(current.signature);
+ else paaxAiAuto.autoCalls++;
+ paaxAiAuto.lastStarted=Date.now();
+ const request={signature:current.signature,promise:null};
+ paaxAiAuto.inFlight=request;
+ if(paaxAiUi.open)render();
+ request.promise=(async()=>{
+  try{
+   const report=await fn(current.payload);
+   paaxAiCachePut(current.signature,{report,savedAt:Date.now()});
+  }catch(err){
+   // Do not auto-loop on 429, 5xx or App Check errors. Manual retry stays available.
+   const message=String(err?.message||'Layanan Gemini tidak dapat dihubungi.').slice(0,210);
+   const retryAfter=Date.now()+(/kuota|rate.limit|429/i.test(message)?5*60000:2*60000);
+   paaxAiCachePut(current.signature,{error:message,retryAfter});
+  }finally{
+   if(paaxAiAuto.inFlight===request)paaxAiAuto.inFlight=null;
+   if(ui.view==='dashboard'){
+    if(paaxAiUi.open)render();
+    paaxAiSchedule();
+   }
+  }
+ })();
+ return request.promise;
+}
+
 function paaxAiMakeColumns(report){
  const columns=[
   {kind:'finding',icon:'📊',title:'Apa yang Terjadi?',items:report.findings,
@@ -5426,69 +5528,60 @@ function paaxAiMakeColumns(report){
  </article>`).join('');
 }
 function renderPaaxixiSmartFinanceInsight(){
- const local=buildPaaxixiFinanceInsight();
- const status=local.status==='attention'?'Perlu perhatian':local.status==='watch'?'Ada yang perlu dicek':'Analisis tersedia';
- const reportHash=paaxAiUi.open?JSON.stringify(paaxAiSummaryPayload()):'';
- const aiReady=!!String(window.ARUS_AI_APP_CHECK_SITE_KEY||'').trim();
- const generated=paaxAiUi.report&&paaxAiUi.signature===reportHash;
- const report=generated?paaxAiUi.report:local;
+ const local=buildPaaxixiFinanceInsight(),aiReady=!!String(window.ARUS_AI_APP_CHECK_SITE_KEY||'').trim();
+ const current=paaxAiCurrent(),signature=current?.signature||'';
+ const saved=paaxAiCacheGet(signature),generated=!!saved?.report;
+ const busy=paaxAiAuto.inFlight?.signature===signature;
+ const report=generated?saved.report:local;
+ const status=generated?'Gemini siap · '+(report.modelName||'Gemini'):
+  busy?'Gemini sedang menganalisis…':
+  saved?.error?'Gemini tertunda · analisis lokal siap':
+  !aiReady?'Analisis statistik tersedia':
+  paaxAiAuto.autoCalls>=paaxAiAuto.maxAutoCalls?'Auto dijeda untuk menjaga kuota':
+  'Gemini akan menyiapkan analisis otomatis';
  return `<section class="card paax-ai-strip" id="paax-ai-insight" aria-label="Insight keuangan">
    <div class="paax-ai-strip-info"><span class="paax-ai-strip-icon" aria-hidden="true">🧠</span>
-    <div><strong>Insight Keuangan</strong><small>${h(status)} · Analisis statistik &amp; AI generatif</small></div></div>
-   <button type="button" class="paax-ai-open" data-paax-ai-open aria-haspopup="dialog">✨ Buka Insight <span aria-hidden="true">↗</span></button>
+    <div><strong>Insight Keuangan</strong><small>${h(status)}</small></div></div>
+   <button type="button" class="paax-ai-open" data-paax-ai-open aria-haspopup="dialog">${generated?'✨ Lihat Hasil AI':'✨ Buka Insight'} <span aria-hidden="true">↗</span></button>
   </section>
   ${paaxAiUi.open?`<dialog class="paax-ai-dialog" id="paax-ai-dialog" aria-labelledby="paax-ai-dialog-heading">
    <header class="paax-ai-dialog-header">
     <span class="paax-ai-dialog-icon" aria-hidden="true">🧠</span>
-    <div><h3 id="paax-ai-dialog-heading">Insight Keuangan</h3><p>Analisis data keuangan sesuai filter grafik donat.</p></div>
+    <div><h3 id="paax-ai-dialog-heading">Insight Keuangan</h3></div>
     <button class="paax-ai-dialog-close" type="button" data-paax-ai-close aria-label="Tutup insight">✕</button>
    </header>
    <div class="paax-ai-dialog-body">
     <div class="paax-ai-ai-toolbar">
-     <div><strong>${generated?'✨ Analisis Gemini':'📊 Analisis statistik lokal'}</strong>
-      <small>${generated?'AI generatif · '+h(report.modelName||'Gemini')+' · berdasarkan ringkasan data':paaxAiUi.loading?'AI sedang menganalisis data...':'Dapat dilengkapi analisis Gemini jika layanan sudah diaktifkan'}</small></div>
-     <button type="button" data-paax-ai-generate ${paaxAiUi.loading||!aiReady?'disabled':''}>
-      ${paaxAiUi.loading?'⏳ Memproses...':generated?'↻ Analisis Ulang dengan Gemini':'✨ Analisis dengan Gemini'}
+     <div><strong>${generated?'✨ Analisis Gemini':busy?'⏳ Menyiapkan analisis…':'📊 Temuan sementara'}</strong>
+      ${generated?`<small>Model: ${h(report.modelName||'Gemini')}</small>`:''}
+      ${busy?`<small>Hasil otomatis akan muncul setelah selesai.</small>`:''}</div>
+     <button type="button" data-paax-ai-generate ${busy||!aiReady?'disabled':''}>
+      ${busy?'⏳ Memproses…':generated?'↻ Perbarui AI':'↻ Coba Gemini'}
      </button>
     </div>
-    ${!aiReady?`<div class="paax-ai-setup">
-      <strong>Aktivasi AI generatif diperlukan</strong>
-      <p>Aktifkan Firebase AI Logic (Gemini Developer API) dan App Check reCAPTCHA Enterprise untuk domain website, lalu isi <code>ARUS_AI_APP_CHECK_SITE_KEY</code> di <code>firebase-config.js</code>. Sementara itu, analisis statistik di bawah tetap berfungsi.</p>
-      <a href="https://console.firebase.google.com/project/duit-duit-paaxixi/overview" target="_blank" rel="noopener noreferrer">Buka Firebase Console ↗</a>
+    ${!aiReady?`<div class="paax-ai-setup"><strong>Gemini belum diaktifkan.</strong>
+      <p>Periksa Firebase AI Logic dan Site Key App Check. Sementara itu, analisis lokal tetap tersedia.</p>
+      <a href="https://console.firebase.google.com/project/duit-duit-paaxixi/overview" target="_blank" rel="noopener noreferrer">Pengaturan Firebase ↗</a>
      </div>`:''}
-    ${paaxAiUi.error?`<p class="paax-ai-error" role="alert">${h(paaxAiUi.error)}</p>`:''}
-    <div class="paax-ai-hero"><span class="paax-ai-hero-eyebrow">${generated?'✨ HASIL GEMINI':'✨ TEMUAN BERDASARKAN DATA'}</span>
+    ${saved?.error?`<p class="paax-ai-error" role="alert">AI belum berhasil: ${h(saved.error)}. Hasil statistik tetap tersedia.</p>`:''}
+    <div class="paax-ai-hero">
      <h4>${h(report.headline)}</h4><p>${h(report.summary)}</p>
      <div class="paax-ai-context"><span>📆 ${h(local.period)}</span><span>🧩 ${h(local.scope)}</span></div>
     </div>
     <div class="paax-ai-popup-grid">${paaxAiMakeColumns(report)}</div>
-    <p class="paax-ai-method">${generated?'Hasil dihasilkan Gemini. Analisis AI dapat keliru; periksa angka pada transaksi dan anggaran sebelum mengambil keputusan.':'Ini masih hasil statistik lokal, belum respons AI generatif.'}</p>
-    <p class="paax-ai-privacy">🔒 Saat “Analisis dengan Gemini” diklik, hanya ringkasan agregat, nama kategori, dan jumlah transaksi yang dikirim melalui Firebase AI Logic. Tidak mengirim catatan, nama responden, nomor rekening, atau transaksi mentah. Penggunaan API bisa memiliki kuota atau biaya.</p>
+    <p class="paax-ai-privacy">🔒 Rekap angka dan kategori dikirim otomatis ke Gemini setelah filter berubah; detail transaksi dan rekening tidak dikirim. Hasil AI dapat keliru—periksa sebelum mengambil keputusan. Panggilan dibatasi untuk menjaga kuota.</p>
    </div>
   </dialog>`:''}`;
 }
 function closePaaxAiInsight(){
  if(!paaxAiUi.open)return;
- paaxAiUi.open=false;paaxAiUi.request++;paaxAiUi.loading=false;
+ paaxAiUi.open=false;
  render();
  document.querySelector('[data-paax-ai-open]')?.focus({preventScroll:true});
 }
 async function generatePaaxAiInsight(){
- if(paaxAiUi.loading)return;
- const fn=window.PAAX_AI_GENERATE;
- if(typeof fn!=='function'){paaxAiUi.error='Modul Firebase AI masih dimuat. Coba kembali.';render();return;}
- const summary=paaxAiSummaryPayload(),signature=JSON.stringify(summary),token=++paaxAiUi.request;
- paaxAiUi.loading=true;paaxAiUi.error='';render();
- try{
-  const report=await fn(summary);
-  if(token!==paaxAiUi.request||!paaxAiUi.open)return;
-  paaxAiUi.report=report;paaxAiUi.signature=signature;
- }catch(err){
-  if(token!==paaxAiUi.request||!paaxAiUi.open)return;
-  paaxAiUi.error='Analisis AI tertunda: '+String(err?.message||'Gagal menghubungi layanan AI.').slice(0,240);
- }finally{
-  if(token===paaxAiUi.request){paaxAiUi.loading=false;if(paaxAiUi.open)render();}
- }
+ const current=paaxAiCurrent();
+ if(current)await paaxAiStart(current,true);
 }
 
 function renderTrendPanel(){
@@ -7284,7 +7377,7 @@ document.addEventListener('click',async e=>{
  const trendPoint=e.target.closest('[data-trend-point]');
  if(trendPoint){openTrendPoint(trendPoint);return;}
  let x=e.target.closest('button');if(!x)return;
- if(x.dataset.paaxAiOpen!==undefined){paaxAiUi.open=true;paaxAiUi.error='';render();return;}
+ if(x.dataset.paaxAiOpen!==undefined){paaxAiUi.open=true;render();paaxAiSchedule(true);return;}
  if(x.dataset.paaxAiClose!==undefined){closePaaxAiInsight();return;}
  if(x.dataset.paaxAiGenerate!==undefined){await generatePaaxAiInsight();return;}
  if(x.dataset.trendRangeClose!==undefined){closeTrendRangePopup();return;}

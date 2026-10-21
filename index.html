@@ -5414,6 +5414,12 @@ function paaxAiSummaryPayload(){
  const budget=fullMonth?categories.filter(c=>hasBudget(c.id)&&effectiveBudget(c.id)>0).map(c=>({
   pos:paaxAiText(c.label),batas:effectiveBudget(c.id),terpakai:spentByCat(c.id)
  })).slice(0,30):[];
+ // Summarize the chosen trend time range, not just the donut total.
+ // Series visibility is a visual setting and deliberately does not spend additional AI quota.
+ const trend=trendPeriods(),trendTotals=trend.keys.slice(-30).map(period=>{
+  const subset=tx.filter(t=>trendRowTransaction(t,period,trend.mode));
+  return {periode:period,total:subset.reduce((sum,t)=>sum+num(t.amount),0),jumlahTransaksi:subset.length};
+ });
  return {
   info:{dari:dates.from,sampai:dates.to,hariIniWIB:now,periodeBerjalan:dates.to===now,
    filter:allGroups?'Semua kelompok':'Sebagian kelompok atau pos',
@@ -5424,7 +5430,9 @@ function paaxAiSummaryPayload(){
   posPengeluaran:categoryRows.slice(0,30),
   totalBulanan:[...byMonth].sort((a,b)=>a[0].localeCompare(b[0])).slice(-30).map(([bulan,total])=>({bulan,total})),
   totalHarian:[...byDate].sort((a,b)=>a[0].localeCompare(b[0])).slice(-35).map(([tanggal,total])=>({tanggal,total})),
-  anggaranPerPos:budget
+  anggaranPerPos:budget,
+  trenTerpilih:{mode:trend.mode,dari:trend.range.from,sampai:trend.range.to,
+   rentangDibatasi:trend.trimmed,periodik:trendTotals}
  };
 }
 
@@ -5457,7 +5465,7 @@ function paaxAiSchedule(urgent=false){
  if(ui.view!=='dashboard'||!window.ARUS_AI_APP_CHECK_SITE_KEY)return;
  const current=paaxAiCurrent();
  if(!current||current.payload.pengeluaran.jumlahTransaksi===0)return;
- if(paaxAiCacheGet(current.signature)||paaxAiAuto.inFlight?.signature===current.signature)return;
+ if(paaxAiCacheGet(current.signature)||paaxAiAuto.inFlight)return;
  if(paaxAiAuto.autoCalls>=paaxAiAuto.maxAutoCalls)return;
  const elapsed=Date.now()-paaxAiAuto.lastStarted;
  const delay=Math.max(urgent?0:paaxAiAuto.debounceMs,paaxAiAuto.lastStarted?paaxAiAuto.cooldownMs-elapsed:0);
@@ -5465,7 +5473,7 @@ function paaxAiSchedule(urgent=false){
   paaxAiAuto.timer=null;
   const latest=paaxAiCurrent();
   if(!latest||latest.signature!==current.signature){paaxAiSchedule();return;}
-  if(paaxAiAuto.inFlight){paaxAiSchedule();return;}
+  if(paaxAiAuto.inFlight)return; // Existing request will reschedule for the latest filter on completion.
   if(typeof window.PAAX_AI_GENERATE!=='function'){
    // The ES module can still be loading at page startup.
    paaxAiAuto.timer=setTimeout(()=>{paaxAiAuto.timer=null;paaxAiSchedule(true);},2500);
@@ -5478,8 +5486,15 @@ async function paaxAiStart(current,manual=false){
  if(!current)return;
  paaxAiStopScheduled();
  if(paaxAiAuto.inFlight){
-  if(paaxAiAuto.inFlight.signature!==current.signature)paaxAiSchedule(true);
-  return paaxAiAuto.inFlight.promise;
+  const active=paaxAiAuto.inFlight;
+  if(active.signature===current.signature)return active.promise;
+  // A manual refresh waits for the prior filter; automatic runs resume in finally.
+  if(manual){
+   await active.promise;
+   const latest=paaxAiCurrent();
+   if(latest?.signature===current.signature)return paaxAiStart(latest,true);
+  }
+  return;
  }
  if(!manual&&paaxAiCacheGet(current.signature))return;
  const fn=window.PAAX_AI_GENERATE;

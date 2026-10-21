@@ -13,4 +13,4 @@ window.ARUS_FIREBASE_CONFIG = {
 // Public reCAPTCHA Enterprise site key (NOT a secret).
 // Firebase Console > App Check: register this GitHub Pages domain, then copy its site key.
 // AI generation requires Firebase AI Logic enabled and App Check enforced.
-window.ARUS_AI_APP_CHECK_SITE_KEY = '';
+window.ARUS_AI_APP_CHECK_SITE_KEY = '6LfX1vktAAAAACAOEw9YLUv1yG0YgJpJljqm0EM_';

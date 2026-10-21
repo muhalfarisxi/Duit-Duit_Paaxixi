@@ -3846,6 +3846,14 @@ body:has(.tx-search-backdrop){overflow:hidden}
 @media(max-width:510px){
  .analytics-comp-trend .trend-panel .trend-series-hint{padding:5px 8px;font-size:10px}
 }
+/* #083 Bigger donut, continuous zero-expense trend, amount toggle beneath plot */
+.analytics-comp-trend #composition-card .comp-recap-stage{margin-bottom:2px;overflow:visible}
+.analytics-comp-trend #composition-card .comp-recap-wide .comp-recap-arc{stroke-width:36px}
+.analytics-comp-trend #composition-card .comp-recap-wide .comp-recap-arc:is(.is-active,:hover,:focus-visible){stroke-width:43px}
+.analytics-comp-trend #composition-card .comp-recap-depth-arc{stroke-width:37px}
+.analytics-comp-trend #composition-card .comp-recap-glint{stroke-width:32px}
+.analytics-comp-trend .trend-panel .trend-label-toggle-bottom{display:flex;align-items:center;justify-content:flex-start;margin:5px 0 9px;padding:4px 3px}
+.analytics-comp-trend .trend-panel .trend-label-toggle-bottom label{cursor:pointer;font-size:11px}
 </style>
 </head>
 <body>
@@ -4881,11 +4889,10 @@ function trendChartSVG(rows,entries){
  const breakdown=ui.comp.breakdown,mode=ui.comp.trend;
  const fullSeries=[{
   id:'total',scope:'total',label:'Total Pengeluaran',color:'#174ea6',width:3.5,
-  values:rows.map(row=>row.count?row.total:null)
+  values:rows.map(row=>row.total)
  }];
  for(const item of entries){
   const values=rows.map(row=>{
-   if(!row.count)return null;
    return row.tx.reduce((value,t)=>{
     const matches=breakdown==='group'?cat(t.categoryId)?.group===item.label:t.categoryId===item.id;
     return value+(matches?num(t.amount):0);
@@ -4923,13 +4930,14 @@ function trendChartSVG(rows,entries){
  }).join('')).join('');
  const pointLabels=series.map((ser,si)=>ser.values.map((value,i)=>{
   // Setiap titik yang memiliki transaksi diberikan nominal ringkas, bukan hanya seri Total.
-  if(value===null||value===0)return '';
+  if(value===null)return '';
   const xx=x(i),yy=y(value),display=trendCompactValue(value);
   const labelOffset=si===0?-18:si%2===1?20:-23;
   const labelY=Math.min(height-bottom-7,Math.max(16,yy+labelOffset+((i%3)-1)*3));
   const step=n<=12?1:n<=24?2:n<=36?3:Math.ceil(n/12);
   const compact=n>12&&(i!==0&&i!==n-1&&i%step!==0||series.length>1&&si>0&&n>20);
-  const amountLabel=ui.comp.trendLabels?'<text class="trend-point-small-label'+(compact?' trend-point-label-condensed':'')+'" x="'+xx+'" y="'+labelY+
+  const zeroValue=value===0,zeroLabel=zeroValue&&(n<=8||(ser.id==='total'&&(i===0||i===n-1)));
+  const amountLabel=ui.comp.trendLabels&&(!zeroValue||zeroLabel)?'<text class="trend-point-small-label'+(compact?' trend-point-label-condensed':'')+'" x="'+xx+'" y="'+labelY+
    '" fill="'+ser.color+'" font-size="'+(ser.id==='total'?10.5:9.4)+'" font-weight="850" text-anchor="middle"'+
    ' stroke="#fff" stroke-width="3.5" stroke-linejoin="round" paint-order="stroke fill">'+h(display)+'</text>':'';
   return '<g class="trend-click-point" data-trend-point="1" data-trend-key="'+h(rows[i].key)+
@@ -4939,8 +4947,8 @@ function trendChartSVG(rows,entries){
    ' style="--trend-point-color:'+ser.color+';--trend-point-delay:-'+((i%9)*.58+si*.25).toFixed(2)+'s">'+
    '<title>Klik untuk rincian: '+h(ser.label)+' · '+h(trendLabel(rows[i].key,mode))+' · '+money(value)+'</title>'+
    '<circle class="trend-touch-target" cx="'+xx+'" cy="'+yy+'" r="17" fill="transparent" stroke="none"/>'+
-   '<circle class="trend-point-ring" cx="'+xx+'" cy="'+yy+'" r="'+(si?9:11)+'" fill="'+ser.color+'" fill-opacity=".12" stroke="'+ser.color+'" stroke-opacity=".40" stroke-width="1.2"/>'+
-   '<circle class="trend-point-dot" cx="'+xx+'" cy="'+yy+'" r="'+(si?4.5:5.6)+'" fill="'+ser.color+'" stroke="#fff" stroke-width="1.8"/>'+
+   '<circle class="trend-point-ring" cx="'+xx+'" cy="'+yy+'" r="'+(zeroValue?6:(si?9:11))+'" fill="'+ser.color+'" fill-opacity=".12" stroke="'+ser.color+'" stroke-opacity="'+(zeroValue?'.23':'.40')+'" stroke-width="1.2"/>'+
+   '<circle class="trend-point-dot" cx="'+xx+'" cy="'+yy+'" r="'+(zeroValue?2.8:(si?4.5:5.6))+'" fill="'+ser.color+'" fill-opacity="'+(zeroValue?'.7':'1')+'" stroke="#fff" stroke-width="1.8"/>'+
    amountLabel+'</g>';
  }).join('')).join('');
  const axisLabels=rows.map((row,i)=>{
@@ -5118,10 +5126,10 @@ function renderTrendPanel(){
     <div class="trend-period-compact"><span class="trend-period-current" title="${h(activePeriod)}">📅 ${h(activePeriod)}</span><button type="button" class="trend-period-follow" data-comp-action="trend-default">↺ Ikuti Donut</button></div>
   </div>
   ${renderTrendSeriesButtons(donutEntries)}
-  <div class="trend-label-toggle"><label><input type="checkbox" id="trend-labels" ${c.trendLabels?'checked':''}> Nominal pada titik</label></div>
   <div class="analysis-visual-anchor" data-analysis-graph="trend">
-  ${grandTotal>0?trendChartSVG(rows,donutEntries):'<div class="comp-empty">Tidak Ada Transaksi Pengeluaran Di Rentang Yang Dipilih.</div>'}
+  ${trendChartSVG(rows,donutEntries)}
   </div>
+  <div class="trend-label-toggle trend-label-toggle-bottom"><label><input type="checkbox" id="trend-labels" ${c.trendLabels?'checked':''}> Nominal pada titik</label></div>
   ${periods.trimmed?`<p class="comp-tiny">Rentang sangat panjang. Ditampilkan ${periods.keys.length} periode terakhir; persempit rentang untuk melihat periode sebelumnya.</p>`:''}
   <details class="trend-insight-expand"><summary>✨ Buka Insight Tren & Perbandingan</summary><div class="trend-notes"><div class="trend-note"><strong>📈 Perubahan Periode</strong>${comparison}</div><div class="trend-note"><strong>🔎 Kontributor Utama</strong>${insight}</div>${renderTrendFinancialInsight(financialInsight)}</div></details>
  </section>`;
@@ -7254,11 +7262,12 @@ document.addEventListener('visibilitychange',()=>{
   });
   const maxItems=Math.max(left.length,right.length);
   const height=Math.max(315,Math.round(maxItems*56+56));
-  const cx=320,cy=height/2,radius=87;
+  // Cincin diperbesar tanpa memotong callout dan connector.
+  const cx=320,cy=height/2,radius=117;
   const canvas=vector('svg',{viewBox:'0 0 640 '+height,role:'group',
    'aria-label':'Donut dengan label nominal dan persentase untuk setiap '+(selectedGroup?'pos':'kelompok')});
   // Pisahkan cincin donut dari garis/label agar animasi tidak menggeser legend.
-  const track=vector('circle',{cx,cy,r:radius,fill:'none',stroke:'#e8effa','stroke-width':32});
+  const track=vector('circle',{cx,cy,r:radius,fill:'none',stroke:'#e8effa','stroke-width':36});
   const motionLayer=vector('g',{class:'comp-recap-ring-motion'});
   motionLayer.style.setProperty('--donut-center-y',cy+'px');
   const depthLayer=vector('g',{class:'comp-recap-ring-depth','aria-hidden':'true'});
@@ -7266,7 +7275,7 @@ document.addEventListener('visibilitychange',()=>{
   const arcLayer=vector('g',{class:'comp-recap-arcs'});
   const shineLayer=vector('g',{class:'comp-recap-ring-shine','aria-hidden':'true'});
   const shimmer=vector('circle',{cx,cy,r:radius,fill:'none',stroke:'#fff',
-   'stroke-width':28,'stroke-dasharray':'29 520','stroke-linecap':'round',
+   'stroke-width':30,'stroke-dasharray':'29 720','stroke-linecap':'round',
    class:'comp-recap-glint'});
   shineLayer.append(shimmer);
   motionLayer.append(track,depthLayer,arcLayer,shineLayer);
@@ -7278,7 +7287,7 @@ document.addEventListener('visibilitychange',()=>{
   // A responsive donut and a narrow adjacent annotation rail for phone widths.
   const smallRing=node('div','comp-recap-small-ring');
   const smallSvg=vector('svg',{viewBox:'0 0 240 240',role:'group','aria-label':'Grafik komposisi interaktif'});
-  smallSvg.append(vector('circle',{cx:120,cy:120,r:88,fill:'none',stroke:'#e8effa','stroke-width':32}));
+  smallSvg.append(vector('circle',{cx:120,cy:120,r:95,fill:'none',stroke:'#e8effa','stroke-width':34}));
   const smallCenter=node('div','comp-recap-small-center');
   const smallValue=node('strong','',compact(total));smallCenter.append(smallValue);
   smallRing.append(smallSvg,smallCenter);
@@ -7324,7 +7333,7 @@ document.addEventListener('visibilitychange',()=>{
     class:'comp-recap-depth-arc','aria-hidden':'true'});
    depthLayer.append(depth);
    const wide=vector('path',{...props,d:ringPath,class:'comp-recap-arc'});
-   const mobilePath=vector('path',{...props,d:arc(entry.start,entry.end,88,120,120),class:'comp-recap-arc'});
+   const mobilePath=vector('path',{...props,d:arc(entry.start,entry.end,95,120,120),class:'comp-recap-arc'});
    const push=xy(entry.mid,4,0,0);
    wide.style.setProperty('--recap-push-x',push.x.toFixed(2)+'px');
    wide.style.setProperty('--recap-push-y',push.y.toFixed(2)+'px');

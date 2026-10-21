@@ -5232,8 +5232,7 @@ function buildPaaxixiFinanceInsight(){
   add(checks,'Periode belum selesai','Data hingga '+dateFmt(now)+' masih berjalan. Total bulan atau tahun ini belum boleh disamakan dengan periode penuh.');
  }
  // Pemeriksaan anggaran hanya jika seleksi mencakup seluruh bulan laporan aktif sampai akhir hari yang tersedia.
- const activeMonth=ui.month,activeRange=dates.from===activeMonth+'-01'&&
-  dates.to>=Math.min(1,1)&&dates.to>=((paaxMonthLast(activeMonth)<now)?paaxMonthLast(activeMonth):now);
+ const activeMonth=ui.month;
  const fullReportMonth=dates.from===activeMonth+'-01'&&dates.to>=((paaxMonthLast(activeMonth)<now)?paaxMonthLast(activeMonth):now);
  const budgetItems=fullReportMonth?categories.filter(c=>hasBudget(c.id)&&effectiveBudget(c.id)>0)
   .map(c=>({c,limit:effectiveBudget(c.id),spent:spentByCat(c.id)})):[];
@@ -5288,13 +5287,15 @@ function buildPaaxixiFinanceInsight(){
   add(actions,'Verifikasi nilai besar','Cek bukti pembayaran dan kategori '+item.category+'. Jika benar, tandai sebagai kebutuhan sesekali agar tidak dianggap pola rutin.');
   if(result.status==='neutral')result.status='watch';
  }
- const frequent=categories.map(c=>{
-  const list=catRows.get(c.id)||[],name=c.label.toLowerCase();
-  return {c,list,total:list.reduce((sum,t)=>sum+num(t.amount),0),discretionary:/jajan|ngopi|kopi|nongkrong|hiburan|self reward|belanja iseng|camilan/i.test(name)};
- }).filter(x=>x.discretionary&&x.list.length>=5).sort((a,b)=>b.total-a.total);
+ const frequent=categories.flatMap(c=>{
+  if(!/jajan|ngopi|kopi|nongkrong|hiburan|self reward|belanja iseng|camilan/i.test(c.label))return [];
+  const byMonth=new Map();
+  for(const t of catRows.get(c.id)||[]){const key=t.date.slice(0,7),list=byMonth.get(key)||[];list.push(t);byMonth.set(key,list);}
+  return [...byMonth.entries()].map(([month,list])=>({c,month,list,total:list.reduce((sum,t)=>sum+num(t.amount),0)}));
+ }).filter(item=>item.list.length>=5).sort((a,b)=>b.list.length-a.list.length||b.total-a.total);
  if(frequent.length){
   const f=frequent[0];
-  add(findings,'Belanja kecil berulang',f.c.label+' muncul '+f.list.length+' kali dengan akumulasi '+money(f.total)+
+  add(findings,'Belanja fleksibel berulang',f.c.label+' tercatat '+f.list.length+' kali pada '+monthFmt(f.month)+' dengan total '+money(f.total)+
    '. Frekuensi layak dipantau meskipun tiap transaksi terlihat kecil.');
   add(actions,'Atur batas fleksibel','Coba tetapkan plafon mingguan untuk '+f.c.label+' dan evaluasi totalnya, bukan hanya harga per transaksi.');
  }

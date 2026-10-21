@@ -5446,7 +5446,7 @@ function renderPaaxixiSmartFinanceInsight(){
    <div class="paax-ai-dialog-body">
     <div class="paax-ai-ai-toolbar">
      <div><strong>${generated?'✨ Analisis Gemini':'📊 Analisis statistik lokal'}</strong>
-      <small>${generated?'AI generatif · berdasarkan ringkasan data':paaxAiUi.loading?'AI sedang menganalisis data...':'Dapat dilengkapi analisis Gemini jika layanan sudah diaktifkan'}</small></div>
+      <small>${generated?'AI generatif · '+h(report.modelName||'Gemini')+' · berdasarkan ringkasan data':paaxAiUi.loading?'AI sedang menganalisis data...':'Dapat dilengkapi analisis Gemini jika layanan sudah diaktifkan'}</small></div>
      <button type="button" data-paax-ai-generate ${paaxAiUi.loading||!aiReady?'disabled':''}>
       ${paaxAiUi.loading?'⏳ Memproses...':generated?'↻ Analisis Ulang dengan Gemini':'✨ Analisis dengan Gemini'}
      </button>
@@ -5485,7 +5485,7 @@ async function generatePaaxAiInsight(){
   paaxAiUi.report=report;paaxAiUi.signature=signature;
  }catch(err){
   if(token!==paaxAiUi.request||!paaxAiUi.open)return;
-  paaxAiUi.error='Gemini belum dapat digunakan: '+String(err?.message||'Gagal menghubungi layanan AI.').slice(0,240);
+  paaxAiUi.error='Analisis AI tertunda: '+String(err?.message||'Gagal menghubungi layanan AI.').slice(0,240);
  }finally{
   if(token===paaxAiUi.request){paaxAiUi.loading=false;if(paaxAiUi.open)render();}
  }
@@ -7834,7 +7834,7 @@ document.addEventListener('visibilitychange',()=>{
 })();
 </script>
 <script src="./composition-pos-popup.js?v=2" defer></script>
-<script type="module" src="./ai-insight.js?v=2"></script>
+<script type="module" src="./ai-insight.js?v=3"></script>
 <script src="firebase-config.js"></script>
 <script type="module" src="cloud.js"></script>
 </body>

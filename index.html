@@ -3854,6 +3854,93 @@ body:has(.tx-search-backdrop){overflow:hidden}
 .analytics-comp-trend #composition-card .comp-recap-glint{stroke-width:32px}
 .analytics-comp-trend .trend-panel .trend-label-toggle-bottom{display:flex;align-items:center;justify-content:flex-start;margin:5px 0 9px;padding:4px 3px}
 .analytics-comp-trend .trend-panel .trend-label-toggle-bottom label{cursor:pointer;font-size:11px}
+
+/* #084 Insight keuangan cerdas, full width below the donut & trend graph */
+.paax-ai-insight{
+ margin:0 0 18px!important;padding:18px 20px!important;border-radius:22px;
+ border:1px solid #dfeafa;background:#fff;min-width:0;
+}
+.paax-ai-insight .paax-ai-header{
+ display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+ margin-bottom:14px;
+}
+.paax-ai-insight .paax-ai-title{display:flex;align-items:center;gap:11px;min-width:0}
+.paax-ai-insight .paax-ai-icon{
+ display:grid;place-items:center;width:42px;height:42px;flex:none;
+ background:#edf5ff;border:1px solid #d9eaff;border-radius:14px;font-size:23px;
+}
+.paax-ai-insight .paax-ai-title h3{
+ margin:0;color:#19457d;font:800 20px/1.2 Fredoka,Nunito,sans-serif;
+}
+.paax-ai-insight .paax-ai-title p{
+ margin:4px 0 0;color:#7890ad;font:750 11px/1.5 Nunito,sans-serif;
+}
+.paax-ai-insight .paax-ai-status{
+ padding:7px 11px;border-radius:999px;white-space:nowrap;
+ font:900 10px/1.2 Nunito,sans-serif;border:1px solid #d6e8fc;
+ background:#eef6ff;color:#416a99;
+}
+.paax-ai-insight .paax-ai-status-attention{
+ color:#ab5940;background:#fff4eb;border-color:#f0d8ca;
+}
+.paax-ai-insight .paax-ai-status-watch{
+ color:#886119;background:#fff8e9;border-color:#f0e2c2;
+}
+.paax-ai-insight .paax-ai-hero{
+ border:1px solid #dceafb;border-radius:17px;padding:15px 17px;
+ background:linear-gradient(115deg,#f1f7ff,#f9fcff 70%,#fff);
+}
+.paax-ai-insight .paax-ai-hero-eyebrow{
+ color:#577eb4;font:900 10px/1.4 Nunito,sans-serif;letter-spacing:.5px;
+}
+.paax-ai-insight .paax-ai-hero h4{
+ margin:7px 0;color:#1f4f8b;font:900 16px/1.38 Nunito,sans-serif;
+}
+.paax-ai-insight .paax-ai-hero p{
+ color:#547396;font:750 11.5px/1.65 Nunito,sans-serif;margin:0;
+}
+.paax-ai-insight .paax-ai-context{
+ display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;
+ margin-top:11px;color:#6f89a9;font:850 10px/1.4 Nunito,sans-serif;
+}
+.paax-ai-insight .paax-ai-grid{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin-top:12px;
+}
+.paax-ai-insight .paax-ai-col{
+ padding:13px;border:1px solid #e0e9f7;border-radius:15px;min-width:0;
+ background:#fff;
+}
+.paax-ai-insight .paax-ai-col-finding{background:#f9fbff}
+.paax-ai-insight .paax-ai-col-check{background:#fffcf7}
+.paax-ai-insight .paax-ai-col-action{background:#f8fcfb}
+.paax-ai-insight .paax-ai-col h4{
+ margin:0 0 9px;color:#245487;font:900 12px/1.4 Nunito,sans-serif;
+}
+.paax-ai-insight .paax-ai-point+.paax-ai-point{
+ border-top:1px solid #e6edf7;padding-top:10px;margin-top:10px;
+}
+.paax-ai-insight .paax-ai-point strong{
+ display:block;color:#315a89;font:900 11px/1.4 Nunito,sans-serif;
+}
+.paax-ai-insight .paax-ai-point p{
+ margin:4px 0 0;color:#5c7597;font:750 11px/1.6 Nunito,sans-serif;
+ overflow-wrap:anywhere;
+}
+.paax-ai-insight .paax-ai-method{
+ color:#7189a6;font:700 10px/1.6 Nunito,sans-serif;margin:12px 2px 0;
+}
+@media(max-width:1100px){
+ .paax-ai-insight .paax-ai-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .paax-ai-insight .paax-ai-col-action{grid-column:1/-1}
+}
+@media(max-width:700px){
+ .paax-ai-insight{padding:13px!important;border-radius:17px}
+ .paax-ai-insight .paax-ai-title h3{font-size:17px}
+ .paax-ai-insight .paax-ai-grid{grid-template-columns:1fr;gap:8px}
+ .paax-ai-insight .paax-ai-col-action{grid-column:auto}
+ .paax-ai-insight .paax-ai-hero{padding:12px}
+}
+
 </style>
 </head>
 <body>
@@ -5074,6 +5161,199 @@ function renderTrendFinancialInsight(data){
   </div>`).join('')}</div>
   </div>`;
 }
+
+/* #084 Paaxixi Insight: analisis keuangan lokal berbasis pola statistik.
+   Tidak memakai API/model eksternal, tidak mengunggah transaksi. */
+function paaxMonthLast(month){
+ const [year,index]=month.split('-').map(Number);
+ return month+'-'+String(new Date(year,index,0).getDate()).padStart(2,'0');
+}
+function paaxInsightDays(first,last){
+ const a=Date.parse(first+'T12:00:00Z'),b=Date.parse(last+'T12:00:00Z');
+ return Number.isFinite(a)&&Number.isFinite(b)?Math.max(1,Math.round((b-a)/86400000)+1):1;
+}
+function paaxInsightMedian(values){
+ if(!values.length)return 0;
+ const sorted=values.slice().sort((a,b)=>a-b),middle=Math.floor(sorted.length/2);
+ return sorted.length%2?sorted[middle]:(sorted[middle-1]+sorted[middle])/2;
+}
+function buildPaaxixiFinanceInsight(){
+ const selection=expenseSelection(),tx=selection.transactions.filter(t=>num(t.amount)>0);
+ const dates=selection.dates,now=analysisToday(),total=tx.reduce((sum,t)=>sum+num(t.amount),0);
+ const entries=analysisEntries(tx),categories=analysisCategories();
+ const activeDays=new Set(tx.map(t=>t.date)).size;
+ const allGroups=ui.comp.groups===null&&ui.comp.categories===null;
+ const scoped=allGroups?'Seluruh kelompok':(ui.comp.breakdown==='category'?'Pos terpilih':'Kelompok terpilih');
+ const period=dates.from===dates.to?dateFmt(dates.from):dateFmt(dates.from)+' – '+dateFmt(dates.to);
+ const findings=[],checks=[],actions=[];
+ const add=(list,label,text)=>{if(text&&!list.some(x=>x.label===label))list.push({label,text});};
+ const result={total,count:tx.length,days:activeDays,scope:scoped,period,headline:'',summary:'',status:'neutral',findings,checks,actions};
+ if(!tx.length){
+  result.headline='Belum ada transaksi pengeluaran yang bisa dianalisis.';
+  result.summary='Periksa rentang dan pos yang dipilih. Tanpa transaksi tercatat, sistem tidak dapat menyimpulkan kondisi keuangan.';
+  add(actions,'Langkah awal','Pilih Semua Data atau catat pengeluaran yang sudah terjadi. Setelah ada data, pola dan rekomendasi akan muncul otomatis.');
+  return result;
+ }
+ const top=entries[0],share=top?top.value/total:0;
+ const focus=top?top.icon+' '+top.label:'pengeluaran';
+ const shareText=top?Math.round(share*100)+'% ('+money(top.value)+')':'';
+ if(top){
+  add(findings,'Komposisi teratas',focus+' mencakup '+shareText+' dari '+tx.length+' transaksi terpilih. Porsi besar belum tentu boros jika merupakan kebutuhan pokok.');
+  if(share>=.52){
+   add(checks,'Konsentrasi biaya','Lebih dari separuh pengeluaran berasal dari '+top.label+'. Periksa rincian sebelum memangkas karena kebutuhan rutin bisa mendominasi.');
+   add(actions,'Evaluasi prioritas','Tinjau transaksi '+top.label+' dan pisahkan yang wajib dari yang dapat ditunda sebelum menetapkan batas baru.');
+  }
+ }
+ // Hanya bulan kalender penuh yang dibandingkan. Bulan berjalan dan rentang parsial tidak layak dibanding langsung.
+ const months=new Map();
+ for(const t of tx){
+  const m=t.date.slice(0,7),row=months.get(m)||{month:m,total:0,count:0};
+  row.total+=num(t.amount);row.count++;months.set(m,row);
+ }
+ const completed=[...months.values()].filter(row=>
+  row.month<now.slice(0,7)&&row.month+'-01'>=dates.from&&paaxMonthLast(row.month)<=dates.to
+ ).sort((a,b)=>a.month.localeCompare(b.month));
+ const end=completed.at(-1),before=completed.at(-2);
+ const adjacent=!!end&&!!before&&trendPreviousMonth(end.month,-1)===before.month;
+ if(adjacent&&before.total>0){
+  const delta=end.total-before.total,rate=delta/before.total*100;
+  const direction=delta>0?'meningkat':delta<0?'menurun':'stabil';
+  add(findings,'Tren bulanan terukur',
+   'Pada dua bulan penuh berurutan, pengeluaran '+direction+' '+(delta===0?'(tidak berubah)':
+    Math.abs(rate).toLocaleString('id-ID',{maximumFractionDigits:1})+'% ('+money(Math.abs(delta))+')')+
+   ', dari '+monthFmt(before.month)+' ke '+monthFmt(end.month)+'.');
+  if(delta>0&&rate>=25&&delta>=100000){
+   add(checks,'Kenaikan antarb​​ulan','Lonjakan terjadi pada dua bulan yang sama-sama selesai. Telusuri transaksi besar atau biaya sekali bayar sebelum menyimpulkan ada perubahan kebiasaan.');
+  }
+ }else if(dates.from.slice(0,7)!==dates.to.slice(0,7)){
+  add(findings,'Kualitas perbandingan','Belum ada dua bulan penuh berurutan dengan pengeluaran tercatat pada filter ini. Tren lintas bulan belum dapat dinilai secara sebanding.');
+ }
+ if(dates.to===now&&dates.from<=now){
+  add(checks,'Periode belum selesai','Data hingga '+dateFmt(now)+' masih berjalan. Total bulan atau tahun ini belum boleh disamakan dengan periode penuh.');
+ }
+ // Pemeriksaan anggaran hanya jika seleksi mencakup seluruh bulan laporan aktif sampai akhir hari yang tersedia.
+ const activeMonth=ui.month,activeRange=dates.from===activeMonth+'-01'&&
+  dates.to>=Math.min(1,1)&&dates.to>=((paaxMonthLast(activeMonth)<now)?paaxMonthLast(activeMonth):now);
+ const fullReportMonth=dates.from===activeMonth+'-01'&&dates.to>=((paaxMonthLast(activeMonth)<now)?paaxMonthLast(activeMonth):now);
+ const budgetItems=fullReportMonth?categories.filter(c=>hasBudget(c.id)&&effectiveBudget(c.id)>0)
+  .map(c=>({c,limit:effectiveBudget(c.id),spent:spentByCat(c.id)})):[];
+ const over=budgetItems.filter(item=>item.spent>item.limit).sort((a,b)=>(b.spent-b.limit)-(a.spent-a.limit));
+ const near=budgetItems.filter(item=>item.spent<=item.limit&&item.spent>=item.limit*.85)
+  .sort((a,b)=>b.spent/b.limit-a.spent/a.limit);
+ if(over.length){
+  const b=over[0];
+  add(checks,'Anggaran terlampaui',b.c.label+' melebihi batas '+monthFmt(activeMonth)+' sebesar '+money(b.spent-b.limit)+' ('+money(b.spent)+' dari '+money(b.limit)+').');
+  add(actions,'Kendalikan anggaran','Periksa transaksi '+b.c.label+'. Jika pengeluaran wajib, sesuaikan alokasi; jika fleksibel, tunda pengeluaran berikutnya.');
+  result.status='attention';
+ }else if(near.length){
+  const b=near[0];
+  add(checks,'Anggaran hampir habis',b.c.label+' sudah menggunakan '+Math.round(b.spent/b.limit*100)+'% anggaran '+monthFmt(activeMonth)+'.');
+  add(actions,'Jaga sisa anggaran','Pantau sisa '+money(b.limit-b.spent)+' pada '+b.c.label+' sebelum transaksi berikutnya.');
+  result.status='watch';
+ }
+ // Perbandingan arus kas hanya saat semua kelompok ditampilkan dan periode tepat satu bulan.
+ const sameMonth=dates.from.slice(0,7)===dates.to.slice(0,7);
+ if(allGroups&&sameMonth&&dates.from.endsWith('-01')){
+  const incomes=db.transactions.filter(t=>t.type==='income'&&t.date>=dates.from&&t.date<=dates.to)
+   .reduce((sum,t)=>sum+num(t.amount),0);
+  if(incomes>0){
+   const difference=incomes-total;
+   add(findings,'Arus kas tercatat','Pemasukan '+money(incomes)+' dan pengeluaran '+money(total)+
+    ' pada periode ini; selisih '+(difference>=0?'positif ':'negatif ')+money(Math.abs(difference))+'. Ini bukan saldo rekening.');
+   if(difference<0){
+    add(checks,'Selisih arus kas negatif','Pengeluaran melampaui pemasukan yang tercatat. Bisa disebabkan pemasukan belum diinput atau kebutuhan yang dibayar dari saldo sebelumnya.');
+    add(actions,'Cocokkan arus uang','Pastikan seluruh pemasukan sudah tercatat, lalu tinjau pengeluaran yang bisa dijadwal ulang.');
+    result.status='attention';
+   }
+  }else{
+   add(checks,'Pemasukan belum terlihat','Belum ada pemasukan tercatat pada periode terpilih. Pastikan datanya lengkap sebelum menilai kemampuan belanja.');
+  }
+ }
+ // Kandidat transaksi tidak biasa dibanding median pada pos yang sama, bukan seluruh transaksi.
+ const catRows=new Map();
+ for(const t of tx){const rows=catRows.get(t.categoryId)||[];rows.push(t);catRows.set(t.categoryId,rows);}
+ const outliers=[];
+ for(const [id,items] of catRows){
+  if(items.length<5)continue;
+  const median=paaxInsightMedian(items.map(t=>num(t.amount))),maxItem=items.slice().sort((a,b)=>num(b.amount)-num(a.amount))[0];
+  if(median>0&&num(maxItem.amount)>=Math.max(120000,median*2.8)&&num(maxItem.amount)>=total*.04){
+   outliers.push({item:maxItem,median,category:cat(id)?.label||'Pos lainnya',ratio:num(maxItem.amount)/median});
+  }
+ }
+ outliers.sort((a,b)=>b.ratio-a.ratio);
+ if(outliers.length){
+  const item=outliers[0];
+  add(checks,'Transaksi tak biasa','Ada '+money(item.item.amount)+' pada '+item.category+' ('+dateFmt(item.item.date)+
+   '), sekitar '+item.ratio.toLocaleString('id-ID',{maximumFractionDigits:1})+' kali median nominal pos tersebut. Belum tentu salah.');
+  add(actions,'Verifikasi nilai besar','Cek bukti pembayaran dan kategori '+item.category+'. Jika benar, tandai sebagai kebutuhan sesekali agar tidak dianggap pola rutin.');
+  if(result.status==='neutral')result.status='watch';
+ }
+ const frequent=categories.map(c=>{
+  const list=catRows.get(c.id)||[],name=c.label.toLowerCase();
+  return {c,list,total:list.reduce((sum,t)=>sum+num(t.amount),0),discretionary:/jajan|ngopi|kopi|nongkrong|hiburan|self reward|belanja iseng|camilan/i.test(name)};
+ }).filter(x=>x.discretionary&&x.list.length>=5).sort((a,b)=>b.total-a.total);
+ if(frequent.length){
+  const f=frequent[0];
+  add(findings,'Belanja kecil berulang',f.c.label+' muncul '+f.list.length+' kali dengan akumulasi '+money(f.total)+
+   '. Frekuensi layak dipantau meskipun tiap transaksi terlihat kecil.');
+  add(actions,'Atur batas fleksibel','Coba tetapkan plafon mingguan untuk '+f.c.label+' dan evaluasi totalnya, bukan hanya harga per transaksi.');
+ }
+ if(dates.to===now&&tx.length>=2){
+  const lastDate=tx.map(t=>t.date).sort().at(-1),days=paaxInsightDays(lastDate,now)-1;
+  if(days>=4){
+   add(checks,'Cek kelengkapan catatan','Tidak ada pengeluaran terinput dalam '+days+
+    ' hari terakhir. Ini bisa berarti memang tidak ada belanja, atau pencatatannya tertunda.');
+   add(actions,'Rekonsiliasi transaksi','Cocokkan pengeluaran tunai, mutasi bank, dan e-wallet sejak '+dateFmt(lastDate)+'.');
+  }
+ }
+ if(actions.length===0){
+  add(actions,'Langkah berikutnya','Tinjau pos dengan pengeluaran terbesar dan bandingkan dengan kebutuhan serta anggaran. Tidak ada sinyal mendesak dari aturan pemeriksaan saat ini.');
+ }
+ if(result.status==='neutral'&&checks.length>0)result.status='watch';
+ const primary=over[0];
+ result.headline=primary?'Perhatikan anggaran '+primary.c.label+' yang telah terlampaui.':
+  allGroups&&sameMonth&&checks.some(v=>v.label==='Selisih arus kas negatif')?
+  'Pengeluaran lebih besar daripada pemasukan yang tercatat.':
+  outliers.length?'Ada transaksi tak biasa yang layak dikonfirmasi.':
+  share>=.52?'Pengeluaran paling terkonsentrasi pada '+top.label+'.':
+  adjacent?'Pola dua bulan penuh terakhir sudah bisa dibandingkan.':
+  'Fokus pemeriksaan: '+(top?top.label:'pengeluaran terpilih')+'.';
+ result.summary=tx.length+' transaksi pada '+activeDays+' hari tercatat selama '+period+
+  '. Rekomendasi mengikuti filter donat dan akan diperbarui saat data berubah.';
+ return result;
+}
+function renderPaaxixiSmartFinanceInsight(){
+ const data=buildPaaxixiFinanceInsight();
+ const tone=data.status==='attention'?'attention':data.status==='watch'?'watch':'neutral';
+ const statusText=data.status==='attention'?'Perlu perhatian':data.status==='watch'?'Ada yang perlu dicek':'Ringkasan otomatis';
+ const columns=[
+  {kind:'finding',icon:'📊',title:'Apa yang Terjadi?',items:data.findings,
+   fallback:'Data belum cukup untuk membentuk kesimpulan pola antarperiode.'},
+  {kind:'check',icon:'🔎',title:'Perlu Diperiksa',items:data.checks,
+   fallback:'Belum ada anomali atau risiko spesifik yang terdeteksi berdasarkan aturan yang digunakan.'},
+  {kind:'action',icon:'🎯',title:'Tindakan yang Disarankan',items:data.actions,
+   fallback:'Lanjutkan pencatatan dan tinjau hasilnya secara berkala.'}
+ ];
+ return `<section class="card paax-ai-insight" id="paax-ai-insight" aria-labelledby="paax-ai-heading">
+  <div class="paax-ai-header">
+   <div class="paax-ai-title"><span class="paax-ai-icon" aria-hidden="true">🧠</span><div>
+    <h3 id="paax-ai-heading">Insight Keuangan Cerdas</h3>
+    <p>Menerjemahkan komposisi dan pola waktu menjadi langkah yang dapat dilakukan.</p>
+   </div></div>
+   <span class="paax-ai-status paax-ai-status-${tone}">${statusText}</span>
+  </div>
+  <div class="paax-ai-hero"><span class="paax-ai-hero-eyebrow">✨ FOKUS ANALISIS</span>
+   <h4>${h(data.headline)}</h4><p>${h(data.summary)}</p>
+   <div class="paax-ai-context"><span>📆 ${h(data.period)}</span><span>🧩 ${h(data.scope)}</span></div>
+  </div>
+  <div class="paax-ai-grid">${columns.map(col=>`<article class="paax-ai-col paax-ai-col-${col.kind}">
+   <h4><span aria-hidden="true">${col.icon}</span> ${col.title}</h4>
+   <div class="paax-ai-points">${(col.items.length?col.items.slice(0,3):[{label:'Informasi',text:col.fallback}]).map(x=>`<div class="paax-ai-point"><strong>${h(x.label)}</strong><p>${h(x.text)}</p></div>`).join('')}</div>
+  </article>`).join('')}</div>
+  <p class="paax-ai-method"><span aria-hidden="true">🔒</span> Analisis otomatis berbasis aturan statistik dan data yang dicatat, bukan model AI generatif. Data tidak dikirim ke layanan AI eksternal. Temuan merupakan indikasi, bukan kepastian.</p>
+ </section>`;
+}
+
 function renderTrendPanel(){
  const c=ui.comp,periods=trendPeriods(),mode=periods.mode;
  const categoryIds=new Set(analysisCategories().map(x=>x.id));
@@ -5087,26 +5367,7 @@ function renderTrendPanel(){
   const tx=filtered.filter(t=>trendRowTransaction(t,key,mode));
   return {key,tx,count:tx.length,total:tx.reduce((sum,t)=>sum+num(t.amount),0)};
  });
- const all=rows.flatMap(row=>row.tx),entries=analysisEntries(all),donutEntries=analysisEntries(expenseSelection().transactions),grandTotal=all.reduce((sum,t)=>sum+num(t.amount),0);
- const previous=rows[rows.length-2],last=rows[rows.length-1],third=rows[rows.length-3];
- const comparable=!!previous&&!!last&&previous.count>0&&last.count>0&&previous.total>0;
- const lastDate=last?.key||'',now=new Date(),incomplete=mode==='day'?lastDate===dateISO(now):
-  mode==='month'?lastDate===currentMonth():lastDate===String(now.getFullYear());
- let comparison='Butuh catatan pengeluaran pada dua periode berurutan untuk menghitung perubahan. Tanda kosong bukan berarti pengeluaran sebenarnya nol.';
- if(comparable){
-  const delta=last.total-previous.total,pctChange=Math.abs(delta)/previous.total*100;
-  comparison='Pengeluaran '+trendLabel(last.key,mode)+(delta>0?' naik ':delta<0?' turun ':' tetap ')+(delta===0?'':pctChange.toLocaleString('id-ID',{maximumFractionDigits:1})+'% ('+money(Math.abs(delta))+') ')+
-   'dibanding '+trendLabel(previous.key,mode)+'.';
-  if(incomplete)comparison+=' Periode terakhir masih berjalan; bandingkan dengan hati-hati.';
- }
- let most=entries[0],insight=most?'Kontributor terbesar pada rentang tren ini: '+most.icon+' '+h(most.label)+' ('+pct(most.value,grandTotal)+'% dari total).':'Belum cukup data untuk melihat penyumbang pengeluaran terbesar.';
- const jumps=entries.map(e=>{
-   if(!comparable)return {...e,delta:0};
-   const value=arr=>arr.reduce((sum,t)=>sum+((c.breakdown==='group'?cat(t.categoryId)?.group===e.label:t.categoryId===e.id)?num(t.amount):0),0);
-   return {...e,delta:value(last.tx)-value(previous.tx)};
- }).sort((a,b)=>b.delta-a.delta);
- if(jumps[0]?.delta>0&&comparable)insight+=' Kenaikan terbesar: '+jumps[0].icon+' '+h(jumps[0].label)+' (+'+money(jumps[0].delta)+').';
- const financialInsight=trendFinancialInsight(rows,entries,all,grandTotal,mode);
+ const donutEntries=analysisEntries(expenseSelection().transactions);
  const available=trendAvailability(),dflt=trendDefaultRange(mode),dateRange=trendRange();
  const from=dateRange.from,to=dateRange.to;
  const choices=[['day','📅','Harian'],['month','🗓️','Bulanan'],['year','📊','Tahunan']];
@@ -5131,7 +5392,6 @@ function renderTrendPanel(){
   </div>
   <div class="trend-label-toggle trend-label-toggle-bottom"><label><input type="checkbox" id="trend-labels" ${c.trendLabels?'checked':''}> Nominal pada titik</label></div>
   ${periods.trimmed?`<p class="comp-tiny">Rentang sangat panjang. Ditampilkan ${periods.keys.length} periode terakhir; persempit rentang untuk melihat periode sebelumnya.</p>`:''}
-  <details class="trend-insight-expand"><summary>✨ Buka Insight Tren & Perbandingan</summary><div class="trend-notes"><div class="trend-note"><strong>📈 Perubahan Periode</strong>${comparison}</div><div class="trend-note"><strong>🔎 Kontributor Utama</strong>${insight}</div>${renderTrendFinancialInsight(financialInsight)}</div></details>
  </section>`;
 }
 
@@ -5283,6 +5543,7 @@ ${metricCard('Pemasukan Bulan Ini',inc,'↑','green','Transaksi Pemasukan')}${me
 </div>
 ${renderBudgetAlertStrip(alert,bt)}
 <div class="analytics-comp-trend">${renderComposition()}${renderTrendPanel()}</div>
+${renderPaaxixiSmartFinanceInsight()}
 <div class="grid layout-2"><section class="card finance-spotlight-card budget-spotlight-card"><div class="card-head"><div><h3>Penggunaan Anggaran</h3><p>Periksa pos yang paling banyak terpakai; atur ulang batas bila mulai menipis.</p></div><button type="button" data-nav="budgets" class="btn sm ghost finance-spotlight-action budget-all-cta">Lihat Semua <span class="spotlight-arrow" aria-hidden="true">↗</span></button></div>${budgets.length?`<div class="budget-list">${budgets.slice(0,5).map(c=>budgetProgress(c)).join('')}</div>`:empty('◎','Anggaran Belum Disusun','Kamu dapat memberi batas pengeluaran tiap kategori untuk setiap bulan.')}</section>
 <section class="card finance-spotlight-card income-spotlight-card"><div class="card-head"><div><h3>Asal Pemasukan</h3><p>Periksa sumber pemasukan terbesar dan pastikan pendapatan rutin sudah tercatat.</p></div></div>${bySource.length?bySource.slice(0,7).map(c=>`<div class="stat-pair"><span>${h(c.label)} <span style="color:#8a9bb3">• ${pct(c.amount,inc)}%</span></span><strong>${money(c.amount)}</strong></div>`).join(''):empty('↗','Belum Ada Pemasukan','Misalnya dividen Fastlink, gaji atau tukin BPS.')}
 <div class="linebreak"></div><div class="stat-pair"><span>Piutang Belum Kembali</span><strong class="green">${money(debt.receivable)}</strong></div><div class="stat-pair"><span>Utang Belum Dilunasi</span><strong class="red">${money(debt.payable)}</strong></div><button type="button" class="btn sm full finance-spotlight-action debt-overview-cta" data-debt-overview="open" aria-haspopup="dialog"><span aria-hidden="true">↗</span> Lihat Utang & Piutang <span class="spotlight-arrow" aria-hidden="true">→</span></button></section></div>

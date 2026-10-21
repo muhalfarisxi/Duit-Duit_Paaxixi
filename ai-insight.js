@@ -51,7 +51,7 @@ async function getFinanceModel(){
     generationConfig:{
      responseMimeType:'application/json',
      responseSchema,
-     thinkingConfig:{thinkingLevel:aiSDK.ThinkingLevel.LOW},
+     thinkingConfig:{thinkingLevel:aiSDK.ThinkingLevel?.LOW ?? 'LOW'},
      maxOutputTokens:4096
     }
    })

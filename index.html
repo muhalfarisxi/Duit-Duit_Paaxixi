@@ -2791,6 +2791,63 @@ body:has(.tx-search-backdrop){overflow:hidden}
  #composition-card .comp-legend-item,#composition-card .comp-legend-item .category-symbol{transition:none!important}
 }
 
+
+/* #068 Pop-up sambutan vertikal: mascot enter + dadah + cuaca animasi */
+.welcome-modal-backdrop{animation:paaxixi-welcome-backdrop-in .35s ease-out both}
+.welcome-modal{animation:paaxixi-welcome-enter .68s cubic-bezier(.2,.85,.25,1.05) both;overflow:hidden}
+.welcome-modal .welcome-panel.welcome-panel-animated{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ gap:14px;text-align:center;padding:30px 55px 29px;min-height:0;
+}
+.welcome-modal .welcome-mascot-scene{width:172px;height:161px}
+.welcome-modal .welcome-mascot-enter{animation:paaxixi-mascot-drop-bounce 1.2s cubic-bezier(.2,.85,.26,1) both}
+.welcome-modal .welcome-mascot-bob{animation:paaxixi-mascot-dadah 5.3s ease-in-out 1.3s infinite}
+.welcome-scene-orb{
+ position:absolute;top:3px;left:0;z-index:1;font-size:25px;
+ transform-origin:center;pointer-events:none;
+ animation:paaxixi-orb-float 6s ease-in-out infinite;
+}
+.welcome-scene-orb-day{animation:paaxixi-orb-sun 11s linear infinite}
+.welcome-scene-orb-night{filter:drop-shadow(0 0 7px rgba(255,245,185,.48))}
+.welcome-scene-cloud{right:3px;top:15px;animation:paaxixi-cloud-across 8s ease-in-out infinite}
+.welcome-modal .welcome-copy{display:flex;flex-direction:column;align-items:center;max-width:720px}
+.welcome-modal .welcome-eyebrow{font-size:clamp(10px,1.3vw,12px);line-height:1.5}
+.welcome-modal .welcome-quote{max-width:660px}
+@keyframes paaxixi-mascot-drop-bounce{
+ 0%{opacity:0;transform:translate(62px,-80px) rotate(14deg) scale(.75)}
+ 55%{opacity:1;transform:translate(-4px,11px) rotate(-7deg) scale(1.07)}
+ 73%{transform:translate(3px,-10px) rotate(4deg) scale(.98)}
+ 86%{transform:translate(-1px,4px) rotate(-2deg) scale(1.015)}
+ 100%{opacity:1;transform:translate(0,0) rotate(0) scale(1)}
+}
+@keyframes paaxixi-orb-sun{
+ 0%{transform:rotate(0deg) translateY(0)}
+ 50%{transform:rotate(180deg) translateY(-3px)}
+ 100%{transform:rotate(360deg) translateY(0)}
+}
+@keyframes paaxixi-orb-float{
+ 0%,100%{transform:translateY(0) rotate(-6deg)}
+ 50%{transform:translateY(-7px) rotate(8deg)}
+}
+@keyframes paaxixi-cloud-across{
+ 0%,100%{transform:translateX(-7px) translateY(0)}
+ 50%{transform:translateX(9px) translateY(-5px)}
+}
+@media(max-width:600px){
+ .welcome-modal .welcome-panel.welcome-panel-animated{align-items:center;text-align:center;padding:24px 17px 23px;gap:11px}
+ .welcome-modal .welcome-mascot-scene{height:138px;width:145px}
+ .welcome-modal .welcome-copy{align-items:center}
+ .welcome-modal .welcome-eyebrow{padding:0 24px;font-size:10px}
+ .welcome-modal .welcome-copy h2{font-size:clamp(22px,5.2vw,29px)}
+ .welcome-modal .welcome-quote{font-size:13px;line-height:1.55}
+ .welcome-modal .welcome-modal-close{top:9px;right:9px}
+}
+@media(prefers-reduced-motion:reduce){
+ .welcome-modal-backdrop,.welcome-modal,.welcome-modal .welcome-mascot-enter,
+ .welcome-modal .welcome-mascot-bob,.welcome-scene-orb,.welcome-scene-cloud{
+  animation:none!important;transform:none!important;
+ }
+}
 </style>
 <link rel="stylesheet" href="./composition-playful.css?v=5">
 <link rel="stylesheet" href="./composition-pos-popup.css?v=3">
@@ -4648,6 +4705,7 @@ function welcomeBlock(){
     <picture><source type="image/avif" srcset="./profil-paaxixi-hd.avif?v=1"><img class="welcome-avatar" src="./profil-paaxixi.png?v=2" width="560" height="560" alt="Logo profil Duit-Duit Paaxixi" decoding="async" fetchpriority="high"></picture>
    </span></span>
    <span class="welcome-mascot-wave" aria-hidden="true">👋</span>
+   <span class="welcome-scene-orb welcome-scene-orb-${weather}" aria-hidden="true">${weather==='night'?'🌙':weather==='sunset'?'🌇':'☀️'}</span>
    <span class="welcome-scene-cloud" aria-hidden="true">${weather==='night'?'✦':'☁️'}</span>
   </div>
   <div class="welcome-copy">

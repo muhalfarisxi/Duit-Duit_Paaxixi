@@ -4049,6 +4049,34 @@ body:has(.tx-search-backdrop){overflow:hidden}
 .paax-ai-dialog .paax-ai-ai-toolbar small{color:#6987ab}
 .paax-ai-dialog .paax-ai-hero{margin-top:0}
 .paax-ai-dialog .paax-ai-privacy{padding-top:9px;border-top:1px solid #e7eef8;margin-top:13px}
+
+/* #087 KPI auto-fit: four dashboard headings and totals always stay on one line.
+   The measured font-size is set in JS after every render/resize. */
+#content .kpis:not(.budget-kpis) .kpi-detail-trigger{
+ min-width:0;
+}
+#content .kpis:not(.budget-kpis) .kpi-detail-trigger .kpi-heading-block,
+#content .kpis:not(.budget-kpis) .kpi-detail-trigger .kpi-heading-line{
+ min-width:0;max-width:100%;
+}
+#content .kpis:not(.budget-kpis) .kpi-detail-trigger .kpi-heading-title{
+ display:block;flex:1 1 auto;width:100%;min-width:0;max-width:100%;
+ white-space:nowrap!important;overflow:hidden!important;text-overflow:clip!important;
+ overflow-wrap:normal!important;word-break:keep-all!important;
+ line-height:1.22;
+}
+#content .kpis:not(.budget-kpis) .kpi-detail-trigger>.metric{
+ display:block!important;box-sizing:border-box;width:100%!important;max-width:100%!important;
+ white-space:nowrap!important;overflow:hidden!important;text-overflow:clip!important;
+ overflow-wrap:normal!important;word-break:keep-all!important;
+ font-variant-numeric:lining-nums tabular-nums;
+ line-height:1.22;
+}
+/* Allow bigger text whenever a card has enough space, shrink only when necessary. */
+#content .kpis:not(.budget-kpis) .kpi-detail-trigger .kpi-heading-title,
+#content .kpis:not(.budget-kpis) .kpi-detail-trigger>.metric{
+ transition:none!important;
+}
 </style>
 </head>
 <body>
@@ -4571,6 +4599,65 @@ function observeAnalysisChartAlignment(){
 window.addEventListener('resize',scheduleAnalysisChartAlignment);
 document.fonts?.ready?.then(scheduleAnalysisChartAlignment);
 
+
+/* #087 Text width is measured using a DOM Range, so figures are NEVER split
+   (including values with dots, negative amounts, and very long balances). */
+let paaxKpiFitObserver=null,paaxKpiFitScheduled=false;
+function paaxFitKpiSingleLine(el){
+ if(!el||!el.isConnected)return;
+ el.style.removeProperty('font-size');
+ const max=parseFloat(getComputedStyle(el).fontSize);
+ const room=el.clientWidth;
+ if(!Number.isFinite(max)||!room)return;
+ const range=document.createRange();
+ range.selectNodeContents(el);
+ // Allow some clearance for the gentle cashflow/focus scale animations.
+ const available=Math.max(5,room-(el.classList.contains('metric')?Math.max(3,room*.045):2));
+ const fits=size=>{
+  el.style.fontSize=size.toFixed(2)+'px';
+  return range.getBoundingClientRect().width<=available+.35;
+ };
+ if(fits(max))return;
+ let low=6,high=max;
+ // Binary search yields the largest font that keeps the COMPLETE text visible.
+ for(let i=0;i<14;i++){
+  const mid=(low+high)/2;
+  if(fits(mid))low=mid;
+  else high=mid;
+ }
+ el.style.fontSize=Math.max(6,low-.15).toFixed(2)+'px';
+}
+function paaxFitDashboardKpis(){
+ if(ui.view!=='dashboard')return;
+ document.querySelectorAll('#content .kpis:not(.budget-kpis) .kpi-detail-trigger').forEach(card=>{
+  paaxFitKpiSingleLine(card.querySelector('.kpi-heading-title'));
+  paaxFitKpiSingleLine(card.querySelector(':scope > .metric'));
+ });
+}
+function paaxScheduleKpiFit(){
+ if(paaxKpiFitScheduled)return;
+ paaxKpiFitScheduled=true;
+ requestAnimationFrame(()=>{
+  paaxKpiFitScheduled=false;
+  paaxFitDashboardKpis();
+ });
+}
+function paaxObserveKpiWidths(){
+ if(paaxKpiFitObserver){paaxKpiFitObserver.disconnect();paaxKpiFitObserver=null;}
+ if(ui.view!=='dashboard')return;
+ if(typeof ResizeObserver==='function'){
+  paaxKpiFitObserver=new ResizeObserver(paaxScheduleKpiFit);
+  document.querySelectorAll('#content .kpis:not(.budget-kpis) .kpi-detail-trigger').forEach(card=>
+   paaxKpiFitObserver.observe(card));
+ }
+ paaxScheduleKpiFit();
+}
+window.addEventListener('resize',paaxScheduleKpiFit);
+if(document.fonts){
+ document.fonts.ready.then(paaxScheduleKpiFit);
+ document.fonts.addEventListener?.('loadingdone',paaxScheduleKpiFit);
+}
+
 function render(){
  const prev=document.querySelector('.comp-popover');
  const oldKind=prev?.dataset?.compPopup,oldScroll=prev?.querySelector('.comp-popover-items')?.scrollTop||0;
@@ -4580,6 +4667,7 @@ function render(){
  labelNav();
  document.getElementById('content').innerHTML=({dashboard:renderDash,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])()+renderTxHistoryPopup()+renderTxSearchPopup()+renderTxModal()+renderTrendRangePopup();
  decoratePaaxixiSectionTitles();
+ paaxObserveKpiWidths();
  paxCompDecorate();
  paxDecorateMini(document.getElementById('content'));
  paxDecoratePopups(document.getElementById('content'));

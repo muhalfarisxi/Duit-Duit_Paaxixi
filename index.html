@@ -4077,6 +4077,44 @@ body:has(.tx-search-backdrop){overflow:hidden}
 #content .kpis:not(.budget-kpis) .kpi-detail-trigger>.metric{
  transition:none!important;
 }
+
+/* #088 Honest readiness: animated button while AI for the selected filter is pending. */
+.paax-ai-strip .paax-ai-strip-actions{
+ display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap;
+}
+.paax-ai-strip .paax-ai-open{
+ display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:39px;
+ transition:background .2s,box-shadow .2s,transform .2s;
+}
+.paax-ai-strip .paax-ai-open[aria-busy="true"]{
+ background:linear-gradient(110deg,#265eb5,#3a83e7,#265eb5);
+ background-size:220% 100%;
+ animation:paax-ai-button-shimmer 1.7s linear infinite;
+}
+.paax-ai-strip .paax-ai-open:disabled{
+ opacity:1;cursor:progress;transform:none;
+}
+.paax-ai-strip .paax-ai-button-spinner{
+ flex:none;display:inline-block;width:15px;height:15px;
+ border:2.4px solid rgba(255,255,255,.38);border-top-color:#fff;
+ border-radius:50%;animation:paax-ai-button-spin .75s linear infinite;
+}
+.paax-ai-strip .paax-ai-local-action{
+ appearance:none;border:0;background:transparent;padding:7px 4px;cursor:pointer;
+ color:#326ba9;font:850 10px/1.4 'Nunito',sans-serif;text-decoration:underline;
+ text-underline-offset:3px;
+}
+.paax-ai-strip .paax-ai-local-action[hidden]{display:none!important}
+@keyframes paax-ai-button-spin{to{transform:rotate(360deg)}}
+@keyframes paax-ai-button-shimmer{to{background-position-x:-220%}}
+@media(prefers-reduced-motion:reduce){
+ .paax-ai-strip .paax-ai-button-spinner{animation-duration:2s}
+ .paax-ai-strip .paax-ai-open[aria-busy="true"]{animation:none}
+}
+@media(max-width:520px){
+ .paax-ai-strip .paax-ai-strip-actions{width:100%;justify-content:stretch}
+ .paax-ai-strip .paax-ai-open{flex:1}
+}
 </style>
 </head>
 <body>
@@ -5527,7 +5565,7 @@ function buildPaaxixiFinanceInsight(){
 }
 
 /* #085 Ringkas dashboard: insight penuh hanya di dialog + Gemini bila aktif. */
-const paaxAiUi={open:false};
+const paaxAiUi={open:false,waitingFor:null,localFallback:false};
 // Cache only in this browser tab. Never persist AI results/finance data to third-party storage.
 const paaxAiAuto={
  cache:new Map(),timer:null,inFlight:null,lastStarted:0,autoCalls:0,maxAutoCalls:20,
@@ -5645,7 +5683,7 @@ async function paaxAiStart(current,manual=false){
  if(!manual&&paaxAiCacheGet(current.signature))return;
  const fn=window.PAAX_AI_GENERATE;
  if(typeof fn!=='function'){
-  if(manual){paaxAiCachePut(current.signature,{error:'Modul Gemini masih dimuat. Coba sebentar lagi.',retryAfter:Date.now()+5000});if(paaxAiUi.open)render();}
+  if(manual){paaxAiCachePut(current.signature,{error:'Modul Gemini masih dimuat. Coba sebentar lagi.',retryAfter:Date.now()+5000});if(paaxAiUi.waitingFor===current.signature)paaxAiUi.waitingFor=null;if(paaxAiUi.open)render();else paaxAiRefreshStrip();}
   return;
  }
  if(manual)paaxAiAuto.cache.delete(current.signature);
@@ -5653,7 +5691,7 @@ async function paaxAiStart(current,manual=false){
  paaxAiAuto.lastStarted=Date.now();
  const request={signature:current.signature,promise:null};
  paaxAiAuto.inFlight=request;
- if(paaxAiUi.open)render();
+ if(paaxAiUi.open)render();else paaxAiRefreshStrip();
  request.promise=(async()=>{
   try{
    const report=await fn(current.payload);
@@ -5666,12 +5704,97 @@ async function paaxAiStart(current,manual=false){
   }finally{
    if(paaxAiAuto.inFlight===request)paaxAiAuto.inFlight=null;
    if(ui.view==='dashboard'){
-    if(paaxAiUi.open)render();
+    const requested=paaxAiUi.waitingFor===request.signature;
+    if(requested){
+     paaxAiUi.waitingFor=null;
+     const fresh=paaxAiCurrent();
+     if(fresh?.signature===request.signature&&paaxAiCacheGet(request.signature)?.report){
+      paaxAiUi.localFallback=false;
+      paaxAiUi.open=true;
+      render();
+     }else paaxAiRefreshStrip();
+    }else if(paaxAiUi.open)render();
+    else paaxAiRefreshStrip();
     paaxAiSchedule();
-   }
+   }else if(paaxAiUi.waitingFor===request.signature)paaxAiUi.waitingFor=null;
   }
  })();
  return request.promise;
+}
+
+
+/* #088 Insight only opens when matching Gemini result is complete.
+   A selected filter is never fulfilled by an earlier filter's result. */
+function paaxAiStripState(current=paaxAiCurrent()){
+ const signature=current?.signature||'';
+ if(paaxAiUi.waitingFor&&paaxAiUi.waitingFor!==signature)paaxAiUi.waitingFor=null;
+ const saved=signature?paaxAiCacheGet(signature):null;
+ const ready=!!saved?.report;
+ const waiting=!!signature&&paaxAiUi.waitingFor===signature;
+ const loading=!ready&&(waiting||paaxAiAuto.inFlight?.signature===signature);
+ const available=!!String(window.ARUS_AI_APP_CHECK_SITE_KEY||'').trim();
+ const hasExpense=!!current?.payload?.pengeluaran?.jumlahTransaksi;
+ const localOnly=!available||!hasExpense;
+ const failed=!!saved?.error&&!loading&&!ready;
+ const status=ready?'Gemini siap · '+(saved.report.modelName||'Gemini'):
+  waiting?'Menunggu Gemini untuk filter ini…':
+  loading?'Gemini sedang menyiapkan insight…':
+  failed?'Gemini tertunda · ringkasan lokal tersedia':
+  localOnly?'Analisis statistik tersedia':
+  paaxAiAuto.autoCalls>=paaxAiAuto.maxAutoCalls?'Analisis otomatis dijeda · klik untuk memuat':
+  'Gemini menyiapkan analisis otomatis';
+ const label=ready?'✨ Lihat Hasil AI':
+  waiting?'Menunggu Hasil AI…':
+  loading?'Menyiapkan AI…':
+  failed?'↻ Coba Gemini Lagi':
+  localOnly?'📊 Lihat Ringkasan':'✨ Buka Insight';
+ return {ready,waiting,loading,localOnly,failed,status,label,
+  localButton:failed&&!paaxAiUi.open};
+}
+function paaxAiButtonMarkup(state){
+ return (state.loading?'<span class="paax-ai-button-spinner" aria-hidden="true"></span>':'')+
+  h(state.label)+(state.loading?'':' <span aria-hidden="true">↗</span>');
+}
+function paaxAiRefreshStrip(){
+ const strip=document.querySelector('#paax-ai-insight');
+ if(!strip)return;
+ const state=paaxAiStripState();
+ const caption=strip.querySelector('.paax-ai-strip-status');
+ const button=strip.querySelector('[data-paax-ai-open]');
+ const local=strip.querySelector('[data-paax-ai-local]');
+ if(caption)caption.textContent=state.status;
+ if(button){
+  button.innerHTML=paaxAiButtonMarkup(state);
+  button.disabled=state.waiting;
+  button.setAttribute('aria-busy',String(!!state.loading));
+ }
+ if(local)local.hidden=!state.localButton;
+}
+function paaxAiOpenLocal(){
+ paaxAiUi.waitingFor=null;
+ paaxAiUi.localFallback=true;
+ paaxAiUi.open=true;
+ render();
+}
+async function paaxAiOpenWhenReady(){
+ const current=paaxAiCurrent();
+ if(!current)return;
+ const state=paaxAiStripState(current);
+ if(state.ready){
+  paaxAiUi.waitingFor=null;
+  paaxAiUi.localFallback=false;
+  paaxAiUi.open=true;
+  render();
+  return;
+ }
+ if(state.localOnly){paaxAiOpenLocal();return;}
+ if(paaxAiUi.waitingFor===current.signature)return;
+ paaxAiUi.waitingFor=current.signature;
+ paaxAiUi.localFallback=false;
+ paaxAiRefreshStrip();
+ // If background generation is in progress, reuse the same promise.
+ // If another filter is in progress, wait for it before querying the current one.
+ await paaxAiStart(current,true);
 }
 
 function paaxAiMakeColumns(report){
@@ -5692,18 +5815,16 @@ function renderPaaxixiSmartFinanceInsight(){
  const local=buildPaaxixiFinanceInsight(),aiReady=!!String(window.ARUS_AI_APP_CHECK_SITE_KEY||'').trim();
  const current=paaxAiCurrent(),signature=current?.signature||'';
  const saved=paaxAiCacheGet(signature),generated=!!saved?.report;
+ const state=paaxAiStripState(current);
  const busy=paaxAiAuto.inFlight?.signature===signature;
  const report=generated?saved.report:local;
- const status=generated?'Gemini siap · '+(report.modelName||'Gemini'):
-  busy?'Gemini sedang menganalisis…':
-  saved?.error?'Gemini tertunda · analisis lokal siap':
-  !aiReady?'Analisis statistik tersedia':
-  paaxAiAuto.autoCalls>=paaxAiAuto.maxAutoCalls?'Auto dijeda untuk menjaga kuota':
-  'Gemini akan menyiapkan analisis otomatis';
  return `<section class="card paax-ai-strip" id="paax-ai-insight" aria-label="Insight keuangan">
    <div class="paax-ai-strip-info"><span class="paax-ai-strip-icon" aria-hidden="true">🧠</span>
-    <div><strong>Insight Keuangan</strong><small>${h(status)}</small></div></div>
-   <button type="button" class="paax-ai-open" data-paax-ai-open aria-haspopup="dialog">${generated?'✨ Lihat Hasil AI':'✨ Buka Insight'} <span aria-hidden="true">↗</span></button>
+    <div><strong>Insight Keuangan</strong><small class="paax-ai-strip-status" role="status" aria-live="polite">${h(state.status)}</small></div></div>
+   <div class="paax-ai-strip-actions">
+    <button type="button" class="paax-ai-open" data-paax-ai-open aria-haspopup="dialog" aria-busy="${state.loading?'true':'false'}" ${state.waiting?'disabled':''}>${paaxAiButtonMarkup(state)}</button>
+    <button type="button" class="paax-ai-local-action" data-paax-ai-local ${state.localButton?'':'hidden'}>Lihat ringkasan lokal</button>
+   </div>
   </section>
   ${paaxAiUi.open?`<dialog class="paax-ai-dialog" id="paax-ai-dialog" aria-labelledby="paax-ai-dialog-heading">
    <header class="paax-ai-dialog-header">
@@ -7538,7 +7659,8 @@ document.addEventListener('click',async e=>{
  const trendPoint=e.target.closest('[data-trend-point]');
  if(trendPoint){openTrendPoint(trendPoint);return;}
  let x=e.target.closest('button');if(!x)return;
- if(x.dataset.paaxAiOpen!==undefined){paaxAiUi.open=true;render();paaxAiSchedule(true);return;}
+ if(x.dataset.paaxAiOpen!==undefined){void paaxAiOpenWhenReady();return;}
+ if(x.dataset.paaxAiLocal!==undefined){paaxAiOpenLocal();return;}
  if(x.dataset.paaxAiClose!==undefined){closePaaxAiInsight();return;}
  if(x.dataset.paaxAiGenerate!==undefined){await generatePaaxAiInsight();return;}
  if(x.dataset.trendRangeClose!==undefined){closeTrendRangePopup();return;}

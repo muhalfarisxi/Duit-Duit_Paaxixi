@@ -4115,6 +4115,15 @@ body:has(.tx-search-backdrop){overflow:hidden}
  .paax-ai-strip .paax-ai-strip-actions{width:100%;justify-content:stretch}
  .paax-ai-strip .paax-ai-open{flex:1}
 }
+
+/* #089 Show a concise, actionable financial reminder under Insight Keuangan. */
+#paax-ai-insight .paax-ai-strip-info{flex:1 1 250px;max-width:100%}
+#paax-ai-insight .paax-ai-strip-info>div{min-width:0}
+#paax-ai-insight .paax-ai-strip-status{
+ display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
+ line-clamp:2;max-width:min(88ch,100%);overflow:hidden;
+ color:#6480a2;font-weight:800;line-height:1.4;overflow-wrap:anywhere;
+}
 </style>
 </head>
 <body>
@@ -5725,7 +5734,33 @@ async function paaxAiStart(current,manual=false){
 
 /* #088 Insight only opens when matching Gemini result is complete.
    A selected filter is never fulfilled by an earlier filter's result. */
-function paaxAiStripState(current=paaxAiCurrent()){
+/* #089 Micro-insight: use the most actionable verified local finding, not AI load status. */
+function paaxAiFinancialHint(local){
+ if(!local||!local.count){
+  return '📝 '+(local?.actions?.[0]?.text||'Catat pengeluaran agar pola keuangan dapat dievaluasi.');
+ }
+ const check=label=>local.checks?.find(item=>item.label===label);
+ const action=label=>local.actions?.find(item=>item.label===label);
+ const choose=(item,prefix='💡')=>item?.text?prefix+' '+item.text.trim():null;
+ // Risks and available budget take priority over routine category commentary.
+ const over=check('Anggaran terlampaui');
+ if(over)return '⚠️ '+over.text.split(' (')[0].replace(/\.$/,'')+'. Periksa alokasinya.';
+ for(const [label,prefix] of [
+  ['Jaga sisa anggaran','⚠️'],
+  ['Cocokkan arus uang','⚠️'],
+  ['Verifikasi nilai besar','🔎'],
+  ['Rekonsiliasi transaksi','🧾'],
+  ['Atur batas fleksibel','🎯'],
+  ['Evaluasi prioritas','🎯']
+ ]){
+  const msg=choose(action(label),prefix);
+  if(msg)return msg;
+ }
+ const next=local.actions?.find(item=>item.text)?.text;
+ return next?'💡 '+next.trim():'📌 Periksa transaksi terbesar dan kecocokannya dengan anggaran.';
+}
+
+function paaxAiStripState(current=paaxAiCurrent(),local=buildPaaxixiFinanceInsight()){
  const signature=current?.signature||'';
  if(paaxAiUi.waitingFor&&paaxAiUi.waitingFor!==signature)paaxAiUi.waitingFor=null;
  const saved=signature?paaxAiCacheGet(signature):null;
@@ -5736,13 +5771,7 @@ function paaxAiStripState(current=paaxAiCurrent()){
  const hasExpense=!!current?.payload?.pengeluaran?.jumlahTransaksi;
  const localOnly=!available||!hasExpense;
  const failed=!!saved?.error&&!loading&&!ready;
- const status=ready?'Gemini siap · '+(saved.report.modelName||'Gemini'):
-  waiting?'Menunggu Gemini untuk filter ini…':
-  loading?'Gemini sedang menyiapkan insight…':
-  failed?'Gemini tertunda · ringkasan lokal tersedia':
-  localOnly?'Analisis statistik tersedia':
-  paaxAiAuto.autoCalls>=paaxAiAuto.maxAutoCalls?'Analisis otomatis dijeda · klik untuk memuat':
-  'Gemini menyiapkan analisis otomatis';
+ const status=paaxAiFinancialHint(local);
  const label=ready?'✨ Lihat Hasil AI':
   waiting?'Menunggu Hasil AI…':
   loading?'Menyiapkan AI…':
@@ -5758,11 +5787,11 @@ function paaxAiButtonMarkup(state){
 function paaxAiRefreshStrip(){
  const strip=document.querySelector('#paax-ai-insight');
  if(!strip)return;
- const state=paaxAiStripState();
+ const state=paaxAiStripState(paaxAiCurrent(),buildPaaxixiFinanceInsight());
  const caption=strip.querySelector('.paax-ai-strip-status');
  const button=strip.querySelector('[data-paax-ai-open]');
  const local=strip.querySelector('[data-paax-ai-local]');
- if(caption)caption.textContent=state.status;
+ if(caption){caption.textContent=state.status;caption.title=state.status;}
  if(button){
   button.innerHTML=paaxAiButtonMarkup(state);
   button.disabled=state.waiting;
@@ -5815,12 +5844,12 @@ function renderPaaxixiSmartFinanceInsight(){
  const local=buildPaaxixiFinanceInsight(),aiReady=!!String(window.ARUS_AI_APP_CHECK_SITE_KEY||'').trim();
  const current=paaxAiCurrent(),signature=current?.signature||'';
  const saved=paaxAiCacheGet(signature),generated=!!saved?.report;
- const state=paaxAiStripState(current);
+ const state=paaxAiStripState(current,local);
  const busy=paaxAiAuto.inFlight?.signature===signature;
  const report=generated?saved.report:local;
  return `<section class="card paax-ai-strip" id="paax-ai-insight" aria-label="Insight keuangan">
    <div class="paax-ai-strip-info"><span class="paax-ai-strip-icon" aria-hidden="true">🧠</span>
-    <div><strong>Insight Keuangan</strong><small class="paax-ai-strip-status" role="status" aria-live="polite">${h(state.status)}</small></div></div>
+    <div><strong>Insight Keuangan</strong><small class="paax-ai-strip-status" title="${h(state.status)}">${h(state.status)}</small></div></div>
    <div class="paax-ai-strip-actions">
     <button type="button" class="paax-ai-open" data-paax-ai-open aria-haspopup="dialog" aria-busy="${state.loading?'true':'false'}" ${state.waiting?'disabled':''}>${paaxAiButtonMarkup(state)}</button>
     <button type="button" class="paax-ai-local-action" data-paax-ai-local ${state.localButton?'':'hidden'}>Lihat ringkasan lokal</button>

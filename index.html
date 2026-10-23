@@ -2794,7 +2794,7 @@ body:has(.tx-search-backdrop){overflow:hidden}
 
 /* #068 Pop-up sambutan vertikal: mascot enter + dadah + cuaca animasi */
 .welcome-modal-backdrop{animation:paaxixi-welcome-backdrop-in .35s ease-out both}
-.welcome-modal{animation:paaxixi-welcome-enter .68s cubic-bezier(.2,.85,.25,1.05) both;overflow:hidden}
+.welcome-modal{animation:paaxixi-welcome-enter .68s cubic-bezier(.2,.85,.25,1.05) both;overflow:visible}
 .welcome-modal .welcome-panel.welcome-panel-animated{
  display:flex;flex-direction:column;align-items:center;justify-content:center;
  gap:14px;text-align:center;padding:30px 55px 29px;min-height:0;
@@ -2846,6 +2846,38 @@ body:has(.tx-search-backdrop){overflow:hidden}
  .welcome-modal-backdrop,.welcome-modal,.welcome-modal .welcome-mascot-enter,
  .welcome-modal .welcome-mascot-bob,.welcome-scene-orb,.welcome-scene-cloud{
   animation:none!important;transform:none!important;
+ }
+}
+/* #090 Popup sambutan: jangan potong tombol tutup, outline, bayangan, dan teks.
+   Override aturan overflow:hidden pada versi animasi sambutan sebelumnya. */
+.welcome-modal-backdrop{
+ overflow-x:clip;
+}
+.welcome-modal{
+ overflow:visible!important;
+ max-width:calc(100vw - 40px);
+}
+.welcome-modal .welcome-panel.welcome-panel-animated{
+ overflow:visible;
+}
+.welcome-modal .welcome-modal-close{
+ top:12px;right:12px;
+ z-index:30;
+ box-sizing:border-box;
+ flex:none;
+ border-radius:13px;
+ outline-offset:3px;
+}
+.welcome-modal .welcome-modal-close:focus-visible{
+ outline:3px solid #286fe5;
+ outline-offset:3px;
+}
+@media(max-width:600px){
+ .welcome-modal{
+  max-width:calc(100vw - 30px);
+ }
+ .welcome-modal .welcome-modal-close{
+  top:10px;right:10px;
  }
 }
 </style>

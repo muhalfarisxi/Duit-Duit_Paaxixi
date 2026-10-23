@@ -1477,6 +1477,26 @@ body:has(.repay-popup-backdrop){overflow:hidden}
 }
 
 
+/* #090 Dashboard ringkas: penggunaan anggaran sudah dicakup peringatan dan popup. */
+.income-overview-grid{
+ display:grid;grid-template-columns:minmax(0,1.2fr) minmax(260px,.8fr);
+ align-items:start;gap:clamp(20px,3vw,42px);
+}
+.income-overview-sources,.income-overview-debts{min-width:0}
+.income-overview-debts{
+ border-left:1px solid #dfe8f5;padding-left:clamp(18px,3vw,34px);
+}
+.income-overview-debts-title{
+ color:#17467f;font:900 13px/1.4 Nunito,sans-serif;margin:0 0 15px;
+}
+.income-overview-debts .debt-overview-cta{margin-top:10px}
+@media(max-width:1100px){
+ .income-overview-grid{grid-template-columns:minmax(0,1fr);gap:19px}
+ .income-overview-debts{
+  border-left:0;border-top:1px solid #dfe8f5;padding-left:0;padding-top:16px;
+ }
+}
+
 /* #047 Transaksi: tambah/edit via modal, daftar riwayat tanpa halaman tersendiri. */
 @media(max-width:820px){.bottom-nav{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .tx-entry-backdrop,.tx-history-backdrop{
@@ -6109,7 +6129,7 @@ function renderBudgetAlertDialog(items,hasBudgetValue){
   '</dialog>';
 }
 
-function renderDash(){let all=monthly(),exp=totalType('expense'),inc=totalType('income'),bt=budgetTotal(),accountBalances=balances(),kas=Object.values(accountBalances).reduce((s,x)=>s+x,0),alert=expenses().filter(c=>hasBudget(c.id)&&['danger','warn'].includes(status(c.id).s)).sort((a,b)=>{const priority={danger:0,warn:1};return (priority[status(a.id).s]??9)-(priority[status(b.id).s]??9)||pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1));}),budgets=expenses().filter(c=>hasBudget(c.id)).sort((a,b)=>pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1))),bySource=incomes().map(c=>({...c,amount:all.filter(t=>t.type==='income'&&t.categoryId===c.id).reduce((s,t)=>s+num(t.amount),0)})).filter(c=>c.amount>0).sort((a,b)=>b.amount-a.amount),debt=totalsDebt();
+function renderDash(){let all=monthly(),exp=totalType('expense'),inc=totalType('income'),bt=budgetTotal(),accountBalances=balances(),kas=Object.values(accountBalances).reduce((s,x)=>s+x,0),alert=expenses().filter(c=>hasBudget(c.id)&&['danger','warn'].includes(status(c.id).s)).sort((a,b)=>{const priority={danger:0,warn:1};return (priority[status(a.id).s]??9)-(priority[status(b.id).s]??9)||pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1));}),bySource=incomes().map(c=>({...c,amount:all.filter(t=>t.type==='income'&&t.categoryId===c.id).reduce((s,t)=>s+num(t.amount),0)})).filter(c=>c.amount>0).sort((a,b)=>b.amount-a.amount),debt=totalsDebt();
 return `${welcomeModal()}${all.length===0?`<div class="callout"><span>✦</span><div><strong>Mulai catatan pertamamu.</strong> Dashboard akan otomatis terisi. Mau melihat simulasi lebih dulu? <button class="btn sm" type="button" data-action="demo" style="margin-left:7px">Isi contoh 24 bulan</button></div></div>`:''}
 <div class="grid kpis">
 ${metricCard('Pemasukan Bulan Ini',inc,'↑','green','Transaksi Pemasukan')}${metricCard('Pengeluaran Bulan Ini',exp,'↓','red','Transaksi Pengeluaran')}${metricCard('Sisa Anggaran',bt>0?bt-budgetUsed():0,'◴',bt>0&&bt-budgetUsed()<0?'red':'green',bt>0?`Dari Total ${money(bt)}`:'Belum Ada Anggaran')}${metricCard('Total Saldo Rekening',kas,'▤',kas<0?'red':'blue','Saldo Seluruh Rekening, Sepanjang Waktu')}
@@ -6117,9 +6137,8 @@ ${metricCard('Pemasukan Bulan Ini',inc,'↑','green','Transaksi Pemasukan')}${me
 ${renderBudgetAlertStrip(alert,bt)}
 <div class="analytics-comp-trend">${renderComposition()}${renderTrendPanel()}</div>
 ${renderPaaxixiSmartFinanceInsight()}
-<div class="grid layout-2"><section class="card finance-spotlight-card budget-spotlight-card"><div class="card-head"><div><h3>Penggunaan Anggaran</h3><p>Periksa pos yang paling banyak terpakai; atur ulang batas bila mulai menipis.</p></div><button type="button" data-nav="budgets" class="btn sm ghost finance-spotlight-action budget-all-cta">Lihat Semua <span class="spotlight-arrow" aria-hidden="true">↗</span></button></div>${budgets.length?`<div class="budget-list">${budgets.slice(0,5).map(c=>budgetProgress(c)).join('')}</div>`:empty('◎','Anggaran Belum Disusun','Kamu dapat memberi batas pengeluaran tiap kategori untuk setiap bulan.')}</section>
-<section class="card finance-spotlight-card income-spotlight-card"><div class="card-head"><div><h3>Asal Pemasukan</h3><p>Periksa sumber pemasukan terbesar dan pastikan pendapatan rutin sudah tercatat.</p></div></div>${bySource.length?bySource.slice(0,7).map(c=>`<div class="stat-pair"><span>${h(c.label)} <span style="color:#8a9bb3">• ${pct(c.amount,inc)}%</span></span><strong>${money(c.amount)}</strong></div>`).join(''):empty('↗','Belum Ada Pemasukan','Misalnya dividen Fastlink, gaji atau tukin BPS.')}
-<div class="linebreak"></div><div class="stat-pair"><span>Piutang Belum Kembali</span><strong class="green">${money(debt.receivable)}</strong></div><div class="stat-pair"><span>Utang Belum Dilunasi</span><strong class="red">${money(debt.payable)}</strong></div><button type="button" class="btn sm full finance-spotlight-action debt-overview-cta" data-debt-overview="open" aria-haspopup="dialog"><span aria-hidden="true">↗</span> Lihat Utang & Piutang <span class="spotlight-arrow" aria-hidden="true">→</span></button></section></div>
+<section class="card finance-spotlight-card income-spotlight-card"><div class="card-head"><div><h3>Asal Pemasukan</h3><p>Periksa sumber pemasukan terbesar dan pastikan pendapatan rutin sudah tercatat.</p></div></div><div class="income-overview-grid"><div class="income-overview-sources">${bySource.length?bySource.slice(0,7).map(c=>`<div class="stat-pair"><span>${h(c.label)} <span style="color:#8a9bb3">• ${pct(c.amount,inc)}%</span></span><strong>${money(c.amount)}</strong></div>`).join(''):empty('↗','Belum Ada Pemasukan','Misalnya dividen Fastlink, gaji atau tukin BPS.')}
+</div><div class="income-overview-debts" aria-label="Ringkasan utang dan piutang"><div class="income-overview-debts-title">Utang &amp; Piutang</div><div class="stat-pair"><span>Piutang Belum Kembali</span><strong class="green">${money(debt.receivable)}</strong></div><div class="stat-pair"><span>Utang Belum Dilunasi</span><strong class="red">${money(debt.payable)}</strong></div><button type="button" class="btn sm full finance-spotlight-action debt-overview-cta" data-debt-overview="open" aria-haspopup="dialog"><span aria-hidden="true">↗</span> Lihat Utang & Piutang <span class="spotlight-arrow" aria-hidden="true">→</span></button></div></div></section>
 <section class="card"><div class="card-head"><div><h3>Transaksi Terbaru</h3><p>Periksa transaksi ${h(monthFmt(ui.month))}; Edit jika ada nominal atau kategori yang keliru.</p></div><div class="action-buttons"><button type="button" class="btn sm ghost tx-nav-cta" data-tx-history>Semua Transaksi <span class="nav-cta-arrow" aria-hidden="true">↗</span></button><button type="button" class="btn sm tx-nav-cta" data-nav="reports">Arsip Bulan <span class="nav-cta-arrow" aria-hidden="true">↗</span></button></div></div>${all.length?all.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt?.localeCompare(a.createdAt||'')||0).slice(0,6).map(txRow).join(''):empty('⇄','Belum Ada Transaksi','Klik “Catat transaksi” untuk membuat catatan baru.')}</section>${renderDashboardKpiPopup()}${renderBudgetAlertDialog(alert,bt)}`}
 
 /* #035 Rincian interaktif kartu Dashboard; semuanya memakai sumber data yang sama. */

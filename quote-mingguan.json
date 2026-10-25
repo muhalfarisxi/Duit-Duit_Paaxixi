@@ -1,15 +1,15 @@
 {
-  "week": "2026-W43",
-  "updated_at": "2026-10-19T06:47:38+07:00",
+  "week": "2026-W44",
+  "updated_at": "2026-10-26T06:49:48+07:00",
   "theme": "Olahraga",
-  "quote": "Skor boleh naik-turun, saldo jangan tanpa pantauan. ⚽",
-  "is_trending": true,
-  "source_url": "https://trends.google.com/trending/rss?geo=ID",
-  "trend_source": "Google Trends Indonesia",
-  "note": "Quote orisinal; tema terinspirasi pencarian populer, bukan kutipan viral.",
+  "quote": "Support tim favorit, support budget sendiri juga. 🏆",
   "quotes": [
     "Skor boleh naik-turun, saldo jangan tanpa pantauan. ⚽",
     "Support tim favorit, support budget sendiri juga. 🏆",
     "Match boleh panas, pencatatan tetap waras. 🥅"
-  ]
+  ],
+  "is_trending": true,
+  "source_url": "https://trends.google.com/trending/rss?geo=ID",
+  "trend_source": "Google Trends Indonesia",
+  "note": "Quote orisinal; tema terinspirasi pencarian populer, bukan kutipan viral."
 }

@@ -5651,6 +5651,8 @@ body:has(.tx-search-backdrop){overflow:hidden}
 .budget-dashboard-delta button:hover{background:#e8f2ff;transform:translateY(-1px)}
 @media(prefers-reduced-motion:reduce){.budget-dashboard-delta button{transition:none!important}}
 
+.budget-flow-empty-hint{margin:0;border-radius:10px;padding:10px;background:#fff4eb;color:#9c5727;
+ font:800 11px Nunito,sans-serif}
 </style>
 </head>
 <body>
@@ -9234,15 +9236,17 @@ function budgetFlowDialogMarkup(kind,id=null){
   if(id&&!move)return '';
   heading=move?'Edit Pengalihan':'Alihkan Anggaran';icon='🔀';
   description='Alokasikan sisa antarpos. Tidak membuat transaksi keuangan atau mengubah total anggaran.';
-  const opts=expenses().map(c=>`<option value="${h(c.id)}" ${move?.from===c.id?'selected':''}>${h(c.group)} · ${h(c.label)} (Sisa ${money(effectiveBudget(c.id)-spentByCat(c.id))})</option>`).join('');
+  const opts=expenses().filter(c=>effectiveBudget(c.id)-spentByCat(c.id)>0||move?.from===c.id)
+   .map(c=>`<option value="${h(c.id)}" ${move?.from===c.id?'selected':''}>${h(c.group)} · ${h(c.label)} (Sisa ${money(effectiveBudget(c.id)-spentByCat(c.id))})</option>`).join('');
   const dest=expenses().map(c=>`<option value="${h(c.id)}" ${move?.to===c.id?'selected':''}>${h(c.group)} · ${h(c.label)}</option>`).join('');
   body=`<form id="move-budget-form" class="budget-flow-form"><input type="hidden" name="editId" value="${h(move?.id||'')}">
     <label>Pos Asal (Sisa Anggaran)<select name="from" class="field" required>${opts}</select></label>
+    ${!opts?'<p class="budget-flow-empty-hint">Belum ada pos dengan sisa anggaran untuk dialihkan.</p>':''}
     <label>Pos Tujuan<select name="to" class="field" required>${dest}</select></label>
     <label>Jumlah yang Dialihkan (Rp)<input name="amount" class="field" data-rupiah="1" type="text" inputmode="decimal" placeholder="50.000" value="${move?fmtAmount(move.amount):''}" required></label>
     <label>Catatan (opsional)<textarea name="note" class="field" rows="2" placeholder="Alasan pemindahan">${h(move?.note||'')}</textarea></label>
     <div class="budget-flow-actions"><button type="button" class="btn" data-budget-close-dialog>Batal</button>
-     <button type="submit" class="btn primary">✓ ${move?'Simpan Perubahan':'Alihkan Anggaran'}</button></div>
+     <button type="submit" class="btn primary" ${!opts?'disabled':''}>✓ ${move?'Simpan Perubahan':'Alihkan Anggaran'}</button></div>
    </form>`;
  }else if(kind==='adjust'){
   if(id&&!adjustment)return '';
@@ -9690,6 +9694,12 @@ if(id==='move-budget-form'){
  const available=baseBudget(from)+budgetAdjustmentNet(from)+net(from)-spentByCat(from);
  if(available<amount)return toast('Sisa anggaran pos asal tidak cukup untuk dialihkan.',true);
  const detail={from,to,amount,note:String(f.get('note')||'').trim().slice(0,220)};
+ const candidate=other.concat({from,to,amount});
+ for(const id of new Set([old?.from,old?.to,from,to].filter(Boolean))){
+  const postTransfer=candidate.reduce((n,m)=>n+(m.to===id?num(m.amount):0)-(m.from===id?num(m.amount):0),0);
+  if(baseBudget(id)+budgetAdjustmentNet(id)+postTransfer<0)
+   return toast('Perubahan membuat anggaran efektif '+(cat(id)?.label||'pos')+' negatif. Periksa pengalihan lain.',true);
+ }
  if(old)Object.assign(old,detail);
  else db.budgetMoves.push({id:uid(),month:ui.month,date:today(),...detail});
  paxMarkSaved('move',old?.id||'');

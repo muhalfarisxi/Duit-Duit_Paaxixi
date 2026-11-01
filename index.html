@@ -8855,22 +8855,38 @@ function renderTxSearchPopup(){
    '<div class="tx-history-content tx-search-content" id="tx-search-results" aria-live="polite">'+renderTxSearchResults()+'</div>'+
   '</div></div>';
 }
+let txSearchOrigin=null,txHistoryOrigin=null;
+function popupFocusBack(origin,selector){
+ if(!origin)return false;
+ const parent=document.getElementById(origin.parentId);
+ const focus=parent?.querySelector(selector||'[data-review-close],[data-close-tx-history],[data-tx-search-close]');
+ if(focus){focus.focus({preventScroll:true});return true;}
+ return false;
+}
 function openTxSearch(){
+ const parent=document.activeElement?.closest?.('#review-modal-backdrop,#tx-history-backdrop');
+ txSearchOrigin=parent?{parentId:parent.id}:null;
  ui.txSearchOpen=true;ui.txSearchQuery='';render();
  document.getElementById('tx-search-input')?.focus({preventScroll:true});
 }
 function dismissTxSearch(){
  if(!ui.txSearchOpen)return;
  ui.txSearchOpen=false;ui.txSearchQuery='';render();
+ const origin=txSearchOrigin;txSearchOrigin=null;
+ if(popupFocusBack(origin))return;
  (document.querySelector('[data-tx-search]')||document.getElementById('top-add'))?.focus({preventScroll:true});
 }
 
 function openTxHistory(){
+ const parent=document.activeElement?.closest?.('#review-modal-backdrop,#tx-search-backdrop');
+ txHistoryOrigin=parent?{parentId:parent.id}:null;
  ui.txHistoryOpen=true;ui.txFilter='all';render();
  document.querySelector('[data-close-tx-history]')?.focus({preventScroll:true});
 }
 function dismissTxHistory(){
  if(!ui.txHistoryOpen)return;ui.txHistoryOpen=false;render();
+ const origin=txHistoryOrigin;txHistoryOrigin=null;
+ if(popupFocusBack(origin))return;
  document.querySelector('[data-tx-history]')?.focus({preventScroll:true});
 }
 function reviewItem(t){let c=cat(t.categoryId),a=acc(t.accountId),income=t.type==='income';return `<div class="review-item ${income?'review-income-entry':''}"><div><strong>${pickSymbol(c?.label,c?.group)} ${h(t.title)}</strong><div class="tiny">${dateFmt(t.date)} · ${h(c?.group||'-')} / ${h(c?.label||'-')} · ${h(a?.name||'?')}</div>${t.note?`<div class="tiny">${h(t.note)}</div>`:''}</div><div class="review-amount"><strong class="${income?'green':'red'}">${income?'+':'−'}${money(t.amount)}</strong><div class="action-buttons"><button type="button" class="btn sm" data-edit-tx="${h(t.id)}">Edit</button><button type="button" class="btn sm danger" data-delete-tx="${h(t.id)}">Hapus</button></div></div></div>`}
@@ -9630,7 +9646,8 @@ function openDebtEditorPopup(id=null){
  if(id&&!record){toast("Catatan utang/piutang tidak ditemukan.",true);return;}
  const source=document.activeElement?.closest?.('#review-modal-backdrop,#tx-history-backdrop,#repay-popup-backdrop');
  debtEditorOrigin=source?{parentId:source.id}:null;
- ui.debtSelected=null;ui.repayEditId=null;ui.debtEditId=record?.id||null;ui.debtEditorOpen=true;
+ if(source?.id!=='repay-popup-backdrop'){ui.debtSelected=null;ui.repayEditId=null;}
+ ui.debtEditId=record?.id||null;ui.debtEditorOpen=true;
  render();
  (document.querySelector("#debt-editor-backdrop [name=person]")||document.querySelector("[data-close-debt-editor]"))?.focus({preventScroll:true});
 }
@@ -9692,11 +9709,25 @@ function renderRepayPopup(){
   </div>
  </div>`;
 }
+let repayPopupOrigin=null;
+function restoreRepayPopupOrigin(debtId=null,paymentId=null){
+ const origin=repayPopupOrigin;repayPopupOrigin=null;
+ if(!origin)return false;
+ const parent=document.getElementById(origin.parentId);
+ if(!parent)return false;
+ const editing=paymentId?[...parent.querySelectorAll('[data-edit-repay]')].find(x=>x.dataset.editRepay===debtId+'|'+paymentId):null;
+ const pay=debtId?[...parent.querySelectorAll('[data-repay]')].find(x=>x.dataset.repay===debtId):null;
+ const target=editing||pay||parent.querySelector('[data-review-close],[data-close-debt-editor]');
+ if(target){target.focus({preventScroll:true});return true;}
+ return false;
+}
 function openRepayPopup(debtId,paymentId=null){
  const d=db.debts.find(item=>item.id===debtId);
  if(!d)return toast('Catatan utang/piutang tidak ditemukan.',true);
  if(paymentId&&!(d.settlements||[]).some(p=>p.id===paymentId))return toast('Pembayaran tidak ditemukan.',true);
  if(!paymentId&&debtBalance(d)<=0)return toast('Catatan ini sudah lunas.',true);
+ const source=document.activeElement?.closest?.('#review-modal-backdrop,#debt-editor-backdrop');
+ repayPopupOrigin=source?{parentId:source.id}:null;
  ui.debtSelected=debtId;ui.repayEditId=paymentId;
  render();document.querySelector('[data-repay-focus]')?.focus({preventScroll:true});
 }
@@ -9704,6 +9735,7 @@ function dismissRepayPopup(){
  if(!ui.debtSelected)return;
  const id=ui.debtSelected,pid=ui.repayEditId;
  ui.debtSelected=null;ui.repayEditId=null;render();
+ if(restoreRepayPopupOrigin(id,pid))return;
  if(pid){
   const prior=[...document.querySelectorAll('[data-edit-repay]')].find(x=>x.dataset.editRepay===id+'|'+pid);
   if(prior){const parent=prior.closest('details');if(parent)parent.open=true;prior.focus({preventScroll:true});return}
@@ -10043,8 +10075,8 @@ if(id==='budget-adjustment-form'){
  closeBudgetFlowDialog(false);render();
  toast(old?'Perubahan anggaran berhasil diperbarui.':'Perubahan anggaran berhasil dicatat.');return;
 }
-if(id==='debt-form'){let amount=positive(f.get('amount')),person=String(f.get('person')||'').trim(),date=f.get('date'),accountId=f.get('accountId'),editId=f.get('editId'),old=db.debts.find(d=>d.id===editId);if(!amount||!person||!acc(accountId)||!/^(?:\d{4})-\d{2}-\d{2}$/.test(date))return toast('Isi data pinjaman dengan benar.',true);let settled=old?(old.settlements||[]).reduce((s,x)=>s+num(x.amount),0):0;if(editId&&!old)return toast('Catatan yang diedit tidak ditemukan.',true);if(amount<settled)return toast('Nominal awal tidak boleh lebih kecil dari total cicilan.',true);let detail={type:f.get('type')==='payable'?'payable':'receivable',person,amount,date,accountId,note:String(f.get('note')||'').trim()};if(old)Object.assign(old,detail);else db.debts.push({id:uid(),...detail,settlements:[]});paxMarkSaved('debt',person);ui.debtEditId=null;ui.debtEditorOpen=false;save();render();toast('Catatan pinjaman disimpan.');return}
-if(id==='repay-form'){let d=db.debts.find(d=>d.id===f.get('debtId')),editId=f.get('editId'),old=d?.settlements?.find(s=>s.id===editId),amount=positive(f.get('amount')),accountId=f.get('accountId'),date=f.get('date');if(!d||!amount||amount>debtBalance(d)+(old?.amount||0)||!acc(accountId)||!/^(?:\d{4})-\d{2}-\d{2}$/.test(date))return toast('Jumlah cicilan melebihi sisa atau data tidak valid.',true);if(old)Object.assign(old,{date,amount,accountId});else d.settlements.push({id:uid(),date,amount,accountId});ui.debtSelected=null;ui.repayEditId=null;save();render();toast('Pembayaran disimpan.');return}
+if(id==='debt-form'){let amount=positive(f.get('amount')),person=String(f.get('person')||'').trim(),date=f.get('date'),accountId=f.get('accountId'),editId=f.get('editId'),old=db.debts.find(d=>d.id===editId);if(!amount||!person||!acc(accountId)||!/^(?:\d{4})-\d{2}-\d{2}$/.test(date))return toast('Isi data pinjaman dengan benar.',true);let settled=old?(old.settlements||[]).reduce((s,x)=>s+num(x.amount),0):0;if(editId&&!old)return toast('Catatan yang diedit tidak ditemukan.',true);if(amount<settled)return toast('Nominal awal tidak boleh lebih kecil dari total cicilan.',true);let detail={type:f.get('type')==='payable'?'payable':'receivable',person,amount,date,accountId,note:String(f.get('note')||'').trim()};if(old)Object.assign(old,detail);else db.debts.push({id:uid(),...detail,settlements:[]});paxMarkSaved('debt',person);ui.debtEditId=null;ui.debtEditorOpen=false;save();render();restoreDebtEditorOrigin(old?.id||db.debts[db.debts.length-1]?.id);toast('Catatan pinjaman disimpan.');return}
+if(id==='repay-form'){let d=db.debts.find(d=>d.id===f.get('debtId')),editId=f.get('editId'),old=d?.settlements?.find(s=>s.id===editId),amount=positive(f.get('amount')),accountId=f.get('accountId'),date=f.get('date');if(!d||!amount||amount>debtBalance(d)+(old?.amount||0)||!acc(accountId)||!/^(?:\d{4})-\d{2}-\d{2}$/.test(date))return toast('Jumlah cicilan melebihi sisa atau data tidak valid.',true);if(old)Object.assign(old,{date,amount,accountId});else d.settlements.push({id:uid(),date,amount,accountId});ui.debtSelected=null;ui.repayEditId=null;save();render();restoreRepayPopupOrigin(d.id,editId);toast('Pembayaran disimpan.');return}
 if(id==='account-form'){let name=String(f.get('name')||'').trim(),opening=integer(f.get('opening')),editId=f.get('editId'),old=db.accounts.find(a=>a.id===editId);if(!name||!Number.isFinite(opening)||opening<0)return toast('Nama atau saldo awal tidak valid.',true);if(db.accounts.some(a=>a.id!==editId&&a.name.toLowerCase()===name.toLowerCase()))return toast('Nama rekening sudah ada.',true);if(old)Object.assign(old,{name,type:f.get('type'),opening});else db.accounts.push({id:uid(),name,type:f.get('type'),opening});paxMarkSaved('account',old?.id||db.accounts[db.accounts.length-1].id);ui.accountEditId=null;save();render();toast('Rekening berhasil disimpan.');return}
 if(id==='expense-group-form'){
   const editId=String(f.get('editId')||''),old=expenseGroups().find(g=>g.id===editId);

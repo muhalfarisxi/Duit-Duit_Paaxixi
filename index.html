@@ -6346,7 +6346,7 @@ body:has(.tx-search-backdrop){overflow:hidden}
 @media(prefers-reduced-motion:reduce){.budget-pos-action-choices>button{transition:none}}
 
 </style>
-<link rel="stylesheet" href="./budget-ux.css?v=10">
+<link rel="stylesheet" href="./budget-ux.css?v=11">
 </head>
 <body>
 <div class="app">
@@ -10430,7 +10430,7 @@ function budgetFlowDialogMarkup(kind,id=null,preselect=null){
   const chosenTo=move?.to||(preselect&&preselect!==chosenFrom?preselect:expenses().find(c=>c.id!==chosenFrom)?.id);
   const opts=sources.map(c=>`<option value="${h(c.id)}" data-budget-effective="${effectiveBudget(c.id)}" data-budget-used="${spentByCat(c.id)}" data-budget-remaining="${effectiveBudget(c.id)-spentByCat(c.id)}" ${chosenFrom===c.id?'selected':''}>${h(c.group)} · ${h(c.label)} (Sisa ${money(effectiveBudget(c.id)-spentByCat(c.id))})</option>`).join('');
   const dest=expenses().map(c=>`<option value="${h(c.id)}" data-budget-effective="${effectiveBudget(c.id)}" data-budget-used="${spentByCat(c.id)}" data-budget-remaining="${effectiveBudget(c.id)-spentByCat(c.id)}" ${chosenTo===c.id?'selected':''}>${h(c.group)} · ${h(c.label)}</option>`).join('');
-  body=`<form id="move-budget-form" class="budget-flow-form" ${!move&&preselect?'data-budget-anchor-id="'+h(preselect)+'"':''}><input type="hidden" name="editId" value="${h(move?.id||'')}">
+  body=`<form id="move-budget-form" class="budget-flow-form" ${!move&&preselect?'data-budget-anchor-id="'+h(preselect)+'"':''} data-budget-original-from="${h(move?.from||'')}" data-budget-original-to="${h(move?.to||'')}" data-budget-original-amount="${num(move?.amount)}"><input type="hidden" name="editId" value="${h(move?.id||'')}">
     <label>Pos Asal (Sisa Anggaran)<select name="from" class="field" required>${opts}</select></label>
     ${!opts?'<p class="budget-flow-empty-hint">Belum ada pos dengan sisa anggaran untuk dialihkan.</p>':''}
     <label>Pos Tujuan<select name="to" class="field" required>${dest}</select></label>
@@ -10974,7 +10974,7 @@ if(id==='move-budget-form'){
  const other=db.budgetMoves.filter(m=>m.month===ui.month&&m.id!==editId);
  const net=id=>other.reduce((n,m)=>n+(m.to===id?num(m.amount):0)-(m.from===id?num(m.amount):0),0);
  const available=baseBudget(from)+budgetAdjustmentNet(from)+net(from)-spentByCat(from);
- if(available<amount)return toast('Sisa anggaran pos asal tidak cukup untuk dialihkan.',true);
+ if(available<amount)return toast('Nominal '+money(amount)+' melebihi sisa anggaran '+cat(from).label+' ('+money(Math.max(0,available))+'). Masukkan nominal yang sesuai atau pilih pos asal lain.',true);
  const detail={from,to,amount,note:String(f.get('note')||'').trim().slice(0,220)};
  const candidate=other.concat({from,to,amount});
  for(const id of new Set([old?.from,old?.to,from,to].filter(Boolean))){
@@ -12196,6 +12196,6 @@ document.addEventListener('visibilitychange',()=>{
 <script type="module" src="./ai-insight.js?v=5"></script>
 <script src="firebase-config.js"></script>
 <script type="module" src="cloud.js"></script>
-<script src="./budget-ux.js?v=8" defer></script>
+<script src="./budget-ux.js?v=9" defer></script>
 </body>
 </html>

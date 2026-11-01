@@ -414,6 +414,99 @@ function setupAdjustType(form){
  select.addEventListener('change',refresh);refresh();
 }
 
+
+/* Real-time transfer amount guard. This is a nonblocking animated popup:
+   users can fix the amount or switch the source without losing their draft. */
+function budgetTransferMoney(n){
+ return 'Rp'+Math.max(0,Number(n)||0).toLocaleString('id-ID',{maximumFractionDigits:0});
+}
+function budgetTransferInputValue(input){
+ const raw=String(input?.value||'').replace(/\D/g,'');
+ const value=Number(raw||0);
+ return {value,valid:Number.isSafeInteger(value)&&value>0};
+}
+function budgetTransferSourceRemaining(form,option){
+ if(!option?.value)return 0;
+ const info=splitOption(option);
+ const current=info.hasStats?info.remainingAmount:Number((info.remaining||'').replace(/[^\d-]/g,''))||0;
+ const oldAmount=Number(form.dataset.budgetOriginalAmount||0);
+ const adjustment=(form.dataset.budgetOriginalFrom===option.value?oldAmount:0)
+   -(form.dataset.budgetOriginalTo===option.value?oldAmount:0);
+ return Math.max(0,current+adjustment);
+}
+function budgetTransferLimitPopup(form,input){
+ if(!input)return null;
+ const popup=node('aside','budget-limit-popup');
+ popup.hidden=true;
+ popup.setAttribute('role','alert');
+ popup.setAttribute('aria-live','assertive');
+ popup.id='budget-limit-popup-'+(form.dataset.budgetAnchorId?'anchor':'general');
+ const header=node('div','budget-limit-header');
+ header.append(node('span','budget-limit-icon','⚠️'));
+ const heading=node('span','budget-limit-heading');
+ heading.append(node('strong','', 'Nominal melebihi sisa anggaran'));
+ const desc=node('p','budget-limit-description');
+ const stats=node('div','budget-limit-values');
+ const actions=node('div','budget-limit-actions');
+ const maxButton=node('button','budget-limit-use-max','');
+ maxButton.type='button';
+ const otherButton=node('button','budget-limit-other-source','🔎 Pilih pos asal lain');
+ otherButton.type='button';
+ actions.append(maxButton,otherButton);
+ popup.append(header,desc,stats,actions);
+ header.append(heading);
+ const label=input.closest('label')||input;
+ label.insertAdjacentElement('afterend',popup);
+ let lastMax=0;
+ maxButton.addEventListener('click',function(event){
+  event.preventDefault();
+  if(lastMax<=0)return;
+  input.value=Math.round(lastMax).toLocaleString('id-ID');
+  input.dispatchEvent(new Event('input',{bubbles:true}));
+  input.focus({preventScroll:true});
+ });
+ otherButton.addEventListener('click',function(event){
+  event.preventDefault();
+  const source=form.querySelector('select[name="from"]');
+  const trigger=source?.closest('.budget-viz-picker')?.querySelector('.budget-viz-trigger');
+  if(trigger&&!source.closest('.budget-anchor-native'))trigger.click();
+  else form.querySelector('.budget-anchor-mode.is-receive:not(:disabled)')?.click();
+ });
+ function update(details){
+  const {over,value,limit,sourceName}=details;
+  lastMax=limit;
+  popup.hidden=!over;
+  input.classList.toggle('budget-transfer-overlimit',Boolean(over));
+  if(over){
+   input.setAttribute('aria-invalid','true');
+   input.setAttribute('aria-describedby',popup.id);
+   const extra=value-limit;
+   const posName=sourceName||'pos asal';
+   const limitFormatted=budgetTransferMoney(limit);
+   desc.textContent='Kamu memasukkan '+budgetTransferMoney(value)+', padahal sisa anggaran '+posName+
+    ' hanya '+limitFormatted+'. Kelebihan '+budgetTransferMoney(extra)+
+    '. Masukkan nominal yang sesuai atau ambil alokasi dari pos lain.';
+   stats.replaceChildren();
+   [['Dimasukkan',value],['Sisa '+posName,limit],['Kelebihan',extra]].forEach(function(row){
+    const box=node('span','budget-limit-stat');
+    box.append(node('small','',row[0]),node('strong','',budgetTransferMoney(row[1])));
+    stats.append(box);
+   });
+   maxButton.textContent=limit>0?'✓ Gunakan '+limitFormatted:'Tidak ada sisa anggaran';
+   maxButton.disabled=limit<=0;
+   otherButton.textContent=form.dataset.budgetAnchorId?'↙ Terima dari pos lain':'🔎 Pilih pos asal lain';
+   popup.classList.remove('budget-limit-enter');
+   void popup.offsetWidth;
+   popup.classList.add('budget-limit-enter');
+  }else{
+   input.removeAttribute('aria-invalid');
+   if(input.getAttribute('aria-describedby')===popup.id)input.removeAttribute('aria-describedby');
+   popup.classList.remove('budget-limit-enter');
+  }
+ }
+ return update;
+}
+
 function setupAnchoredTransfer(form){
  if(form.dataset.anchorReady)return;
  form.dataset.anchorReady='1';
@@ -483,6 +576,7 @@ function setupAnchoredTransfer(form){
  const status=node('p','budget-anchor-status','Pilih arah dan pos pasangan.');
  const amountLabel=amount?.closest('label');
  if(amountLabel){amountLabel.firstChild.textContent='3. Nominal yang Dialihkan (Rp)';amountLabel.insertAdjacentElement('afterend',status)}
+ const showLimit=budgetTransferLimitPopup(form,amount);
  let direction='';
  function update(){
   const isReceive=direction==='receive',isSend=direction==='send';
@@ -498,6 +592,7 @@ function setupAnchoredTransfer(form){
   const value=Number(String(amount?.value||'').replace(/\D/g,''))||0;
   const max=isReceive?balance(other):available;
   const exceeds=!!other&&value>max,ok=!!direction&&!!other&&value>0&&Number.isSafeInteger(value)&&!exceeds;
+  showLimit?.({over:exceeds,value,limit:max,sourceName:isReceive?splitOption(other).name:anchor.name});
   status.classList.toggle('is-error',exceeds);status.classList.toggle('is-ok',ok);
   status.textContent=!direction?'Pilih Terima atau Kirim Anggaran.':!other?'Pilih pos pasangan melalui pencarian atau kelompok.':
     !value?'Isi nominal anggarannya.':exceeds?'⚠️ Sisa anggaran pos asal tidak cukup.':'✓ Siap disimpan, total anggaran bulanan tidak berubah.';
@@ -533,21 +628,41 @@ function buildFlowPreview(form){
  const anchor=form.querySelector('input[name="editId"]');
  if(anchor)anchor.insertAdjacentElement('afterend',hint);else form.prepend(hint);
  hint.insertAdjacentElement('afterend',flow);flow.insertAdjacentElement('afterend',badge);badge.insertAdjacentElement('afterend',alert);
+ const updatePopup=budgetTransferLimitPopup(form,input);
+ const availableLine=node('p','budget-transfer-available');
+ input?.closest('label')?.insertAdjacentElement('afterend',availableLine);
  function update(){
-  const from=splitOption(source.options[source.selectedIndex]||{value:'',textContent:''});
+  const fromOption=source.options[source.selectedIndex]||{value:'',textContent:''};
+  const from=splitOption(fromOption);
   const to=splitOption(dest.options[dest.selectedIndex]||{value:'',textContent:''});
-  left.replaceChildren(node('small','', 'POS ASAL'),node('strong','',from.name||'Pilih pos asal'),node('em','',from.remaining?'Sisa '+from.remaining:'Pilih anggaran yang tersedia'));
-  right.replaceChildren(node('small','', 'POS TUJUAN'),node('strong','',to.name||'Pilih pos tujuan'),node('em','',to.group||'Menambah alokasi tujuan'));
-  const raw=(input?.value||'').replace(/[^0-9]/g,'');
-  const n=Number(raw||0);
-  badge.querySelector('b').textContent=n?'Rp'+n.toLocaleString('id-ID'):'Isi nominal di bawah';
+  const available=budgetTransferSourceRemaining(form,fromOption);
+  left.replaceChildren(node('small','', 'POS ASAL'),node('strong','',from.name||'Pilih pos asal'),
+   node('em','',source.value?'Dapat dialihkan '+budgetTransferMoney(available):'Pilih anggaran yang tersedia'));
+  right.replaceChildren(node('small','', 'POS TUJUAN'),node('strong','',to.name||'Pilih pos tujuan'),
+   node('em','',to.group||'Menambah alokasi tujuan'));
+  const amount=budgetTransferInputValue(input);
+  const value=amount.value;
+  badge.querySelector('b').textContent=value?budgetTransferMoney(value):'Isi nominal di bawah';
+  availableLine.textContent=source.value?'💰 Maksimum dari '+from.name+': '+budgetTransferMoney(available):'Pilih pos asal untuk melihat batas nominal.';
   const same=!!source.value&&source.value===dest.value;
-  alert.hidden=!same;alert.textContent=same?'⚠️ Pos asal dan tujuan harus berbeda.':'';
+  const excess=!!source.value&&amount.valid&&value>available;
+  const missing=!source.value||!dest.value;
+  alert.hidden=!(same||missing&&value>0);
+  alert.textContent=same?'⚠️ Pos asal dan tujuan harus berbeda.':
+   missing&&value>0?'⚠️ Pilih pos asal dan tujuan terlebih dahulu.':'';
+  updatePopup?.({over:excess,value,limit:available,sourceName:from.name});
   const submit=form.querySelector('button[type="submit"]');
-  if(submit)submit.disabled=source.options.length===0||same;
+  const canSubmit=!missing&&!same&&amount.valid&&!excess&&available>0;
+  if(submit)submit.disabled=!canSubmit;
  }
  form.addEventListener('change',function(e){if(e.target===source||e.target===dest)update()});
- if(input)input.addEventListener('input',update);
+ if(input){input.addEventListener('input',update);input.addEventListener('change',update);}
+ form.addEventListener('submit',function(event){
+  update();
+  if(form.querySelector('button[type="submit"]')?.disabled){
+   event.preventDefault();event.stopImmediatePropagation();
+  }
+ },true);
  update();
  const fromLabel=source.closest('label'),toLabel=dest.closest('label');
  if(fromLabel)fromLabel.firstChild.textContent='1. Ambil anggaran dari pos mana?';

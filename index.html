@@ -1298,18 +1298,54 @@ body:has(.review-modal-backdrop){overflow:hidden}
 /* Utang & Piutang: filter jenis di atas filter status. */
 .debt-quick-selector-label{margin:14px 17px 7px;color:#6881a2;font:850 11px/1.4 Nunito,sans-serif;letter-spacing:.2px}
 .debt-quick-type-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:0 17px 14px}
-.debt-quick-type-tabs button{display:flex;align-items:center;justify-content:center;gap:8px;min-width:0;min-height:48px;padding:10px 12px;border-radius:13px;border:1.5px solid #c8dcf7;background:#f7faff;color:#234f84;font:900 13px/1.25 Nunito,sans-serif;cursor:pointer;transition:transform .18s,box-shadow .18s,background .18s}
-.debt-quick-type-tabs button b{display:grid;place-items:center;min-width:23px;height:23px;padding:0 5px;border-radius:999px;background:#e1edfc;color:#20568b;font:900 11px/1 Nunito,sans-serif}
+/* Hijau = Piutang (uang kembali), Merah = Utang (uang dibayar). */
+.debt-quick-type-tabs button{
+ display:flex;align-items:center;justify-content:center;gap:8px;min-width:0;min-height:48px;
+ padding:10px 12px;border-radius:13px;border:1.5px solid #c8dcf7;
+ background:#f7faff;color:#234f84;font:900 13px/1.25 Nunito,sans-serif;
+ cursor:pointer;transition:transform .18s,box-shadow .18s,background .18s,border-color .18s
+}
+.debt-quick-type-tabs button b{
+ display:grid;place-items:center;min-width:23px;height:23px;padding:0 5px;border-radius:999px;
+ background:#e1edfc;color:#20568b;font:900 11px/1 Nunito,sans-serif
+}
 .debt-quick-type-symbol{font-size:19px;line-height:1}
-.debt-quick-type-tabs button:hover{transform:translateY(-2px);background:#edf5ff;box-shadow:0 5px 13px #1b4f8918}
-.debt-quick-type-tabs button.active{background:linear-gradient(115deg,#153b70,#2765a9);border-color:#1d5795;color:white;box-shadow:0 7px 18px #14417d33}
-.debt-quick-type-tabs button.active b{background:white;color:#204b7e}
+.debt-quick-type-tabs button[data-debt-popup-type="receivable"]{
+ color:#176f52;background:#effbf5;border-color:#b5e4cd
+}
+.debt-quick-type-tabs button[data-debt-popup-type="receivable"] b{
+ color:#176f52;background:#d7f2e4
+}
+.debt-quick-type-tabs button[data-debt-popup-type="payable"]{
+ color:#aa4150;background:#fff3f3;border-color:#f0c2ca
+}
+.debt-quick-type-tabs button[data-debt-popup-type="payable"] b{
+ color:#aa4150;background:#fde2e5
+}
+.debt-quick-type-tabs button:hover{transform:translateY(-2px);box-shadow:0 5px 15px #214a761b}
+.debt-quick-type-tabs button[data-debt-popup-type="receivable"]:hover{background:#e1f6e9;border-color:#8cd8b0}
+.debt-quick-type-tabs button[data-debt-popup-type="payable"]:hover{background:#ffe8eb;border-color:#e6a5af}
+.debt-quick-type-tabs button[data-debt-popup-type="receivable"].active{
+ background:linear-gradient(115deg,#136b50,#21966d);border-color:#126b50;
+ color:#fff;box-shadow:0 8px 19px rgba(20,123,90,.22)
+}
+.debt-quick-type-tabs button[data-debt-popup-type="payable"].active{
+ background:linear-gradient(115deg,#ac394a,#d05765);border-color:#ac394a;
+ color:#fff;box-shadow:0 8px 19px rgba(178,64,80,.22)
+}
+.debt-quick-type-tabs button.active b{background:#fff}
+.debt-quick-type-tabs button[data-debt-popup-type="receivable"].active b{background:#fff;color:#116747}
+.debt-quick-type-tabs button[data-debt-popup-type="payable"].active b{background:#fff;color:#a43748}
 .debt-quick-type-tabs button:focus-visible{outline:3px solid #6faaf2;outline-offset:2px}
 .debt-quick-tabs{margin-top:0}
 @media(max-width:600px){.debt-quick-selector-label{margin-left:11px;margin-right:11px}.debt-quick-type-tabs{margin-left:11px;margin-right:11px;gap:7px}.debt-quick-type-tabs button{min-height:43px;padding:8px 6px;font-size:12px;gap:6px}.debt-quick-type-symbol{font-size:17px}}
 @media(prefers-reduced-motion:reduce){.debt-quick-type-tabs button{transition:none}}
 
 /* #044 Popup utang & piutang mengikuti menu utama */
+/* Ringkasan menggunakan warna senada dengan jenis catatannya. */
+.debt-quick-totals>div:first-child{background:#f2fbf6;border-color:#d5efdf}
+.debt-quick-totals>div:last-child{background:#fff5f5;border-color:#f3dce0}
+
 .debt-quick-popup{padding:4px 0 16px}
 .debt-quick-totals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 17px}
 .debt-quick-totals>div{background:#f0f5ff;border:1px solid #dfebfb;border-radius:12px;padding:14px}
@@ -6399,7 +6435,7 @@ function debtOverviewPopupContent(){
 function renderDashboardKpiPopup(){
  const popup=ui.reviewPopup;if(ui.view!=='dashboard'||!['dashboard-kpi','trend-point','debt-list'].includes(popup?.type))return '';
  if(popup.type==='trend-point')return renderTrendPointPopup(popup);
-  if(popup.type==='debt-list')return `<div class="review-modal-backdrop debt-quick-backdrop highlighted-debt-popup" id="review-modal-backdrop"><div class="review-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="review-modal-title" aria-describedby="review-modal-subtitle"><div class="review-modal-top"><div><h3 id="review-modal-title">Daftar Utang & Piutang</h3><p id="review-modal-subtitle">Kelola Cicilan, Edit, atau Hapus Catatan Langsung dari Daftar Ini.</p></div><button type="button" class="review-modal-close" data-review-close aria-label="Tutup daftar utang dan piutang">✕</button></div><div class="review-modal-content">${debtOverviewPopupContent()}</div></div></div>`;
+  if(popup.type==='debt-list')return `<div class="review-modal-backdrop debt-quick-backdrop highlighted-debt-popup" id="review-modal-backdrop"><div class="review-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="review-modal-title" aria-describedby="review-modal-subtitle"><div class="review-modal-top"><div><h3 id="review-modal-title">Daftar Utang & Piutang</h3><p id="review-modal-subtitle">Pantau Sisa Utang, Piutang yang Belum Kembali, dan Perkembangan Cicilan dalam Satu Tempat.</p></div><button type="button" class="review-modal-close" data-review-close aria-label="Tutup daftar utang dan piutang">✕</button></div><div class="review-modal-content">${debtOverviewPopupContent()}</div></div></div>`;
  const key=popup.key;
  let title='',description='',content='';
  if(key==='income'||key==='expense'){

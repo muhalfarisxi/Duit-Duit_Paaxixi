@@ -168,7 +168,17 @@ function splitOption(opt){
  let name=pair.length?pair.join(' · ').trim():raw;
  const balance=name.match(/\s*\(Sisa\s+([^)]+)\)\s*$/i);
  if(balance)name=name.slice(0,balance.index).trim();
- return {value:opt.value,group:group,name:name,remaining:balance?balance[1]:''};
+ const d=opt?.dataset||{};
+ const hasStats=['budgetEffective','budgetUsed','budgetRemaining'].every(k=>d[k]!==undefined&&d[k]!=='');
+ const effective=hasStats?Number(d.budgetEffective):null;
+ const used=hasStats?Number(d.budgetUsed):null;
+ const remainingAmount=hasStats?Number(d.budgetRemaining):null;
+ const validStats=hasStats&&[effective,used,remainingAmount].every(Number.isFinite);
+ const rupiah=n=>'Rp'+Number(n).toLocaleString('id-ID',{maximumFractionDigits:0});
+ return {value:opt.value,group:group,name:name,
+  remaining:validStats?rupiah(remainingAmount):(balance?balance[1]:''),
+  hasStats:validStats,effective:validStats?effective:null,
+  used:validStats?used:null,remainingAmount:validStats?remainingAmount:null};
 }
 
 let activeBudgetPicker=null;
@@ -286,14 +296,36 @@ function populatePicker(select){
   function optionCard(option){
    const btn=node('button','budget-viz-portal-pos');
    btn.type='button';
-   btn.setAttribute('aria-label','Pilih pos '+option.name+' dari kelompok '+option.group);
    if(select.value===option.value)btn.classList.add('is-selected');
    const mark=node('span','budget-viz-portal-pos-icon','📌');
    const content=node('span','budget-viz-portal-pos-info');
    content.append(node('strong','',option.name));
-   content.append(node('small','',option.group+(option.remaining?' · Sisa '+option.remaining:'')));
-   const choice=node('span','budget-viz-portal-pos-check',select.value===option.value?'✓':'→');
-   btn.append(mark,content,choice);
+   content.append(node('small','budget-viz-portal-pos-group',option.group));
+   let accessible='Pilih '+option.name+' dari '+option.group;
+   if(option.hasStats){
+    const money=n=>'Rp'+Number(n).toLocaleString('id-ID',{maximumFractionDigits:0});
+    const remaining=option.remainingAmount;
+    const ratio=option.effective>0?remaining/option.effective:0;
+    const tone=remaining<0?'is-over':remaining===0?'is-zero':ratio<=.2?'is-warning':'is-remaining';
+    const metrics=node('span','budget-viz-portal-pos-metrics');
+    const chip=(label,value,tone)=>{
+     const el=node('span','budget-viz-pos-chip '+tone);
+     el.append(node('span','budget-viz-chip-label',label),node('strong','budget-viz-chip-value',money(value)));
+     metrics.append(el);
+    };
+    chip('Efektif',option.effective,'is-effective');
+    chip('Terpakai',option.used,'is-used');
+    chip(remaining<0?'Minus':remaining===0?'Habis':'Sisa',Math.abs(remaining),tone);
+    content.append(metrics);
+    accessible+=', efektif '+money(option.effective)+', terpakai '+money(option.used)+
+     ', '+(remaining<0?'minus ':remaining===0?'habis ':'sisa ')+money(Math.abs(remaining));
+   }else if(option.remaining){
+    content.append(node('small','budget-viz-portal-pos-remaining','Sisa '+option.remaining));
+    accessible+=', sisa '+option.remaining;
+   }
+   btn.setAttribute('aria-label',accessible);
+   const arrow=node('span','budget-viz-portal-pos-check',select.value===option.value?'✓':'→');
+   btn.append(mark,content,arrow);
    btn.addEventListener('click',function(){choose(option.value)});
    return btn;
   }
@@ -390,7 +422,10 @@ function setupAnchoredTransfer(form){
  const anchorOption=Array.from(target.options).find(x=>x.value===id);
  if(!anchorOption)return;
  const anchor=splitOption(anchorOption);
- const balance=o=>Number(splitOption(o||{textContent:'',value:''}).remaining.replace(/\D/g,''))||0;
+ const balance=o=>{
+  const item=splitOption(o||{textContent:'',value:''});
+  return item.hasStats?Math.max(0,item.remainingAmount):Number(item.remaining.replace(/\D/g,''))||0;
+ };
  const available=balance(Array.from(source.options).find(x=>x.value===id));
  const donors=Array.from(source.options).filter(x=>x.value&&x.value!==id&&balance(x)>0);
  const receivers=Array.from(target.options).filter(x=>x.value&&x.value!==id);
@@ -428,7 +463,13 @@ function setupAnchoredTransfer(form){
   panel.append(node('strong','budget-anchor-partner-title',description));
   const select=node('select','field');select.name=name;select.required=true;select.disabled=true;
   const blank=node('option','','Pilih pos melalui kelompok atau pencarian');blank.value='';blank.disabled=true;blank.selected=true;select.append(blank);
-  options.forEach(x=>{const op=node('option','',x.textContent);op.value=x.value;select.append(op)});
+  options.forEach(x=>{
+   const op=node('option','',x.textContent);op.value=x.value;
+   ['budgetEffective','budgetUsed','budgetRemaining'].forEach(key=>{
+    if(x.dataset?.[key]!==undefined)op.dataset[key]=x.dataset[key];
+   });
+   select.append(op);
+  });
   panel.append(select);return select;
  }
  const donor=createSelect(rPanel,'donorPos','2. Ambil anggaran dari pos mana?',donors);

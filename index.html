@@ -1295,6 +1295,20 @@ body:has(.review-modal-backdrop){overflow:hidden}
 @media(prefers-reduced-motion:reduce){.budget-bygroup-track>span,.budget-bygroup-items{animation:none!important}.budget-bygroup-arrow,.budget-bygroup-hint span{transition:none!important}}
 
 
+/* Utang & Piutang: filter jenis di atas filter status. */
+.debt-quick-selector-label{margin:14px 17px 7px;color:#6881a2;font:850 11px/1.4 Nunito,sans-serif;letter-spacing:.2px}
+.debt-quick-type-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:0 17px 14px}
+.debt-quick-type-tabs button{display:flex;align-items:center;justify-content:center;gap:8px;min-width:0;min-height:48px;padding:10px 12px;border-radius:13px;border:1.5px solid #c8dcf7;background:#f7faff;color:#234f84;font:900 13px/1.25 Nunito,sans-serif;cursor:pointer;transition:transform .18s,box-shadow .18s,background .18s}
+.debt-quick-type-tabs button b{display:grid;place-items:center;min-width:23px;height:23px;padding:0 5px;border-radius:999px;background:#e1edfc;color:#20568b;font:900 11px/1 Nunito,sans-serif}
+.debt-quick-type-symbol{font-size:19px;line-height:1}
+.debt-quick-type-tabs button:hover{transform:translateY(-2px);background:#edf5ff;box-shadow:0 5px 13px #1b4f8918}
+.debt-quick-type-tabs button.active{background:linear-gradient(115deg,#153b70,#2765a9);border-color:#1d5795;color:white;box-shadow:0 7px 18px #14417d33}
+.debt-quick-type-tabs button.active b{background:white;color:#204b7e}
+.debt-quick-type-tabs button:focus-visible{outline:3px solid #6faaf2;outline-offset:2px}
+.debt-quick-tabs{margin-top:0}
+@media(max-width:600px){.debt-quick-selector-label{margin-left:11px;margin-right:11px}.debt-quick-type-tabs{margin-left:11px;margin-right:11px;gap:7px}.debt-quick-type-tabs button{min-height:43px;padding:8px 6px;font-size:12px;gap:6px}.debt-quick-type-symbol{font-size:17px}}
+@media(prefers-reduced-motion:reduce){.debt-quick-type-tabs button{transition:none}}
+
 /* #044 Popup utang & piutang mengikuti menu utama */
 .debt-quick-popup{padding:4px 0 16px}
 .debt-quick-totals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 17px}
@@ -4395,7 +4409,7 @@ const expenseGroups=()=>db.expenseGroups;
 const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],debts:[],reports:{}});
 function load(){try{let v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.accounts)&&Array.isArray(v.categories)&&Array.isArray(v.transactions)&&Array.isArray(v.debts)&&v.budgets&&Array.isArray(v.budgetMoves))return normalizeExpenseGroups(v);}catch(e){}return fresh()}
 let db=load();db.reports=db.reports||{};
-let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,debtEditorOpen:false,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,trendRangePopup:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupFilter:'open',reportMonth:currentMonth()};
+let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,debtEditorOpen:false,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,trendRangePopup:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupType:'receivable',debtPopupFilter:'open',reportMonth:currentMonth()};
 let cloud={configured:false,signedIn:false,ready:false,email:'',busy:false,error:'',empty:false,pendingDecision:false};
 function syncBadge(){let b=document.getElementById('cloud-status');if(!b)return;
  b.className='cloud-state'+(cloud.signedIn&&cloud.ready&&!cloud.pendingDecision?' online':cloud.busy?' wait':'');
@@ -6343,8 +6357,10 @@ function openTrendPoint(element){
 /* #044 Modal ringkasan utang/piutang dari sumber data menu */
 function debtOverviewPopupContent(){
  const all=Array.isArray(db.debts)?db.debts:[], totals=totalsDebt();
- const filter=['open','closed','all'].includes(ui.debtPopupFilter)?ui.debtPopupFilter:'open';
- const selected=all.filter(d=>filter==='all'||(filter==='open'?debtBalance(d)>0:debtBalance(d)===0)).slice()
+ const type=['receivable','payable'].includes(ui.debtPopupType)?ui.debtPopupType:'receivable';
+ const typeItems=all.filter(d=>d.type===type);
+ const filter=['open','closed','all'].includes(ui.debtPopupFilter)?ui.debtPopupFilter:'all';
+ const selected=typeItems.filter(d=>filter==='all'||(filter==='open'?debtBalance(d)>0:debtBalance(d)===0)).slice()
    .sort((a,b)=>Number(debtBalance(b)>0)-Number(debtBalance(a)>0)||String(b.date).localeCompare(String(a.date)));
  function item(d,type){
   const amount=num(d.amount),left=debtBalance(d),paid=Math.max(0,amount-left);
@@ -6365,11 +6381,17 @@ function debtOverviewPopupContent(){
   const rows=selected.filter(d=>d.type===type);
   return rows.length?`<section class="debt-quick-section"><h4>${h(title)} <small>${rows.length} catatan</small></h4>${rows.map(d=>item(d,type)).join('')}</section>`:'';
  }
- const openCount=all.filter(d=>debtBalance(d)>0).length;
- const tabs=[['open','Belum Lunas',openCount],['closed','Sudah Lunas',all.length-openCount],['all','Semua',all.length]].map(([id,label,count])=>`<button type="button" data-debt-popup-filter="${id}" aria-pressed="${filter===id?'true':'false'}" class="${filter===id?'active':''}">${label} <span>${count}</span></button>`).join('');
- return `<div class="debt-quick-popup"><div class="debt-quick-totals"><div><span>Piutang Belum Kembali</span><strong class="green">${money(totals.receivable)}</strong></div><div><span>Utang Belum Dilunasi</span><strong class="red">${money(totals.payable)}</strong></div></div>
-  <div class="debt-quick-tabs">${tabs}</div>
-  ${selected.length?section('receivable','↗ Piutang · Uang Dipinjam Orang')+section('payable','↙ Utang · Saya Meminjam'):'<div class="review-modal-empty">Belum ada catatan untuk status ini.</div>'}
+  const openCount=typeItems.filter(d=>debtBalance(d)>0).length;
+  const typeTabs=[['receivable','↗','Piutang'],['payable','↙','Utang']].map(([id,icon,label])=>
+   `<button type="button" data-debt-popup-type="${id}" aria-pressed="${type===id?'true':'false'}" class="${type===id?'active':''}"><span class="debt-quick-type-symbol" aria-hidden="true">${icon}</span><span>${label}</span><b>${all.filter(d=>d.type===id).length}</b></button>`).join('');
+  const tabs=[['open','Belum Lunas',openCount],['closed','Sudah Lunas',typeItems.length-openCount],['all','Semua',typeItems.length]].map(([id,label,count])=>`<button type="button" data-debt-popup-filter="${id}" aria-pressed="${filter===id?'true':'false'}" class="${filter===id?'active':''}">${label} <span>${count}</span></button>`).join('');
+  const typeTitle=type==='receivable'?'↗ Piutang · Uang Dipinjam Orang':'↙ Utang · Saya Meminjam';
+  return `<div class="debt-quick-popup"><div class="debt-quick-totals"><div><span>Piutang Belum Kembali</span><strong class="green">${money(totals.receivable)}</strong></div><div><span>Utang Belum Dilunasi</span><strong class="red">${money(totals.payable)}</strong></div></div>
+   <div class="debt-quick-selector-label">Jenis Catatan</div>
+   <div class="debt-quick-type-tabs" role="group" aria-label="Pilih Piutang atau Utang">${typeTabs}</div>
+   <div class="debt-quick-selector-label">Status Pembayaran</div>
+   <div class="debt-quick-tabs" role="group" aria-label="Filter status berdasarkan jenis yang dipilih">${tabs}</div>
+   ${selected.length?section(type,typeTitle):`<div class="review-modal-empty">Belum Ada Catatan ${type==='receivable'?'Piutang':'Utang'} Dengan Status ${filter==='open'?'Belum Lunas':filter==='closed'?'Sudah Lunas':'Apa Pun'}.</div>`}
   <p class="debt-quick-explain">Data berasal dari daftar Utang & Piutang. Saldo berlaku sepanjang waktu; cicilan bukan pemasukan atau pengeluaran rutin.</p>
   <div class="debt-quick-action"><button type="button" class="btn primary finance-spotlight-action debt-manage-cta" data-debt-add><span aria-hidden="true">＋</span> Catat Utang / Piutang <span class="spotlight-arrow" aria-hidden="true">→</span></button></div></div>`;
 }
@@ -7944,10 +7966,15 @@ if(x.dataset.compAction){
  render();return;
 }
 if(x.dataset.debtOverview){
-  ui.debtPopupFilter='all';ui.reviewPopup={type:'debt-list'};
+  ui.debtPopupType='receivable';ui.debtPopupFilter='all';ui.reviewPopup={type:'debt-list'};
   render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});return;
  }
  if(x.dataset.debtListFilter){if(!['open','closed','all'].includes(x.dataset.debtListFilter))return;ui.debtFilter=x.dataset.debtListFilter;render();document.querySelector('[data-debt-list-filter="'+ui.debtFilter+'"]')?.focus({preventScroll:true});return;}
+ if(x.dataset.debtPopupType){
+  if(!['receivable','payable'].includes(x.dataset.debtPopupType))return;
+  ui.debtPopupType=x.dataset.debtPopupType;
+  render();document.querySelector('[data-debt-popup-type="'+ui.debtPopupType+'"]')?.focus({preventScroll:true});return;
+ }
  if(x.dataset.debtPopupFilter){
   if(!['open','closed','all'].includes(x.dataset.debtPopupFilter))return;
   ui.debtPopupFilter=x.dataset.debtPopupFilter;

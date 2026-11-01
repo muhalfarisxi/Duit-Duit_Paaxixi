@@ -6458,13 +6458,26 @@ function normalizeExpenseGroups(value){
  }
  return {...value,expenseGroups:result.length?result:DEFAULT_GROUPS.map(g=>({...g})),
  budgetAdjustments:Array.isArray(value?.budgetAdjustments)?value.budgetAdjustments.filter(a=>a&&typeof a.id==='string'&&typeof a.month==='string'&&typeof a.categoryId==='string'&&['increase','decrease'].includes(a.type)&&Number.isFinite(Number(a.amount))&&Number(a.amount)>0):[],
- budgetBaseHistory:Array.isArray(value?.budgetBaseHistory)?value.budgetBaseHistory.filter(a=>a&&typeof a.categoryId==='string'&&typeof a.month==='string'):[]};
+ budgetBaseHistory:Array.isArray(value?.budgetBaseHistory)?value.budgetBaseHistory.filter(a=>a&&typeof a.categoryId==='string'&&typeof a.month==='string'):[],
+ budgetInitialStates:(()=>{
+  const states={};
+  for(const [month,state] of Object.entries(value?.budgetInitialStates||{})){
+   if(/^\d{4}-(0[1-9]|1[0-2])$/.test(month)&&['draft','locked'].includes(state?.status))
+    states[month]={status:state.status,lockedAt:String(state.lockedAt||''),legacy:!!state.legacy};
+  }
+  // Data lama yang sudah memiliki alokasi atau transaksi dianggap sudah ditetapkan.
+  const months=new Set([...Object.keys(value?.budgets||{}).map(k=>k.slice(0,7)),
+   ...(value?.budgetMoves||[]).map(m=>m.month),...(value?.budgetAdjustments||[]).map(a=>a.month)]);
+  for(const month of months)if(/^\d{4}-(0[1-9]|1[0-2])$/.test(month)&&!states[month])
+   states[month]={status:'locked',lockedAt:'',legacy:true};
+  return states;
+ })()};
 }
 const expenseGroups=()=>db.expenseGroups;
-const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],budgetAdjustments:[],budgetBaseHistory:[],debts:[],reports:{}});
+const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],budgetAdjustments:[],budgetBaseHistory:[],budgetInitialStates:{},debts:[],reports:{}});
 function load(){try{let v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.accounts)&&Array.isArray(v.categories)&&Array.isArray(v.transactions)&&Array.isArray(v.debts)&&v.budgets&&Array.isArray(v.budgetMoves))return normalizeExpenseGroups(v);}catch(e){}return fresh()}
 let db=load();db.reports=db.reports||{};
-let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,debtEditorOpen:false,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,budgetExpandedGroups:null,budgetDetailExpandedGroups:[],budgetSection:'monthly',comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,trendRangePopup:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupType:'receivable',debtPopupFilter:'open',incomeTrendMode:'month',incomeTrendFrom:'',incomeTrendTo:'',incomeTrendRangeOpen:false,incomePieMonth:null,incomeMonthMenuOpen:false,incomeFilter:{preset:'month',from:'',to:'',group:null},incomeTrendVisible:null,reportMonth:currentMonth()};
+let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,debtEditorOpen:false,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,budgetExpandedGroups:null,budgetDetailExpandedGroups:[],budgetEditExpandedGroups:[],budgetSection:'detail',comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,trendRangePopup:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupType:'receivable',debtPopupFilter:'open',incomeTrendMode:'month',incomeTrendFrom:'',incomeTrendTo:'',incomeTrendRangeOpen:false,incomePieMonth:null,incomeMonthMenuOpen:false,incomeFilter:{preset:'month',from:'',to:'',group:null},incomeTrendVisible:null,reportMonth:currentMonth()};
 let cloud={configured:false,signedIn:false,ready:false,email:'',busy:false,error:'',empty:false,pendingDecision:false};
 function syncBadge(){let b=document.getElementById('cloud-status');if(!b)return;
  b.className='cloud-state'+(cloud.signedIn&&cloud.ready&&!cloud.pendingDecision?' online':cloud.busy?' wait':'');
@@ -6496,6 +6509,9 @@ const monthly=()=>db.transactions.filter(t=>t.date.slice(0,7)===ui.month);
 const spentByCat=id=>monthly().filter(t=>t.type==='expense'&&t.categoryId===id).reduce((s,t)=>s+num(t.amount),0);
 const totalType=type=>monthly().filter(t=>t.type===type).reduce((s,t)=>s+num(t.amount),0);
 const baseBudget=id=>num(db.budgets[ui.month+'|'+id]);
+const budgetInitialState=(month=ui.month)=>db.budgetInitialStates?.[month]||{status:'draft'};
+const budgetIsEstablished=(month=ui.month)=>budgetInitialState(month).status==='locked';
+const budgetLockMessage=()=> 'Tetapkan Anggaran Awal '+monthFmt(ui.month)+' dahulu sebelum melakukan pengalihan atau penyesuaian.';
 const budgetAdjustmentsForMonth=(month=ui.month)=>(db.budgetAdjustments||[]).filter(a=>a.month===month);
 const budgetAdjustmentNet=(id,month=ui.month)=>budgetAdjustmentsForMonth(month).reduce((n,a)=>n+(a.categoryId===id?(a.type==='increase'?1:-1)*num(a.amount):0),0);
 const budgetTransferNet=(id,month=ui.month)=>db.budgetMoves.filter(m=>m.month===month).reduce((n,m)=>n+(m.to===id?num(m.amount):0)-(m.from===id?num(m.amount):0),0);

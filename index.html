@@ -5933,6 +5933,102 @@ body:has(.tx-search-backdrop){overflow:hidden}
  #content .budget-detail-group,#content .budget-detail-chevron,#content .budget-detail-open-hint span{transition:none!important}
 }
 
+
+/* #124 Penjajaran panah dropdown lintas seluruh menu.
+   Karakter font panah lama disembunyikan; chevron digambar simetris,
+   sehingga tidak bergeser karena baseline/font Windows, Android, atau iOS. */
+#content :is(
+ .budget-detail-chevron,.budget-detail-open-hint>span,
+ .review-group-chevron,.budget-bygroup-arrow,.budget-bygroup-hint>span,
+ .kpi-account-balance>span,.debt-quick-expand>span,
+ .review-export-caret,.tx-search-date-chevron,.comp-chevron,.income-month-chevron
+){
+ display:inline-grid!important;place-items:center!important;align-content:center!important;
+ justify-content:center!important;flex-shrink:0;box-sizing:border-box;
+ font-size:0!important;line-height:0!important;text-align:center;
+ vertical-align:middle;margin-block:0!important;
+ transform:none!important;
+}
+#content :is(
+ .budget-detail-chevron,.budget-detail-open-hint>span,
+ .review-group-chevron,.budget-bygroup-arrow,.budget-bygroup-hint>span,
+ .kpi-account-balance>span,.debt-quick-expand>span,
+ .review-export-caret,.tx-search-date-chevron,.comp-chevron,.income-month-chevron
+)::before{
+ content:"";display:block;box-sizing:border-box;pointer-events:none;
+ width:10px;height:10px;border-right:2.25px solid currentColor;
+ border-bottom:2.25px solid currentColor;border-radius:0 1px 1px 1px;
+ transform:translateY(-2px) rotate(45deg);
+ transform-origin:50% 50%;
+ transition:transform .2s ease;
+}
+#content .budget-detail-chevron{width:34px;height:34px;padding:0}
+#content .review-group-chevron{width:27px;height:27px;padding:0}
+#content .budget-bygroup-arrow{width:30px;height:30px;padding:0}
+#content .budget-detail-open-hint>span,
+#content .budget-bygroup-hint>span,
+#content .debt-quick-expand>span,
+#content .kpi-account-balance>span{
+ width:18px;height:18px;min-width:18px;padding:0;margin-inline:2px;
+}
+#content .review-export-caret,
+#content .comp-chevron,
+#content .tx-search-date-chevron{
+ width:19px;height:19px;min-width:19px;padding:0;margin-inline:0;
+}
+#content .income-month-chevron{
+ width:19px;height:19px;min-width:19px;margin:0 0 0 7px!important;
+ padding:0;border:0!important;background:transparent;
+}
+#content .budget-detail-group[open]>.budget-detail-summary .budget-detail-chevron::before,
+#content .budget-detail-group[open] .budget-detail-open-hint>span::before,
+#content .review-group.is-open .review-group-chevron::before,
+#content .budget-bygroup[open] .budget-bygroup-arrow::before,
+#content .budget-bygroup[open] .budget-bygroup-hint>span::before,
+#content .kpi-account-detail[open] .kpi-account-balance>span::before,
+#content .debt-quick-entry[open] .debt-quick-expand>span::before,
+#content .review-export-wrap.open .review-export-caret::before,
+#content .income-month-picker.is-open .income-month-chevron::before,
+#content .comp-picker.is-open .comp-chevron::before{
+ transform:translateY(2px) rotate(225deg);
+}
+#content .tx-search-date-group:not([open]) .tx-search-date-chevron::before{
+ transform:translateX(-2px) rotate(-45deg);
+}
+#content .tx-search-date-group[open] .tx-search-date-chevron::before{
+ transform:translateY(-2px) rotate(45deg);
+}
+/* Simbol detail umum yang sebelumnya menggunakan karakter teks ▾. */
+#content .review-block>summary::before{
+ content:"";display:block;box-sizing:border-box;flex:none;
+ width:10px;height:10px;margin:0 5px 4px 1px;
+ border-right:2.25px solid var(--teal,#287f86);
+ border-bottom:2.25px solid var(--teal,#287f86);
+ border-radius:0 1px 1px 1px;
+ transform:rotate(45deg);transform-origin:center;
+ transition:transform .2s ease,margin .2s ease;
+}
+#content .review-block[open]>summary::before{
+ transform:rotate(225deg);margin-top:4px;margin-bottom:0;
+}
+/* Native select tidak bergantung pada tinggi baris label. */
+#content select.field,#content .form-field select,#content .finance-editor-form select{
+ line-height:normal;vertical-align:middle;
+}
+/* Pastikan tombol dropdown kecil tetap mempunyai area sentuh yang layak. */
+@media(max-width:650px){
+ #content .review-group-chevron{width:27px;height:27px}
+ #content .budget-detail-chevron{width:32px;height:32px}
+}
+@media(prefers-reduced-motion:reduce){
+ #content :is(
+ .budget-detail-chevron,.budget-detail-open-hint>span,
+ .review-group-chevron,.budget-bygroup-arrow,.budget-bygroup-hint>span,
+ .kpi-account-balance>span,.debt-quick-expand>span,
+ .review-export-caret,.tx-search-date-chevron,.comp-chevron,.income-month-chevron
+ )::before,#content .review-block>summary::before{transition:none!important}
+}
+
 </style>
 </head>
 <body>

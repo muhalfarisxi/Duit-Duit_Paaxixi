@@ -5653,6 +5653,49 @@ body:has(.tx-search-backdrop){overflow:hidden}
 
 .budget-flow-empty-hint{margin:0;border-radius:10px;padding:10px;background:#fff4eb;color:#9c5727;
  font:800 11px Nunito,sans-serif}
+
+/* #118 Sederhanakan Anggaran Bulanan: kelompok dikelola dalam kartu/modal, tanpa panel duplikat. */
+.budget-monthly-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px}
+.budget-monthly-actions .btn{min-height:40px;white-space:nowrap}
+.budget-flow-group-management{display:flex;flex-wrap:wrap;gap:9px;align-items:center;justify-content:space-between;
+ padding:10px 12px;margin-bottom:15px;border:1px solid color-mix(in srgb,var(--budget-theme) 20%,#fff);
+ border-radius:13px;background:color-mix(in srgb,var(--budget-theme) 8%,#fff)}
+.budget-flow-group-management>span{font:900 11px Nunito,sans-serif;color:#2e638d}
+.budget-flow-group-actions{display:flex;flex-wrap:wrap;gap:7px}
+.budget-flow-group-actions button{min-height:34px;padding:7px 10px;cursor:pointer;
+ border:1px solid color-mix(in srgb,var(--budget-theme) 25%,#fff);
+ border-radius:10px;background:#fff;color:#215e90;font:900 10px Nunito,sans-serif}
+.budget-flow-group-actions button.danger{color:#be4d5f;border-color:#f1cacf}
+.budget-flow-group-actions button:is(:hover,:focus-visible){background:#f6fbff;outline-offset:2px}
+.budget-work-history-section{padding-top:16px;border-top:1px solid #dfebf9;min-width:0}
+.budget-work-history-section>.budget-work-history-head{margin-bottom:10px}
+.budget-work-history-list{max-height:min(350px,52vh);min-height:0;overflow-y:auto;overflow-x:hidden;
+ overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-width:thin;
+ scrollbar-color:#a7c4e9 #f3f7ff;padding:5px 6px 5px 2px;
+ align-content:start;display:grid;gap:8px}
+.budget-work-history-list:focus-visible{outline:3px solid #8bc1fc;outline-offset:2px;border-radius:12px}
+.budget-work-history-list::-webkit-scrollbar{width:9px}
+.budget-work-history-list::-webkit-scrollbar-track{background:#f3f7ff;border-radius:99px}
+.budget-work-history-list::-webkit-scrollbar-thumb{background:#a7c4e9;border:2px solid #f3f7ff;border-radius:99px}
+/* Seluruh transaksi: badan kartu yang panjang bergulir di dalam, bukan memperpanjang halaman. */
+#content .review-group-list{max-height:min(570px,68vh);min-height:0;overflow-y:auto;overflow-x:hidden;
+ overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#b6cae9 #f6f9ff;
+ scrollbar-gutter:stable;padding:5px 7px 8px 2px;align-content:start}
+#content .review-group-list:focus-visible{outline:3px solid #9cc2f3;outline-offset:2px;border-radius:12px}
+.tx-history-dialog .tx-history-content{min-height:0;max-height:min(590px,70vh);overflow-y:auto;
+ overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-width:thin}
+.tx-search-dialog .tx-search-content{max-height:min(590px,66vh);overflow-y:auto;min-height:0;
+ scrollbar-gutter:stable;overscroll-behavior:contain;scrollbar-width:thin}
+.review-modal-dialog .review-modal-content{min-height:0;max-height:65vh;overflow-y:auto;overscroll-behavior:contain}
+@media(max-width:610px){
+ .budget-monthly-actions{width:100%;justify-content:stretch}
+ .budget-monthly-actions .btn{flex:1 1 auto;padding:9px 11px;font-size:11px}
+ .budget-work-history-list{max-height:min(310px,50vh)}
+ #content .review-group-list{max-height:min(490px,60vh)}
+ .budget-flow-group-actions{width:100%}
+ .budget-flow-group-actions button{flex:1 1 auto}
+}
+
 </style>
 </head>
 <body>
@@ -9150,13 +9193,18 @@ function renderBudgetMonthlySection(){
  const t=budgetMonthTotals();
  return `<section class="card budget-work-panel">
   <div class="card-head"><div><h3>Anggaran Bulanan per Kelompok</h3>
-   <p>Klik kartu kelompok untuk mengatur anggaran awal setiap pos melalui popup.</p></div>
-   <button type="button" class="btn sm primary" data-add-budget-category="">＋ Tambah Pos</button></div>
+   <p>Pilih kelompok untuk mengedit anggaran awal, pos, nama kelompok, atau warnanya.</p></div>
+   <div class="budget-monthly-actions" role="group" aria-label="Tambah pengelolaan anggaran">
+    <button type="button" class="btn sm" data-add-budget-category="">＋ Tambah Pos</button>
+    <button type="button" class="btn sm primary" data-add-expense-group>＋ Tambah Kelompok</button>
+   </div></div>
   <div class="budget-work-groups">${expenseGroups().map(budgetBudgetCard).join('')}</div>
-  <div class="budget-work-info"><span>💡</span><p>Nilai awal dapat diedit per pos. Tambahan dan pengurangan dicatat terpisah agar riwayat anggaran tidak hilang.</p></div>
-  <details class="budget-work-nested"><summary>⚙️ Kelola Nama dan Warna Kelompok</summary><div>${expenseGroupManager()}</div></details>
-  <details class="budget-work-nested"><summary>🕘 Riwayat Perubahan Anggaran Awal <small>${budgetScopeTransactions('base').length} catatan</small></summary>
-    ${budgetHistoryRows('base')}</details>
+  <div class="budget-work-info"><span>💡</span><p>Klik kelompok untuk mengatur pos dan warna. Perubahan anggaran awal dicatat dalam riwayat, terpisah dari tambahan, pengurangan, dan pengalihan.</p></div>
+  <section class="budget-work-history-section" aria-label="Riwayat perubahan anggaran awal">
+    <div class="budget-work-history-head"><h4>🕘 Riwayat Perubahan Anggaran Awal</h4>
+     <span>${budgetScopeTransactions('base').length} catatan · ${h(monthFmt(ui.month))}</span></div>
+    ${budgetHistoryRows('base')}
+  </section>
  </section>`;
 }
 function renderBudgetTransferSection(){
@@ -9214,7 +9262,13 @@ function budgetFlowDialogMarkup(kind,id=null){
   description='Edit batas awal tiap pos. Tambahan/pengurangan dan pengalihan tetap tercatat terpisah.';
   const color=cleanGroupColor(group.color)||'#2563eb';
   const categories=expenses().filter(c=>c.group===group.name);
-  body=`<form id="budget-form" class="budget-flow-form"><div class="budget-flow-pos-list" style="--budget-theme:${color}">
+  body=`<div class="budget-flow-group-management" style="--budget-theme:${color}">
+    <span>⚙️ Kelola ${h(group.name)}</span>
+    <div class="budget-flow-group-actions">
+      <button type="button" data-edit-expense-group="${h(group.id)}">✏️ Edit Nama & Warna</button>
+      <button type="button" class="danger" data-delete-expense-group="${h(group.id)}">🗑️ Hapus Kelompok</button>
+    </div>
+   </div><form id="budget-form" class="budget-flow-form"><div class="budget-flow-pos-list" style="--budget-theme:${color}">
    ${categories.map(c=>{
     const base=baseBudget(c.id),delta=budgetAdjustmentNet(c.id),transfer=budgetTransferNet(c.id),spent=spentByCat(c.id),effective=effectiveBudget(c.id);
     return `<article class="budget-flow-pos">

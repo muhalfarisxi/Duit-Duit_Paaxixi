@@ -1722,6 +1722,39 @@ body:has(.repay-popup-backdrop){overflow:hidden}
 @media(max-width:600px){.finance-bottom-grid{gap:12px}.finance-bottom-grid>.debt-spotlight-card .debt-fancy-list{grid-template-columns:minmax(0,1fr)}.finance-recent-card{border-radius:18px}.finance-recent-card .card-head .action-buttons{justify-content:flex-start;width:100%}.finance-recent-card .tx-recent-end .amount{font-size:14px}}
 
 
+
+/* #098 Tinggi kartu berimbang: tampilkan hanya tiga transaksi terbaru,
+   sementara daftar lengkap tetap melalui tombol Semua Transaksi. */
+.finance-bottom-grid>.debt-spotlight-card .debt-overview-cta{
+ margin-top:18px!important;
+}
+.finance-bottom-grid>.finance-recent-card{
+ display:flex;flex-direction:column;
+}
+.finance-recent-card .tx-recent-row{
+ padding:10px 0;gap:10px;
+}
+.finance-recent-card .tx-recent-info{
+ flex:1 1 160px;
+}
+.finance-recent-card .tx-recent-end{
+ gap:5px;
+}
+.finance-recent-card .tx-recent-actions{
+ gap:6px;
+}
+.finance-recent-card .tx-recent-actions .btn{
+ padding:4px 8px;font-size:10px;
+}
+.finance-recent-card .card-head{margin-bottom:10px}
+@media(max-width:1030px){
+ .finance-bottom-grid>.debt-spotlight-card .debt-overview-cta{margin-top:16px!important}
+}
+@media(max-width:600px){
+ .finance-recent-card .tx-recent-row{padding:10px 0;gap:7px}
+ .finance-recent-card .tx-recent-actions .btn{font-size:11px}
+}
+
 /* #097 Grafik pemasukan: filter bulan, palet hijau, callout bergaris, dan rincian pada titik tren. */
 .income-pie-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .income-pie-card-head>div{min-width:0}
@@ -6695,7 +6728,7 @@ ${renderPaaxixiSmartFinanceInsight()}
   </div>
   <button type="button" class="btn sm full finance-spotlight-action debt-overview-cta" data-debt-overview="open" aria-haspopup="dialog"><span aria-hidden="true">↗</span> Lihat Utang & Piutang <span class="spotlight-arrow" aria-hidden="true">→</span></button>
  </section>
- <section class="card finance-recent-card"><div class="card-head"><div><h3>Transaksi Terbaru</h3><p>Periksa transaksi ${h(monthFmt(ui.month))}; Edit jika ada nominal atau kategori yang keliru.</p></div><div class="action-buttons"><button type="button" class="btn sm ghost tx-nav-cta" data-tx-history>Semua Transaksi <span class="nav-cta-arrow" aria-hidden="true">↗</span></button><button type="button" class="btn sm tx-nav-cta" data-nav="reports">Arsip Bulan <span class="nav-cta-arrow" aria-hidden="true">↗</span></button></div></div>${all.length?all.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt?.localeCompare(a.createdAt||'')||0).slice(0,6).map(txRow).join(''):empty('⇄','Belum Ada Transaksi','Klik “Catat transaksi” untuk membuat catatan baru.')}</section>
+ <section class="card finance-recent-card"><div class="card-head"><div><h3>Transaksi Terbaru</h3><p>Periksa transaksi ${h(monthFmt(ui.month))}; Edit jika ada nominal atau kategori yang keliru.</p></div><div class="action-buttons"><button type="button" class="btn sm ghost tx-nav-cta" data-tx-history>Semua Transaksi <span class="nav-cta-arrow" aria-hidden="true">↗</span></button><button type="button" class="btn sm tx-nav-cta" data-nav="reports">Arsip Bulan <span class="nav-cta-arrow" aria-hidden="true">↗</span></button></div></div>${all.length?all.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt?.localeCompare(a.createdAt||'')||0).slice(0,3).map(txRow).join(''):empty('⇄','Belum Ada Transaksi','Klik “Catat transaksi” untuk membuat catatan baru.')}</section>
 </div>${renderDashboardKpiPopup()}${renderBudgetAlertDialog(alert,bt)}`}
 
 /* #035 Rincian interaktif kartu Dashboard; semuanya memakai sumber data yang sama. */

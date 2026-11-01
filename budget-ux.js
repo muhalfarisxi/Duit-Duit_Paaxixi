@@ -250,6 +250,19 @@ function populatePicker(select){
  sync();
  select.addEventListener('change',sync);
  function openPortal(){
+  // Filtering is applied only when replacing a donor after an over-budget warning.
+  const requested=Number(select.dataset.budgetQuickAmount||0);
+  const quickMode=select.dataset.budgetQuickEligible==='1'&&Number.isSafeInteger(requested)&&requested>0;
+  const excluded=select.dataset.budgetQuickExclude||'';
+  delete select.dataset.budgetQuickEligible;
+  delete select.dataset.budgetQuickAmount;
+  delete select.dataset.budgetQuickExclude;
+  const parentForm=select.closest('form');
+  const visibleOptions=quickMode?allOptions.map(function(option){
+   const original=Array.from(select.options).find(o=>o.value===option.value);
+   return {...option,quickAvailable:budgetTransferSourceRemaining(parentForm,original)};
+  }).filter(function(o){return o.value!==excluded&&o.quickAvailable>=requested})
+   .sort(function(a,b){return b.quickAvailable-a.quickAvailable||a.name.localeCompare(b.name,'id')}):allOptions;
   closeAll(wrapper);
   if(activeBudgetPicker)closePicker(activeBudgetPicker.picker,false);
   wrapper.classList.add('is-open');
@@ -264,22 +277,35 @@ function populatePicker(select){
   const headIcon=node('span','budget-viz-portal-head-icon','🗂️');
   const words=node('div','budget-viz-portal-heading');
   words.append(node('small','', 'PILIH KELOMPOK & POS'));
-  const heading=node('h3','', 'Pilih '+role);
+  const heading=node('h3','',quickMode?'Ganti pos pemberi anggaran':'Pilih '+role);
   words.append(heading);
+  if(quickMode)words.querySelector('small').textContent='POS DENGAN SISA MENCUKUPI';
   const close=node('button','budget-viz-portal-close','×');
   close.type='button';close.setAttribute('aria-label','Tutup pemilih pos');
   head.append(headIcon,words,close);
-  const guidance=node('p','budget-viz-portal-intro','Pilih kelompok terlebih dahulu, atau ketik nama pos untuk mencari dari seluruh kelompok.');
+  const guidance=node('p','budget-viz-portal-intro',quickMode?
+   'Seluruh pos lintas kelompok yang sisa anggarannya minimal '+budgetTransferMoney(requested)+
+   '. Pilih satu untuk otomatis mengganti pemberi anggaran dan memperbarui batas nominal.':
+   'Pilih kelompok terlebih dahulu, atau ketik nama pos untuk mencari dari seluruh kelompok.');
   const searchWrap=node('div','budget-viz-search-wrap');
   searchWrap.append(node('span','', '⌕'));
   const search=node('input','budget-viz-search');
   search.type='search';
-  search.placeholder='Cari nama pos atau kelompok…';
+  search.placeholder=quickMode?'Cari pos pemberi yang memenuhi batas…':'Cari nama pos atau kelompok…';
   search.setAttribute('aria-label','Cari pos dari seluruh kelompok');
   searchWrap.append(search);
   const nav=node('div','budget-viz-portal-nav');
   const body=node('div','budget-viz-portal-content');
   panel.append(head,guidance,searchWrap,nav,body);
+  if(quickMode){
+   const summary=node('div','budget-viz-filter-summary');
+   summary.append(node('span','budget-viz-filter-summary-icon','✅'));
+   const details=node('span','budget-viz-filter-summary-copy');
+   details.append(node('strong','',visibleOptions.length+' pos memiliki sisa mencukupi'));
+   details.append(node('small','','Minimal tersedia '+budgetTransferMoney(requested)+' · Diurutkan dari sisa terbesar'));
+   summary.append(details);
+   searchWrap.insertAdjacentElement('afterend',summary);
+  }
   portal.append(shade,panel);
   document.body.append(portal);
   // Move popup into the browser top layer, above all other modal/backdrop layers.
@@ -323,6 +349,11 @@ function populatePicker(select){
     content.append(node('small','budget-viz-portal-pos-remaining','Sisa '+option.remaining));
     accessible+=', sisa '+option.remaining;
    }
+   if(quickMode){
+    content.append(node('span','budget-viz-pos-eligible',
+     '✓ Bisa dialihkan '+budgetTransferMoney(option.quickAvailable)));
+    accessible+=', dapat dialihkan '+budgetTransferMoney(option.quickAvailable);
+   }
    btn.setAttribute('aria-label',accessible);
    const arrow=node('span','budget-viz-portal-pos-check',select.value===option.value?'✓':'→');
    btn.append(mark,content,arrow);
@@ -333,14 +364,20 @@ function populatePicker(select){
    const q=search.value.trim().toLocaleLowerCase('id-ID');
    body.replaceChildren();
    nav.replaceChildren();
-   if(q){
-    const matches=allOptions.filter(function(o){
+   if(q||quickMode){
+    const matches=visibleOptions.filter(function(o){
      return (o.name+' '+o.group).toLocaleLowerCase('id-ID').includes(q);
     });
-    nav.append(node('strong','budget-viz-search-count',matches.length+' pos ditemukan'));
+    nav.append(node('strong','budget-viz-search-count',quickMode?
+     matches.length+' pos mampu memberikan '+budgetTransferMoney(requested):
+     matches.length+' pos ditemukan'));
     const list=node('div','budget-viz-portal-positions');
     matches.forEach(function(option){list.append(optionCard(option))});
-    if(!matches.length)list.append(node('p','budget-viz-portal-empty','Tidak ditemukan. Coba kata lain atau pilih kelompok.'));
+    if(!matches.length)list.append(node('p','budget-viz-portal-empty',quickMode?
+     (q?'Tidak ada pos yang memenuhi nominal dan cocok dengan pencarian.':
+     'Belum ada pos dengan sisa minimal '+budgetTransferMoney(requested)+
+     '. Turunkan nominal atau tambahkan alokasi ke pos terlebih dahulu.'):
+     'Tidak ditemukan. Coba kata lain atau pilih kelompok.'));
     body.append(list);
    }else if(selectedGroup===null){
     nav.append(node('strong','budget-viz-search-count','LANGKAH 1/2 · Pilih kelompok ('+groups.size+')'));
@@ -471,21 +508,30 @@ function budgetTransferLimitPopup(form,input){
   // the document's outside-click listener immediately closes the new modal.
   event.stopPropagation();
   const anchored=Boolean(form.dataset.budgetAnchorId);
+  const threshold=budgetTransferInputValue(input).value;
+  if(!threshold)return;
   if(anchored){
-   // A pos opened from Edit Pos remains fixed: switch to "Terima Anggaran"
-   // and choose a different donor, rather than changing the anchored pos.
+   // In Edit Pos mode, keep the selected pos fixed and replace its donor.
    const receive=form.querySelector('.budget-anchor-mode.is-receive:not(:disabled)');
    if(receive&&receive.getAttribute('aria-pressed')!=='true')receive.click();
    const donor=form.querySelector('select[name="donorPos"]');
    const donorTrigger=donor?.closest('.budget-viz-picker')?.querySelector('[data-budget-picker-toggle]');
-   if(donorTrigger&&!donorTrigger.closest('[hidden]'))donorTrigger.click();
+   if(donorTrigger&&!donor.disabled){
+    donor.dataset.budgetQuickEligible='1';
+    donor.dataset.budgetQuickAmount=String(threshold);
+    donor.dataset.budgetQuickExclude=String(form.dataset.budgetAnchorId||'');
+    donorTrigger.click();
+   }
   }else{
-   // Selecting another position writes to the original select[name="from"].
-   // populatePicker.choose() dispatches change, so the amount limit and
-   // disabled save button update automatically while keeping the draft amount.
    const source=form.querySelector('select[name="from"]');
-   const sourceTrigger=source?.closest('.budget-viz-picker')?.querySelector('[data-budget-picker-toggle]');
-   if(sourceTrigger)sourceTrigger.click();
+   const destination=form.querySelector('select[name="to"]');
+   const trigger=source?.closest('.budget-viz-picker')?.querySelector('[data-budget-picker-toggle]');
+   if(trigger){
+    source.dataset.budgetQuickEligible='1';
+    source.dataset.budgetQuickAmount=String(threshold);
+    source.dataset.budgetQuickExclude=String(destination?.value||'');
+    trigger.click();
+   }
   }
  });
  function update(details){

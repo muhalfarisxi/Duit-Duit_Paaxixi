@@ -26,7 +26,7 @@
   const start=point(a),end=point(b);
   return 'M '+start.map(v=>v.toFixed(3)).join(' ')+' A 83 83 0 '+(b-a>180?1:0)+' 1 '+end.map(v=>v.toFixed(3)).join(' ');
  }
- function chartGroup(group,groupIndex,overall){
+ function chartGroup(group,groupIndex,overall,isIncome){
   const items=group.items.map(item=>({
    ...item,value:Math.max(0,Number(item.value)||0),color:color(item.color)
   })).sort((a,b)=>b.value-a.value||a.label.localeCompare(b.label,'id'));
@@ -36,7 +36,7 @@
   const top=el('div','comp-multi-card-title');
   const icon=el('span','comp-multi-card-symbol',group.icon||'🧩');icon.setAttribute('aria-hidden','true');
   const text=el('span','comp-multi-card-heading');
-  text.append(el('strong','',group.name),el('small','',items.length+' pos · '+positive.length+' terpakai'));
+  text.append(el('strong','',group.name),el('small','',items.length+' pos · '+positive.length+(isIncome?' tercatat':' terpakai')));
   top.append(icon,text);
   const aggregate=el('span','comp-multi-card-aggregate',money(total));
   header.append(top,aggregate);section.append(header);
@@ -48,9 +48,9 @@
   const center=el('div','comp-multi-center');
   const centerLabel=el('span','comp-multi-label','TOTAL');
   const centerValue=el('strong','',short(total));
-  const centerExtra=el('small','',positive.length+' pos terpakai');
+  const centerExtra=el('small','',positive.length+(isIncome?' pos tercatat':' pos terpakai'));
   center.append(centerLabel,centerValue,centerExtra);donut.append(svg,center);
-  const note=el('div','comp-multi-note','👑 '+(positive[0]?.label||'Belum ada pengeluaran'));
+  const note=el('div','comp-multi-note','👑 '+(positive[0]?.label||(isIncome?'Belum ada pemasukan':'Belum ada pengeluaran')));
   visual.append(donut,note);
   const list=el('div','comp-multi-rows');
   list.setAttribute('role','group');
@@ -76,7 +76,7 @@
     note.textContent=picked.icon+' '+picked.label+' · '+percent(picked.value,total)+'% kelompok'+
       (overall?' · '+percent(picked.value,overall)+'% keseluruhan':'');
    }else{
-    note.textContent=total?'👑 '+positive[0].label+' memimpin ('+percent(positive[0].value,total)+'%)':'🌱 Belum ada pengeluaran';
+    note.textContent=total?'👑 '+positive[0].label+' memimpin ('+percent(positive[0].value,total)+'%)':'🌱 '+(isIncome?'Belum ada pemasukan':'Belum ada pengeluaran');
    }
   };
   const toggle=index=>{locked=locked===index?-1:index;paint(locked);};
@@ -115,14 +115,16 @@
   body.append(visual,list);section.append(body);
   if(!items.length)section.append(el('p','comp-multi-empty','Belum ada pos dalam kelompok ini.'));
   if(!total)section.classList.add('no-spending');
+  if(isIncome)section.classList.add('income-multi-card');
   paint(-1);
   return section;
  }
  let activeClose=null;
  function open(card,opener){
   if(activeClose)activeClose(false);
+  const isIncome=opener.hasAttribute('data-income-pos-launch');
   let raw=[];
-  try{raw=JSON.parse(card.dataset.compPosGroups||'[]');}catch(_){raw=[];}
+  try{raw=JSON.parse(isIncome?card.dataset.incomePosGroups||'[]':card.dataset.compPosGroups||'[]');}catch(_){raw=[];}
   if(!Array.isArray(raw))raw=[];
   const groups=raw.filter(g=>g&&typeof g.name==='string'&&Array.isArray(g.items))
    .map(g=>({
@@ -133,7 +135,7 @@
       color:color(x.color),value:Math.max(0,Number(x.value)||0)}))
    }));
   const total=groups.reduce((sum,g)=>sum+g.items.reduce((sub,item)=>sub+item.value,0),0);
-  const overlay=el('div','comp-pos-overlay comp-multi-overlay');
+  const overlay=el('div','comp-pos-overlay comp-multi-overlay'+(isIncome?' income-multi-overlay':''));
   const dialog=el('section','comp-pos-modal comp-multi-modal');
   dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');
   dialog.setAttribute('aria-labelledby','comp-multi-heading');
@@ -141,16 +143,16 @@
   const headGroup=el('div','comp-pos-heading-wrap');
   const icon=el('span','comp-pos-heading-icon','🍩');icon.setAttribute('aria-hidden','true');
   const words=el('div','');
-  const h=el('h3','','Grafik Pengeluaran per Pos');h.id='comp-multi-heading';
-  words.append(h,el('p','',(card.dataset.compPosPeriod||'Periode terpilih')+' · '+groups.length+' kelompok · '+groups.reduce((n,g)=>n+g.items.length,0)+' pos'));
+  const h=el('h3','',(isIncome?'Grafik Pemasukan per Pos':'Grafik Pengeluaran per Pos'));h.id='comp-multi-heading';
+  words.append(h,el('p','',((isIncome?card.dataset.incomePosPeriod:card.dataset.compPosPeriod)||'Periode terpilih')+' · '+groups.length+' kelompok · '+groups.reduce((n,g)=>n+g.items.length,0)+' pos'));
   headGroup.append(icon,words);
   const close=el('button','comp-pos-close','✕');close.type='button';close.setAttribute('aria-label','Tutup grafik');
   head.append(headGroup,close);
   const overview=el('div','comp-multi-total');
-  overview.append(el('span','','💸 Total pengeluaran sesuai periode'),el('strong','',money(total)));
+  overview.append(el('span','',(isIncome?'💰 Total pemasukan sesuai filter':'💸 Total pengeluaran sesuai periode')),el('strong','',money(total)));
   const grid=el('div','comp-multi-grid');
-  groups.forEach((g,i)=>grid.append(chartGroup(g,i,total)));
-  if(!groups.length)grid.append(el('p','comp-multi-empty','Belum ada kelompok pengeluaran.'));
+  groups.forEach((g,i)=>grid.append(chartGroup(g,i,total,isIncome)));
+  if(!groups.length)grid.append(el('p','comp-multi-empty',(isIncome?'Belum ada kelompok pemasukan.':'Belum ada kelompok pengeluaran.')));
   const foot=el('div','comp-pos-foot','Setiap donut menampilkan porsi pos terhadap total kelompoknya. Klik pos atau irisan untuk mengeksplorasi, tanpa mengubah data.');
   dialog.append(head,overview,grid,foot);overlay.append(dialog);
   const onKey=e=>{
@@ -180,7 +182,7 @@
   activeClose=dispose;close.focus({preventScroll:true});
  }
  document.addEventListener('click',e=>{
-  const button=e.target.closest?.('#composition-card [data-comp-pos-launch]');
-  if(button)open(button.closest('#composition-card'),button);
+  const button=e.target.closest?.('#composition-card [data-comp-pos-launch], .income-pie-card [data-income-pos-launch]');
+  if(button)open(button.closest(button.hasAttribute('data-income-pos-launch')?'.income-pie-card':'#composition-card'),button);
  });
 })();

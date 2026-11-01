@@ -10705,8 +10705,9 @@ if(x.hasAttribute('data-add-expense-group')){openFinanceEditor('group');return;}
  if(expenseGroups().length<=1)return toast('Minimal harus ada satu kelompok pengeluaran.',true);
  const pos=expenses().filter(c=>c.group===g.name);
  if(pos.length)return toast('Pindahkan dahulu '+pos.length+' pos dari '+g.name+' ke kelompok lain sebelum menghapusnya.',true);
- closeBudgetFlowDialog(false);
  if(await confirmDelete('Hapus kelompok "'+g.name+'"? Kelompok ini sudah tidak berisi pos.')){
+   const parent=document.getElementById('budget-flow-backdrop');
+   if(parent?.dataset.flowKind==='group'&&parent.dataset.flowId===g.id)closeBudgetFlowDialog(false);
    db.expenseGroups=db.expenseGroups.filter(x=>x.id!==g.id);
    if(ui.expenseGroupEditId===g.id)ui.expenseGroupEditId=null;
    if(ui.budgetCategoryGroup===g.name)ui.budgetCategoryGroup=null;

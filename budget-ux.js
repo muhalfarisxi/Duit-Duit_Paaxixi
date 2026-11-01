@@ -67,7 +67,7 @@ function setupPeriod(){
   head.append(icon,heading,close);
   const nav=node('div','budget-month-year-nav');
   const prev=node('button','budget-month-year-arrow','‹');prev.type='button';prev.setAttribute('aria-label','Tahun sebelumnya');
-  const yearToggle=node('button','budget-month-year-toggle');yearToggle.type='button';yearToggle.setAttribute('aria-expanded','false');
+  const yearToggle=node('button','budget-month-year-toggle');yearToggle.type='button';yearToggle.setAttribute('aria-expanded','false');yearToggle.setAttribute('aria-label','Pilih tahun periode keuangan');
   const next=node('button','budget-month-year-arrow','›');next.type='button';next.setAttribute('aria-label','Tahun berikutnya');
   nav.append(prev,yearToggle,next);
   const yearList=node('div','budget-month-year-list');yearList.hidden=true;yearList.setAttribute('aria-label','Daftar tahun');
@@ -83,7 +83,7 @@ function setupPeriod(){
   label.classList.add('budget-ux-period-open');
   function hideYears(){yearList.hidden=true;yearToggle.setAttribute('aria-expanded','false')}
   function drawMonths(){
-   yearToggle.textContent='✦ '+year+' ⌄';
+   yearToggle.replaceChildren(node('span','budget-month-year-spark','✦'),node('span','budget-month-year-value',String(year)));
    prev.disabled=year<=minYear;next.disabled=year>=maxYear;
    monthGrid.replaceChildren();
    months.forEach(function(month,i){

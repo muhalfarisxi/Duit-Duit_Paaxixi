@@ -680,3 +680,10 @@ dialog.budget-viz-portal .budget-viz-portal-pos{cursor:pointer}
    padding:6px 9px;
  }
 }
+
+/* #136 Glowing year selection: no dropdown arrow, only an animated sparkle. */
+.budget-month-year-toggle{display:flex!important;align-items:center!important;justify-content:center!important;gap:9px!important}
+.budget-month-year-spark{display:inline-grid;place-items:center;flex:0 0 auto;font-size:19px;line-height:1;color:#2564ae;transform-origin:center;animation:budgetYearSparkle 2.8s ease-in-out infinite}
+.budget-month-year-value{display:inline-block;line-height:1.1}
+@keyframes budgetYearSparkle{0%,100%{transform:scale(1) rotate(0);opacity:.88;filter:drop-shadow(0 0 0 #93baf000)}35%{transform:scale(1.22) rotate(-10deg);opacity:1;filter:drop-shadow(0 0 7px #67aef599)}60%{transform:scale(.95) rotate(8deg);opacity:.84;filter:drop-shadow(0 0 3px #67aef555)}}
+@media(prefers-reduced-motion:reduce){.budget-month-year-spark{animation:none!important}}

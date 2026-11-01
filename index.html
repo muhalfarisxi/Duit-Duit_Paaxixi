@@ -6440,6 +6440,24 @@ if(document.fonts){
  document.fonts.addEventListener?.('loadingdone',paaxScheduleKpiFit);
 }
 
+/* Hanya popup teratas yang bisa menerima fokus/klik saat beberapa popup tampil. */
+function syncRenderedPopupLayers(){
+ const roots=[...document.querySelectorAll(
+  '#review-modal-backdrop,#tx-history-backdrop,#tx-search-backdrop,#tx-entry-backdrop,#debt-editor-backdrop,#repay-popup-backdrop'
+ )];
+ if(!roots.length)return;
+ const ordered=roots.map(el=>({el,z:Number.parseInt(getComputedStyle(el).zIndex,10)||0}))
+  .sort((a,b)=>a.z-b.z);
+ const top=ordered[ordered.length-1]?.el;
+ for(const {el} of ordered){
+  const lower=el!==top;
+  el.inert=lower;
+  if(lower)el.setAttribute('aria-hidden','true');
+  else el.removeAttribute('aria-hidden');
+  const dlg=el.querySelector('[role="dialog"]');
+  if(dlg)dlg.setAttribute('aria-modal',lower?'false':'true');
+ }
+}
 function render(){
  const prev=document.querySelector('.comp-popover');
  const oldKind=prev?.dataset?.compPopup,oldScroll=prev?.querySelector('.comp-popover-items')?.scrollTop||0;
@@ -6489,6 +6507,7 @@ function render(){
  const aiDialog=document.getElementById('paax-ai-dialog');
  if(aiDialog&&!aiDialog.open){aiDialog.showModal();aiDialog.querySelector('[data-paax-ai-close]')?.focus({preventScroll:true});}
  const aiBody=document.querySelector('.paax-ai-dialog-body');if(aiBody&&oldAiScroll)aiBody.scrollTop=oldAiScroll;
+ syncRenderedPopupLayers();
  const monthInput=document.getElementById('month-input');
  if(monthInput)monthInput.max=analysisToday().slice(0,7);
  if(ui.view==='dashboard'&&ui.comp.menu){
@@ -9118,7 +9137,9 @@ function dismissReviewPopup(){
   ui.reviewPopup=previousLayer.popup;render();
   const body=document.querySelector('#review-modal-backdrop .review-modal-content');
   if(body)body.scrollTop=previousLayer.scroll;
-  (document.querySelector('#review-modal-backdrop [data-income-source="'+previous.key+'"]')||document.querySelector('#review-modal-backdrop [data-review-close]'))?.focus({preventScroll:true});
+  const source=[...document.querySelectorAll('#review-modal-backdrop [data-income-source]')]
+   .find(el=>el.dataset.incomeSource===previous.key);
+  (source||document.querySelector('#review-modal-backdrop [data-review-close]'))?.focus({preventScroll:true});
   return;
  }
  ui.reviewPopup=null;render();

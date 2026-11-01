@@ -10094,7 +10094,10 @@ function budgetDetailTotals(categories){
  const transfer=categories.reduce((sum,c)=>sum+budgetTransferNet(c.id),0);
  const effective=categories.reduce((sum,c)=>sum+effectiveBudget(c.id),0);
  const used=categories.reduce((sum,c)=>sum+spentByCat(c.id),0);
- return {initial,adjustment,transfer,effective,used,remaining:effective-used,change:effective-initial};
+ const relevantIds=new Set(categories.map(c=>c.id));
+ let added=0,reduced=0;
+ budgetAdjustmentsForMonth().forEach(a=>{if(!relevantIds.has(a.categoryId))return;if(a.type==='increase')added+=num(a.amount);else if(a.type==='decrease')reduced+=num(a.amount)});
+ return {initial,adjustment,added,reduced,transfer,effective,used,remaining:effective-used,change:effective-initial};
 }
 function budgetDetailChangeTone(total){
  return total.change>0?'increase':total.change<0?'decrease':'steady';
@@ -10167,7 +10170,8 @@ function budgetDetailProgress(total,label){
 function budgetDetailEquation(total){
  return `<div class="budget-detail-equation">
   <span class="budget-detail-chip is-base">📌 Awal <b>${money(total.initial)}</b></span>
-  <span class="budget-detail-chip is-adjust">➕➖ Penyesuaian <b>${budgetDetailSigned(total.adjustment)}</b></span>
+  <span class="budget-detail-chip is-added">＋ Ditambah <b>${money(total.added)}</b></span>
+   <span class="budget-detail-chip is-reduced">− Dikurangi <b>${money(total.reduced)}</b></span>
   <span class="budget-detail-chip is-transfer">🔀 Pengalihan <b>${budgetDetailSigned(total.transfer)}</b></span>
   <strong class="budget-detail-chip is-effective">✅ Efektif <b>${money(total.effective)}</b></strong>
  </div>`;
@@ -10352,6 +10356,9 @@ function budgetFlowDialogMarkup(kind,id=null,preselect=null){
    </div><form id="budget-form" class="budget-flow-form"><div class="budget-flow-pos-list" style="--budget-theme:${color}">
    ${categories.map(c=>{
     const base=baseBudget(c.id),delta=budgetAdjustmentNet(c.id),transfer=budgetTransferNet(c.id),spent=spentByCat(c.id),effective=effectiveBudget(c.id);
+    const edits=budgetAdjustmentsForMonth().filter(a=>a.categoryId===c.id);
+    const added=edits.filter(a=>a.type==='increase').reduce((sum,a)=>sum+num(a.amount),0);
+    const reduced=edits.filter(a=>a.type==='decrease').reduce((sum,a)=>sum+num(a.amount),0);
     const remaining=effective-spent,usedRate=effective>0?Math.max(0,spent/effective*100):null;
     const allocationTone=effective>base?'increase':effective<base?'decrease':'steady';
     const visualState=remaining<0?'danger':effective<=0?'unset':remaining<=effective*.2?'warn':'ok';
@@ -10369,7 +10376,8 @@ function budgetFlowDialogMarkup(kind,id=null,preselect=null){
       value="${fmtAmount(base)}" aria-label="Edit anggaran awal ${h(c.label)}"></label>
      <div class="budget-flow-pos-equation" aria-label="Rincian pembentukan anggaran efektif">
       <span class="budget-flow-chip is-base">📌 Awal <b>${money(base)}</b></span>
-      <span class="budget-flow-chip is-adjust">➕➖ Penyesuaian <b>${delta<0?'−':'+'}${money(Math.abs(delta))}</b></span>
+      <span class="budget-flow-chip is-added">＋ Ditambah <b>${money(added)}</b></span>
+       <span class="budget-flow-chip is-reduced">− Dikurangi <b>${money(reduced)}</b></span>
       <span class="budget-flow-chip is-transfer">🔀 Pengalihan <b>${transfer<0?'−':'+'}${money(Math.abs(transfer))}</b></span>
       <strong class="budget-flow-chip is-effective">✅ Efektif <b>${money(effective)}</b></strong>
      </div>

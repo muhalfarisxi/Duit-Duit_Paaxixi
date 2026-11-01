@@ -5762,6 +5762,61 @@ body:has(.tx-search-backdrop){overflow:hidden}
  #content .budget-monthly-btn,#content .budget-work-group-stats span{transition:none!important}
 }
 
+
+/* #120 Popup anggaran: ringkasan bergaya peringatan, edit nama/kelompok, edit anggaran awal. */
+.budget-flow-pos{min-width:0;overflow:hidden}
+.budget-flow-pos-title{align-items:flex-start}
+.budget-flow-pos-title>span{padding-top:3px}
+.budget-flow-pos-edit{display:flex;flex-direction:column;align-items:flex-end;gap:5px;margin-left:auto;min-width:0}
+.budget-flow-pos-edit>small{font:750 10px/1.3 Nunito,sans-serif;color:#7189a7;text-align:right}
+.budget-flow-pos-title .budget-flow-pos-edit button{min-height:36px;padding:8px 13px;border:1px solid #b9d4f7;border-radius:11px;background:linear-gradient(120deg,#fff,#edf5ff);box-shadow:0 3px 10px #2563a51b;color:#245a97;font:900 11px/1.2 Nunito,sans-serif;transition:transform .18s,box-shadow .18s}
+.budget-flow-pos-title .budget-flow-pos-edit button:hover{transform:translateY(-2px);box-shadow:0 7px 14px #2563a52a}
+.budget-flow-pos-title .budget-flow-pos-edit button:focus-visible{outline:3px solid #98c5fd;outline-offset:2px}
+.budget-flow-pos-equation{gap:8px;margin-top:13px}
+.budget-flow-pos-equation .budget-flow-chip{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:0;max-width:100%;padding:8px 10px;border-radius:11px;border:1px solid #d2e1f7;background:#edf5ff;color:#3e658e;font:850 11px/1.35 Nunito,sans-serif;font-variant-numeric:tabular-nums;white-space:normal;overflow-wrap:anywhere;transition:transform .18s,box-shadow .18s}
+.budget-flow-pos-equation .budget-flow-chip b{color:inherit;font-weight:950}
+.budget-flow-pos-equation .budget-flow-chip.is-adjust{background:#f4efff;border-color:#ddd1fa;color:#7654a4}
+.budget-flow-pos-equation .budget-flow-chip.is-transfer{background:#fff4e7;border-color:#f0d8b7;color:#9c6831}
+.budget-flow-pos-equation .budget-flow-chip.is-effective{background:linear-gradient(120deg,#e4f8ef,#f5fffa);border-color:#addfc9;color:#117852;box-shadow:0 4px 12px #239b6920;font-size:11px}
+.budget-flow-pos-equation .budget-flow-chip:hover{transform:translateY(-2px);box-shadow:0 5px 12px #3169a71b}
+.budget-flow-pos-usage{margin-top:13px;padding:12px 13px;border-radius:13px;border:1px solid #d7e9dc;background:linear-gradient(145deg,#f7fffa,#fff);color:#246b59}
+.budget-flow-pos-usage.is-warn{border-color:#f0d7aa;background:linear-gradient(140deg,#fff9ed,#fffdf8);color:#9b6b27}
+.budget-flow-pos-usage.is-danger{border-color:#edc3bd;background:linear-gradient(140deg,#fff3f0,#fffaf9);color:#a04d44}
+.budget-flow-pos-usage.is-unset{border-color:#d7e4f5;background:linear-gradient(140deg,#f3f8ff,#fff);color:#5c7798}
+.budget-flow-pos-usage-head,.budget-flow-pos-usage-foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.budget-flow-pos-used{display:flex;flex-direction:column;gap:4px;min-width:0}
+.budget-flow-pos-used small{font:850 10px/1.3 Nunito,sans-serif;color:#7e97ae}
+.budget-flow-pos-used strong{font:950 clamp(14px,2vw,18px)/1.25 Nunito,sans-serif;color:#244f7f;font-variant-numeric:tabular-nums}
+.budget-flow-pos-state{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:6px 10px;background:#e5f6ee;border:1px solid #c2e4d2;color:#28795d;font:900 10px/1.25 Nunito,sans-serif}
+.budget-flow-pos-usage.is-warn .budget-flow-pos-state{background:#fff0d8;border-color:#f6ddb4;color:#976426}
+.budget-flow-pos-usage.is-danger .budget-flow-pos-state{background:#ffe5df;border-color:#f0c9bf;color:#aa4c45}
+.budget-flow-pos-usage.is-unset .budget-flow-pos-state{background:#eaf2ff;border-color:#d3e3fa;color:#54759d}
+.budget-flow-pos-limit{display:flex;justify-content:flex-end;margin:9px 0 7px}
+.budget-flow-pos-limit span{display:inline-flex;align-items:center;padding:5px 9px;border:1px solid #cee0f4;background:#fff;border-radius:999px;color:#3c6596;font:900 10px/1.25 Nunito,sans-serif;box-shadow:0 3px 9px #305c9220}
+.budget-flow-pos-track{height:13px;border-radius:999px;overflow:hidden;position:relative;background:#e7edf6;box-shadow:inset 0 1px 3px #23548c25}
+.budget-flow-pos-track>span{display:block;height:100%;border-radius:inherit;background:linear-gradient(100deg,#7ad8b4,#2ca880,#5cbb99);box-shadow:inset 0 -2px 3px #16487020;transform-origin:left center;animation:budgetFlowUsageGrow .75s cubic-bezier(.21,.8,.29,1) backwards}
+.budget-flow-pos-usage.is-warn .budget-flow-pos-track>span{background:linear-gradient(100deg,#f8d083,#eaa341,#edb254)}
+.budget-flow-pos-usage.is-danger .budget-flow-pos-track>span{background:repeating-linear-gradient(115deg,#e66f63 0,#e66f63 12px,#f49c86 12px,#f49c86 20px)}
+.budget-flow-pos-usage.is-unset .budget-flow-pos-track>span{background:#b6c8dd}
+.budget-flow-pos-usage-foot{margin-top:11px;gap:8px}
+.budget-flow-pos-percent,.budget-flow-pos-left{display:inline-flex;align-items:center;gap:5px;padding:7px 10px;border-radius:10px;font:900 11px/1.3 Nunito,sans-serif;border:1px solid #cfe2f5;background:#fff;color:#356b9c;font-variant-numeric:tabular-nums}
+.budget-flow-pos-left{background:#e9f9f0;border-color:#cbe8d6;color:#1d7d5b;margin-left:auto}
+.budget-flow-pos-left.is-over{background:#fff0ed;border-color:#f2ccc5;color:#ad4c45}
+.budget-flow-pos-tip{margin:11px 0 0;font:800 10px/1.4 Nunito,sans-serif;color:#7489a0}
+@keyframes budgetFlowUsageGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@media(max-width:500px){
+ .budget-flow-pos{padding:12px}
+ .budget-flow-pos-title{flex-wrap:wrap}
+ .budget-flow-pos-edit{flex:0 0 100%;flex-direction:row;align-items:center;justify-content:space-between;margin-left:0}
+ .budget-flow-pos-edit>small{text-align:left}
+ .budget-flow-pos-equation .budget-flow-chip{flex:1 1 calc(50% - 8px);padding:7px;font-size:10px}
+ .budget-flow-pos-usage{padding:10px}
+}
+@media(prefers-reduced-motion:reduce){
+ .budget-flow-pos-track>span{animation:none!important}
+ .budget-flow-pos-equation .budget-flow-chip,.budget-flow-pos-title .budget-flow-pos-edit button{transition:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -9342,16 +9397,41 @@ function budgetFlowDialogMarkup(kind,id=null){
    </div><form id="budget-form" class="budget-flow-form"><div class="budget-flow-pos-list" style="--budget-theme:${color}">
    ${categories.map(c=>{
     const base=baseBudget(c.id),delta=budgetAdjustmentNet(c.id),transfer=budgetTransferNet(c.id),spent=spentByCat(c.id),effective=effectiveBudget(c.id);
+    const remaining=effective-spent,usedRate=effective>0?Math.max(0,spent/effective*100):null;
+    const visualState=remaining<0?'danger':effective<=0?'unset':remaining<=effective*.2?'warn':'ok';
+    const visualLabel=visualState==='danger'?'Melewati Batas':visualState==='warn'?'Menipis':visualState==='unset'?'Belum Dianggarkan':'Aman';
+    const visualIcon=visualState==='danger'?'🚨':visualState==='warn'?'🔔':visualState==='unset'?'📌':'🌱';
+    const usageWidth=effective>0?Math.min(100,Math.max(0,spent/effective*100)):spent>0?100:0;
+    const usageText=usedRate===null?'Tanpa batas positif':Math.round(usedRate).toLocaleString('id-ID')+'% terpakai';
     return `<article class="budget-flow-pos">
      <div class="budget-flow-pos-title">${symbolBadge(c.label,c.group,true)}
-      <span><strong>${h(c.label)}</strong><small>Terpakai ${money(spent)} · Sisa ${money(effective-spent)}</small></span>
-      <button type="button" data-edit-budget-category="${h(c.id)}">✏️ Edit Pos</button></div>
-     <label>Anggaran Awal (Rp)<input type="text" data-budget-id="${h(c.id)}" data-rupiah="1" inputmode="decimal"
-      value="${fmtAmount(base)}" aria-label="Anggaran awal ${h(c.label)}"></label>
-     <div class="budget-flow-pos-equation"><span>Awal: ${money(base)}</span>
-      <span>Penyesuaian: ${delta<0?'−':'+'}${money(Math.abs(delta))}</span>
-      <span>Pengalihan: ${transfer<0?'−':'+'}${money(Math.abs(transfer))}</span>
-      <strong>Efektif: ${money(effective)}</strong></div>
+      <span><strong>${h(c.label)}</strong><small>Kelompok ${h(c.group)}</small></span>
+      <div class="budget-flow-pos-edit"><small>Ubah nama / kelompok pos</small>
+       <button type="button" data-edit-budget-category="${h(c.id)}" aria-label="Edit nama atau kelompok pos ${h(c.label)}">✏️ Edit Pos</button>
+      </div></div>
+     <label>Edit Anggaran Awal (Rp)<input type="text" data-budget-id="${h(c.id)}" data-rupiah="1" inputmode="decimal"
+      value="${fmtAmount(base)}" aria-label="Edit anggaran awal ${h(c.label)}"></label>
+     <div class="budget-flow-pos-equation" aria-label="Rincian pembentukan anggaran efektif">
+      <span class="budget-flow-chip is-base">📌 Awal <b>${money(base)}</b></span>
+      <span class="budget-flow-chip is-adjust">➕➖ Penyesuaian <b>${delta<0?'−':'+'}${money(Math.abs(delta))}</b></span>
+      <span class="budget-flow-chip is-transfer">🔀 Pengalihan <b>${transfer<0?'−':'+'}${money(Math.abs(transfer))}</b></span>
+      <strong class="budget-flow-chip is-effective">✅ Efektif <b>${money(effective)}</b></strong>
+     </div>
+     <div class="budget-flow-pos-usage is-${visualState}" aria-label="Pemakaian anggaran ${h(c.label)}">
+      <div class="budget-flow-pos-usage-head">
+       <span class="budget-flow-pos-used"><small>💸 Sudah digunakan</small><strong>${money(spent)}</strong></span>
+       <span class="budget-flow-pos-state">${visualIcon} ${visualLabel}</span>
+      </div>
+      <div class="budget-flow-pos-limit"><span>🚩 Batas ${money(effective)}</span></div>
+      <div class="budget-flow-pos-track" role="img" aria-label="${h('Terpakai '+money(spent)+' dari batas '+money(effective))}">
+       <span style="width:${usageWidth.toFixed(2)}%"></span>
+      </div>
+      <div class="budget-flow-pos-usage-foot">
+       <span class="budget-flow-pos-percent">${visualIcon} ${usageText}</span>
+       <span class="budget-flow-pos-left ${remaining<0?'is-over':''}">${remaining<0?'↗ Melebihi':remaining===0?'✓ Tepat batas':'✨ Sisa'} <b>${money(Math.abs(remaining))}</b></span>
+      </div>
+      ${visualState==='danger'?'<p class="budget-flow-pos-tip">💡 Evaluasi pengeluaran atau alihkan anggaran dari pos lain.</p>':visualState==='warn'?'<p class="budget-flow-pos-tip">💡 Prioritaskan kebutuhan penting agar sisa anggaran cukup.</p>':''}
+     </div>
     </article>`;
    }).join('')||'<p class="budget-pos-empty">Belum ada pos pada kelompok ini.</p>'}
    </div><div class="budget-flow-actions">

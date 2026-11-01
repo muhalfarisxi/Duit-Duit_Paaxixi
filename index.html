@@ -1887,6 +1887,25 @@ body:has(.repay-popup-backdrop){overflow:hidden}
 }
 @media(prefers-reduced-motion:reduce){.income-month-modal[open]{animation:none!important}}
 
+
+/* #102 Full amounts and transaction popup when clicking expense donut. */
+.analytics-comp-trend #composition-card .comp-recap-center strong,.analytics-comp-trend #composition-card .comp-recap-small-center strong{max-width:100%;white-space:nowrap;font-weight:900;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.expense-pie-popup .review-modal-dialog{width:min(820px,calc(100% - 16px))}
+.expense-pie-detail-total{display:flex;flex-direction:column;gap:5px;border:1.5px solid #f4d6dd;border-radius:15px;padding:14px 16px;background:linear-gradient(120deg,#fff0f2,#fff8f9)}
+.expense-pie-detail-total span{font:850 12px Nunito,sans-serif;color:#b45864}
+.expense-pie-detail-total strong{font:900 clamp(21px,3vw,32px)/1.15 Nunito,sans-serif;color:#c94b56;white-space:nowrap}
+.expense-pie-detail-total small{font:800 11px Nunito,sans-serif;color:#ab7180}
+.expense-pie-details-list{margin:15px 0;padding:13px 15px;border:1px solid #e1eaf8;border-radius:14px;background:#f9fbff}
+.expense-pie-details-list h4,.expense-pie-transaction-label{margin:0 0 12px;color:#204d7c;font:750 16px Fredoka,Nunito,sans-serif}
+.expense-pie-detail-item{margin-bottom:12px}.expense-pie-detail-item:last-child{margin-bottom:0}
+.expense-pie-detail-item>div{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:#587696;font:800 11px/1.4 Nunito,sans-serif;margin-bottom:5px}
+.expense-pie-detail-item strong{color:#214b79}
+.expense-pie-detail-item i{display:block;height:7px;border-radius:99px;overflow:hidden;background:#e4ebf8}
+.expense-pie-detail-item i>b{display:block;height:100%;border-radius:99px;animation:expensePieBarIn .65s ease-out}
+.expense-pie-transaction-label{margin:18px 0 12px}
+@keyframes expensePieBarIn{from{transform:scaleX(0);transform-origin:left}to{transform:scaleX(1);transform-origin:left}}
+@media(prefers-reduced-motion:reduce){.expense-pie-detail-item i>b{animation:none}}
+
 /* Footer pribadi: copyright yang jelas, ringkas, dan senada dengan tema Paaxixi. */
 .paax-copyright-footer{
  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;
@@ -7094,9 +7113,30 @@ function debtOverviewPopupContent(){
   <div class="debt-quick-action"><button type="button" class="btn primary finance-spotlight-action debt-manage-cta" data-debt-add><span aria-hidden="true">＋</span> Catat Utang / Piutang <span class="spotlight-arrow" aria-hidden="true">→</span></button></div></div>`;
 }
 
+function renderExpenseCompositionPopup(popup){
+ if(ui.view!=='dashboard'||!['group','category'].includes(popup.scope))return '';
+ const selected=expenseSelection(),entry=analysisEntries(selected.transactions).find(x=>x.id===popup.key);
+ if(!entry)return '';
+ const group=popup.scope==='group'?expenseGroups().find(x=>x.id===entry.id):null;
+ const category=popup.scope==='category'?expenses().find(x=>x.id===entry.id):null;
+ if(!group&&!category)return '';
+ const tx=selected.transactions.filter(t=>group?cat(t.categoryId)?.group===group.name:t.categoryId===category.id).slice().sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
+ const amount=tx.reduce((n,t)=>n+num(t.amount),0),total=selected.transactions.reduce((n,t)=>n+num(t.amount),0);
+ const map=new Map();
+ tx.forEach(t=>{const c=cat(t.categoryId),id=c?.id||'_unknown';if(!map.has(id))map.set(id,{name:c?.label||'Pos Lainnya',value:0,color:c?analysisPosColor(c):'#7b9bc7'});map.get(id).value+=num(t.amount)});
+ const items=[...map.values()].sort((a,b)=>b.value-a.value);
+ const breakdown=group&&items.length?`<div class="expense-pie-details-list"><h4>🏷️ Pos Penyusun Kelompok</h4>${items.map(x=>`<div class="expense-pie-detail-item"><div><strong>${h(x.name)}</strong><span>${money(x.value)} · ${pct(x.value,amount)}%</span></div><i><b style="width:${(100*x.value/amount).toFixed(2)}%;background:${x.color}"></b></i></div>`).join('')}</div>`:'';
+ const range=selected.dates.from===selected.dates.to?dateFmt(selected.dates.from):dateFmt(selected.dates.from)+' – '+dateFmt(selected.dates.to);
+ return `<div class="review-modal-backdrop kpi-modal-backdrop expense-pie-popup" id="review-modal-backdrop"><div class="review-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="review-modal-title" aria-describedby="review-modal-subtitle">
+ <div class="review-modal-top"><div><h3 id="review-modal-title">${group?'Kelompok':'Pos'} Pengeluaran · ${h(entry.label)}</h3><p id="review-modal-subtitle">${h(range)} · ${tx.length} Transaksi pada Filter Aktif</p></div><button type="button" class="review-modal-close" data-review-close aria-label="Tutup Rincian Pengeluaran">✕</button></div>
+ <div class="review-modal-content kpi-modal-content"><div class="expense-pie-detail-total"><span>Total ${group?'Kelompok':'Pos'}</span><strong>${money(amount)}</strong><small>${pct(amount,total)}% dari Total Pengeluaran Sesuai Filter</small></div>
+ ${breakdown}<h4 class="expense-pie-transaction-label">🧾 Rincian Transaksi · ${tx.length} Catatan</h4>${tx.length?kpiDailyBreakdown(tx,'expense'):'<div class="review-modal-empty">Belum Ada Transaksi untuk Pilihan Ini.</div>'}</div></div></div>`;
+}
+
 function renderDashboardKpiPopup(){
- const popup=ui.reviewPopup;if(ui.view!=='dashboard'||!['dashboard-kpi','trend-point','debt-list','income-month','income-year','income-source'].includes(popup?.type))return '';
+ const popup=ui.reviewPopup;if(ui.view!=='dashboard'||!['dashboard-kpi','trend-point','debt-list','income-month','income-year','income-source','expense-composition'].includes(popup?.type))return '';
  if(popup.type==='trend-point')return renderTrendPointPopup(popup);
+  if(popup.type==='expense-composition')return renderExpenseCompositionPopup(popup);
  if(['income-month','income-year','income-source'].includes(popup.type))return incomeChartPopup(popup);
   if(popup.type==='debt-list')return `<div class="review-modal-backdrop debt-quick-backdrop highlighted-debt-popup" id="review-modal-backdrop"><div class="review-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="review-modal-title" aria-describedby="review-modal-subtitle"><div class="review-modal-top"><div><h3 id="review-modal-title">Daftar Utang & Piutang</h3><p id="review-modal-subtitle">Pantau Sisa Utang, Piutang yang Belum Kembali, dan Perkembangan Cicilan dalam Satu Tempat.</p></div><button type="button" class="review-modal-close" data-review-close aria-label="Tutup daftar utang dan piutang">✕</button></div><div class="review-modal-content">${debtOverviewPopupContent()}</div></div></div>`;
  const key=popup.key;
@@ -7669,6 +7709,7 @@ function dismissReviewPopup(){
  ui.reviewPopup=null;
  render();
  if(previous.type==='debt-list')document.querySelector('[data-debt-overview]')?.focus({preventScroll:true});
+  else if(previous.type==='expense-composition')requestAnimationFrame(()=>{(document.querySelector('#composition-card [data-comp-pie-detail="'+previous.index+'"]')||document.querySelector('#composition-card .comp-pos-launch'))?.focus({preventScroll:true});});
   else if(previous.type==='dashboard-kpi')document.querySelector('[data-dashboard-kpi="'+previous.key+'"]')?.focus({preventScroll:true});
  else if(['income-month','income-year','income-source'].includes(previous.type)){
   const selector=previous.type==='income-month'?'[data-income-month]':previous.type==='income-year'?'[data-income-year]':'[data-income-source]';
@@ -8109,6 +8150,14 @@ document.addEventListener('input',event=>{
 });
 
 
+/* Buka transaksi dari irisan donat pengeluaran sesuai filter dashboard. */
+document.addEventListener('paax:expense-pie-detail',event=>{
+ if(ui.view!=='dashboard'||ui.reviewPopup)return;
+ const index=Number(event.detail?.index),items=analysisEntries(expenseSelection().transactions);
+ if(!Number.isInteger(index)||index<0||index>=items.length)return;
+ ui.reviewPopup={type:'expense-composition',scope:ui.comp.breakdown,key:items[index].id,index};
+ render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});
+});
 /* Pratinjau pilihan donut menggunakan hover atau fokus keyboard. */
 document.addEventListener('mouseover',event=>{
  const button=event.target.closest?.('#composition-card [data-comp-highlight]');
@@ -8996,14 +9045,14 @@ document.addEventListener('visibilitychange',()=>{
   const labelLayer=vector('g',{class:'comp-recap-labels'});
   canvas.append(motionLayer,connectorLayer,labelLayer);
   const center=node('div','comp-recap-center');
-  const value=node('strong','',compact(total));center.append(value);
+  const value=node('strong','',money(total));center.append(value);
   desktop.append(canvas,center);
   // A responsive donut and a narrow adjacent annotation rail for phone widths.
   const smallRing=node('div','comp-recap-small-ring');
   const smallSvg=vector('svg',{viewBox:'0 0 240 240',role:'group','aria-label':'Grafik komposisi interaktif'});
   smallSvg.append(vector('circle',{cx:120,cy:120,r:95,fill:'none',stroke:'#e8effa','stroke-width':34}));
   const smallCenter=node('div','comp-recap-small-center');
-  const smallValue=node('strong','',compact(total));smallCenter.append(smallValue);
+  const smallValue=node('strong','',money(total));smallCenter.append(smallValue);
   smallRing.append(smallSvg,smallCenter);
   const smallRail=node('div','comp-recap-rail');smallRail.setAttribute('aria-label','Label persentase dan nominal di sisi donut');
   mobile.append(smallRing,smallRail);
@@ -9012,8 +9061,10 @@ document.addEventListener('visibilitychange',()=>{
   let locked=-1;
   function paint(index){
    const chosen=index>=0?figures[index]:null;
-   value.textContent=compact(chosen?chosen.amount:total);
-   smallValue.textContent=value.textContent;
+   const current=chosen?chosen.amount:total,full=money(current),digits=full.length;
+   value.textContent=full;smallValue.textContent=full;
+   value.style.fontSize=(digits>18?11:digits>15?12:digits>12?15:19)+'px';
+   smallValue.style.fontSize=(digits>18?10:digits>15?11:digits>12?12:15)+'px';
    canvas.classList.toggle('is-exploring',!!chosen);
    smallSvg.classList.toggle('is-exploring',!!chosen);
    shapes.forEach(({wide,narrow},i)=>{
@@ -9025,8 +9076,9 @@ document.addEventListener('visibilitychange',()=>{
    labels.forEach((el,i)=>{el.classList.toggle('is-active',i===index);el.setAttribute('aria-pressed',String(i===locked));});
    mobileLabels.forEach((el,i)=>{el.classList.toggle('is-active',i===index);el.setAttribute('aria-pressed',String(i===locked));});
   }
-  const choose=index=>{locked=locked===index?-1:index;paint(locked);};
+  const choose=index=>{card.dispatchEvent(new CustomEvent('paax:expense-pie-detail',{bubbles:true,detail:{index}}));};
   function connect(el,index){
+   el.dataset.compPieDetail=String(index);
    el.addEventListener('mouseenter',()=>paint(index));
    el.addEventListener('mouseleave',()=>paint(locked));
    el.addEventListener('focus',()=>paint(index));

@@ -1,0 +1,35 @@
+name: Recover stale Pages deployment
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/recover-stale-pages.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+jobs:
+  cancel-stale-pages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Cancel the Pages deployment blocking new publishes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          echo "Cancel stale Pages deployment 7697d9bc02256f85b4c3278aa279f253abcd7860"
+          response_code=$(curl --silent --show-error --location \
+            --output /tmp/pages-cancel-response \
+            --write-out '%{http_code}' \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/pages/deployments/7697d9bc02256f85b4c3278aa279f253abcd7860/cancel")
+          echo "Pages cancel HTTP status: $response_code"
+          if [[ "$response_code" != "204" ]]; then
+            cat /tmp/pages-cancel-response
+            exit 1
+          fi
+          echo "Stale deployment cancellation accepted."

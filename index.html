@@ -1857,6 +1857,36 @@ body:has(.repay-popup-backdrop){overflow:hidden}
 .income-pie-card .income-callout-svg{width:100%;max-width:940px;max-height:none}
 .income-callout-center-small{font-size:15px}
 @media(max-width:480px){.income-pie-card .income-callout-wrap{min-height:0}}
+
+/* #101 Month choices render in a modal top layer, never beneath the sidebar. */
+.income-month-modal{
+ position:fixed;inset:0;margin:auto;width:min(420px,calc(100vw - 26px));
+ max-width:calc(100vw - 26px);max-height:min(640px,calc(100dvh - 36px));
+ border-radius:23px;border:1.5px solid #b3e5c9;padding:16px;
+ background:linear-gradient(155deg,#fafffc,#eaf9f0);color:#176e50;
+ box-shadow:0 25px 65px rgba(9,66,43,.3);overflow:hidden;
+}
+.income-month-modal::backdrop{background:rgba(8,45,29,.42);backdrop-filter:blur(4px)}
+.income-month-modal[open]{display:flex;flex-direction:column;gap:12px;animation:incomeMonthIn .25s ease-out both}
+.income-month-modal-top{display:flex;align-items:center;gap:12px;padding:1px 1px 12px;border-bottom:1px solid #cceada}
+.income-month-modal-icon{display:grid;place-items:center;flex:none;width:46px;height:46px;border:1px solid #bee7d0;background:#dff7e9;border-radius:15px;font-size:22px}
+.income-month-modal-top>div{min-width:0;flex:1}
+.income-month-modal-top h3{font:800 19px/1.3 Fredoka,Nunito,sans-serif;color:#147954;margin:0 0 3px}
+.income-month-modal-top p{font:750 11px/1.45 Nunito,sans-serif;color:#729d8a;margin:0}
+.income-month-modal-close{display:grid;place-items:center;flex:none;border:1px solid #cee9d9;border-radius:10px;background:#fff;color:#277957;min-width:34px;height:34px}
+.income-month-modal .income-month-menu-scroll{flex:1;min-height:0;max-height:none;overflow-y:auto;padding:3px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:9px}
+.income-month-modal .income-month-menu-item{position:relative;min-width:0;min-height:75px;display:flex;align-items:flex-start;flex-direction:column;justify-content:center;gap:6px;border:1.5px solid #d4ecdf;padding:11px 12px}
+.income-month-modal .income-month-menu-item small{color:inherit}
+.income-month-modal .income-month-menu-check{position:absolute;right:11px;top:10px}
+.income-month-modal button:focus-visible{outline:3px solid #7acda7;outline-offset:2px}
+@media(max-width:480px){
+ .income-month-modal{padding:12px}
+ .income-month-modal-top h3{font-size:17px}
+ .income-month-modal .income-month-menu-scroll{gap:7px}
+ .income-month-modal .income-month-menu-item{min-height:69px;padding:9px;font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){.income-month-modal[open]{animation:none!important}}
+
 /* Footer pribadi: copyright yang jelas, ringkas, dan senada dengan tema Paaxixi. */
 .paax-copyright-footer{
  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;
@@ -5271,7 +5301,7 @@ function render(){
  const oldAiScroll=document.querySelector('.paax-ai-dialog-body')?.scrollTop||0;
  const expandedDebtIds=[...document.querySelectorAll('[data-debt-quick-id]')].filter(card=>card.querySelector('details[open]')).map(card=>card.dataset.debtQuickId);
  labelNav();
- document.getElementById('content').innerHTML=({dashboard:renderDash,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])()+renderTxHistoryPopup()+renderTxSearchPopup()+renderTxModal()+renderTrendRangePopup()+renderIncomeTrendRangePopup()+renderDebtEditorPopup()+renderRepayPopup();
+ document.getElementById('content').innerHTML=({dashboard:renderDash,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])()+renderTxHistoryPopup()+renderTxSearchPopup()+renderTxModal()+renderTrendRangePopup()+renderIncomeTrendRangePopup()+renderIncomeMonthDialog()+renderDebtEditorPopup()+renderRepayPopup();
  decoratePaaxixiSectionTitles();
  paaxObserveKpiWidths();
  paxCompDecorate();
@@ -5288,6 +5318,7 @@ function render(){
  const trendDialog=document.getElementById('trend-range-dialog');
  if(trendDialog&&!trendDialog.open){trendDialog.showModal();trendDialog.querySelector('input')?.focus({preventScroll:true});}
  const incomeDialog=document.getElementById('income-trend-range-dialog');if(incomeDialog&&!incomeDialog.open){incomeDialog.showModal();incomeDialog.querySelector('input')?.focus({preventScroll:true});}
+ const monthDialog=document.getElementById('income-month-menu');if(monthDialog&&!monthDialog.open){monthDialog.showModal();(monthDialog.querySelector('.income-month-menu-item.active')||monthDialog.querySelector('button'))?.focus({preventScroll:true});}
  const aiDialog=document.getElementById('paax-ai-dialog');
  if(aiDialog&&!aiDialog.open){aiDialog.showModal();aiDialog.querySelector('[data-paax-ai-close]')?.focus({preventScroll:true});}
  const aiBody=document.querySelector('.paax-ai-dialog-body');if(aiBody&&oldAiScroll)aiBody.scrollTop=oldAiScroll;
@@ -6645,7 +6676,7 @@ const incomePalette=["#087a57","#169871","#34b48c","#63caa6","#89d9ba","#a5e5cf"
 function dismissIncomeMonthMenu(){
  if(!ui.incomeMonthMenuOpen)return;
  ui.incomeMonthMenuOpen=false;
- document.getElementById('income-month-menu')?.remove();
+ const modal=document.getElementById('income-month-menu');if(modal){if(modal.open)modal.close();modal.remove();}
  const trigger=document.querySelector('[data-income-month-toggle]');
  if(trigger){trigger.setAttribute('aria-expanded','false');trigger.closest('.income-month-picker')?.classList.remove('is-open');}
 }
@@ -6718,19 +6749,34 @@ function incomePieArc(start,end){
  return `M ${xy(outer,start)} A ${outer} ${outer} 0 ${large} 1 ${xy(outer,end)} L ${xy(inner,end)} A ${inner} ${inner} 0 ${large} 0 ${xy(inner,start)} Z`;
 }
 
+function renderIncomeMonthDialog(){
+ if(ui.view!=='dashboard'||!ui.incomeMonthMenuOpen)return '';
+ const selected=incomeChosenMonth(),counts=new Map();
+ db.transactions.filter(t=>t.type==='income').forEach(t=>{
+  const key=t.date.slice(0,7);
+  counts.set(key,(counts.get(key)||0)+1);
+ });
+ return `<dialog class="income-month-modal" id="income-month-menu" aria-labelledby="income-month-modal-title">
+  <div class="income-month-modal-top">
+   <span class="income-month-modal-icon" aria-hidden="true">🗓️</span>
+   <div><h3 id="income-month-modal-title">Pilih Bulan Pemasukan</h3><p>Jelajahi pemasukan setiap bulan.</p></div>
+   <button type="button" class="income-month-modal-close" data-income-month-close aria-label="Tutup Pilihan Bulan">✕</button>
+  </div>
+  <div class="income-month-menu-scroll" aria-label="Daftar Bulan Pemasukan">
+   ${incomeAvailableMonths().map(key=>`<button type="button" class="income-month-menu-item ${key===selected?'active':''}" data-income-month-option="${h(key)}" aria-pressed="${key===selected?'true':'false'}"><span class="income-month-menu-label">${h(monthFmt(key))}</span><small>${counts.get(key)||0} Transaksi</small>${key===selected?'<span class="income-month-menu-check" aria-hidden="true">✓</span>':''}</button>`).join('')}
+  </div>
+ </dialog>`;
+}
+
 function renderIncomePieCard(){
  const month=incomeChosenMonth(),entries=incomeSourceData(month),total=entries.reduce((n,x)=>n+x.value,0);
- const open=ui.incomeMonthMenuOpen,counts=new Map();
- db.transactions.filter(t=>t.type==='income').forEach(t=>{const key=t.date.slice(0,7);counts.set(key,(counts.get(key)||0)+1);});
+ const open=ui.incomeMonthMenuOpen;
  const monthSelector=`<div class="income-month-picker ${open?'is-open':''}">
-  <button type="button" class="income-month-toggle" data-income-month-toggle aria-expanded="${open?'true':'false'}" aria-haspopup="true" aria-controls="income-month-menu" aria-label="Pilih Bulan Komposisi Pemasukan"><span class="income-month-calendar" aria-hidden="true">🗓️</span><span class="income-month-value">${h(monthFmt(month))}</span><span class="income-month-chevron" aria-hidden="true"></span></button>
-  ${open?`<div class="income-month-menu" id="income-month-menu" role="group" aria-label="Pilih Bulan Pemasukan">
-   <div class="income-month-menu-head">🍀 Pilih Bulan Pemasukan<small>Ketuk Bulan untuk Memperbarui Grafik</small></div>
-   <div class="income-month-menu-scroll">${incomeAvailableMonths().map(key=>`<button type="button" class="income-month-menu-item ${key===month?'active':''}" data-income-month-option="${h(key)}" aria-pressed="${key===month?'true':'false'}"><span class="income-month-menu-label">${h(monthFmt(key))}</span><small>${counts.get(key)||0} Transaksi</small>${key===month?'<span class="income-month-menu-check" aria-hidden="true">✓</span>':''}</button>`).join('')}</div></div>`:''}
+  <button type="button" class="income-month-toggle" data-income-month-toggle aria-expanded="${open?'true':'false'}" aria-haspopup="dialog" aria-controls="income-month-menu" aria-label="Pilih Bulan Komposisi Pemasukan"><span class="income-month-calendar" aria-hidden="true">🗓️</span><span class="income-month-value">${h(monthFmt(month))}</span><span class="income-month-chevron" aria-hidden="true"></span></button>
  </div>`;
  return `<section class="card finance-spotlight-card finance-duo-card income-spotlight-card income-pie-card">
- <div class="card-head income-pie-card-head"><div><h3>Komposisi Pemasukan</h3></div>${monthSelector}</div>
- ${total>0?renderIncomeCalloutVisual(month):`<div class="income-chart-empty"><span>🌱</span><strong>Belum Ada Pemasukan</strong><small>Pilih bulan lain atau catat pemasukan untuk melihat sumbernya.</small></div>`}
+  <div class="card-head income-pie-card-head"><div><h3>Komposisi Pemasukan</h3></div>${monthSelector}</div>
+  ${total>0?renderIncomeCalloutVisual(month):`<div class="income-chart-empty"><span>🌱</span><strong>Belum Ada Pemasukan</strong><small>Pilih bulan lain atau catat pemasukan untuk melihat sumbernya.</small></div>`}
  </section>`;
 }
 
@@ -8345,7 +8391,7 @@ function dismissCompositionPopup(){
 }
 document.addEventListener('pointerdown',event=>{
  if(ui.comp.menu&&!event.target.closest('.comp-picker'))dismissCompositionPopup();
- if(ui.incomeMonthMenuOpen&&!event.target.closest('.income-month-picker'))dismissIncomeMonthMenu();
+ if(ui.incomeMonthMenuOpen&&!event.target.closest('.income-month-picker')&&!event.target.closest('#income-month-menu'))dismissIncomeMonthMenu();
 });
 document.addEventListener('keydown',event=>{
  if(event.key==='Escape'&&document.querySelector('.review-export-wrap.open')){event.preventDefault();closeReviewExportMenu(true);return;}
@@ -8444,7 +8490,8 @@ document.addEventListener('keydown',event=>{
 });
 document.addEventListener('click',async e=>{
  const incomeMonthToggle=e.target.closest?.('[data-income-month-toggle]');
-  if(incomeMonthToggle){ui.incomeMonthMenuOpen=!ui.incomeMonthMenuOpen;render();document.querySelector('[data-income-month-toggle]')?.focus({preventScroll:true});return;}
+  if(incomeMonthToggle){ui.incomeMonthMenuOpen=!ui.incomeMonthMenuOpen;render();if(!ui.incomeMonthMenuOpen)document.querySelector('[data-income-month-toggle]')?.focus({preventScroll:true});return;}
+  const incomeMonthClose=e.target.closest?.('[data-income-month-close]');if(incomeMonthClose){dismissIncomeMonthMenu();document.querySelector('[data-income-month-toggle]')?.focus({preventScroll:true});return;}
   const incomeMonthOption=e.target.closest?.('[data-income-month-option]');
   if(incomeMonthOption){const value=incomeMonthOption.dataset.incomeMonthOption;if(!incomeAvailableMonths().includes(value))return;ui.incomePieMonth=value;ui.incomeMonthMenuOpen=false;render();document.querySelector('[data-income-month-toggle]')?.focus({preventScroll:true});return;}
   const reviewToggle=e.target.closest('[data-review-export-toggle]');
@@ -8517,6 +8564,7 @@ document.addEventListener('click',async e=>{
   }
  }
  const trendDialog=document.getElementById('trend-range-dialog');
+ const monthDialog=document.getElementById('income-month-menu');if(monthDialog&&e.target===monthDialog){const rect=monthDialog.getBoundingClientRect();if(e.clientX<rect.left||e.clientX>rect.right||e.clientY<rect.top||e.clientY>rect.bottom)dismissIncomeMonthMenu();return;}
  const incomeDialog=document.getElementById('income-trend-range-dialog');if(incomeDialog&&e.target===incomeDialog){const rect=incomeDialog.getBoundingClientRect();if(e.clientX<rect.left||e.clientX>rect.right||e.clientY<rect.top||e.clientY>rect.bottom)dismissIncomeTrendRange();return;}
  if(trendDialog&&e.target===trendDialog){const b=trendDialog.getBoundingClientRect();if(e.clientX<b.left||e.clientX>b.right||e.clientY<b.top||e.clientY>b.bottom)closeTrendRangePopup();return;}
  const aiDlg=document.getElementById('paax-ai-dialog');

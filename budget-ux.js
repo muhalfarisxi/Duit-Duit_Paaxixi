@@ -380,6 +380,100 @@ function setupAdjustType(form){
  function refresh(){container.querySelectorAll('.budget-ux-type-option').forEach(function(btn){const yes=btn.dataset.type===select.value;btn.classList.toggle('is-selected',yes);btn.setAttribute('aria-pressed',String(yes))});form.dataset.budgetAdjustmentType=select.value;guidance.textContent=select.value==='increase'?'↗ Tambahan anggaran akan menambah alokasi pos tanpa mengambil dari pos lainnya.':'↘ Pengurangan anggaran akan mengurangi alokasi efektif pos. Riwayat tetap tercatat.'}
  select.addEventListener('change',refresh);refresh();
 }
+
+function setupAnchoredTransfer(form){
+ if(form.dataset.anchorReady)return;
+ form.dataset.anchorReady='1';
+ const id=form.dataset.budgetAnchorId,source=form.querySelector('select[name="from"]'),target=form.querySelector('select[name="to"]');
+ const amount=form.querySelector('input[name="amount"]'),submit=form.querySelector('button[type="submit"]');
+ const anchorOption=Array.from(target.options).find(x=>x.value===id);
+ if(!anchorOption)return;
+ const anchor=splitOption(anchorOption);
+ const balance=o=>Number(splitOption(o||{textContent:'',value:''}).remaining.replace(/\D/g,''))||0;
+ const available=balance(Array.from(source.options).find(x=>x.value===id));
+ const donors=Array.from(source.options).filter(x=>x.value&&x.value!==id&&balance(x)>0);
+ const receivers=Array.from(target.options).filter(x=>x.value&&x.value!==id);
+ source.closest('label')?.classList.add('budget-anchor-native');
+ target.closest('label')?.classList.add('budget-anchor-native');
+ source.required=false;target.required=false;source.tabIndex=-1;target.tabIndex=-1;source.value='';target.value='';
+ const focus=node('div','budget-anchor-focus');
+ focus.append(node('span','budget-anchor-focus-icon','📌'));
+ const info=node('span','budget-anchor-focus-info');
+ info.append(node('small','','POS YANG SEDANG DIEDIT'),node('strong','',anchor.name),
+ node('em','',anchor.group+' · Sisa Rp'+available.toLocaleString('id-ID')));
+ focus.append(info);
+ form.querySelector('input[name="editId"]').insertAdjacentElement('afterend',focus);
+ const title=document.getElementById('budget-flow-heading');if(title)title.textContent='Alihkan Anggaran · '+anchor.name;
+ const desc=document.querySelector('#budget-flow-backdrop .budget-flow-dialog-head p');
+ if(desc)desc.textContent='Pilih apakah pos ini menerima atau mengirim anggaran.';
+ const question=node('strong','budget-anchor-question','1. Arah pengalihan untuk '+anchor.name);
+ focus.insertAdjacentElement('afterend',question);
+ const modes=node('div','budget-anchor-modes');question.insertAdjacentElement('afterend',modes);
+ function addMode(mode,heading,detail,icon,disabled){
+  const button=node('button','budget-anchor-mode is-'+mode);
+  button.type='button';button.dataset.direction=mode;button.disabled=disabled;
+  button.setAttribute('aria-pressed','false');
+  const words=node('span','budget-anchor-mode-words');words.append(node('strong','',heading),node('small','',detail));
+  button.append(node('span','budget-anchor-mode-icon',icon),words,node('span','budget-anchor-mode-check','✓'));
+  modes.append(button);return button;
+ }
+ const receive=addMode('receive','Terima Anggaran','Ambil dari pos lain untuk '+anchor.name,'↙',!donors.length);
+ const send=addMode('send','Kirim Anggaran','Alihkan sisa '+anchor.name+' ke pos lain','↗',available<=0||!receivers.length);
+ const hint=node('p','budget-anchor-hint','Pilih salah satu arah terlebih dahulu.');
+ modes.insertAdjacentElement('afterend',hint);
+ const rPanel=node('div','budget-anchor-partner'),sPanel=node('div','budget-anchor-partner');
+ rPanel.hidden=true;sPanel.hidden=true;
+ function createSelect(panel,name,description,options){
+  panel.append(node('strong','budget-anchor-partner-title',description));
+  const select=node('select','field');select.name=name;select.required=true;select.disabled=true;
+  const blank=node('option','','Pilih pos melalui kelompok atau pencarian');blank.value='';blank.disabled=true;blank.selected=true;select.append(blank);
+  options.forEach(x=>{const op=node('option','',x.textContent);op.value=x.value;select.append(op)});
+  panel.append(select);return select;
+ }
+ const donor=createSelect(rPanel,'donorPos','2. Ambil anggaran dari pos mana?',donors);
+ const recipient=createSelect(sPanel,'recipientPos','2. Kirim anggaran ke pos mana?',receivers);
+ hint.insertAdjacentElement('afterend',rPanel);rPanel.insertAdjacentElement('afterend',sPanel);
+ const preview=node('div','budget-anchor-preview');preview.hidden=true;
+ const src=node('div','budget-anchor-preview-node'),dst=node('div','budget-anchor-preview-node');
+ const srcLabel=node('strong','','—'),dstLabel=node('strong','','—');
+ src.append(node('small','','POS ASAL'),srcLabel);dst.append(node('small','','POS TUJUAN'),dstLabel);
+ preview.append(src,node('span','budget-anchor-preview-arrow','➜'),dst);sPanel.insertAdjacentElement('afterend',preview);
+ const status=node('p','budget-anchor-status','Pilih arah dan pos pasangan.');
+ const amountLabel=amount?.closest('label');
+ if(amountLabel){amountLabel.firstChild.textContent='3. Nominal yang Dialihkan (Rp)';amountLabel.insertAdjacentElement('afterend',status)}
+ let direction='';
+ function update(){
+  const isReceive=direction==='receive',isSend=direction==='send';
+  receive.classList.toggle('is-selected',isReceive);send.classList.toggle('is-selected',isSend);
+  receive.setAttribute('aria-pressed',String(isReceive));send.setAttribute('aria-pressed',String(isSend));
+  rPanel.hidden=!isReceive;sPanel.hidden=!isSend;donor.disabled=!isReceive;recipient.disabled=!isSend;
+  const otherSel=isReceive?donor:recipient;
+  const other=Array.from(otherSel.options).find(x=>x.value&&x.value===otherSel.value);
+  source.value=isReceive?(other?.value||''):isSend?id:'';
+  target.value=isSend?(other?.value||''):isReceive?id:'';
+  preview.hidden=!other;
+  if(other){const otherName=splitOption(other).name;srcLabel.textContent=isReceive?otherName:anchor.name;dstLabel.textContent=isReceive?anchor.name:otherName}
+  const value=Number(String(amount?.value||'').replace(/\D/g,''))||0;
+  const max=isReceive?balance(other):available;
+  const exceeds=!!other&&value>max,ok=!!direction&&!!other&&value>0&&Number.isSafeInteger(value)&&!exceeds;
+  status.classList.toggle('is-error',exceeds);status.classList.toggle('is-ok',ok);
+  status.textContent=!direction?'Pilih Terima atau Kirim Anggaran.':!other?'Pilih pos pasangan melalui pencarian atau kelompok.':
+    !value?'Isi nominal anggarannya.':exceeds?'⚠️ Sisa anggaran pos asal tidak cukup.':'✓ Siap disimpan, total anggaran bulanan tidak berubah.';
+  hint.textContent=isReceive?'↙ '+anchor.name+' menerima alokasi dari pos lain.':
+    isSend?'↗ '+anchor.name+' mengirim alokasi ke pos lain.':'Pilih salah satu arah terlebih dahulu.';
+  submit.disabled=!ok;
+ }
+ [receive,send].forEach(btn=>btn.addEventListener('click',()=>{
+  if(btn.disabled)return;direction=btn.dataset.direction;update();
+  (direction==='receive'?donor:recipient).closest('.budget-viz-picker')?.querySelector('.budget-viz-trigger')?.focus({preventScroll:true});
+ }));
+ donor.addEventListener('change',update);recipient.addEventListener('change',update);
+ amount?.addEventListener('input',update);
+ form.addEventListener('submit',e=>{update();if(submit.disabled){e.preventDefault();e.stopImmediatePropagation()}},true);
+ populatePicker(donor);populatePicker(recipient);update();
+ const first=receive.disabled?send:receive;if(!first.disabled)first.focus({preventScroll:true});
+}
+
 function buildFlowPreview(form){
  const source=form.querySelector('select[name="from"]');
  const dest=form.querySelector('select[name="to"]');
@@ -435,9 +529,12 @@ function enhanceBudgetDialog(){
  });
  const transfer=modal.querySelector('#move-budget-form');
  if(transfer){
-  buildFlowPreview(transfer);
-  populatePicker(transfer.querySelector('select[name="from"]'));
-  populatePicker(transfer.querySelector('select[name="to"]'));
+  if(transfer.dataset.budgetAnchorId)setupAnchoredTransfer(transfer);
+  else{
+   buildFlowPreview(transfer);
+   populatePicker(transfer.querySelector('select[name="from"]'));
+   populatePicker(transfer.querySelector('select[name="to"]'));
+  }
  }
  const adjust=modal.querySelector('#budget-adjustment-form');
  if(adjust){

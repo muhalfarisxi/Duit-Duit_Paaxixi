@@ -6346,7 +6346,7 @@ body:has(.tx-search-backdrop){overflow:hidden}
 @media(prefers-reduced-motion:reduce){.budget-pos-action-choices>button{transition:none}}
 
 </style>
-<link rel="stylesheet" href="./budget-ux.css?v=4">
+<link rel="stylesheet" href="./budget-ux.css?v=5">
 </head>
 <body>
 <div class="app">
@@ -10405,12 +10405,12 @@ function budgetFlowDialogMarkup(kind,id=null,preselect=null){
   if(id&&!move)return '';
   heading=move?'Edit Pengalihan':'Alihkan Anggaran';icon='🔀';
   description='Pengalihan hanya mengubah alokasi pos, bukan saldo rekening.';
-  const sources=expenses().filter(c=>effectiveBudget(c.id)-spentByCat(c.id)>0||move?.from===c.id);
+  const sources=expenses().filter(c=>effectiveBudget(c.id)-spentByCat(c.id)>0||move?.from===c.id||(!move&&preselect===c.id));
   const chosenFrom=move?.from||(preselect&&sources.some(c=>c.id===preselect)?preselect:sources[0]?.id);
   const chosenTo=move?.to||(preselect&&preselect!==chosenFrom?preselect:expenses().find(c=>c.id!==chosenFrom)?.id);
   const opts=sources.map(c=>`<option value="${h(c.id)}" ${chosenFrom===c.id?'selected':''}>${h(c.group)} · ${h(c.label)} (Sisa ${money(effectiveBudget(c.id)-spentByCat(c.id))})</option>`).join('');
   const dest=expenses().map(c=>`<option value="${h(c.id)}" ${chosenTo===c.id?'selected':''}>${h(c.group)} · ${h(c.label)}</option>`).join('');
-  body=`<form id="move-budget-form" class="budget-flow-form"><input type="hidden" name="editId" value="${h(move?.id||'')}">
+  body=`<form id="move-budget-form" class="budget-flow-form" ${!move&&preselect?'data-budget-anchor-id="'+h(preselect)+'"':''}><input type="hidden" name="editId" value="${h(move?.id||'')}">
     <label>Pos Asal (Sisa Anggaran)<select name="from" class="field" required>${opts}</select></label>
     ${!opts?'<p class="budget-flow-empty-hint">Belum ada pos dengan sisa anggaran untuk dialihkan.</p>':''}
     <label>Pos Tujuan<select name="to" class="field" required>${dest}</select></label>
@@ -10945,6 +10945,8 @@ if(id==='budget-form'){
 if(id==='move-budget-form'){
  if(!budgetIsEstablished())return toast(budgetLockMessage(),true);
  const from=String(f.get('from')||''),to=String(f.get('to')||''),amount=positive(f.get('amount')),editId=String(f.get('editId')||'');
+ const anchorId=String(e.target.dataset.budgetAnchorId||'');
+ if(anchorId&&from!==anchorId&&to!==anchorId)return toast('Pos yang sedang diedit harus ikut dalam pengalihan.',true);
  const old=editId?db.budgetMoves.find(m=>m.id===editId&&m.month===ui.month):null;
  if(editId&&!old)return toast('Riwayat pengalihan yang diedit tidak ditemukan.',true);
  if(!cat(from)||cat(from).kind!=='expense'||!cat(to)||cat(to).kind!=='expense'||from===to||!amount||!Number.isSafeInteger(amount))
@@ -12174,6 +12176,6 @@ document.addEventListener('visibilitychange',()=>{
 <script type="module" src="./ai-insight.js?v=5"></script>
 <script src="firebase-config.js"></script>
 <script type="module" src="cloud.js"></script>
-<script src="./budget-ux.js?v=4" defer></script>
+<script src="./budget-ux.js?v=5" defer></script>
 </body>
 </html>

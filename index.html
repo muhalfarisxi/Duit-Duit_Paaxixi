@@ -9501,14 +9501,38 @@ function openBudgetFlowDialog(kind,id=null){
  closeBudgetFlowDialog(false);
  budgetFlowFocus=document.activeElement;
  document.body.insertAdjacentHTML('beforeend',html);
- document.querySelector('#budget-flow-backdrop input:not([type=hidden]),#budget-flow-backdrop select,#budget-flow-backdrop [data-budget-close-dialog]')?.focus({preventScroll:true});
+ const opened=document.getElementById('budget-flow-backdrop');
+ if(opened){opened.dataset.flowKind=kind;opened.dataset.flowId=id||'';}
+ opened?.querySelector('input:not([type=hidden]),select,[data-budget-close-dialog]')?.focus({preventScroll:true});
 }
 function closeBudgetFlowDialog(restore=true){
  const current=document.getElementById('budget-flow-backdrop');
  if(!current)return;
+ const groupId=current.dataset.flowKind==='group'?current.dataset.flowId:null;
  current.remove();
- if(restore&&budgetFlowFocus?.isConnected)budgetFlowFocus.focus({preventScroll:true});
+ if(restore){
+  const fallback=groupId?[...document.querySelectorAll('[data-budget-open-group]')].find(el=>el.dataset.budgetOpenGroup===groupId):null;
+  (budgetFlowFocus?.isConnected?budgetFlowFocus:fallback)?.focus({preventScroll:true});
+ }
  budgetFlowFocus=null;
+}
+/* Setelah popup anak disimpan, popup induk diperbarui dengan draft dan scroll yang tetap terjaga. */
+function refreshBudgetFlowParent(preferredCategoryId=null){
+ const parent=document.getElementById('budget-flow-backdrop');
+ if(!parent||parent.dataset.flowKind!=='group')return false;
+ const groupId=parent.dataset.flowId,html=budgetFlowDialogMarkup('group',groupId);
+ if(!html){closeBudgetFlowDialog(false);return false;}
+ const draft=cachePendingBudgetInputs(),oldScroll=parent.querySelector('.budget-flow-dialog-body')?.scrollTop||0;
+ parent.outerHTML=html;
+ const next=document.getElementById('budget-flow-backdrop');
+ if(!next)return false;
+ next.dataset.flowKind='group';next.dataset.flowId=groupId;
+ restorePendingBudgetInputs(draft);
+ const body=next.querySelector('.budget-flow-dialog-body');
+ if(body)body.scrollTop=oldScroll;
+ const preferred=preferredCategoryId?[...next.querySelectorAll('[data-edit-budget-category]')].find(el=>el.dataset.editBudgetCategory===preferredCategoryId):null;
+ (preferred||next.querySelector('[data-budget-close-dialog]'))?.focus({preventScroll:true});
+ return true;
 }
 
 /* Formulir utang/piutang bersama: dapat dipakai dari dashboard dan halaman daftar. */
@@ -9963,7 +9987,7 @@ if(id==='expense-group-form'){
   if(old){const previous=old.name;old.name=name;old.color=color;if(previous!==name)db.categories.forEach(c=>{if(c.kind==='expense'&&c.group===previous)c.group=name});}
   else db.expenseGroups.push({id:uid(),name,color});
   paxMarkSaved('group',old?.id||db.expenseGroups[db.expenseGroups.length-1].id);
-  const draft=cachePendingBudgetInputs();closeFinanceEditor();save();render();restorePendingBudgetInputs(draft);toast(old?'Kelompok pengeluaran berhasil diperbarui.':'Kelompok pengeluaran berhasil ditambahkan.');return;
+  const draft=cachePendingBudgetInputs();closeFinanceEditor(false);save();render();refreshBudgetFlowParent();restorePendingBudgetInputs(draft);toast(old?'Kelompok pengeluaran berhasil diperbarui.':'Kelompok pengeluaran berhasil ditambahkan.');return;
  }
  if(id==='category-form'||id==='budget-category-form'){
   const label=String(f.get('label')||'').trim(),editId=String(f.get('editId')||''),old=db.categories.find(c=>c.id===editId),kind=old?.kind||f.get('kind'),group=f.get('group');
@@ -9972,10 +9996,12 @@ if(id==='expense-group-form'){
   if(db.categories.some(c=>c.id!==editId&&c.kind===kind&&c.group===group&&c.label.toLowerCase()===label.toLowerCase()))return toast('Kategori sudah ada.',true);
   const isPopup=id==='budget-category-form',draft=isPopup?cachePendingBudgetInputs():null;
   if(old)Object.assign(old,{label,group});else db.categories.push({id:uid(),label,kind,group});
-  paxMarkSaved('category',old?.id||db.categories[db.categories.length-1].id);
-  if(isPopup)closeFinanceEditor();
+  const savedCategoryId=old?.id||db.categories[db.categories.length-1].id;
+  paxMarkSaved('category',savedCategoryId);
+  if(isPopup)closeFinanceEditor(false);
   ui.categoryEditId=null;ui.budgetCategoryEditId=null;ui.budgetCategoryGroup=null;
-  save();render();if(draft)restorePendingBudgetInputs(draft);
+  save();render();if(isPopup)refreshBudgetFlowParent(savedCategoryId);
+  if(draft)restorePendingBudgetInputs(draft);
   toast(old?'Pos / Kategori berhasil diperbarui.':'Pos / Kategori berhasil ditambahkan.');return;
  }}
 

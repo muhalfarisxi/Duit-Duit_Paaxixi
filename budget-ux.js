@@ -467,10 +467,26 @@ function budgetTransferLimitPopup(form,input){
  });
  otherButton.addEventListener('click',function(event){
   event.preventDefault();
-  const source=form.querySelector('select[name="from"]');
-  const trigger=source?.closest('.budget-viz-picker')?.querySelector('.budget-viz-trigger');
-  if(trigger&&!source.closest('.budget-anchor-native'))trigger.click();
-  else form.querySelector('.budget-anchor-mode.is-receive:not(:disabled)')?.click();
+  // This click starts outside the selector. Without stopping propagation,
+  // the document's outside-click listener immediately closes the new modal.
+  event.stopPropagation();
+  const anchored=Boolean(form.dataset.budgetAnchorId);
+  if(anchored){
+   // A pos opened from Edit Pos remains fixed: switch to "Terima Anggaran"
+   // and choose a different donor, rather than changing the anchored pos.
+   const receive=form.querySelector('.budget-anchor-mode.is-receive:not(:disabled)');
+   if(receive&&receive.getAttribute('aria-pressed')!=='true')receive.click();
+   const donor=form.querySelector('select[name="donorPos"]');
+   const donorTrigger=donor?.closest('.budget-viz-picker')?.querySelector('[data-budget-picker-toggle]');
+   if(donorTrigger&&!donorTrigger.closest('[hidden]'))donorTrigger.click();
+  }else{
+   // Selecting another position writes to the original select[name="from"].
+   // populatePicker.choose() dispatches change, so the amount limit and
+   // disabled save button update automatically while keeping the draft amount.
+   const source=form.querySelector('select[name="from"]');
+   const sourceTrigger=source?.closest('.budget-viz-picker')?.querySelector('[data-budget-picker-toggle]');
+   if(sourceTrigger)sourceTrigger.click();
+  }
  });
  function update(details){
   const {over,value,limit,sourceName}=details;

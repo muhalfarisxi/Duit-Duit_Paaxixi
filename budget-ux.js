@@ -176,7 +176,9 @@ function closePicker(picker,restoreFocus=true){
  if(!picker)return;
  const trigger=picker.querySelector('[data-budget-picker-toggle]');
  if(activeBudgetPicker?.picker===picker){
-  activeBudgetPicker.el.remove();
+  const activeDialog=activeBudgetPicker.el;
+  if(typeof activeDialog.close==='function'&&activeDialog.open)activeDialog.close();
+  activeDialog.remove();
   activeBudgetPicker=null;
  }
  picker.classList.remove('is-open');
@@ -191,6 +193,16 @@ function closeAll(except){
 function populatePicker(select){
  if(!select||select.dataset.budgetUx==='ready')return;
  select.dataset.budgetUx='ready';
+ const sourceLabel=select.parentElement?.tagName==='LABEL'?select.parentElement:null;
+ if(sourceLabel){
+  // Avoid a label forwarding button clicks to the hidden native select.
+  const field=node('div','budget-viz-form-field');
+  const labelText=(sourceLabel.firstChild?.textContent||'Pilih pos pengeluaran').trim();
+  field.append(node('span','budget-viz-form-label',labelText));
+  sourceLabel.parentNode.insertBefore(field,sourceLabel);
+  field.append(select);
+  sourceLabel.remove();
+ }
  const wrapper=node('div','budget-viz-picker');
  wrapper.dataset.budgetPicker=select.name;
  select.parentNode.insertBefore(wrapper,select);
@@ -232,7 +244,7 @@ function populatePicker(select){
   if(activeBudgetPicker)closePicker(activeBudgetPicker.picker,false);
   wrapper.classList.add('is-open');
   trigger.setAttribute('aria-expanded','true');
-  const portal=node('div','budget-viz-portal');
+  const portal=node('dialog','budget-viz-portal');
   const shade=node('div','budget-viz-portal-shade');
   const panel=node('section','budget-viz-portal-panel');
   panel.setAttribute('role','dialog');
@@ -260,7 +272,10 @@ function populatePicker(select){
   panel.append(head,guidance,searchWrap,nav,body);
   portal.append(shade,panel);
   document.body.append(portal);
+  // Move popup into the browser top layer, above all other modal/backdrop layers.
+  try{portal.showModal()}catch(error){portal.setAttribute('open','')}
   activeBudgetPicker={el:portal,picker:wrapper};
+  portal.addEventListener('cancel',function(event){event.preventDefault();closePicker(wrapper)});
   let selectedGroup=null;
   function choose(id){
    select.value=id;
@@ -271,6 +286,7 @@ function populatePicker(select){
   function optionCard(option){
    const btn=node('button','budget-viz-portal-pos');
    btn.type='button';
+   btn.setAttribute('aria-label','Pilih pos '+option.name+' dari kelompok '+option.group);
    if(select.value===option.value)btn.classList.add('is-selected');
    const mark=node('span','budget-viz-portal-pos-icon','📌');
    const content=node('span','budget-viz-portal-pos-info');
@@ -295,7 +311,7 @@ function populatePicker(select){
     if(!matches.length)list.append(node('p','budget-viz-portal-empty','Tidak ditemukan. Coba kata lain atau pilih kelompok.'));
     body.append(list);
    }else if(selectedGroup===null){
-    nav.append(node('strong','budget-viz-search-count','1 · Pilih kelompok ('+groups.size+')'));
+    nav.append(node('strong','budget-viz-search-count','LANGKAH 1/2 · Pilih kelompok ('+groups.size+')'));
     const grid=node('div','budget-viz-portal-groups');
     let i=0;
     groups.forEach(function(options,group){
@@ -322,7 +338,7 @@ function populatePicker(select){
     const back=node('button','budget-viz-portal-back','← Semua kelompok');
     back.type='button';
     back.addEventListener('click',function(){selectedGroup=null;paint();panel.querySelector('.budget-viz-portal-group')?.focus({preventScroll:true})});
-    nav.append(back,node('strong','budget-viz-search-count',selectedGroup+' · '+groups.get(selectedGroup).length+' pos'));
+    nav.append(back,node('strong','budget-viz-search-count','LANGKAH 2/2 · '+selectedGroup+' · '+groups.get(selectedGroup).length+' pos'));
     const list=node('div','budget-viz-portal-positions');
     groups.get(selectedGroup).forEach(function(option){list.append(optionCard(option))});
     body.append(list);

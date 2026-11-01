@@ -389,3 +389,22 @@
  .budget-month-portal,.budget-month-panel,.budget-month-head-icon,
  .budget-month-cell,.budget-month-cell::after,.budget-month-year-list{animation:none!important;transition:none!important}
 }
+
+
+/* #132 Reliable two-stage selector above budget dialogs */
+.budget-viz-form-field{display:flex;flex-direction:column;gap:7px;min-width:0;font:900 12px Nunito,sans-serif;color:#335e8f}
+.budget-viz-form-field .budget-viz-form-label{display:block;font:900 12px/1.4 Nunito,sans-serif;color:#335e8f}
+.budget-viz-form-field .budget-viz-picker{min-width:0}
+.budget-viz-form-field .budget-viz-trigger{cursor:pointer;min-height:67px}
+dialog.budget-viz-portal{position:fixed!important;inset:0!important;margin:0!important;
+ width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;
+ display:grid;place-items:center;padding:clamp(12px,3vw,24px);box-sizing:border-box;
+ border:0!important;border-radius:0!important;background:transparent!important;
+ color:inherit;overflow:hidden;z-index:2147483000!important}
+dialog.budget-viz-portal:not([open]){display:none!important}
+dialog.budget-viz-portal::backdrop{background:rgba(7,27,59,.68);backdrop-filter:blur(9px)}
+dialog.budget-viz-portal .budget-viz-portal-shade{background:transparent;backdrop-filter:none}
+dialog.budget-viz-portal .budget-viz-portal-panel{width:min(640px,100%);max-height:min(85dvh,770px)}
+dialog.budget-viz-portal .budget-viz-portal-group,
+dialog.budget-viz-portal .budget-viz-portal-pos{cursor:pointer}
+@media(max-width:630px){dialog.budget-viz-portal{padding:10px}dialog.budget-viz-portal .budget-viz-portal-panel{max-height:90dvh}}

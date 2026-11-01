@@ -1947,6 +1947,64 @@ body:has(.repay-popup-backdrop){overflow:hidden}
  .income-callout-svg .income-donut-motion .income-pie-sector{transition:none!important}
 }
 
+
+/* #104 Filter transaksi sebagai tombol di atas daftar. */
+.tx-history-toolbar{display:block;margin:0 0 16px}
+.tx-history-filter-tabs{
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:7px;
+ border:1px solid #dce8fb;border-radius:17px;background:linear-gradient(115deg,#eff6ff,#f8fbff)
+}
+.tx-history-kind-btn{
+ position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;justify-content:center;
+ gap:7px;min-width:0;min-height:49px;padding:10px 8px;
+ border:1.5px solid #d8e5f7;border-radius:12px;background:#fff;color:#295588;
+ font:900 12px/1.25 Nunito,sans-serif;cursor:pointer;
+ transition:background .2s,color .2s,transform .2s,box-shadow .2s
+}
+.tx-history-kind-icon{flex:none;font-size:17px;line-height:1}
+.tx-history-kind-label{min-width:0}
+.tx-history-kind-count{
+ display:grid;place-items:center;flex:none;min-width:23px;height:23px;padding:0 5px;
+ border-radius:999px;background:#e7effc;color:#28578b;font:900 11px Nunito,sans-serif
+}
+.tx-history-kind-expense{background:#fff5f6;border-color:#f3d4da;color:#b54053}
+.tx-history-kind-income{background:#f1faf5;border-color:#ccead8;color:#177b57}
+.tx-history-kind-transfer{background:#f4f5ff;border-color:#d9ddf5;color:#4f60a9}
+.tx-history-kind-expense .tx-history-kind-count{background:#ffe1e6;color:#ae3e4d}
+.tx-history-kind-income .tx-history-kind-count{background:#daf3e4;color:#157754}
+.tx-history-kind-transfer .tx-history-kind-count{background:#e4e7fc;color:#5163a9}
+.tx-history-kind-btn:hover{transform:translateY(-2px);box-shadow:0 7px 16px #20518120}
+.tx-history-kind-btn:active{transform:translateY(0) scale(.98)}
+.tx-history-kind-btn.active{
+ color:white;border-color:transparent;
+ box-shadow:0 7px 18px #23548936;
+ animation:txHistoryActivePop .32s cubic-bezier(.2,.8,.2,1.1) both
+}
+.tx-history-kind-all.active{background:linear-gradient(110deg,#194073,#3478bd)}
+.tx-history-kind-expense.active{background:linear-gradient(110deg,#ae3d4f,#d85c6b)}
+.tx-history-kind-income.active{background:linear-gradient(110deg,#147855,#259c74)}
+.tx-history-kind-transfer.active{background:linear-gradient(110deg,#4c5ba9,#7c88d3)}
+.tx-history-kind-btn.active .tx-history-kind-count{background:white;color:#204f86}
+.tx-history-kind-expense.active .tx-history-kind-count{color:#b64558}
+.tx-history-kind-income.active .tx-history-kind-count{color:#137755}
+.tx-history-kind-transfer.active .tx-history-kind-count{color:#5968b2}
+.tx-history-kind-btn.active:after{
+ content:"";position:absolute;inset:-70% -25%;pointer-events:none;
+ background:linear-gradient(110deg,transparent 38%,#ffffff35 50%,transparent 63%);
+ transform:translateX(-100%);animation:txHistoryTabGlint 5s ease-in-out 1.2s infinite
+}
+.tx-history-kind-btn:focus-visible{outline:3px solid #78aaed;outline-offset:2px}
+@keyframes txHistoryActivePop{from{opacity:.75;transform:translateY(4px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes txHistoryTabGlint{0%,65%,100%{transform:translateX(-100%)}79%{transform:translateX(100%)}}
+@media(max-width:600px){
+ .tx-history-filter-tabs{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:6px}
+ .tx-history-kind-btn{font-size:11px;min-height:45px;padding:8px 6px}
+}
+@media(prefers-reduced-motion:reduce){
+ .tx-history-kind-btn{transition:none!important;animation:none!important}
+ .tx-history-kind-btn.active:after{display:none!important;animation:none!important}
+}
+
 /* Footer pribadi: copyright yang jelas, ringkas, dan senada dengan tema Paaxixi. */
 .paax-copyright-footer{
  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;
@@ -1994,7 +2052,7 @@ body:has(.repay-popup-backdrop){overflow:hidden}
 .tx-entry-body .form-actions>.btn[type="submit"]{background:#102a4e;border-color:#102a4e;color:#fff}
 .tx-entry-dialog :is(button,input,textarea,select):focus-visible,.tx-history-dialog :is(button,input,select):focus-visible{outline:3px solid #3883e9;outline-offset:2px}
 .tx-history-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 14px;color:#6a83a2;font-weight:700;font-size:12px}
-.tx-history-toolbar select{min-width:155px;max-width:240px;width:auto}
+
 .tx-history-item{padding:13px 15px;margin:0 0 10px;border:1px solid #dbe8f9;border-radius:13px;background:#fff;transition:box-shadow .18s,border-color .18s}
 .tx-history-item:hover{border-color:#b9d4f7;box-shadow:0 5px 15px rgba(19,72,134,.07)}
 .tx-history-item-head{display:flex;justify-content:space-between;align-items:center;gap:13px}
@@ -2035,7 +2093,7 @@ body:has(.tx-entry-backdrop),body:has(.tx-history-backdrop){overflow:hidden}
  .tx-history-item-head{align-items:flex-start}
  .tx-history-item-head>b{font-size:13px}
  .tx-history-toolbar{display:block}
- .tx-history-toolbar select{display:block;margin-top:7px;width:100%;max-width:none}
+
  .tx-recent-row{align-items:flex-start;flex-wrap:wrap;gap:6px}
  .tx-recent-end{width:100%;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px}
  .tx-recent-actions{margin-left:auto}
@@ -7304,7 +7362,9 @@ function renderTxHistoryPopup(){
  if(!ui.txHistoryOpen)return '';
  const rows=monthly().filter(t=>ui.txFilter==='all'||t.type===ui.txFilter).slice()
  .sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
- const filters=[['all','Semua'],['expense','Pengeluaran'],['income','Pemasukan'],['transfer','Transfer']];
+ const allMonth=monthly(),counts={all:allMonth.length,expense:0,income:0,transfer:0};
+ allMonth.forEach(t=>{if(Object.prototype.hasOwnProperty.call(counts,t.type))counts[t.type]++;});
+ const filters=[['all','✦','Semua'],['expense','↘','Pengeluaran'],['income','↗','Pemasukan'],['transfer','⇄','Transfer']];
  return `<div class="tx-history-backdrop" id="tx-history-backdrop">
   <div class="tx-history-dialog" role="dialog" aria-modal="true" aria-labelledby="tx-history-title" aria-describedby="tx-history-desc">
    <div class="tx-entry-heading">
@@ -7314,10 +7374,9 @@ function renderTxHistoryPopup(){
     <button type="button" class="tx-entry-close" data-close-tx-history aria-label="Tutup riwayat transaksi">✕</button>
    </div>
    <div class="tx-history-content">
-    <div class="tx-history-toolbar">
-     <span>Filter jenis transaksi untuk menemukan catatan yang akan diperiksa atau diedit.</span>
-     <select id="tx-history-filter" class="field" aria-label="Filter jenis transaksi">${filters.map(([key,label])=>`<option value="${key}" ${ui.txFilter===key?'selected':''}>${label}</option>`).join('')}</select>
-    </div>
+    <div class="tx-history-toolbar"><div class="tx-history-filter-tabs" role="group" aria-label="Filter Jenis Transaksi">
+      ${filters.map(([key,symbol,label])=>`<button type="button" data-tx-history-kind="${key}" class="tx-history-kind-btn tx-history-kind-${key} ${ui.txFilter===key?'active':''}" aria-pressed="${ui.txFilter===key?'true':'false'}"><span aria-hidden="true" class="tx-history-kind-icon">${symbol}</span><span class="tx-history-kind-label">${label}</span><span class="tx-history-kind-count" aria-label="${counts[key]} transaksi">${counts[key]}</span></button>`).join('')}
+    </div></div>
     ${rows.length?rows.map(t=>{
      const source=acc(t.accountId)?.name||'Rekening tidak tersedia';
      const category=t.type==='transfer'?'Transfer · '+source+' → '+(acc(t.toAccountId)?.name||'Rekening tidak tersedia'):(cat(t.categoryId)?.label||'Kategori tidak tersedia')+' · '+source;
@@ -7333,7 +7392,7 @@ function renderTxHistoryPopup(){
     }).join(''):'<div class="review-modal-empty">Belum ada transaksi untuk jenis dan bulan terpilih.</div>'}
    </div>
    <div class="tx-history-footer">
-    <button type="button" class="btn tx-nav-cta" data-nav="review">Lihat Analisis Periode ↗</button>
+    <button type="button" class="btn tx-nav-cta" data-nav="review">Rincian Transaksi <span class="nav-cta-arrow" aria-hidden="true">↗</span></button>
     <button type="button" class="btn primary" data-tx-create>＋ Catat Transaksi</button>
    </div>
   </div>
@@ -8819,6 +8878,12 @@ if(x.dataset.txSearchAccount!==undefined){
  if(results){results.innerHTML=renderTxSearchResults();results.scrollTop=0;}
  return;
 }
+if(x.dataset.txHistoryKind!==undefined){
+ const kind=x.dataset.txHistoryKind;
+ if(!ui.txHistoryOpen||!['all','expense','income','transfer'].includes(kind))return;
+ if(kind!==ui.txFilter){ui.txFilter=kind;render();}
+ document.querySelector('[data-tx-history-kind="'+kind+'"]')?.focus({preventScroll:true});return;
+}
 if(x.dataset.txSearch!==undefined){openTxSearch();return;}
  if(x.dataset.txHistory!==undefined){openTxHistory();return;}
  if(x.dataset.txCreate!==undefined){openTxModal('expense');return;}
@@ -8959,7 +9024,7 @@ if(x.id==='comp-start'||x.id==='comp-end'){
 }
 if(x.id==='month-input'){ui.reviewPopup=null;ui.txModalOpen=false;ui.txHistoryOpen=false;ui.txSearchOpen=false;ui.txSearchQuery='';let next=x.value||currentMonth(),prev=ui.month;if(next>analysisToday().slice(0,7)){toast('Bulan yang dipilih tidak boleh melewati bulan berjalan.',true);render();return;}if(next>prev&&db.transactions.some(t=>t.date.slice(0,7)===prev)&&!db.reports[prev]&&confirm('Bulan '+monthFmt(prev)+' belum diarsipkan. Simpan laporan bulan ini sebelum berpindah?')){db.reports[prev]=buildReport(prev);save();toast('Arsip '+monthFmt(prev)+' disimpan.')}ui.month=next;ui.incomePieMonth=null;ui.incomeMonthMenuOpen=false;ui.txEditId=null;ui.moveEditId=null;ui.comp.preset='month';ui.comp.from='';ui.comp.to='';resetTrendFromDonut();render()}
 if(x.id==='report-month'){ui.month=x.value||currentMonth();render()}
-if(x.id==='tx-history-filter'){ui.txFilter=x.value;render();document.getElementById('tx-history-filter')?.focus({preventScroll:true})}
+
 
 if(x.id==='tx-group'){let cs=(ui.txType==='expense'?expenses():incomes()).filter(c=>c.group===x.value);let sel=document.getElementById('tx-category');if(sel)sel.innerHTML=cs.map(c=>`<option value="${h(c.id)}">${pickSymbol(c.label,c.group)} ${h(c.label)}</option>`).join('')}
 if(x.id==='new-cat-kind'){let sel=document.getElementById('new-cat-group');sel.innerHTML=(x.value==='income'?['BPS','Fastlink','Lainnya']:expenseGroups().map(g=>g.name)).map(g=>`<option value="${h(g)}">${pickSymbol(g,g)} ${h(g)}</option>`).join('')}});

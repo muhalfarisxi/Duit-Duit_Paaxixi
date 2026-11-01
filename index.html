@@ -6346,7 +6346,7 @@ body:has(.tx-search-backdrop){overflow:hidden}
 @media(prefers-reduced-motion:reduce){.budget-pos-action-choices>button{transition:none}}
 
 </style>
-<link rel="stylesheet" href="./budget-ux.css?v=8">
+<link rel="stylesheet" href="./budget-ux.css?v=9">
 </head>
 <body>
 <div class="app">
@@ -10080,6 +10080,13 @@ function renderBudgetMonthlySection(){
     <button type="button" class="btn sm" data-add-budget-category="">＋ Tambah Pos</button>
    </div>
   </div>
+  ${locked?`<div class="budget-editor-shortcuts budget-quick-actions" aria-label="Aksi cepat anggaran">
+    <span class="budget-quick-info"><span class="budget-quick-spark" aria-hidden="true">✨</span><span><strong>Aksi Cepat Anggaran</strong><small>Sesuaikan alokasi tanpa mengubah anggaran awal.</small></span></span>
+    <span class="budget-quick-buttons">
+      <button type="button" class="btn budget-quick-move" data-budget-new-move>🔀 Alihkan Anggaran ↗</button>
+      <button type="button" class="btn budget-quick-adjust" data-budget-new-adjust>➕➖ Tambah / Kurangi ↗</button>
+    </span>
+   </div>`:''}
   <div class="budget-initial-lock-banner ${locked?'is-locked':'is-draft'}">
    <div class="budget-initial-lock-text">
     <strong>${locked?'🔒 Anggaran Awal Sudah Ditetapkan':'📝 Anggaran Awal Belum Ditetapkan'}</strong>
@@ -10089,10 +10096,6 @@ function renderBudgetMonthlySection(){
     '<span class="budget-initial-lock-pill">✓ Ditetapkan</span>'}
   </div>
   <div class="budget-editor-groups">${groups||'<p class="budget-detail-empty">Belum ada kelompok pengeluaran.</p>'}</div>
-  ${locked?`<div class="budget-editor-shortcuts">
-   <button type="button" class="btn sm" data-budget-new-move>🔀 Alihkan Anggaran</button>
-   <button type="button" class="btn sm" data-budget-new-adjust>➕➖ Tambah / Kurangi</button>
-  </div>`:''}
   <section class="budget-work-history-section" aria-label="Riwayat perubahan anggaran">
    <div class="budget-work-history-head"><h4>🕘 Riwayat Perubahan Anggaran Awal</h4><span>${budgetScopeTransactions('base').length} catatan</span></div>
    ${budgetHistoryRows('base')}
@@ -12193,6 +12196,6 @@ document.addEventListener('visibilitychange',()=>{
 <script type="module" src="./ai-insight.js?v=5"></script>
 <script src="firebase-config.js"></script>
 <script type="module" src="cloud.js"></script>
-<script src="./budget-ux.js?v=6" defer></script>
+<script src="./budget-ux.js?v=7" defer></script>
 </body>
 </html>

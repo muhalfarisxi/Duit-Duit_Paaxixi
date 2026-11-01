@@ -325,7 +325,8 @@ function populatePicker(select){
      labels.append(node('strong','',group),node('small','',options.length+' pos pengeluaran'));
      const arrow=node('span','budget-viz-portal-group-arrow','→');
      button.append(icon,labels,arrow);
-     button.addEventListener('click',function(){
+     button.addEventListener('click',function(event){
+      event.stopPropagation();
       selectedGroup=group;paint();
       panel.querySelector('.budget-viz-portal-pos')?.focus({preventScroll:true});
      });
@@ -337,7 +338,7 @@ function populatePicker(select){
    }else{
     const back=node('button','budget-viz-portal-back','← Semua kelompok');
     back.type='button';
-    back.addEventListener('click',function(){selectedGroup=null;paint();panel.querySelector('.budget-viz-portal-group')?.focus({preventScroll:true})});
+    back.addEventListener('click',function(event){event.stopPropagation();selectedGroup=null;paint();panel.querySelector('.budget-viz-portal-group')?.focus({preventScroll:true})});
     nav.append(back,node('strong','budget-viz-search-count','LANGKAH 2/2 · '+selectedGroup+' · '+groups.get(selectedGroup).length+' pos'));
     const list=node('div','budget-viz-portal-positions');
     groups.get(selectedGroup).forEach(function(option){list.append(optionCard(option))});
@@ -542,7 +543,11 @@ function enhanceBudgetDialog(){
   populatePicker(adjust.querySelector('select[name="categoryId"]'));
  }
 }
-document.addEventListener('click',function(e){if(!e.target.closest('.budget-viz-picker,.budget-viz-portal'))closeAll()});
+document.addEventListener('click',function(e){
+ const path=typeof e.composedPath==='function'?e.composedPath():[];
+ const inside=path.some(n=>n?.classList?.contains?.('budget-viz-portal')||n?.classList?.contains?.('budget-viz-picker'));
+ if(!inside&&!e.target.closest?.('.budget-viz-picker,.budget-viz-portal'))closeAll();
+});
 document.addEventListener('keydown',function(e){
  const portal=document.querySelector('.budget-viz-portal');
  if(!portal)return;

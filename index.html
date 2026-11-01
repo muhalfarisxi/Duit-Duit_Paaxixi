@@ -4859,6 +4859,22 @@ body:has(.tx-search-backdrop){overflow:hidden}
 @media(max-width:540px){.income-filter-presets{padding:7px;gap:5px}.income-filter-chip,.income-group-chip{font-size:10px;padding:8px 9px;min-height:35px}.income-filter-range{gap:6px;padding:8px}.income-trend-card .income-trend-toolbar{gap:7px}}
 @media(prefers-reduced-motion:reduce){.income-filter-chip,.income-group-chip,.income-trend-series button,.income-follow-pie,.income-trend-extra{transition:none!important;animation:none!important}}
 
+
+/* #110 Tombol rincian per pos pemasukan mengikuti filter dan tema mint. */
+.income-pie-card-head .income-pos-launch{
+ appearance:none;display:inline-flex;align-items:center;gap:8px;flex:none;
+ border-radius:12px;padding:9px 12px;min-height:38px;border:1.5px solid #a5dfbe;
+ background:linear-gradient(115deg,#e8faef,#f8fffa);color:#157955;
+ box-shadow:0 5px 15px rgba(20,119,80,.11);white-space:nowrap;
+ font:900 11px/1.3 Nunito,sans-serif;cursor:pointer;
+ transition:transform .2s,box-shadow .2s,background .2s;
+}
+.income-pie-card-head .income-pos-launch:hover{transform:translateY(-2px);background:#dcf7e8;box-shadow:0 8px 16px rgba(19,118,77,.18)}
+.income-pie-card-head .income-pos-launch:focus-visible{outline:3px solid #7ed2a9;outline-offset:2px}
+.income-pie-card-head .income-pos-launch span{font-size:14px}
+@media(max-width:550px){.income-pie-card-head .income-pos-launch{padding:7px 9px;min-height:34px;font-size:10px}}
+@media(prefers-reduced-motion:reduce){.income-pie-card-head .income-pos-launch{transition:none!important}}
+
 </style>
 </head>
 <body>
@@ -6994,11 +7010,28 @@ function renderIncomeMonthDialog(){
  </dialog>`;
 }
 
+
+/* Popup pemasukan berdasarkan pos dan kelompok pada rentang komposisi aktif. */
+function incomePosPopupGroups(){
+ const tx=incomeFilterTransactions();
+ return incomeFilterGroups().filter(name=>!ui.incomeFilter?.group||ui.incomeFilter.group===name).map((name,index)=>{
+  const categories=incomes().filter(c=>(c.group||'Lainnya')===name);
+  const groupTx=tx.filter(t=>incomeGroupName(t)===name);
+  const items=categories.map((c,i)=>({
+   id:c.id,label:c.label,icon:pickSymbol(c.label,name),color:incomePalette[(i+1)%incomePalette.length],
+   value:groupTx.filter(t=>t.categoryId===c.id).reduce((sum,t)=>sum+num(t.amount),0)
+  }));
+  const missing=groupTx.filter(t=>!categories.some(c=>c.id===t.categoryId));
+  if(missing.length)items.push({id:'missing-'+index,label:'Sumber Lainnya',icon:'💵',color:'#6bbf9e',value:missing.reduce((sum,t)=>sum+num(t.amount),0)});
+  return {id:'income-group-'+index,name,icon:'💰',color:incomePalette[index%incomePalette.length],items};
+ });
+}
+
 function renderIncomePieCard(){
  const month=null,entries=incomeSourceData(),total=entries.reduce((n,x)=>n+x.value,0);
- const monthSelector=renderIncomeFilterBar();
- return `<section class="card finance-spotlight-card finance-duo-card income-spotlight-card income-pie-card">
-  <div class="card-head income-pie-card-head"><div><h3>Komposisi Pemasukan</h3></div></div>
+ const monthSelector=renderIncomeFilterBar(),posGroups=incomePosPopupGroups();
+ return `<section class="card finance-spotlight-card finance-duo-card income-spotlight-card income-pie-card" data-income-pos-groups="${h(JSON.stringify(posGroups))}" data-income-pos-period="${h(incomeFilterLabel())}">
+  <div class="card-head income-pie-card-head"><div><h3>Komposisi Pemasukan</h3></div><button type="button" class="income-pos-launch" data-income-pos-launch aria-haspopup="dialog">🍩 Rincian per Pos <span aria-hidden="true">↗</span></button></div>
   ${monthSelector}
   ${total>0?renderIncomeCalloutVisual():`<div class="income-chart-empty"><span>🌱</span><strong>Belum Ada Pemasukan</strong><small>Pilih bulan lain atau catat pemasukan untuk melihat sumbernya.</small></div>`}
  </section>`;
@@ -9437,7 +9470,7 @@ document.addEventListener('visibilitychange',()=>{
  else init();
 })();
 </script>
-<script src="./composition-pos-popup.js?v=2" defer></script>
+<script src="./composition-pos-popup.js?v=3" defer></script>
 <script type="module" src="./ai-insight.js?v=5"></script>
 <script src="firebase-config.js"></script>
 <script type="module" src="cloud.js"></script>

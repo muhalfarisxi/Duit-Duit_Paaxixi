@@ -5822,6 +5822,9 @@ body:has(.tx-search-backdrop){overflow:hidden}
 #paaxixi-delete-dialog{z-index:4400}
 #budget-flow-backdrop[aria-hidden="true"]{pointer-events:none}
 .toast{z-index:4600}
+/* #122 Popup rincian tetap di belakang saat detail berikutnya ditampilkan. */
+.review-modal-backdrop[data-review-modal-parent]{z-index:1080;pointer-events:none}
+#review-modal-backdrop{z-index:1100}
 </style>
 </head>
 <body>
@@ -8216,6 +8219,26 @@ function incomeChartPopup(popup){
     </div></div></div>`;
 }
 
+/* Rincian bertingkat: popup asal tetap ada di lapisan belakang. */
+let reviewPopupHistory=[];
+function renderStackedReviewPopup(){
+ if(!ui.reviewPopup)return '';
+ const renderOne=()=>ui.view==='dashboard'?renderDashboardKpiPopup():renderReviewPopup();
+ const current=ui.reviewPopup;let parents='';
+ for(let index=0;index<reviewPopupHistory.length;index++){
+  ui.reviewPopup=reviewPopupHistory[index].popup;
+  const markup=renderOne();
+  if(!markup)continue;
+  parents+=markup
+   .replace('id="review-modal-backdrop"','id="review-modal-parent-'+index+'" data-review-modal-parent aria-hidden="true" inert')
+   .replace('aria-modal="true"','aria-modal="false"')
+   .replaceAll('id="review-modal-title"','id="review-modal-parent-title-'+index+'"')
+   .replaceAll('id="review-modal-subtitle"','id="review-modal-parent-subtitle-'+index+'"')
+   .replaceAll('aria-labelledby="review-modal-title"','aria-labelledby="review-modal-parent-title-'+index+'"')
+   .replaceAll('aria-describedby="review-modal-subtitle"','aria-describedby="review-modal-parent-subtitle-'+index+'"');
+ }
+ ui.reviewPopup=current;return parents+renderOne();
+}
 function openIncomePopup(type,key){
  const active=ui.reviewPopup,period=type==='income-month'||type==='income-year'?key:
   active?.type==='income-month'||active?.type==='income-year'?active.key:
@@ -8223,7 +8246,12 @@ function openIncomePopup(type,key){
  if(type==='income-source'&&!incomeSourceData(period).some(entry=>entry.id===key))return;
  if(type==='income-month'&&(!/^\d{4}-\d{2}$/.test(key)||key>analysisToday().slice(0,7)))return;
  if(type==='income-year'&&(!/^\d{4}$/.test(key)||key>analysisToday().slice(0,4)))return;
- ui.reviewPopup={type,key,month:period};render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});
+ const nested=active&&['income-month','income-year','income-source'].includes(active.type)
+   &&(document.activeElement?.closest?.('#review-modal-backdrop')||type==='income-source'&&active.type!=='income-source');
+ if(nested){
+  reviewPopupHistory.push({popup:{...active},scroll:document.querySelector('#review-modal-backdrop .review-modal-content')?.scrollTop||0});
+ }else reviewPopupHistory=[];
+ ui.reviewPopup={type,key,month:period};render();document.querySelector('#review-modal-backdrop [data-review-close]')?.focus({preventScroll:true});
 }
 
 
@@ -8266,7 +8294,7 @@ ${renderPaaxixiSmartFinanceInsight()}
   <button type="button" class="btn sm full finance-spotlight-action debt-overview-cta" data-debt-overview="open" aria-haspopup="dialog"><span aria-hidden="true">↗</span> Lihat Utang & Piutang <span class="spotlight-arrow" aria-hidden="true">→</span></button>
  </section>
  <section class="card finance-recent-card"><div class="card-head"><div><h3>Transaksi Terbaru</h3><p>Periksa transaksi ${h(monthFmt(ui.month))}; Edit jika ada nominal atau kategori yang keliru.</p></div><div class="action-buttons"><button type="button" class="btn sm ghost tx-nav-cta" data-tx-history>Semua Transaksi <span class="nav-cta-arrow" aria-hidden="true">↗</span></button><button type="button" class="btn sm tx-nav-cta" data-nav="reports">Arsip Bulan <span class="nav-cta-arrow" aria-hidden="true">↗</span></button></div></div>${all.length?all.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt?.localeCompare(a.createdAt||'')||0).slice(0,3).map(txRow).join(''):empty('⇄','Belum Ada Transaksi','Klik “Catat transaksi” untuk membuat catatan baru.')}</section>
-</div>${renderDashboardKpiPopup()}${renderBudgetAlertDialog(alert,bt)}`}
+</div>${renderStackedReviewPopup()}${renderBudgetAlertDialog(alert,bt)}`}
 
 /* #035 Rincian interaktif kartu Dashboard; semuanya memakai sumber data yang sama. */
 function kpiDailyBreakdown(transactions,type){
@@ -9045,8 +9073,15 @@ function renderReviewPopup(){
 function dismissReviewPopup(){
  if(!ui.reviewPopup)return;
  const previous=ui.reviewPopup;
- ui.reviewPopup=null;
- render();
+ const previousLayer=reviewPopupHistory.pop();
+ if(previousLayer){
+  ui.reviewPopup=previousLayer.popup;render();
+  const body=document.querySelector('#review-modal-backdrop .review-modal-content');
+  if(body)body.scrollTop=previousLayer.scroll;
+  (document.querySelector('#review-modal-backdrop [data-income-source="'+previous.key+'"]')||document.querySelector('#review-modal-backdrop [data-review-close]'))?.focus({preventScroll:true});
+  return;
+ }
+ ui.reviewPopup=null;render();
  if(previous.type==='debt-list')document.querySelector('[data-debt-overview]')?.focus({preventScroll:true});
   else if(previous.type==='expense-composition')requestAnimationFrame(()=>{(document.querySelector('#composition-card [data-comp-pie-detail="'+previous.index+'"]')||document.querySelector('#composition-card .comp-pos-launch'))?.focus({preventScroll:true});});
   else if(previous.type==='dashboard-kpi')document.querySelector('[data-dashboard-kpi="'+previous.key+'"]')?.focus({preventScroll:true});
@@ -9090,7 +9125,7 @@ function renderReview(){
     <div><small>${isIncome?'Sumber Terpakai':'Pos Terpakai'}</small><strong>${count}</strong></div>
    </div>
    ${renderReviewBars(selected)}
-  </section>${renderReviewPopup()}`;
+  </section>${renderStackedReviewPopup()}`;
 }
 function expenseGroupManager(){
  const groups=expenseGroups();
@@ -9718,7 +9753,7 @@ function saveDeletedTransaction(){
  if(next)next.scrollTop=scroll;
  document.querySelector('#tx-search-backdrop #tx-search-input, #review-modal-backdrop [data-review-close], #tx-history-backdrop [data-close-tx-history]')?.focus({preventScroll:true});
 }
-function setView(view){closeBudgetFlowDialog(false);if(view==='transactions'){openTxHistory();return;}if(ui.view!==view){closeFinanceEditor();ui.reviewPopup=null;}ui.txModalOpen=false;ui.txEditId=null;ui.txHistoryOpen=false;ui.txSearchOpen=false;ui.txSearchQuery='';ui.debtEditorOpen=false;ui.debtEditId=null;ui.debtSelected=null;ui.repayEditId=null;ui.comp.menu=null;if(!['dashboard','review','budgets','debts','reports','accounts'].includes(view))return;ui.view=view;render();window.scrollTo({top:0,behavior:'smooth'})}
+function setView(view){closeBudgetFlowDialog(false);if(view==='transactions'){openTxHistory();return;}if(ui.view!==view){closeFinanceEditor();ui.reviewPopup=null;reviewPopupHistory=[];}ui.txModalOpen=false;ui.txEditId=null;ui.txHistoryOpen=false;ui.txSearchOpen=false;ui.txSearchQuery='';ui.debtEditorOpen=false;ui.debtEditId=null;ui.debtSelected=null;ui.repayEditId=null;ui.comp.menu=null;if(!['dashboard','review','budgets','debts','reports','accounts'].includes(view))return;ui.view=view;render();window.scrollTo({top:0,behavior:'smooth'})}
 function demo(){
  if(cloud.signedIn){toast('Keluar dari akun cloud sebelum memuat simulasi.',true);return}
  const lastMonth=currentMonth();
@@ -10678,7 +10713,7 @@ if(x.dataset.txSearch!==undefined){openTxSearch();return;}
  if(x.dataset.nav){setView(x.dataset.nav);return}if(x.dataset.txtype){ui.txType=x.dataset.txtype;render();document.querySelector('[data-txtype="'+ui.txType+'"]')?.focus({preventScroll:true});return}
 if(x.dataset.reviewType){
  if(!['expense','income'].includes(x.dataset.reviewType))return;
- ui.reviewType=x.dataset.reviewType;ui.reviewOpenGroups=[];ui.reviewPopup=null;
+ ui.reviewType=x.dataset.reviewType;ui.reviewOpenGroups=[];ui.reviewPopup=null;reviewPopupHistory=[];
  render();return;
 }
 if(x.dataset.reviewToggleGroup){
@@ -10829,7 +10864,7 @@ if(x.id==='comp-start'||x.id==='comp-end'){
  }
  ui.comp.from=from;ui.comp.to=to;resetTrendFromDonut();render();return;
 }
-if(x.id==='month-input'){ui.reviewPopup=null;ui.txModalOpen=false;ui.txHistoryOpen=false;ui.txSearchOpen=false;ui.txSearchQuery='';let next=x.value||currentMonth(),prev=ui.month;if(next>analysisToday().slice(0,7)){toast('Bulan yang dipilih tidak boleh melewati bulan berjalan.',true);render();return;}if(next>prev&&db.transactions.some(t=>t.date.slice(0,7)===prev)&&!db.reports[prev]&&confirm('Bulan '+monthFmt(prev)+' belum diarsipkan. Simpan laporan bulan ini sebelum berpindah?')){db.reports[prev]=buildReport(prev);save();toast('Arsip '+monthFmt(prev)+' disimpan.')}ui.month=next;ui.incomePieMonth=null;ui.incomeMonthMenuOpen=false;ui.incomeFilter={preset:'month',from:'',to:'',group:null};incomeResetLinkedTrend();ui.txEditId=null;ui.moveEditId=null;ui.comp.preset='month';ui.comp.from='';ui.comp.to='';resetTrendFromDonut();render()}
+if(x.id==='month-input'){ui.reviewPopup=null;reviewPopupHistory=[];ui.txModalOpen=false;ui.txHistoryOpen=false;ui.txSearchOpen=false;ui.txSearchQuery='';let next=x.value||currentMonth(),prev=ui.month;if(next>analysisToday().slice(0,7)){toast('Bulan yang dipilih tidak boleh melewati bulan berjalan.',true);render();return;}if(next>prev&&db.transactions.some(t=>t.date.slice(0,7)===prev)&&!db.reports[prev]&&confirm('Bulan '+monthFmt(prev)+' belum diarsipkan. Simpan laporan bulan ini sebelum berpindah?')){db.reports[prev]=buildReport(prev);save();toast('Arsip '+monthFmt(prev)+' disimpan.')}ui.month=next;ui.incomePieMonth=null;ui.incomeMonthMenuOpen=false;ui.incomeFilter={preset:'month',from:'',to:'',group:null};incomeResetLinkedTrend();ui.txEditId=null;ui.moveEditId=null;ui.comp.preset='month';ui.comp.from='';ui.comp.to='';resetTrendFromDonut();render()}
 if(x.id==='report-month'){ui.month=x.value||currentMonth();render()}
 
 

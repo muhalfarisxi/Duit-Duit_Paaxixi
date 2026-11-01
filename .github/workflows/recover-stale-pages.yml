@@ -1,35 +1,40 @@
-name: Recover stale Pages deployment
+name: Diagnose GitHub Pages deployment lock
 on:
   push:
     branches: [main]
-    paths:
-      - '.github/workflows/recover-stale-pages.yml'
+    paths: ['.github/workflows/recover-stale-pages.yml']
   workflow_dispatch:
 permissions:
   contents: read
   pages: write
+  deployments: write
+  actions: read
 jobs:
-  cancel-stale-pages:
+  inspect:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Cancel the Pages deployment blocking new publishes
+      - name: Inspect Pages and deployment statuses without changing live site
         env:
           GH_TOKEN: ${{ github.token }}
+          STUCK_SHA: 7697d9bc02256f85b4c3278aa279f253abcd7860
         run: |
           set -euo pipefail
-          echo "Cancel stale Pages deployment 7697d9bc02256f85b4c3278aa279f253abcd7860"
-          response_code=$(curl --silent --show-error --location \
-            --output /tmp/pages-cancel-response \
-            --write-out '%{http_code}' \
-            --request POST \
-            --header "Accept: application/vnd.github+json" \
-            --header "Authorization: Bearer $GH_TOKEN" \
-            --header "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/pages/deployments/7697d9bc02256f85b4c3278aa279f253abcd7860/cancel")
-          echo "Pages cancel HTTP status: $response_code"
-          if [[ "$response_code" != "204" ]]; then
-            cat /tmp/pages-cancel-response
-            exit 1
-          fi
-          echo "Stale deployment cancellation accepted."
+          api() { curl -fsSL -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GH_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/$GITHUB_REPOSITORY/$1"; }
+          echo "::group::Pages configuration"
+          api pages | jq '{status,build_type,source,html_url,public}' || true
+          echo "::endgroup::"
+          echo "::group::Latest Pages build"
+          api pages/builds/latest | jq '{status,commit,created_at,updated_at,error}' || true
+          echo "::endgroup::"
+          echo "::group::Recent deployment records"
+          api 'deployments?per_page=100' > /tmp/pages-deployments.json
+          jq '[.[] | {id,sha,environment,created_at,updated_at}] | .[:20]' /tmp/pages-deployments.json
+          echo "::endgroup::"
+          echo "::group::Stale deployment record and statuses"
+          jq --arg sha "$STUCK_SHA" '[.[] | select(.sha==$sha) | {id,sha,environment,created_at,updated_at}]' /tmp/pages-deployments.json
+          for id in $(jq -r --arg sha "$STUCK_SHA" '.[] | select(.sha==$sha) | .id' /tmp/pages-deployments.json); do
+            echo "Deployment ID $id:"
+            api "deployments/$id/statuses?per_page=20" | jq '[.[]|{state,created_at,description}] | .[:12]' || true
+          done
+          echo "::endgroup::"

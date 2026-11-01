@@ -449,186 +449,234 @@ dialog.budget-viz-portal .budget-viz-portal-pos{cursor:pointer}
 @media(prefers-reduced-motion:reduce){.budget-anchor-mode,.budget-anchor-preview,.budget-anchor-partner{animation:none!important;transition:none!important}}
 
 
-/* #134 Header alignment — brand + Javanese date / title / accessible actions.
-   Replaces earlier conflicting 1271px grid and 1490px forced-wrap rules. */
-.topbar.paax-balanced-header{
-  display:grid!important;
-  grid-template-columns:minmax(0,1fr)!important;
-  grid-template-rows:auto auto auto;
-  column-gap:18px;
-  row-gap:13px!important;
-  align-items:center!important;
-  justify-content:stretch!important;
-  padding-top:22px;
-  padding-bottom:20px;
-  min-width:0;
+/* #135 Two-row header, with the login beside the Javanese date.
+   The header logo/date/login and title/period/action are direct grid children. */
+.topbar.paax-balanced-header.paax-header-two-line {
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) auto!important;
+ grid-template-rows:auto minmax(64px,auto)!important;
+ column-gap:clamp(10px,1.5vw,20px)!important;
+ row-gap:12px!important;
+ align-items:center!important;
+ justify-content:stretch!important;
+ width:100%;
+ padding-top:20px;
+ padding-bottom:18px;
 }
-.topbar.paax-balanced-header>.paax-top-brand-row{
-  grid-column:1/-1;
-  grid-row:1;
-  display:flex!important;
-  align-items:center;
-  flex-wrap:wrap!important;
-  justify-content:flex-start;
-  gap:10px 13px!important;
-  width:100%;
-  max-width:100%;
-  min-width:0;
-  margin:0!important;
+.topbar.paax-header-two-line>.paax-top-brand-row{
+ grid-area:1/1/2/-1;
+ display:flex!important;
+ align-items:center!important;
+ justify-content:flex-start!important;
+ flex-wrap:nowrap!important;
+ gap:11px!important;
+ min-width:0;
+ width:100%;
+ margin:0!important;
 }
-.topbar.paax-balanced-header>.paax-header-content{
-  grid-column:1;
-  grid-row:2;
-  width:100%;
-  min-width:0;
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-  overflow:visible;
-  align-self:center;
+.topbar.paax-header-two-line>.paax-top-brand-row>.paaxixi-doodle-kicker{
+ flex:0 0 auto!important;
+ margin:0!important;
+ max-width:none;
 }
-.topbar.paax-balanced-header .paax-header-content .page-title{
-  margin:0!important;
-  max-width:100%;
-  min-width:0;
-  line-height:1.2;
-  overflow-wrap:normal;
+.topbar.paax-header-two-line>.paax-top-brand-row>#header-weton-badge{
+ flex:0 1 auto!important;
+ margin:0;
+ width:max-content!important;
+ min-width:0;
+ max-width:100%!important;
+ overflow:hidden;
 }
-.topbar.paax-balanced-header .paax-header-content #page-subtitle{
-  margin:0;
-  line-height:1.4;
+.topbar.paax-header-two-line #header-weton-badge .paax-weton-label-long{
+ display:inline!important;
+ white-space:nowrap!important;
+ overflow:visible!important;
+ text-overflow:clip!important;
 }
-.topbar.paax-balanced-header>.top-controls{
-  grid-column:1;
-  grid-row:3;
-  display:flex!important;
-  align-items:center!important;
-  justify-content:flex-start!important;
-  flex-wrap:wrap!important;
-  min-width:0;
-  max-width:100%;
-  width:100%;
-  gap:10px!important;
-  margin:1px 0 0!important;
+.topbar.paax-header-two-line #header-weton-badge .paax-weton-label-short{display:none!important}
+.topbar.paax-header-two-line>.paax-top-brand-row>.paax-header-cloud{
+ flex:0 0 auto;
+ display:inline-flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ min-width:160px;
+ max-width:230px;
+ height:45px;
+ min-height:45px;
+ padding:10px 15px;
+ margin:0;
+ border-radius:15px;
+ white-space:nowrap;
+ overflow:hidden;
+ text-overflow:ellipsis;
 }
-.topbar.paax-balanced-header>.top-controls .cloud-state{
-  flex:0 0 auto!important;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-width:175px;
-  max-width:210px!important;
-  min-height:57px;
-  padding:12px 15px;
-  border-radius:17px;
-  line-height:1.3;
-  text-overflow:ellipsis;
-  overflow:hidden;
+.topbar.paax-header-two-line>.paax-header-content{
+ grid-area:2/1/3/2;
+ display:flex!important;
+ flex-direction:column;
+ align-items:flex-start;
+ justify-content:center;
+ gap:3px;
+ width:100%;
+ min-width:0!important;
+ margin:0;
+ padding:0;
+ overflow:visible!important;
 }
-.topbar.paax-balanced-header>.top-controls .month-pill.month-pill-highlight{
-  flex:0 1 auto!important;
-  width:clamp(285px,23vw,333px)!important;
-  max-width:100%;
-  min-width:0;
-  min-height:70px;
-  margin:0!important;
-  padding:10px 15px!important;
-  box-sizing:border-box;
+.topbar.paax-header-two-line>.paax-header-content .page-title,
+.topbar.paax-header-two-line>.paax-header-content .page-title.pax-page-title{
+ display:flex!important;
+ flex-wrap:nowrap!important;
+ align-items:center;
+ gap:clamp(4px,.6vw,9px)!important;
+ width:max-content;
+ max-width:100%;
+ min-width:0;
+ margin:0!important;
+ color:#173e73;
+ font-size:clamp(22px,2.05vw,31px)!important;
+ line-height:1.23!important;
+ letter-spacing:-.6px;
+ white-space:nowrap;
 }
-.topbar.paax-balanced-header>.top-controls .month-pill .budget-ux-period-copy{
-  flex:1;
-  max-width:none!important;
-  min-width:0;
+.topbar.paax-header-two-line>.paax-header-content .pax-page-icon{
+ flex:0 0 auto;
+ width:clamp(34px,2.7vw,43px);
+ height:clamp(34px,2.7vw,43px);
+ font-size:clamp(18px,1.65vw,23px);
+ border-radius:13px;
 }
-.topbar.paax-balanced-header>.top-controls .month-pill .budget-ux-period-name{
-  overflow:visible;
-  text-overflow:clip;
-  font-size:16px;
+.topbar.paax-header-two-line>.paax-header-content .pax-page-words{
+ flex:0 1 auto;
+ min-width:0;
+ max-width:100%;
+ overflow-wrap:normal;
+ white-space:nowrap;
 }
-.topbar.paax-balanced-header>.top-controls #top-add{
-  flex:0 0 auto!important;
-  min-height:57px;
-  min-width:190px;
-  max-width:100%;
-  padding:12px 16px!important;
-  border-radius:17px;
-  white-space:nowrap;
-  box-sizing:border-box;
+.topbar.paax-header-two-line>.paax-header-content .pax-title-sparkle{
+ flex:0 0 auto;
+ font-size:clamp(13px,1.15vw,19px);
 }
-.topbar.paax-balanced-header #header-weton-badge{
-  flex:0 0 auto!important;
-  width:max-content!important;
-  max-width:100%!important;
-  margin:0;
-  overflow:hidden;
+.topbar.paax-header-two-line>.paax-header-content #page-subtitle{
+ margin:0;
+ line-height:1.4;
 }
-.topbar.paax-balanced-header #header-weton-badge .paax-weton-label-long{
-  display:inline!important;
-  white-space:normal!important;
-  overflow-wrap:normal;
-  line-height:1.4;
+.topbar.paax-header-two-line>.top-controls{
+ grid-area:2/2/3/3;
+ display:flex!important;
+ flex-direction:row!important;
+ align-items:center!important;
+ justify-content:flex-end!important;
+ flex-wrap:nowrap!important;
+ width:auto!important;
+ min-width:0;
+ max-width:100%;
+ margin:0!important;
+ gap:clamp(7px,1vw,12px)!important;
 }
-.topbar.paax-balanced-header #header-weton-badge .paax-weton-label-short{display:none!important}
-@media(min-width:1690px){
-  .topbar.paax-balanced-header{
-    grid-template-columns:minmax(0,1fr) auto!important;
-    grid-template-rows:auto auto;
-    row-gap:18px!important;
-  }
-  .topbar.paax-balanced-header>.paax-header-content{grid-column:1;grid-row:2}
-  .topbar.paax-balanced-header>.top-controls{
-    grid-column:2;grid-row:2;
-    width:auto;
-    justify-content:flex-end!important;
-    flex-wrap:nowrap!important;
-    margin:0!important;
-  }
-  .topbar.paax-balanced-header>.top-controls .month-pill.month-pill-highlight{width:295px!important}
+.topbar.paax-header-two-line>.top-controls>.month-pill.month-pill-highlight{
+ flex:0 0 auto!important;
+ grid-area:auto!important;
+ box-sizing:border-box;
+ min-width:0;
+ max-width:100%;
+ width:clamp(220px,20vw,290px)!important;
+ min-height:65px;
+ height:67px;
+ margin:0!important;
+ padding:8px 10px!important;
+ gap:8px;
 }
-@media(max-width:1100px){
-  .topbar.paax-balanced-header>.top-controls{
-    display:grid!important;
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-    gap:9px!important;
-  }
-  .topbar.paax-balanced-header>.top-controls .month-pill.month-pill-highlight{
-    grid-column:1/-1;
-    grid-row:1;
-    width:100%!important;
-    max-width:100%;
-    min-height:68px;
-  }
-  .topbar.paax-balanced-header>.top-controls .cloud-state{
-    grid-column:1;grid-row:2;
-    min-width:0;
-    width:100%;
-    max-width:100%!important;
-    min-height:48px;
-    white-space:normal;
-  }
-  .topbar.paax-balanced-header>.top-controls #top-add{
-    grid-column:2;grid-row:2;
-    min-width:0;
-    width:100%;
-    min-height:48px;
-  }
+.topbar.paax-header-two-line .month-pill .month-pill-symbol{
+ flex:0 0 36px!important;
+ width:36px!important;
+ height:36px!important;
+ font-size:19px!important;
 }
-@media(max-width:620px){
-  .topbar.paax-balanced-header{
-    padding-top:17px;
-    padding-bottom:16px;
-    row-gap:12px!important;
-  }
-  .topbar.paax-balanced-header>.paax-top-brand-row{gap:8px!important}
-  .topbar.paax-balanced-header>.paax-header-content .page-title{font-size:clamp(23px,6vw,30px)}
-  .topbar.paax-balanced-header>.top-controls .cloud-state{font-size:11px}
-  .topbar.paax-balanced-header>.top-controls #top-add{
-    font-size:12px;
-    padding-inline:8px!important;
-    white-space:normal;
-  }
-  .topbar.paax-balanced-header #header-weton-badge{
-    padding:7px 10px;
-    justify-content:flex-start;
-  }
+.topbar.paax-header-two-line .month-pill .budget-ux-period-copy{
+ flex:1 1 auto;
+ max-width:none!important;
+ min-width:0;
+ gap:1px;
+}
+.topbar.paax-header-two-line .month-pill .budget-ux-period-top{font-size:9.5px}
+.topbar.paax-header-two-line .month-pill .budget-ux-period-name{
+ font-size:clamp(12px,1.12vw,16px)!important;
+ overflow:hidden;
+ text-overflow:ellipsis;
+ white-space:nowrap;
+}
+.topbar.paax-header-two-line .month-pill .budget-ux-period-hint{font-size:9.5px}
+.topbar.paax-header-two-line .month-pill .budget-ux-period-caret{
+ flex:0 0 26px;
+ width:26px!important;
+ min-width:26px;
+ height:28px!important;
+}
+.topbar.paax-header-two-line>.top-controls>#top-add{
+ flex:0 0 auto!important;
+ grid-area:auto!important;
+ width:clamp(152px,11.6vw,190px)!important;
+ min-width:0!important;
+ min-height:52px;
+ margin:0;
+ padding:11px 10px!important;
+ border-radius:15px;
+ white-space:nowrap;
+ font-size:clamp(11px,.88vw,13px)!important;
+}
+@media(min-width:1081px) and (max-width:1370px){
+ .topbar.paax-header-two-line>.top-controls>.month-pill.month-pill-highlight{width:235px!important}
+ .topbar.paax-header-two-line>.top-controls>#top-add{width:158px!important}
+ .topbar.paax-header-two-line>.paax-header-content .page-title.pax-page-title{font-size:clamp(22px,1.98vw,27px)!important}
+ .topbar.paax-header-two-line #header-weton-badge .paax-weton-label-long{display:none!important}
+ .topbar.paax-header-two-line #header-weton-badge .paax-weton-label-short{display:inline!important;white-space:nowrap}
+}
+@media(max-width:1080px){
+ .topbar.paax-header-two-line>.paax-top-brand-row{flex-wrap:wrap!important}
+ .topbar.paax-header-two-line #header-weton-badge .paax-weton-label-long{display:none!important}
+ .topbar.paax-header-two-line #header-weton-badge .paax-weton-label-short{display:inline!important;white-space:nowrap}
+ .topbar.paax-header-two-line{
+   grid-template-columns:minmax(0,1fr)!important;
+   grid-template-rows:auto auto auto!important;
+ }
+ .topbar.paax-header-two-line>.paax-header-content{grid-area:2/1/3/2}
+ .topbar.paax-header-two-line>.top-controls{
+   grid-area:3/1/4/2;
+   justify-content:flex-start!important;
+ }
+ .topbar.paax-header-two-line>.top-controls>.month-pill.month-pill-highlight{width:clamp(218px,40vw,320px)!important}
+ .topbar.paax-header-two-line>.top-controls>#top-add{width:170px!important}
+}
+@media(max-width:630px){
+ .topbar.paax-header-two-line{row-gap:12px!important;padding-top:16px;padding-bottom:16px}
+ .topbar.paax-header-two-line>.paax-top-brand-row{gap:8px!important}
+ .topbar.paax-header-two-line>.paax-top-brand-row>.paax-header-cloud{
+   height:37px;min-height:37px;min-width:0;max-width:100%;font-size:10px;padding:7px 11px
+ }
+ .topbar.paax-header-two-line>.paax-header-content .page-title.pax-page-title{
+   font-size:clamp(21px,5.4vw,27px)!important;
+   flex-wrap:wrap!important;
+ }
+ .topbar.paax-header-two-line>.top-controls{
+   display:grid!important;
+   grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+   gap:9px!important;
+ }
+ .topbar.paax-header-two-line>.top-controls>.month-pill.month-pill-highlight{
+   grid-area:1/1/2/-1!important;
+   width:100%!important;
+   min-height:65px;
+ }
+ .topbar.paax-header-two-line>.top-controls>#top-add{
+   grid-area:2/1/3/-1!important;
+   width:100%!important;
+   min-height:46px;
+   font-size:13px!important;
+ }
+ .topbar.paax-header-two-line>.paax-top-brand-row>#header-weton-badge{
+   flex:0 1 auto!important;
+   max-width:100%!important;
+   padding:6px 9px;
+ }
 }

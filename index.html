@@ -6323,6 +6323,28 @@ body:has(.tx-search-backdrop){overflow:hidden}
 @media(max-width:600px){#content .budget-editor-pos-actions{width:100%;justify-content:flex-end}#content .budget-editor-group-body{padding:10px}#content .budget-work-tabs-two button{font-size:12px}}
 @media(prefers-reduced-motion:reduce){#content .budget-editor-chevron::before{transition:none}}
 
+/* #128 Popup pilihan tindakan per pos */
+.budget-pos-action-choices{display:grid;gap:10px}
+.budget-pos-action-baseline{display:flex;flex-direction:column;gap:4px;padding:12px;border:1px solid #dce7f6;border-radius:13px;background:#f4f8ff}
+.budget-pos-action-baseline strong{font:900 15px/1.3 Nunito,sans-serif;color:#255181}
+.budget-pos-action-baseline span{font:800 11px/1.45 Nunito,sans-serif;color:#6e86a2}
+.budget-pos-action-choices>button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 12px;border:1.5px solid #d9e7f7;border-radius:14px;background:linear-gradient(115deg,#fff,#f7faff);color:#24527d;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s}
+.budget-pos-action-choices>button:hover:not(:disabled){transform:translateY(-2px);border-color:#85b4ed;box-shadow:0 7px 15px #24568e20}
+.budget-pos-action-choices>button:disabled{cursor:not-allowed;opacity:.49;filter:grayscale(.3)}
+.budget-pos-choice-icon{flex:none;display:grid;place-items:center;font-size:23px;width:43px;height:43px;border-radius:12px;background:#e8f3ff}
+.budget-pos-action-choices>button>span:nth-child(2){display:flex;flex:1;flex-direction:column;gap:5px;min-width:0}
+.budget-pos-action-choices button strong{font:900 13px/1.3 Nunito,sans-serif}
+.budget-pos-action-choices button small{font:750 11px/1.45 Nunito,sans-serif;color:#7690aa}
+.budget-pos-action-choices>button>span:last-child{font-size:19px}
+.budget-initial-form-notice{display:flex;flex-direction:column;gap:5px;padding:12px;border:1px solid #f2ddb6;border-radius:12px;background:#fff8ed}
+.budget-initial-form-notice.locked{border-color:#c8dff8;background:#f0f6ff}
+.budget-initial-form-notice strong{font:900 13px/1.3 Nunito,sans-serif;color:#855d31}
+.budget-initial-form-notice small{font:750 11px/1.5 Nunito,sans-serif;color:#6b87a5}
+.budget-base-display{display:block;font:900 19px/1.3 Nunito,sans-serif;color:#275786;margin:4px 0}
+.budget-initial-confirm{display:flex!important;flex-direction:row!important;align-items:flex-start;gap:9px;font-size:11px!important;line-height:1.55!important}
+.budget-initial-confirm input{width:17px;height:17px;flex:none;margin:2px 0 0}
+@media(prefers-reduced-motion:reduce){.budget-pos-action-choices>button{transition:none}}
+
 </style>
 </head>
 <body>
@@ -10273,7 +10295,7 @@ function renderBudgets(){
  </div>`;
 }
 /* Popup mengedit anggaran awal dalam kelompok, alih anggaran, atau tambah/kurangi. */
-function budgetFlowDialogMarkup(kind,id=null){
+function budgetFlowDialogMarkup(kind,id=null,preselect=null){
  const group=kind==='group'?expenseGroups().find(g=>g.id===id):null;
  const move=kind==='move'&&id?db.budgetMoves.find(m=>m.id===id):null;
  const adjustment=kind==='adjust'&&id?budgetAdjustmentsForMonth().find(a=>a.id===id):null;
@@ -10375,8 +10397,8 @@ function budgetFlowDialogMarkup(kind,id=null){
   heading=move?'Edit Pengalihan':'Alihkan Anggaran';icon='🔀';
   description='Pengalihan hanya mengubah alokasi pos, bukan saldo rekening.';
   const opts=expenses().filter(c=>effectiveBudget(c.id)-spentByCat(c.id)>0||move?.from===c.id)
-   .map(c=>`<option value="${h(c.id)}" ${move?.from===c.id?'selected':''}>${h(c.group)} · ${h(c.label)} (Sisa ${money(effectiveBudget(c.id)-spentByCat(c.id))})</option>`).join('');
-  const dest=expenses().map(c=>`<option value="${h(c.id)}" ${move?.to===c.id?'selected':''}>${h(c.group)} · ${h(c.label)}</option>`).join('');
+   .map(c=>`<option value="${h(c.id)}" ${move?.from===c.id||!move&&preselect===c.id?'selected':''}>${h(c.group)} · ${h(c.label)} (Sisa ${money(effectiveBudget(c.id)-spentByCat(c.id))})</option>`).join('');
+  const dest=expenses().map(c=>`<option value="${h(c.id)}" ${move?.to===c.id||!move&&preselect&&c.id!==preselect&&c.id===expenses().find(x=>x.id!==preselect)?.id?'selected':''}>${h(c.group)} · ${h(c.label)}</option>`).join('');
   body=`<form id="move-budget-form" class="budget-flow-form"><input type="hidden" name="editId" value="${h(move?.id||'')}">
     <label>Pos Asal (Sisa Anggaran)<select name="from" class="field" required>${opts}</select></label>
     ${!opts?'<p class="budget-flow-empty-hint">Belum ada pos dengan sisa anggaran untuk dialihkan.</p>':''}
@@ -10390,7 +10412,7 @@ function budgetFlowDialogMarkup(kind,id=null){
   if(id&&!adjustment)return '';
   heading=adjustment?'Edit Tambahan / Pengurangan':'Tambah / Kurangi Anggaran';icon='➕➖';
   description='Perubahan dicatat terpisah dari anggaran awal dan pengalihan.';
-  const opts=expenses().map(c=>`<option value="${h(c.id)}" ${adjustment?.categoryId===c.id?'selected':''}>${h(c.group)} · ${h(c.label)}</option>`).join('');
+  const opts=expenses().map(c=>`<option value="${h(c.id)}" ${adjustment?.categoryId===c.id||!adjustment&&preselect===c.id?'selected':''}>${h(c.group)} · ${h(c.label)}</option>`).join('');
   body=`<form id="budget-adjustment-form" class="budget-flow-form">
    <input type="hidden" name="editId" value="${h(adjustment?.id||'')}">
    <label>Jenis Perubahan<select class="field" name="type" required>
@@ -10414,10 +10436,11 @@ function budgetFlowDialogMarkup(kind,id=null){
   </section>
  </div>`;
 }
-let budgetFlowFocus=null;
-function openBudgetFlowDialog(kind,id=null){
+let budgetFlowFocus=null,budgetPopupBackPosId=null;
+function openBudgetFlowDialog(kind,id=null,preselect=null){
  if(ui.view!=='budgets')return;
- const html=budgetFlowDialogMarkup(kind,id);
+ if(['move','adjust'].includes(kind)&&!budgetIsEstablished())return toast(budgetLockMessage(),true);
+ const html=budgetFlowDialogMarkup(kind,id,preselect);
  if(!html)return toast('Data anggaran tidak ditemukan.',true);
  closeBudgetFlowDialog(false);
  budgetFlowFocus=document.activeElement;
@@ -10430,7 +10453,13 @@ function closeBudgetFlowDialog(restore=true){
  const current=document.getElementById('budget-flow-backdrop');
  if(!current)return;
  const groupId=current.dataset.flowKind==='group'?current.dataset.flowId:null;
+ const oldKind=current.dataset.flowKind,returnPos=budgetPopupBackPosId;
+ budgetPopupBackPosId=null;
  current.remove();
+ if(restore&&returnPos&&oldKind!=='pos-actions'){
+  openBudgetFlowDialog('pos-actions',returnPos);
+  return;
+ }
  if(restore){
   const fallback=groupId?[...document.querySelectorAll('[data-budget-open-group]')].find(el=>el.dataset.budgetOpenGroup===groupId):null;
   (budgetFlowFocus?.isConnected?budgetFlowFocus:fallback)?.focus({preventScroll:true});

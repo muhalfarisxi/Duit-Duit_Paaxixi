@@ -6317,6 +6317,8 @@ function render(){
  const oldTrendScroll=document.querySelector('.trend-scroll')?.scrollLeft;
  const oldSeriesScroll=document.querySelector('#trend-analysis .trend-series-buttons')?.scrollLeft;
  const oldAiScroll=document.querySelector('.paax-ai-dialog-body')?.scrollTop||0;
+ const oldBudgetHistoryScroll=document.querySelector('.budget-work-history-list')?.scrollTop;
+ const oldReviewGroupsScroll=document.querySelector('#content .review-group-list')?.scrollTop;
  const oldGroupScroll=Object.fromEntries([...document.querySelectorAll('[data-group-scroll-track]')].map(track=>[track.dataset.groupScrollTrack,track.scrollLeft]));
  const expandedDebtIds=[...document.querySelectorAll('[data-debt-quick-id]')].filter(card=>card.querySelector('details[open]')).map(card=>card.dataset.debtQuickId);
  labelNav();
@@ -6333,6 +6335,10 @@ function render(){
   if(Number.isFinite(old))track.scrollLeft=old;
  });
  requestAnimationFrame(updateGroupScrollArrows);
+ if(Number.isFinite(oldBudgetHistoryScroll)&&document.querySelector('.budget-work-history-list'))
+  document.querySelector('.budget-work-history-list').scrollTop=oldBudgetHistoryScroll;
+ if(Number.isFinite(oldReviewGroupsScroll)&&document.querySelector('#content .review-group-list'))
+  document.querySelector('#content .review-group-list').scrollTop=oldReviewGroupsScroll;
  const seriesScroller=document.querySelector('#trend-analysis .trend-series-buttons');
  if(seriesScroller&&oldSeriesScroll!==undefined)seriesScroller.scrollLeft=oldSeriesScroll;
  requestAnimationFrame(updateTrendSeriesArrows);
@@ -8479,7 +8485,7 @@ function renderTxHistoryPopup(){
      <p id="tx-history-desc">${h(monthFmt(ui.month))} · ${rows.length} transaksi sesuai filter</p></div>
     <button type="button" class="tx-entry-close" data-close-tx-history aria-label="Tutup riwayat transaksi">✕</button>
    </div>
-   <div class="tx-history-content">
+   <div class="tx-history-content" role="region" tabindex="0" aria-label="Daftar seluruh transaksi, gulir untuk melihat transaksi lainnya">
     <div class="tx-history-toolbar"><div class="tx-history-filter-tabs" role="group" aria-label="Filter Jenis Transaksi">
       ${filters.map(([key,symbol,label])=>`<button type="button" data-tx-history-kind="${key}" class="tx-history-kind-btn tx-history-kind-${key} ${ui.txFilter===key?'active':''}" aria-pressed="${ui.txFilter===key?'true':'false'}"><span aria-hidden="true" class="tx-history-kind-icon">${symbol}</span><span class="tx-history-kind-label">${label}</span><span class="tx-history-kind-count" aria-label="${counts[key]} transaksi">${counts[key]}</span></button>`).join('')}
     </div></div>
@@ -8869,7 +8875,7 @@ function renderReviewBars(transactions){
   <div class="review-chart-legend"><span><i class="review-legend-block"></i>${kind}</span>
    ${isIncome?'<span>Persentase berdasarkan total pemasukan terfilter</span>':'<span><i class="review-legend-marker"></i>Batas Anggaran Bulanan Kelompok / Pos</span>'}
    <span>Kelompok & Pos: Terbesar → Terkecil</span></div>
-  <div class="review-group-list">${cards}</div>
+  <div class="review-group-list" role="region" tabindex="0" aria-label="Kelompok transaksi, gulir untuk melihat kelompok lainnya">${cards}</div>
 
  </div>`;
 }
@@ -9167,7 +9173,7 @@ function budgetHistoryRows(kind){
  if(!items.length)return `<div class="budget-work-empty"><span aria-hidden="true">🗂️</span>
   <strong>Belum ada riwayat pada ${h(monthFmt(ui.month))}</strong>
   <p>Perubahan yang kamu catat akan tersimpan dan ditampilkan di sini.</p></div>`;
- return `<div class="budget-work-history-list">${items.map(item=>{
+ return `<div class="budget-work-history-list" role="region" tabindex="0" aria-label="Daftar riwayat anggaran, geser untuk melihat catatan lainnya">${items.map(item=>{
   if(kind==='transfer')return `<article class="budget-work-history-item">
    <span class="budget-history-icon transfer">🔀</span>
    <div class="budget-history-info"><strong>${h(cat(item.from)?.label||'Pos dihapus')} → ${h(cat(item.to)?.label||'Pos dihapus')}</strong>
@@ -10516,6 +10522,7 @@ if(x.hasAttribute('data-add-expense-group')){openFinanceEditor('group');return;}
  if(expenseGroups().length<=1)return toast('Minimal harus ada satu kelompok pengeluaran.',true);
  const pos=expenses().filter(c=>c.group===g.name);
  if(pos.length)return toast('Pindahkan dahulu '+pos.length+' pos dari '+g.name+' ke kelompok lain sebelum menghapusnya.',true);
+ closeBudgetFlowDialog(false);
  if(await confirmDelete('Hapus kelompok "'+g.name+'"? Kelompok ini sudah tidak berisi pos.')){
    db.expenseGroups=db.expenseGroups.filter(x=>x.id!==g.id);
    if(ui.expenseGroupEditId===g.id)ui.expenseGroupEditId=null;

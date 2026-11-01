@@ -5249,6 +5249,71 @@ body:has(.tx-search-backdrop){overflow:hidden}
 .budget-manager-card .budget-manager-head{z-index:2}
 .budget-manager-card .budget-manager-stats{z-index:0}
 
+
+/* #114 Horizontal group navigation for large/custom category counts. */
+#composition-card .group-scroll-rail,
+.income-pie-card .group-scroll-rail{
+ display:flex;align-items:center;gap:5px;min-width:0;max-width:100%;width:100%;
+}
+#composition-card .comp-direct-groups.group-scroll-track,
+.income-pie-card .income-filter-groups.group-scroll-track{
+ display:flex!important;flex-wrap:nowrap!important;align-items:center;
+ min-width:0;max-width:100%;width:100%;flex:1 1 0;
+ overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;
+ -webkit-overflow-scrolling:touch;touch-action:pan-x;
+ scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:#adcae6 transparent;
+ scroll-padding-inline:8px;gap:7px!important;box-sizing:border-box;
+ padding:7px 3px 10px!important;margin:0!important;
+}
+#composition-card .comp-direct-groups.group-scroll-track{
+ border-bottom:1px solid #e4edf9;
+}
+.income-pie-card .income-filter-groups.group-scroll-track{
+ border-bottom:1px solid #d7eee1;
+}
+#composition-card .comp-direct-groups.group-scroll-track>.comp-filter-chip,
+.income-pie-card .income-filter-groups.group-scroll-track>.income-group-chip{
+ flex:0 0 auto!important;width:max-content;max-width:none;
+ white-space:nowrap;scroll-snap-align:start;
+}
+#composition-card .group-scroll-arrow,
+.income-pie-card .group-scroll-arrow{
+ flex:0 0 30px;display:grid;place-items:center;
+ width:30px;height:34px;padding:0;border:1px solid #cddff8;
+ background:linear-gradient(135deg,#f4f8ff,#e7f0ff);
+ border-radius:10px;color:#2860ab;
+ font:900 24px/1 Nunito,sans-serif;cursor:pointer;
+ transition:transform .18s,background .18s,opacity .18s,box-shadow .18s;
+}
+.income-pie-card .group-scroll-arrow{
+ border-color:#b8e5cc;background:linear-gradient(135deg,#f4fff8,#e5f8ed);
+ color:#15815a;
+}
+#composition-card .group-scroll-arrow[hidden],
+.income-pie-card .group-scroll-arrow[hidden]{display:none!important}
+#composition-card .group-scroll-arrow:disabled,
+.income-pie-card .group-scroll-arrow:disabled{opacity:.35;cursor:default;box-shadow:none}
+#composition-card .group-scroll-arrow:not(:disabled):hover,
+.income-pie-card .group-scroll-arrow:not(:disabled):hover{
+ transform:translateY(-1px);box-shadow:0 4px 10px #1f688d1f;
+}
+#composition-card .group-scroll-arrow:focus-visible,
+.income-pie-card .group-scroll-arrow:focus-visible,
+#composition-card .group-scroll-track:focus-visible,
+.income-pie-card .group-scroll-track:focus-visible{
+ outline:2px solid #74b5de;outline-offset:2px;
+}
+@media(max-width:540px){
+ #composition-card .group-scroll-arrow,
+ .income-pie-card .group-scroll-arrow{flex-basis:26px;width:26px;height:31px;font-size:22px}
+ #composition-card .comp-direct-groups.group-scroll-track,
+ .income-pie-card .income-filter-groups.group-scroll-track{gap:5px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #composition-card .group-scroll-arrow,.income-pie-card .group-scroll-arrow{transition:none!important}
+ #composition-card .group-scroll-track,.income-pie-card .group-scroll-track{scroll-behavior:auto}
+}
+
 </style>
 </head>
 <body>
@@ -5839,6 +5904,7 @@ function render(){
  const oldTrendScroll=document.querySelector('.trend-scroll')?.scrollLeft;
  const oldSeriesScroll=document.querySelector('#trend-analysis .trend-series-buttons')?.scrollLeft;
  const oldAiScroll=document.querySelector('.paax-ai-dialog-body')?.scrollTop||0;
+ const oldGroupScroll=Object.fromEntries([...document.querySelectorAll('[data-group-scroll-track]')].map(track=>[track.dataset.groupScrollTrack,track.scrollLeft]));
  const expandedDebtIds=[...document.querySelectorAll('[data-debt-quick-id]')].filter(card=>card.querySelector('details[open]')).map(card=>card.dataset.debtQuickId);
  labelNav();
  document.getElementById('content').innerHTML=({dashboard:renderDash,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])()+renderTxHistoryPopup()+renderTxSearchPopup()+renderTxModal()+renderTrendRangePopup()+renderIncomeTrendRangePopup()+renderIncomeMonthDialog()+renderDebtEditorPopup()+renderRepayPopup();
@@ -5849,6 +5915,11 @@ function render(){
  paxDecoratePopups(document.getElementById('content'));
  expandedDebtIds.forEach(id=>{const card=[...document.querySelectorAll('[data-debt-quick-id]')].find(x=>x.dataset.debtQuickId===id);card?.querySelector('details')?.setAttribute('open','');});
  paxAnimateSaved();
+ document.querySelectorAll('[data-group-scroll-track]').forEach(track=>{
+  const old=oldGroupScroll[track.dataset.groupScrollTrack];
+  if(Number.isFinite(old))track.scrollLeft=old;
+ });
+ requestAnimationFrame(updateGroupScrollArrows);
  const seriesScroller=document.querySelector('#trend-analysis .trend-series-buttons');
  if(seriesScroller&&oldSeriesScroll!==undefined)seriesScroller.scrollLeft=oldSeriesScroll;
  requestAnimationFrame(updateTrendSeriesArrows);
@@ -6066,6 +6137,32 @@ function renderCompositionQuickBar(){
   '<label>Selesai <input id="comp-end" type="date" max="'+h(analysisToday())+'" value="'+h(analysisDates().to)+'"></label></div>':'';
  return '<div class="comp-direct-period"><div class="comp-period-buttons" role="group" aria-label="Pilih periode pengeluaran">'+buttons+'</div>'+dates+'</div>';
 }
+
+/* #114 Navigasi horizontal untuk daftar kelompok pemasukan dan pengeluaran. */
+function renderGroupScrollRail(kind,groupButtons,trackClass,label){
+ return '<div class="group-scroll-rail group-scroll-'+kind+'" data-group-rail="'+kind+'">'+
+ '<button type="button" class="group-scroll-arrow group-scroll-prev" data-group-scroll="'+kind+'" data-group-scroll-dir="-1" aria-label="Geser kelompok ke kiri" title="Kelompok sebelumnya" hidden>‹</button>'+
+ '<div class="'+trackClass+' group-scroll-track" role="group" tabindex="0" aria-label="'+label+'" data-group-scroll-track="'+kind+'">'+groupButtons+'</div>'+
+ '<button type="button" class="group-scroll-arrow group-scroll-next" data-group-scroll="'+kind+'" data-group-scroll-dir="1" aria-label="Geser kelompok ke kanan" title="Kelompok berikutnya" hidden>›</button>'+
+ '</div>';
+}
+function updateGroupScrollArrows(){
+ document.querySelectorAll('[data-group-rail]').forEach(rail=>{
+  const track=rail.querySelector('[data-group-scroll-track]');
+  if(!track)return;
+  const prev=rail.querySelector('.group-scroll-prev'),next=rail.querySelector('.group-scroll-next');
+  if(!prev||!next)return;
+  const canScroll=track.scrollWidth>track.clientWidth+2;
+  prev.hidden=!canScroll;next.hidden=!canScroll;
+  prev.disabled=!canScroll||track.scrollLeft<=2;
+  next.disabled=!canScroll||track.scrollLeft+track.clientWidth>=track.scrollWidth-2;
+ });
+}
+document.addEventListener('scroll',event=>{
+ if(event.target?.matches?.('[data-group-scroll-track]'))updateGroupScrollArrows();
+},true);
+window.addEventListener('resize',updateGroupScrollArrows);
+
 function renderCompositionControls(){
  const c=ui.comp,groupList=expenseGroups(),active=c.groups?.length===1?c.groups[0]:null;
  const choices='<button type="button" class="comp-filter-chip comp-all-chip" data-comp-quick-group="all" aria-pressed="'+(!active)+'">✨ Semua Kelompok</button>'+
@@ -6073,7 +6170,7 @@ function renderCompositionControls(){
    const color=/^#[0-9a-f]{6}$/i.test(g.color||'')?g.color:'#2563eb';
    return '<button type="button" class="comp-filter-chip comp-group-colored" style="--comp-group-color:'+color+'" data-comp-quick-group="'+h(g.id)+'" aria-pressed="'+(active===g.id)+'" title="Lihat pos '+h(g.name)+'">'+pickSymbol(g.name,g.name)+' '+h(g.name)+'</button>';
   }).join('');
- return '<div class="comp-direct-groups" role="group" aria-label="Pilih kelompok pengeluaran">'+choices+'</div>';
+ return renderGroupScrollRail('expense',choices,'comp-direct-groups','Pilih kelompok pengeluaran — geser untuk melihat kelompok lain');
 }
 
 /* #065 Komposisi Pengeluaran interaktif, menjaga perhitungan dan filter yang sudah ada. */
@@ -7283,7 +7380,7 @@ function renderIncomeFilterBar(){
  const choices='<button type="button" class="income-group-chip" data-income-group="" aria-pressed="'+(!selected)+'">✨ Semua Kelompok</button>'+groups.map((g,i)=>
   '<button type="button" class="income-group-chip" style="--income-group-color:'+incomePalette[i%incomePalette.length]+'" data-income-group="'+h(g)+'" aria-pressed="'+(selected===g)+'">'+h(g)+'</button>').join('');
  return '<div class="income-linked-filters"><div class="income-filter-presets" role="group" aria-label="Filter periode komposisi pemasukan">'+chips+'</div>'+fields+
-  '<div class="income-filter-groups" role="group" aria-label="Filter kelompok pemasukan">'+choices+'</div>'+
+  renderGroupScrollRail('income',choices,'income-filter-groups','Filter kelompok pemasukan — geser untuk melihat kelompok lain')+
   '<div class="income-filter-active">🗓️ '+h(incomeFilterLabel())+(selected?' · 🧩 '+h(selected):' · Semua kelompok')+'</div></div>';
 }
 function renderIncomeTrendSeries(){
@@ -9210,6 +9307,15 @@ document.addEventListener('pointerdown',event=>{
  if(ui.incomeMonthMenuOpen&&!event.target.closest('.income-month-picker')&&!event.target.closest('#income-month-menu'))dismissIncomeMonthMenu();
 });
 document.addEventListener('keydown',event=>{
+
+ if((event.key==='ArrowLeft'||event.key==='ArrowRight')&&event.target?.closest?.('[data-group-rail]')){
+  const track=event.target.closest('[data-group-rail]').querySelector('[data-group-scroll-track]');
+  if(track&&track.scrollWidth>track.clientWidth+2){
+   event.preventDefault();
+   track.scrollBy({left:(event.key==='ArrowRight'?1:-1)*Math.max(100,track.clientWidth*.42),behavior:'smooth'});
+   return;
+  }
+ }
  if(event.key==='Escape'&&document.querySelector('.review-export-wrap.open')){event.preventDefault();closeReviewExportMenu(true);return;}
  if(paaxAiUi.open&&event.key==='Escape'){event.preventDefault();closePaaxAiInsight();return;}
  if(ui.incomeTrendRangeOpen){if(event.key==='Escape'){event.preventDefault();dismissIncomeTrendRange();}return;}
@@ -9321,6 +9427,14 @@ document.addEventListener('toggle',event=>{
 },true);
 
 document.addEventListener('click',async e=>{
+ const groupArrow=e.target.closest?.('[data-group-scroll]');
+ if(groupArrow){
+  const track=groupArrow.closest('[data-group-rail]')?.querySelector('[data-group-scroll-track]');
+  if(track){const step=Math.max(150,Math.round(track.clientWidth*.72));
+   track.scrollBy({left:(Number(groupArrow.dataset.groupScrollDir)||1)*step,behavior:'smooth'});
+  }
+  return;
+ }
 
  const pointPiece=e.target.closest?.('[data-point-pie-choice]');
  if(pointPiece&&ui.reviewPopup&&['trend-point','income-month','income-year'].includes(ui.reviewPopup.type)){

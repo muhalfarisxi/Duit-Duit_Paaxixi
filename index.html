@@ -6199,6 +6199,91 @@ body:has(.tx-search-backdrop){overflow:hidden}
  }
 }
 
+
+/* #126 CTA yang semula baru ditemukan setelah scroll, kini di kanan atas popup. */
+.review-modal-top:has(.pax-popup-header-controls),
+.tx-history-dialog .tx-entry-heading:has(.pax-popup-header-controls),
+.budget-alert-dialog-header:has(.pax-popup-header-controls){
+ position:relative;align-items:center;gap:10px 14px;
+}
+.pax-popup-header-controls{
+ display:flex;align-items:center;justify-content:flex-end;gap:9px;
+ flex:0 0 auto;min-width:0;margin-left:auto;
+}
+.pax-popup-header-actions{
+ display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;
+ gap:7px;min-width:0;
+}
+.pax-popup-header-controls .pax-popup-header-cta{
+ display:inline-flex;align-items:center;justify-content:center;gap:6px;
+ box-sizing:border-box;min-height:37px;max-width:min(100%,325px);
+ padding:8px 12px;border-radius:12px;white-space:normal;text-align:center;
+ font:900 11px/1.28 Nunito,sans-serif;cursor:pointer;
+ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
+}
+.pax-popup-header-controls .pax-popup-header-cta:hover{transform:translateY(-2px)}
+.pax-popup-header-controls .pax-popup-header-cta:focus-visible{
+ outline:3px solid #83b9f6;outline-offset:2px;
+}
+.pax-popup-header-controls .pax-popup-header-cta.budget-nav-highlight{
+ min-height:38px;padding-inline:12px;font-size:11px;
+ box-shadow:0 4px 12px #143e7b27;
+}
+.pax-popup-header-controls .pax-popup-header-cta.debt-manage-cta{
+ min-height:38px;width:auto!important;
+}
+.pax-popup-header-controls :is(
+ .review-modal-close,.tx-entry-close,.budget-alert-dialog-close
+){flex:0 0 auto;margin:0}
+.budget-alert-dialog-header:has(.pax-popup-header-controls){
+ position:sticky;top:0;z-index:12;
+ background:linear-gradient(110deg,#fff,#f7fbff);
+ padding-top:3px;padding-bottom:12px;
+}
+.tx-history-dialog .tx-entry-heading:has(.pax-popup-header-controls){
+ flex-wrap:wrap;
+}
+/* Popup sempit: tombol tetap terlihat tepat di bawah baris judul,
+   sedangkan X selalu berada di kanan atas, tidak tertutup teks panjang. */
+@media(max-width:710px){
+ .review-modal-top:has(.pax-popup-header-controls),
+ .tx-history-dialog .tx-entry-heading:has(.pax-popup-header-controls),
+ .budget-alert-dialog-header:has(.pax-popup-header-controls){
+  flex-wrap:wrap;align-items:flex-start;padding-right:53px;
+ }
+ .review-modal-top:has(.pax-popup-header-controls)>div:first-child,
+ .budget-alert-dialog-header:has(.pax-popup-header-controls)>div{
+  flex:1 1 calc(100% - 48px);min-width:0;
+ }
+ .pax-popup-header-controls{
+  flex:1 0 100%;width:100%;margin:5px 0 0;
+ }
+ .pax-popup-header-actions{width:100%;justify-content:flex-end;gap:6px}
+ .pax-popup-header-controls .pax-popup-header-cta{
+  flex:0 1 auto;max-width:100%;min-height:35px;padding:7px 10px;font-size:10px;
+ }
+ .pax-popup-header-controls :is(
+  .review-modal-close,.tx-entry-close,.budget-alert-dialog-close
+ ){
+  position:absolute;right:12px;top:12px;
+ }
+ .budget-alert-dialog-header:has(.pax-popup-header-controls){
+  padding-right:42px;
+ }
+}
+@media(max-width:420px){
+ .pax-popup-header-actions{justify-content:stretch}
+ .pax-popup-header-controls .pax-popup-header-cta{
+  flex:1 1 auto;font-size:10px;
+ }
+ .pax-popup-header-controls .budget-nav-spark,
+ .pax-popup-header-controls .nav-cta-arrow{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+ .pax-popup-header-controls .pax-popup-header-cta{transition:none!important}
+ .pax-popup-header-controls .pax-popup-header-cta:hover{transform:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -6693,6 +6778,50 @@ function paxDecoratePopupHeadings(root){
   heading.replaceChildren(...items);
  });
 }
+/* #126 Aksi navigasi popup selalu terlihat di kanan atas header.
+   Tombol dipindahkan, bukan disalin: event delegasi dan aksi semula tetap berlaku. */
+function paxPromotePopupHeaderActions(root=document){
+ if(!root)return;
+ const modals=root.querySelectorAll('.review-modal-backdrop,.tx-history-backdrop,.budget-alert-dialog');
+ modals.forEach(modal=>{
+  const header=modal.classList.contains('budget-alert-dialog')
+   ?modal.querySelector('.budget-alert-dialog-header')
+   :modal.querySelector('.review-modal-top,.tx-entry-heading');
+  if(!header||header.querySelector('.pax-popup-header-controls'))return;
+  const buttons=[...modal.querySelectorAll(
+   '.kpi-modal-actions button[data-nav],'+
+   '.tx-history-footer button[data-nav],.tx-history-footer button[data-tx-create],'+
+   '.budget-alert-dialog-footer button[data-nav],'+
+   '.debt-quick-action button[data-debt-add],'+
+   '.point-pie-actions button[data-point-pie-choice=""]'
+  )].filter(button=>!button.matches('.point-pie-actions button.selected'));
+  if(!buttons.length)return;
+  const close=header.querySelector(
+   ':scope > [data-review-close],:scope > [data-close-tx-history],'+
+   ':scope > [data-budget-alert-close]'
+  );
+  if(!close)return;
+  const controls=document.createElement('div');
+  controls.className='pax-popup-header-controls';
+  controls.setAttribute('role','group');
+  controls.setAttribute('aria-label','Aksi cepat popup');
+  const actionGroup=document.createElement('div');
+  actionGroup.className='pax-popup-header-actions';
+  const sources=new Set();
+  buttons.forEach(button=>{
+   const source=button.parentElement;
+   if(source)sources.add(source);
+   button.classList.add('pax-popup-header-cta');
+   actionGroup.appendChild(button);
+  });
+  controls.append(actionGroup,close);
+  header.appendChild(controls);
+  // Wrapper lama tidak lagi memakan tinggi/ruang gulir setelah tombol dipindahkan.
+  sources.forEach(source=>{
+   if(source.matches('.kpi-modal-actions,.tx-history-footer,.debt-quick-action')&&!source.children.length)source.remove();
+  });
+ });
+}
 function paxDecoratePopups(root=document){
  if(!root)return;
  const modals=root.querySelectorAll(
@@ -6703,6 +6832,7 @@ function paxDecoratePopups(root=document){
   paxDecoratePopupHeadings(modal);
   paxDecorateMini(modal);
  });
+ paxPromotePopupHeaderActions(root);
 }
 
 function labelNav(){const titles={dashboard:['Dashboard Keuangan',''],review:['Rincian Transaksi','Pilih tanggal atau kelompok untuk memeriksa transaksi dan membandingkan pengeluaran.'],budgets:['Anggaran Bulanan',''],debts:['Utang & Piutang','Pilih status untuk melihat pinjaman yang belum lunas dan riwayat cicilannya.'],reports:['Arsip Laporan','Simpan laporan setiap akhir bulan agar angka periode tersebut terdokumentasi.'],accounts:['Rekening, Kategori & Sinkronisasi','Cocokkan saldo rekening, susun kategori, dan cadangkan data secara berkala.']};const item=titles[ui.view];decoratePaaxixiPageTitle(item[0]);document.getElementById('page-subtitle').textContent=ui.view==='dashboard'?'':item[1];refreshHeaderWeton();document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}

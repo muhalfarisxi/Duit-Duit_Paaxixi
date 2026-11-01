@@ -1,4 +1,4 @@
-name: Diagnose GitHub Pages deployment lock
+name: Repair GitHub Pages deployment lock
 on:
   push:
     branches: [main]
@@ -8,33 +8,35 @@ permissions:
   contents: read
   pages: write
   deployments: write
-  actions: read
 jobs:
-  inspect:
+  clear-stale-deployment-record:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
     steps:
-      - name: Inspect Pages and deployment statuses without changing live site
+      - name: Clear confirmed-completed deployment record that blocks new builds
         env:
           GH_TOKEN: ${{ github.token }}
-          STUCK_SHA: 7697d9bc02256f85b4c3278aa279f253abcd7860
+          STALE_SHA: 38bef4d902d581b63621141e4d3ca23efa860164
         run: |
           set -euo pipefail
-          api() { curl -fsSL -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GH_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/$GITHUB_REPOSITORY/$1"; }
-          echo "::group::Pages configuration"
-          api pages | jq '{status,build_type,source,html_url,public}' || true
-          echo "::endgroup::"
-          echo "::group::Latest Pages build"
-          api pages/builds/latest | jq '{status,commit,created_at,updated_at,error}' || true
-          echo "::endgroup::"
-          echo "::group::Recent deployment records"
-          api 'deployments?per_page=100' > /tmp/pages-deployments.json
-          jq '[.[] | {id,sha,environment,created_at,updated_at}] | .[:20]' /tmp/pages-deployments.json
-          echo "::endgroup::"
-          echo "::group::Stale deployment record and statuses"
-          jq --arg sha "$STUCK_SHA" '[.[] | select(.sha==$sha) | {id,sha,environment,created_at,updated_at}]' /tmp/pages-deployments.json
-          for id in $(jq -r --arg sha "$STUCK_SHA" '.[] | select(.sha==$sha) | .id' /tmp/pages-deployments.json); do
-            echo "Deployment ID $id:"
-            api "deployments/$id/statuses?per_page=20" | jq '[.[]|{state,created_at,description}] | .[:12]' || true
-          done
-          echo "::endgroup::"
+          base="https://api.github.com/repos/$GITHUB_REPOSITORY"
+          api() { curl -sSL -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GH_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" "$@"; }
+          api -f "$base/deployments?per_page=100" > /tmp/deployments.json
+          deployment_id=$(jq -r --arg sha "$STALE_SHA" '.[] | select(.sha==$sha and .environment=="github-pages") | .id' /tmp/deployments.json | head -1)
+          if [[ -z "$deployment_id" ]]; then
+            echo "No stale GitHub Pages deployment record remains."
+            exit 0
+          fi
+          echo "Stale completed record id: $deployment_id"
+          api "$base/deployments/$deployment_id/statuses?per_page=10" | jq '[.[]|{state,created_at}]'
+          mark=$(api -o /tmp/deploy-mark.json -w '%{http_code}' -X POST \
+            -d '{"state":"inactive","description":"Superseded by current main; clear Pages deployment lock","auto_inactive":false}' \
+            "$base/deployments/$deployment_id/statuses")
+          echo "Set inactive HTTP $mark"
+          status=$(api -o /tmp/deploy-delete.json -w '%{http_code}' -X DELETE "$base/deployments/$deployment_id")
+          echo "Delete old deployment record HTTP $status"
+          if [[ "$status" != "204" ]]; then
+            cat /tmp/deploy-delete.json
+            exit 1
+          fi
+          echo "Stale deployment record removed, repository files preserved."

@@ -9399,7 +9399,7 @@ function budgetFlowDialogMarkup(kind,id=null){
     const base=baseBudget(c.id),delta=budgetAdjustmentNet(c.id),transfer=budgetTransferNet(c.id),spent=spentByCat(c.id),effective=effectiveBudget(c.id);
     const remaining=effective-spent,usedRate=effective>0?Math.max(0,spent/effective*100):null;
     const visualState=remaining<0?'danger':effective<=0?'unset':remaining<=effective*.2?'warn':'ok';
-    const visualLabel=visualState==='danger'?'Melewati Batas':visualState==='warn'?'Menipis':visualState==='unset'?'Belum Dianggarkan':'Aman';
+    const visualLabel=visualState==='danger'?'Melewati Batas':visualState==='warn'?(remaining===0?'Batas Tercapai':'Menipis'):visualState==='unset'?'Belum Dianggarkan':'Aman';
     const visualIcon=visualState==='danger'?'🚨':visualState==='warn'?'🔔':visualState==='unset'?'📌':'🌱';
     const usageWidth=effective>0?Math.min(100,Math.max(0,spent/effective*100)):spent>0?100:0;
     const usageText=usedRate===null?'Tanpa batas positif':Math.round(usedRate).toLocaleString('id-ID')+'% terpakai';
@@ -9428,7 +9428,7 @@ function budgetFlowDialogMarkup(kind,id=null){
       </div>
       <div class="budget-flow-pos-usage-foot">
        <span class="budget-flow-pos-percent">${visualIcon} ${usageText}</span>
-       <span class="budget-flow-pos-left ${remaining<0?'is-over':''}">${remaining<0?'↗ Melebihi':remaining===0?'✓ Tepat batas':'✨ Sisa'} <b>${money(Math.abs(remaining))}</b></span>
+       <span class="budget-flow-pos-left ${remaining<0?'is-over':''}">${visualState==='unset'?'📌 Belum ada alokasi':remaining<0?'↗ Melebihi':remaining===0?'✓ Tepat batas':'✨ Sisa'} ${visualState==='unset'?'':money(Math.abs(remaining))}</span>
       </div>
       ${visualState==='danger'?'<p class="budget-flow-pos-tip">💡 Evaluasi pengeluaran atau alihkan anggaran dari pos lain.</p>':visualState==='warn'?'<p class="budget-flow-pos-tip">💡 Prioritaskan kebutuhan penting agar sisa anggaran cukup.</p>':''}
      </div>

@@ -6202,7 +6202,7 @@ function paxDecoratePopups(root=document){
  });
 }
 
-function labelNav(){const titles={dashboard:['Dashboard Keuangan',''],review:['Rincian Transaksi','Pilih tanggal atau kelompok untuk memeriksa transaksi dan membandingkan pengeluaran.'],budgets:['Anggaran Bulanan','Tetapkan batas tiap pos; alihkan sisa dari pos lain jika diperlukan.'],debts:['Utang & Piutang','Pilih status untuk melihat pinjaman yang belum lunas dan riwayat cicilannya.'],reports:['Arsip Laporan','Simpan laporan setiap akhir bulan agar angka periode tersebut terdokumentasi.'],accounts:['Rekening, Kategori & Sinkronisasi','Cocokkan saldo rekening, susun kategori, dan cadangkan data secara berkala.']};const item=titles[ui.view];decoratePaaxixiPageTitle(item[0]);document.getElementById('page-subtitle').textContent=ui.view==='dashboard'?'':item[1];refreshHeaderWeton();document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
+function labelNav(){const titles={dashboard:['Dashboard Keuangan',''],review:['Rincian Transaksi','Pilih tanggal atau kelompok untuk memeriksa transaksi dan membandingkan pengeluaran.'],budgets:['Anggaran Bulanan',''],debts:['Utang & Piutang','Pilih status untuk melihat pinjaman yang belum lunas dan riwayat cicilannya.'],reports:['Arsip Laporan','Simpan laporan setiap akhir bulan agar angka periode tersebut terdokumentasi.'],accounts:['Rekening, Kategori & Sinkronisasi','Cocokkan saldo rekening, susun kategori, dan cadangkan data secara berkala.']};const item=titles[ui.view];decoratePaaxixiPageTitle(item[0]);document.getElementById('page-subtitle').textContent=ui.view==='dashboard'?'':item[1];refreshHeaderWeton();document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
 /* #081 Sejajarkan titik awal donut dan tren walau tinggi filternya berbeda. */
 let analysisChartResizeObserver=null,analysisChartAlignmentQueued=false;
 function alignAnalysisCharts(){
@@ -9170,9 +9170,11 @@ function budgetBudgetCard(group){
 }
 function budgetHistoryRows(kind){
  const items=budgetScopeTransactions(kind);
- if(!items.length)return `<div class="budget-work-empty"><span aria-hidden="true">🗂️</span>
-  <strong>Belum ada riwayat pada ${h(monthFmt(ui.month))}</strong>
-  <p>Perubahan yang kamu catat akan tersimpan dan ditampilkan di sini.</p></div>`;
+ if(!items.length){
+  const message=kind==='transfer'?'Belum ada pengalihan anggaran':kind==='adjustment'?'Belum ada penambahan atau pengurangan':'Belum ada perubahan anggaran awal';
+  return `<div class="budget-work-empty"><span aria-hidden="true">🗂️</span>
+    <strong>${message} · ${h(monthFmt(ui.month))}</strong></div>`;
+ }
  return `<div class="budget-work-history-list" role="region" tabindex="0" aria-label="Daftar riwayat anggaran, geser untuk melihat catatan lainnya">${items.map(item=>{
   if(kind==='transfer')return `<article class="budget-work-history-item">
    <span class="budget-history-icon transfer">🔀</span>
@@ -9196,16 +9198,13 @@ function budgetHistoryRows(kind){
  }).join('')}</div>`;
 }
 function renderBudgetMonthlySection(){
- const t=budgetMonthTotals();
  return `<section class="card budget-work-panel">
-  <div class="card-head"><div><h3>Anggaran Bulanan per Kelompok</h3>
-   <p>Pilih kelompok untuk mengedit anggaran awal, pos, nama kelompok, atau warnanya.</p></div>
+  <div class="card-head"><div><h3>Anggaran per Kelompok</h3></div>
    <div class="budget-monthly-actions" role="group" aria-label="Tambah pengelolaan anggaran">
     <button type="button" class="btn sm" data-add-budget-category="">＋ Tambah Pos</button>
     <button type="button" class="btn sm primary" data-add-expense-group>＋ Tambah Kelompok</button>
    </div></div>
   <div class="budget-work-groups">${expenseGroups().map(budgetBudgetCard).join('')}</div>
-  <div class="budget-work-info"><span>💡</span><p>Klik kelompok untuk mengatur pos dan warna. Perubahan anggaran awal dicatat dalam riwayat, terpisah dari tambahan, pengurangan, dan pengalihan.</p></div>
   <section class="budget-work-history-section" aria-label="Riwayat perubahan anggaran awal">
     <div class="budget-work-history-head"><h4>🕘 Riwayat Perubahan Anggaran Awal</h4>
      <span>${budgetScopeTransactions('base').length} catatan · ${h(monthFmt(ui.month))}</span></div>
@@ -9217,7 +9216,7 @@ function renderBudgetTransferSection(){
  const rows=budgetScopeTransactions('transfer'),amount=rows.reduce((n,r)=>n+num(r.amount),0);
  return `<section class="card budget-work-panel">
  <div class="budget-work-section-head"><div><h3>🔀 Alihkan Anggaran</h3>
-  <p>Pindahkan sisa dari satu pos ke pos lainnya. Total keseluruhan anggaran tidak berubah.</p></div>
+  <p>Memindahkan sisa antarpos tanpa mengubah total anggaran bulan ini.</p></div>
   <button type="button" class="btn primary" data-budget-new-move>＋ Alihkan Anggaran</button></div>
  <div class="budget-work-feature-stats"><div><small>Total Pengalihan</small><strong>${money(amount)}</strong></div>
  <div><small>Jumlah Pengalihan</small><strong>${rows.length} kali</strong></div></div>
@@ -9229,7 +9228,7 @@ function renderBudgetAdjustmentSection(){
  const t=budgetMonthTotals(),rows=budgetScopeTransactions('adjustment');
  return `<section class="card budget-work-panel">
  <div class="budget-work-section-head"><div><h3>➕➖ Tambah / Kurangi Anggaran</h3>
-  <p>Ubah alokasi tanpa mengambil dari pos lain. Perubahan tersimpan terpisah dari anggaran awal.</p></div>
+  <p>Menambah atau mengurangi total alokasi tanpa mengambil dana dari pos lain.</p></div>
   <button type="button" class="btn primary" data-budget-new-adjust>＋ Catat Perubahan</button></div>
  <div class="budget-work-feature-stats three"><div><small>Total Ditambahkan</small><strong class="added">+${money(t.added)}</strong></div>
   <div><small>Total Dikurangi</small><strong class="reduced">−${money(t.reduced)}</strong></div>
@@ -9248,9 +9247,9 @@ function renderBudgets(){
    <div class="budget-total-negative"><span>Pengurangan</span><strong>−${money(t.reduced)}</strong></div>
    <div class="budget-total-effective"><span>Anggaran Efektif</span><strong>${money(t.effective)}</strong></div>
   </div>
-  <div class="budget-work-remaining"><span>💼 Anggaran efektif <strong>${money(t.effective)}</strong></span>
-   <span>🧾 Terpakai <strong>${money(used)}</strong></span>
-   <span>💰 Sisa <strong class="${t.effective-used<0?'negative':''}">${money(t.effective-used)}</strong></span></div>
+  <div class="budget-work-remaining" aria-label="Pemakaian dan sisa anggaran bulan ini">
+   <span>🧾 Terpakai <strong>${money(used)}${t.effective>0?' · '+pct(used,t.effective)+'%':' '}</strong></span>
+   <span>💰 Sisa bulan ini <strong class="${t.effective-used<0?'negative':''}">${money(t.effective-used)}</strong></span></div>
   <nav class="budget-work-tabs" role="tablist" aria-label="Pengelolaan anggaran">
    ${tabs.map(([key,label])=>`<button type="button" role="tab" data-budget-section="${key}" aria-selected="${section===key}" tabindex="${section===key?'0':'-1'}">${label}</button>`).join('')}</nav>
   ${section==='monthly'?renderBudgetMonthlySection():section==='transfer'?renderBudgetTransferSection():renderBudgetAdjustmentSection()}
@@ -9265,7 +9264,7 @@ function budgetFlowDialogMarkup(kind,id=null){
  if(kind==='group'){
   if(!group)return '';
   heading='Anggaran Awal · '+group.name;icon='🏷️';
-  description='Edit batas awal tiap pos. Tambahan/pengurangan dan pengalihan tetap tercatat terpisah.';
+  description='Ubah anggaran awal tanpa menghapus riwayat penyesuaian atau pengalihan.';
   const color=cleanGroupColor(group.color)||'#2563eb';
   const categories=expenses().filter(c=>c.group===group.name);
   body=`<div class="budget-flow-group-management" style="--budget-theme:${color}">
@@ -9295,7 +9294,7 @@ function budgetFlowDialogMarkup(kind,id=null){
  }else if(kind==='move'){
   if(id&&!move)return '';
   heading=move?'Edit Pengalihan':'Alihkan Anggaran';icon='🔀';
-  description='Alokasikan sisa antarpos. Tidak membuat transaksi keuangan atau mengubah total anggaran.';
+  description='Pengalihan hanya mengubah alokasi pos, bukan saldo rekening.';
   const opts=expenses().filter(c=>effectiveBudget(c.id)-spentByCat(c.id)>0||move?.from===c.id)
    .map(c=>`<option value="${h(c.id)}" ${move?.from===c.id?'selected':''}>${h(c.group)} · ${h(c.label)} (Sisa ${money(effectiveBudget(c.id)-spentByCat(c.id))})</option>`).join('');
   const dest=expenses().map(c=>`<option value="${h(c.id)}" ${move?.to===c.id?'selected':''}>${h(c.group)} · ${h(c.label)}</option>`).join('');
@@ -9311,7 +9310,7 @@ function budgetFlowDialogMarkup(kind,id=null){
  }else if(kind==='adjust'){
   if(id&&!adjustment)return '';
   heading=adjustment?'Edit Tambahan / Pengurangan':'Tambah / Kurangi Anggaran';icon='➕➖';
-  description='Catat perubahan di luar pengalihan. Anggaran awal tetap utuh dan riwayat tercatat.';
+  description='Perubahan dicatat terpisah dari anggaran awal dan pengalihan.';
   const opts=expenses().map(c=>`<option value="${h(c.id)}" ${adjustment?.categoryId===c.id?'selected':''}>${h(c.group)} · ${h(c.label)}</option>`).join('');
   body=`<form id="budget-adjustment-form" class="budget-flow-form">
    <input type="hidden" name="editId" value="${h(adjustment?.id||'')}">

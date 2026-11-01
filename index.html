@@ -10015,7 +10015,7 @@ function budgetHistoryRows(kind){
   </article>`;
   return `<article class="budget-work-history-item"><span class="budget-history-icon transfer">✏️</span>
    <div class="budget-history-info"><strong>${h(cat(item.categoryId)?.label||item.categoryLabel||'Pos dihapus')}</strong>
-    <small>${h(dateFmt(item.date))} · Perubahan anggaran awal</small></div>
+    <small>${h(dateFmt(item.date))} · ${item.correction?'Koreksi setelah penetapan':'Pengisian awal'}${item.note?' · '+h(item.note):''}</small></div>
    <strong class="budget-history-amount">${money(item.previous)} → ${money(item.next)}</strong>
   </article>`;
  }).join('')}</div>`;
@@ -10880,7 +10880,32 @@ let original=db.transactions.find(t=>t.id===editId);if(editId&&!original)return 
 let item={id:original?.id||uid(),type,amount,accountId,toAccountId:type==='transfer'?toAccountId:undefined,categoryId:type==='transfer'?undefined:categoryId,date,title,note:String(f.get('note')||'').trim(),createdAt:original?.createdAt||new Date().toISOString()};
 if(original)Object.assign(original,item);else db.transactions.push(item);paxMarkSaved('transaction',item.id);ui.txEditId=null;ui.txModalOpen=false;save();ui.month=date.slice(0,7);render();restoreTxModalOrigin(item.id);toast(original?'Perubahan transaksi disimpan.':'Transaksi berhasil disimpan.');return}
 
+if(id==='budget-initial-pos-form'){
+ const categoryId=String(f.get('categoryId')||''),c=cat(categoryId);
+ const raw=String(f.get('amount')||'').trim(),value=integer(raw);
+ if(!c||c.kind!=='expense'||!raw||!Number.isSafeInteger(value)||value<0)
+  return toast('Isi nominal anggaran awal yang valid (nol atau positif).',true);
+ const locked=budgetIsEstablished(),note=String(f.get('note')||'').trim().slice(0,220);
+ if(locked&&(!note||f.get('confirmed')!=='yes'))
+  return toast('Koreksi anggaran awal membutuhkan alasan dan konfirmasi.',true);
+ if(value+budgetAdjustmentNet(categoryId)+budgetTransferNet(categoryId)<0)
+  return toast('Koreksi membuat anggaran efektif negatif setelah penyesuaian/pengalihan.',true);
+ const previous=baseBudget(categoryId);
+ if(previous===value)return toast('Nominal anggaran awal belum berubah.');
+ const history={id:uid(),month:ui.month,date:today(),createdAt:new Date().toISOString(),
+  categoryId,categoryLabel:c.label,previous,next:value,note:locked?note:'Pengisian draft anggaran awal',correction:locked};
+ db.budgets[ui.month+'|'+categoryId]=value;
+ db.budgetInitialStates=db.budgetInitialStates||{};
+ if(!locked)db.budgetInitialStates[ui.month]={status:'draft',lockedAt:'',legacy:false};
+ (db.budgetBaseHistory||(db.budgetBaseHistory=[])).push(history);
+ paxMarkSaved('budget',categoryId);
+ if(!save())return;
+ closeBudgetFlowDialog(false);render();
+ toast(locked?'Koreksi awal dicatat; anggaran tetap terkunci.':'Draft awal '+c.label+' tersimpan. Tetapkan setelah semua pos terisi.');
+ return;
+}
 if(id==='budget-form'){
+ if(budgetIsEstablished())return toast('Anggaran awal terkunci. Pilih Edit Pos → Ubah Anggaran Awal.',true);
  const inputs=[...form.querySelectorAll('[data-budget-id]')];
  if(!inputs.length)return toast('Kelompok belum memiliki pos. Tambahkan pos terlebih dahulu.',true);
  const changes=[];
@@ -10900,11 +10925,14 @@ if(id==='budget-form'){
   (db.budgetBaseHistory||(db.budgetBaseHistory=[])).push({id:uid(),month:ui.month,date:today(),createdAt:now,...item});
  }
  paxMarkSaved('budget','');
+ db.budgetInitialStates=db.budgetInitialStates||{};
+ db.budgetInitialStates[ui.month]={status:'draft',lockedAt:'',legacy:false};
  if(!save())return;
  closeBudgetFlowDialog(false);render();
- toast(changes.length+' anggaran awal '+monthFmt(ui.month)+' berhasil diperbarui.');return;
+ toast(changes.length+' anggaran awal '+monthFmt(ui.month)+' berhasil disimpan sebagai draft.');return;
 }
 if(id==='move-budget-form'){
+ if(!budgetIsEstablished())return toast(budgetLockMessage(),true);
  const from=String(f.get('from')||''),to=String(f.get('to')||''),amount=positive(f.get('amount')),editId=String(f.get('editId')||'');
  const old=editId?db.budgetMoves.find(m=>m.id===editId&&m.month===ui.month):null;
  if(editId&&!old)return toast('Riwayat pengalihan yang diedit tidak ditemukan.',true);
@@ -10929,6 +10957,7 @@ if(id==='move-budget-form'){
  toast(old?'Pengalihan anggaran berhasil diperbarui.':'Pengalihan anggaran berhasil dicatat.');return;
 }
 if(id==='budget-adjustment-form'){
+ if(!budgetIsEstablished())return toast(budgetLockMessage(),true);
  const type=String(f.get('type')||''),categoryId=String(f.get('categoryId')||'');
  const amount=positive(f.get('amount')),note=String(f.get('note')||'').trim().slice(0,220);
  const editId=String(f.get('editId')||''),old=editId?budgetAdjustmentsForMonth().find(a=>a.id===editId):null;

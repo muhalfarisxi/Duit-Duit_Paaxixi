@@ -11358,15 +11358,48 @@ document.addEventListener('toggle',event=>{
  ui.budgetExpandedGroups=selected;
 },true);
 
+document.addEventListener('toggle',event=>{
+ const el=event.target;
+ if(ui.view!=='budgets'||!el?.isConnected||!el.matches?.('details[data-budget-edit-accordion]'))return;
+ const id=el.dataset.budgetEditAccordion,old=ui.budgetEditExpandedGroups||[];
+ ui.budgetEditExpandedGroups=el.open?[...new Set([...old,id])]:old.filter(x=>x!==id);
+},true);
 document.addEventListener('click',async e=>{
+ const establish=e.target.closest?.('[data-budget-establish]');
+ if(establish){
+  if(budgetIsEstablished())return toast('Anggaran awal bulan ini sudah ditetapkan.');
+  const total=budgetMonthTotals();
+  if(total.initial<=0)return toast('Isi setidaknya satu anggaran pos sebelum menetapkan.',true);
+  if(expenses().some(c=>effectiveBudget(c.id)<0))return toast('Periksa anggaran efektif yang negatif.',true);
+  if(!confirm('Tetapkan Anggaran Awal '+monthFmt(ui.month)+' sebesar '+money(total.initial)+'?\\n\\nSetelah ditetapkan, nominal awal terkunci. Koreksi berikutnya melalui Edit Pos → Ubah Anggaran Awal, dengan alasan tercatat.'))return;
+  db.budgetInitialStates=db.budgetInitialStates||{};
+  db.budgetInitialStates[ui.month]={status:'locked',lockedAt:new Date().toISOString(),legacy:false};
+  if(!save())return;
+  ui.budgetSection='edit';render();toast('Anggaran awal '+monthFmt(ui.month)+' ditetapkan. Pengalihan dan penyesuaian aktif.');
+  return;
+ }
+ const editPos=e.target.closest?.('[data-budget-pos-actions]');
+ if(editPos){openBudgetFlowDialog('pos-actions',editPos.dataset.budgetPosActions);return;}
+ const choice=e.target.closest?.('[data-budget-choice]');
+ if(choice){
+  const categoryId=choice.dataset.budgetChoicePos,kind=choice.dataset.budgetChoice;
+  if(!cat(categoryId)||cat(categoryId).kind!=='expense'||!['base','move','adjust'].includes(kind))return;
+  if(kind!=='base'&&!budgetIsEstablished())return toast(budgetLockMessage(),true);
+  openBudgetFlowDialog(kind,kind==='base'?categoryId:null,kind==='base'?null:categoryId);
+  budgetPopupBackPosId=categoryId;
+  return;
+ }
 
  if(e.target.closest?.('[data-budget-go-adjust]')){
-  setView('budgets');ui.budgetSection='adjustment';render();return;
+  setView('budgets');ui.budgetSection='edit';render();
+  if(budgetIsEstablished())openBudgetFlowDialog('adjust');
+  else toast(budgetLockMessage(),true);
+  return;
  }
  const budgetTab=e.target.closest?.('[data-budget-section]');
  if(budgetTab){
   ui.budgetSection=budgetTab.dataset.budgetSection;
-  if(!['monthly','detail','transfer','adjustment'].includes(ui.budgetSection))ui.budgetSection='monthly';
+  if(!['detail','edit'].includes(ui.budgetSection))ui.budgetSection='detail';
   render();document.querySelector('[data-budget-section="'+ui.budgetSection+'"]')?.focus({preventScroll:true});
   return;
  }

@@ -251,3 +251,141 @@
  .budget-viz-portal-groups,.budget-viz-portal-group,.budget-viz-portal-head-icon,
  .budget-ux-type-option,.budget-ux-type-option.is-selected .budget-ux-type-sign{animation:none!important;transition:none!important}
 }
+
+/* #130 Full weton badge: never crop the date inside the header. */
+.topbar .paax-header-content{width:100%;min-width:0;overflow:visible!important}
+.topbar .paax-top-brand-row{display:flex!important;flex-wrap:wrap!important;align-items:center!important;
+ justify-content:flex-start!important;gap:9px 12px!important;overflow:visible!important;min-width:0}
+.topbar .paax-top-brand-row .paaxixi-doodle-kicker{flex:0 0 auto!important}
+.topbar #header-weton-badge{display:inline-flex!important;flex:0 0 auto!important;
+ width:max-content!important;max-width:100%!important;min-width:0!important;
+ box-sizing:border-box;justify-content:flex-start;align-items:center;gap:8px;
+ overflow:hidden;white-space:normal;padding-inline:12px}
+.topbar #header-weton-badge .paax-weton-label-long{display:inline!important;flex:0 1 auto;
+ min-width:0;white-space:normal;overflow:visible;text-overflow:clip;line-height:1.38;font-size:12px}
+.topbar #header-weton-badge .paax-weton-label-short{display:none!important}
+.topbar #header-weton-badge .paax-weton-icon{flex:0 0 auto}
+.topbar #header-weton-badge .paax-weton-spark{flex:0 0 auto;margin-left:2px}
+@media(min-width:1271px) and (max-width:1490px){
+ .topbar{grid-template-columns:minmax(0,1fr)!important;row-gap:12px}
+ .topbar .top-controls{justify-content:flex-end}
+}
+@media(max-width:410px){
+ .topbar #header-weton-badge{padding:7px 10px;gap:6px}
+ .topbar #header-weton-badge .paax-weton-label-long{font-size:11px}
+ .topbar #header-weton-badge .paax-weton-spark{display:none}
+}
+/* #131 Animated month and year selection instead of unstyleable native picker. */
+.budget-month-portal{position:fixed;inset:0;z-index:4900;display:grid;place-items:center;
+ isolation:isolate;padding:clamp(12px,3vw,22px);box-sizing:border-box;
+ animation:budgetMonthFade .22s ease-out both}
+.budget-month-shade{position:absolute;inset:0;background:rgba(9,31,68,.63);
+ backdrop-filter:blur(8px);cursor:pointer}
+.budget-month-panel{position:relative;z-index:1;display:flex;flex-direction:column;
+ width:min(494px,100%);max-height:min(90dvh,740px);overflow:hidden;
+ border:1.5px solid #d1e4fb;border-radius:26px;background:#fff;
+ box-shadow:0 32px 90px #0b295c66,0 0 0 5px #b2d6fe1a;
+ animation:budgetMonthArrive .33s cubic-bezier(.2,.8,.24,1.15) both}
+.budget-month-head{display:flex;align-items:flex-start;gap:12px;
+ padding:22px 20px 17px;
+ background:radial-gradient(circle at 92% 0,#d9e9ff 0,transparent 45%),
+ linear-gradient(120deg,#eaf4ff,#fff 90%);
+ border-bottom:1px solid #e2edfa}
+.budget-month-head-icon{width:51px;height:51px;flex:none;display:grid;place-items:center;
+ font-size:26px;border-radius:16px;
+ background:linear-gradient(140deg,#d9ecff,#b9d8ff);
+ box-shadow:0 5px 12px #317cd329,inset 0 1px #fff;
+ animation:budgetMonthWiggle 4.2s ease-in-out infinite}
+.budget-month-heading{flex:1;min-width:0;display:grid;gap:3px}
+.budget-month-heading small{font:900 10px Nunito,sans-serif;color:#4381b8;letter-spacing:1px}
+.budget-month-heading h3{font:900 clamp(18px,4vw,23px)/1.2 Fredoka,Nunito,sans-serif;
+ color:#194878;margin:0}
+.budget-month-heading p{font:750 11px/1.5 Nunito,sans-serif;color:#7690b0;margin:4px 0 0}
+.budget-month-close{flex:none;width:36px;height:36px;display:grid;place-items:center;
+ padding:0;border:1px solid #d4e4f8;border-radius:12px;background:#fff;
+ color:#3c679b;font:700 24px/1 Nunito,sans-serif;cursor:pointer;
+ transition:transform .2s,background .2s}
+.budget-month-close:hover{transform:rotate(90deg);background:#eaf3ff}
+.budget-month-year-nav{padding:19px 20px 10px;display:grid;
+ grid-template-columns:42px minmax(0,1fr) 42px;align-items:center;gap:10px}
+.budget-month-year-arrow{height:42px;display:grid;place-items:center;border:1px solid #d4e3fb;
+ border-radius:13px;background:#f4f8ff;color:#2b67b7;
+ font:900 29px/1 Nunito,sans-serif;cursor:pointer;
+ transition:transform .18s,background .18s,box-shadow .18s}
+.budget-month-year-arrow:hover:not(:disabled){transform:scale(1.08);background:#e7f2ff;
+ box-shadow:0 6px 12px #306ec71e}
+.budget-month-year-arrow:disabled{opacity:.32;cursor:not-allowed}
+.budget-month-year-toggle{min-height:44px;border-radius:14px;
+ border:1.5px solid #c4ddfb;background:linear-gradient(115deg,#e3f1ff,#f5faff);
+ font:900 21px/1.1 Fredoka,Nunito,sans-serif;color:#255c9c;
+ cursor:pointer;transition:transform .18s,box-shadow .18s}
+.budget-month-year-toggle:hover{transform:translateY(-2px);box-shadow:0 8px 18px #235da520}
+.budget-month-year-list[hidden]{display:none!important}
+.budget-month-year-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;
+ padding:8px 20px;max-height:168px;overflow-y:auto;scrollbar-width:thin;
+ animation:budgetMonthArrive .22s ease-out}
+.budget-month-year-item{min-height:39px;border-radius:11px;border:1px solid #e0eaf8;
+ background:#f7faff;font:850 12px Nunito,sans-serif;color:#4672a5;
+ transition:transform .17s,background .17s}
+.budget-month-year-item:hover{transform:translateY(-2px);background:#e6f2ff}
+.budget-month-year-item.is-selected{background:#2b74d4;border-color:#2b74d4;color:#fff}
+.budget-month-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:9px;overflow-y:auto;min-height:0;padding:12px 20px 20px;scrollbar-width:thin}
+.budget-month-cell{--month-order:0;position:relative;display:flex;
+ flex-direction:column;align-items:flex-start;justify-content:center;gap:7px;
+ min-height:83px;padding:12px 13px;overflow:hidden;
+ border:1.5px solid #d8e7fa;border-radius:16px;
+ background:linear-gradient(132deg,#fff,#f3f8ff);
+ box-shadow:0 4px 11px #1f598414;color:#23537f;cursor:pointer;
+ transition:transform .2s ease,border-color .2s,box-shadow .2s,background .2s;
+ animation:budgetMonthPop .32s calc(var(--month-order)*.025s) ease-out both}
+.budget-month-cell::after{content:"";position:absolute;inset:0;pointer-events:none;
+ background:linear-gradient(115deg,transparent 22%,#ffffff70 48%,transparent 70%);
+ transform:translateX(-130%);transition:transform .65s ease}
+.budget-month-cell:hover:not(:disabled){transform:translateY(-4px) scale(1.025);
+ border-color:#70aef4;background:linear-gradient(130deg,#edf6ff,#fff);
+ box-shadow:0 11px 20px #2b76be2b}
+.budget-month-cell:hover:not(:disabled)::after{transform:translateX(130%)}
+.budget-month-cell-number{font:900 10px/1 Nunito,sans-serif;color:#80a0c2;
+ letter-spacing:1px}
+.budget-month-cell strong{font:900 clamp(11px,2.5vw,14px)/1.2 Nunito,sans-serif;
+ color:inherit;white-space:nowrap}
+.budget-month-cell-mark{position:absolute;top:8px;right:9px;font:900 12px Nunito,sans-serif;
+ color:#3784d0}
+.budget-month-cell.is-current:not(.is-selected){border-color:#9ccafc;background:#ebf6ff}
+.budget-month-cell.is-selected{border-color:#1c5dc4!important;
+ background:linear-gradient(145deg,#398cf1,#195bc1)!important;
+ color:#fff!important;box-shadow:0 10px 19px #226aca53!important}
+.budget-month-cell.is-selected .budget-month-cell-number,.budget-month-cell.is-selected .budget-month-cell-mark{color:#e5f1ff}
+.budget-month-cell.is-selected:hover{filter:brightness(1.07)}
+.budget-month-cell:disabled{opacity:.42;cursor:not-allowed;box-shadow:none}
+.budget-month-footer{display:flex;justify-content:space-between;align-items:center;
+ gap:12px;flex-wrap:wrap;padding:13px 20px 17px;border-top:1px solid #e1ecfa;
+ background:#f5faff}
+.budget-month-footer-note{font:750 10px/1.4 Nunito,sans-serif;color:#8198b2}
+.budget-month-today{border:1px solid #b8d7fd;border-radius:11px;
+ padding:10px 13px;background:#e6f1ff;color:#245db4;
+ font:900 11px Nunito,sans-serif;cursor:pointer;
+ transition:transform .18s,background .18s,box-shadow .18s}
+.budget-month-today:hover{transform:translateY(-2px);background:#d6e9ff;box-shadow:0 7px 16px #2764ac20}
+.month-pill.budget-ux-period-open{border-color:#438ce0!important;
+ box-shadow:0 0 0 4px #6ba8f527,0 10px 25px #1b66af30!important}
+@keyframes budgetMonthFade{from{opacity:0}to{opacity:1}}
+@keyframes budgetMonthArrive{from{opacity:.3;transform:translateY(12px) scale(.965)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes budgetMonthPop{from{opacity:.35;transform:translateY(8px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes budgetMonthWiggle{0%,77%,100%{transform:rotate(0)}82%{transform:rotate(-9deg)}89%{transform:rotate(6deg)}}
+@media(max-width:465px){
+ .budget-month-panel{border-radius:21px;max-height:92dvh}
+ .budget-month-head{padding:16px 13px 14px}
+ .budget-month-head-icon{height:43px;width:43px;font-size:22px}
+ .budget-month-year-nav{padding:15px 13px 6px}
+ .budget-month-grid{padding:9px 13px 15px;gap:7px}
+ .budget-month-cell{min-height:73px;padding:10px 9px}
+ .budget-month-cell strong{font-size:12px}
+ .budget-month-footer{padding:10px 13px 13px}
+ .budget-month-year-list{padding:6px 13px}
+}
+@media(prefers-reduced-motion:reduce){
+ .budget-month-portal,.budget-month-panel,.budget-month-head-icon,
+ .budget-month-cell,.budget-month-cell::after,.budget-month-year-list{animation:none!important;transition:none!important}
+}

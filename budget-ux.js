@@ -10,36 +10,157 @@ function formatMonth(value){
  var p=value.split('-');
  return new Intl.DateTimeFormat('id-ID',{month:'long',year:'numeric'}).format(new Date(+p[0],+p[1]-1,1));
 }
+
 function setupPeriod(){
  const label=document.querySelector('.month-pill.month-pill-highlight');
  const input=document.getElementById('month-input');
  if(!label||!input||label.dataset.budgetUx==='ready')return;
- label.dataset.budgetUx='ready';label.tabIndex=0;label.setAttribute('role','button');
- label.setAttribute('aria-label','Pilih bulan untuk melihat seluruh catatan keuangan pada periode tersebut');
- label.title='Klik untuk melihat keuangan di bulan tertentu';
+ label.dataset.budgetUx='ready';
+ label.tabIndex=0;
+ label.setAttribute('role','button');
+ label.setAttribute('aria-haspopup','dialog');
+ label.setAttribute('aria-expanded','false');
+ label.setAttribute('aria-label','Pilih bulan periode keuangan');
+ label.title='Klik untuk melihat keuangan pada bulan tertentu';
  const copy=node('span','budget-ux-period-copy');
  copy.append(node('span','budget-ux-period-top','PERIODE KEUANGAN'));
  const name=node('strong','budget-ux-period-name');copy.append(name);
- copy.append(node('small','budget-ux-period-hint','Klik untuk melihat bulan lain'));
+ copy.append(node('small','budget-ux-period-hint','Klik untuk memilih bulan lain'));
  const caret=node('span','budget-ux-period-caret');caret.setAttribute('aria-hidden','true');
  label.insertBefore(copy,input);label.insertBefore(caret,input);
  const refresh=function(){name.textContent=formatMonth(input.value)};
  refresh();
+ function currentWibMonth(){
+  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit'}).formatToParts(new Date());
+  const y=parts.find(function(p){return p.type==='year'})?.value;
+  const m=parts.find(function(p){return p.type==='month'})?.value;
+  return String(y)+'-'+String(m).padStart(2,'0');
+ }
+ const months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+ let currentPortal=null;
+ function closePanel(restore=true){
+  if(!currentPortal)return;
+  currentPortal.remove();currentPortal=null;
+  label.setAttribute('aria-expanded','false');
+  label.classList.remove('budget-ux-period-open');
+  if(restore&&label.isConnected)label.focus({preventScroll:true});
+ }
  function open(e){
   if(e&&e.target===input)return;
-  if(e)e.preventDefault();
-  try{if(typeof input.showPicker==='function'){input.showPicker();return}}catch(error){}
-  input.focus();input.click();
+  if(e){e.preventDefault();e.stopPropagation();}
+  if(currentPortal){closePanel();return}
+  const max=/^\d{4}-(?:0[1-9]|1[0-2])$/.test(input.max||'')?input.max:currentWibMonth();
+  const selected=/^\d{4}-(?:0[1-9]|1[0-2])$/.test(input.value||'')?input.value:max;
+  const maxYear=Number(max.slice(0,4));
+  const minYear=Math.min(2000,Number(selected.slice(0,4)));
+  let year=Math.min(maxYear,Number(selected.slice(0,4)));
+  const portal=node('div','budget-month-portal');
+  const shade=node('div','budget-month-shade');
+  const panel=node('section','budget-month-panel');
+  panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');
+  panel.setAttribute('aria-label','Pilih periode keuangan berdasarkan bulan dan tahun');
+  const head=node('div','budget-month-head');
+  const icon=node('div','budget-month-head-icon','🗓️');
+  const heading=node('div','budget-month-heading');
+  heading.append(node('small','', 'JELAJAHI KEUANGANMU'),node('h3','', 'Pilih periode keuangan'),node('p','', 'Setiap bulan punya cerita. Pilih bulan yang ingin dilihat.'));
+  const close=node('button','budget-month-close','×');close.type='button';close.setAttribute('aria-label','Tutup pilihan bulan');
+  head.append(icon,heading,close);
+  const nav=node('div','budget-month-year-nav');
+  const prev=node('button','budget-month-year-arrow','‹');prev.type='button';prev.setAttribute('aria-label','Tahun sebelumnya');
+  const yearToggle=node('button','budget-month-year-toggle');yearToggle.type='button';yearToggle.setAttribute('aria-expanded','false');
+  const next=node('button','budget-month-year-arrow','›');next.type='button';next.setAttribute('aria-label','Tahun berikutnya');
+  nav.append(prev,yearToggle,next);
+  const yearList=node('div','budget-month-year-list');yearList.hidden=true;yearList.setAttribute('aria-label','Daftar tahun');
+  const monthGrid=node('div','budget-month-grid');
+  const footer=node('div','budget-month-footer');
+  const note=node('span','budget-month-footer-note','✨ Bulan aktif ditandai dengan warna biru.');
+  const now=node('button','budget-month-today','↗ Bulan ini');now.type='button';
+  footer.append(note,now);
+  panel.append(head,nav,yearList,monthGrid,footer);
+  portal.append(shade,panel);document.body.append(portal);
+  currentPortal=portal;
+  label.setAttribute('aria-expanded','true');
+  label.classList.add('budget-ux-period-open');
+  function hideYears(){yearList.hidden=true;yearToggle.setAttribute('aria-expanded','false')}
+  function drawMonths(){
+   yearToggle.textContent='✦ '+year+' ⌄';
+   prev.disabled=year<=minYear;next.disabled=year>=maxYear;
+   monthGrid.replaceChildren();
+   months.forEach(function(month,i){
+    const code=String(year)+'-'+String(i+1).padStart(2,'0');
+    const button=node('button','budget-month-cell');button.type='button';
+    button.style.setProperty('--month-order',String(i));
+    button.disabled=code>max;
+    if(code===input.value)button.classList.add('is-selected');
+    if(code===currentWibMonth())button.classList.add('is-current');
+    const n=node('span','budget-month-cell-number',String(i+1).padStart(2,'0'));
+    const title=node('strong','',month);
+    const mark=node('span','budget-month-cell-mark',code===input.value?'✓':code===currentWibMonth()?'•':'');
+    button.append(n,title,mark);
+    button.setAttribute('aria-label',month+' '+year+(code===input.value?', periode sedang aktif':''));
+    button.setAttribute('aria-pressed',String(code===input.value));
+    button.addEventListener('click',function(){
+     if(button.disabled)return;
+     closePanel(false);
+     if(input.value!==code){
+      input.value=code;
+      input.dispatchEvent(new Event('change',{bubbles:true}));
+     }
+     refresh();
+     label.focus({preventScroll:true});
+    });
+    monthGrid.append(button);
+   });
+  }
+  function drawYears(){
+   yearList.replaceChildren();
+   for(let n=maxYear;n>=minYear;n--){
+    const choice=node('button','budget-month-year-item',String(n));choice.type='button';
+    if(n===year)choice.classList.add('is-selected');
+    choice.addEventListener('click',function(){
+     year=n;hideYears();drawMonths();
+     monthGrid.querySelector('.budget-month-cell:not(:disabled)')?.focus({preventScroll:true});
+    });
+    yearList.append(choice);
+   }
+  }
+  prev.addEventListener('click',function(){if(year>minYear){year--;hideYears();drawMonths()}});
+  next.addEventListener('click',function(){if(year<maxYear){year++;hideYears();drawMonths()}});
+  yearToggle.addEventListener('click',function(){
+   const open=yearList.hidden;yearList.hidden=!open;yearToggle.setAttribute('aria-expanded',String(open));
+   if(open){drawYears();yearList.querySelector('.is-selected')?.scrollIntoView({block:'nearest'})}
+  });
+  now.addEventListener('click',function(){
+   const code=max;
+   closePanel(false);
+   if(input.value!==code){input.value=code;input.dispatchEvent(new Event('change',{bubbles:true}))}
+   refresh();label.focus({preventScroll:true});
+  });
+  shade.addEventListener('click',function(){closePanel()});
+  close.addEventListener('click',function(){closePanel()});
+  drawMonths();
+  (monthGrid.querySelector('.is-selected')||monthGrid.querySelector('.is-current')||close).focus({preventScroll:true});
  }
  label.addEventListener('click',open);
- label.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.stopPropagation();open(e)}});
+ label.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();open(e)}});
+ document.addEventListener('keydown',function(e){
+  if(!currentPortal)return;
+  if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();closePanel();return}
+  if(e.key==='Tab'){
+   const focusable=Array.from(currentPortal.querySelectorAll('button:not(:disabled)')).filter(function(el){return el.getClientRects().length&&!el.closest('[hidden]')});
+   if(!focusable.length)return;
+   const first=focusable[0],last=focusable[focusable.length-1];
+   if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+   else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+  }
+ },true);
  input.addEventListener('change',function(){window.requestAnimationFrame(refresh)});
  new MutationObserver(refresh).observe(input,{attributes:true,attributeFilter:['value']});
  const content=document.getElementById('content');
  if(content)new MutationObserver(refresh).observe(content,{childList:true});
- // Other views change the input value property without changing its attribute.
  document.addEventListener('change',function(e){if(e.target===input)window.setTimeout(refresh,0)});
 }
+
 function splitOption(opt){
  const raw=(opt.textContent||'').trim();
  const pair=raw.split(' · ');

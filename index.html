@@ -7099,24 +7099,105 @@ function renderIncomeTrendCard(){
  </section>`;
 }
 
+
+/* #111 Donut ringkas pada popup titik tren; sumber data mengikuti filter induk. */
+function pointPieItems(transactions,kind,popup){
+ const byPos=kind==='income'?!!ui.incomeFilter?.group:
+  popup.scope==='group'||popup.scope==='category'||ui.comp.breakdown==='category';
+ const grouped=new Map();
+ for(const t of transactions){
+  const c=cat(t.categoryId);
+  const group=kind==='income'?incomeGroupName(t):(c?.group||'Lainnya');
+  const id=byPos?'c:'+t.categoryId:'g:'+group;
+  if(!grouped.has(id))grouped.set(id,{id,label:byPos?(c?.label||'Pos Lainnya'):group,value:0,count:0,category:c});
+  const row=grouped.get(id);row.value+=num(t.amount);row.count++;
+ }
+ return [...grouped.values()].filter(item=>item.value>0).sort((a,b)=>b.value-a.value||a.label.localeCompare(b.label,'id')).map((item,i)=>({
+  ...item,color:kind==='income'?incomePalette[i%incomePalette.length]:byPos?
+   (item.category?analysisPosColor(item.category):'#8fa6c8'):
+   (expenseGroups().find(g=>g.name===item.label)?.color||'#8fa6c8')
+ }));
+}
+function pointPieMatches(t,key,kind){
+ if(!key)return true;
+ if(key.startsWith('c:'))return t.categoryId===key.slice(2);
+ if(key.startsWith('g:'))return (kind==='income'?incomeGroupName(t):(cat(t.categoryId)?.group||'Lainnya'))===key.slice(2);
+ return false;
+}
+function renderPointPie(transactions,kind,popup){
+ const items=pointPieItems(transactions,kind,popup),total=transactions.reduce((n,t)=>n+num(t.amount),0);
+ const picked=items.find(item=>item.id===popup.pieChoice)||null;
+ const ring=64,circumference=2*Math.PI*ring;
+ let offset=0;
+ const slices=items.map((item,i)=>{
+  const part=item.value/total*circumference,gap=Math.min(1.1,part*.03),draw=Math.max(.2,part-gap);
+  const dash=draw.toFixed(3)+' '+(circumference-draw).toFixed(3);
+  const html=`<circle cx="90" cy="90" r="${ring}" fill="none" stroke="${h(item.color)}" stroke-width="25"
+   stroke-dasharray="${dash}" stroke-dashoffset="${(-offset).toFixed(3)}" transform="rotate(-90 90 90)"
+   role="button" tabindex="0" data-point-pie-choice="${h(item.id)}"
+   aria-label="${h(item.label+', '+money(item.value)+', '+pct(item.value,total)+' persen')}"
+   class="point-pie-slice ${picked?.id===item.id?'selected':''} ${picked&&picked.id!==item.id?'muted':''}">
+   <title>${h(item.label)} · ${money(item.value)} (${pct(item.value,total)}%)</title></circle>`;
+  offset+=part;return html;
+ }).join('');
+ const buttons=items.map(item=>`<button type="button" class="point-pie-item ${picked?.id===item.id?'selected':''}"
+  data-point-pie-choice="${h(item.id)}" aria-pressed="${picked?.id===item.id}">
+  <span class="point-pie-color" style="--point-pie-color:${h(item.color)}"></span>
+  <span class="point-pie-name">${h(item.label)}</span><span class="point-pie-percent">${pct(item.value,total)}%</span>
+  <strong title="${money(item.value)}">${money(item.value)}</strong></button>`).join('');
+ return `<section class="point-pie-panel ${kind==='income'?'is-income':'is-expense'}"
+  aria-label="Komposisi ${kind==='income'?'pemasukan':'pengeluaran'} pada titik grafik">
+  <div class="point-pie-heading"><span>🍩 Komposisi pada periode ini</span><strong title="${money(total)}">${money(total)}</strong></div>
+  ${items.length?`<div class="point-pie-layout"><div class="point-pie-donut">
+    <svg viewBox="0 0 180 180" role="group" aria-label="Pilih irisan untuk menyaring transaksi">
+     <circle cx="90" cy="90" r="${ring}" fill="none" stroke="${kind==='income'?'#def1e8':'#e7eefb'}" stroke-width="25"/>
+     ${slices}</svg>
+    <div class="point-pie-center"><span>${picked?'Porsi Pos':'Total'}</span>
+      <strong title="${money(picked?.value??total)}">${shortMoney(picked?.value??total)}</strong>
+      <small>${picked?pct(picked.value,total)+'%':'100%'}</small></div></div>
+    <div class="point-pie-items"><div class="point-pie-items-header">Penyusun grafik <span>${items.length} pos</span></div>${buttons}</div>
+   </div>`:'<div class="point-pie-empty">Belum ada transaksi pada titik ini.</div>'}
+   ${items.length>1?`<div class="point-pie-actions">
+     <button type="button" data-point-pie-choice="" class="${!picked?'selected':''}">
+       ✨ ${picked?'Tampilkan semua':'Semua pos ditampilkan'}</button>
+     <span>Klik irisan atau pos untuk menyaring transaksi.</span>
+   </div>`:''}
+  </section>`;
+}
+function pointPopupTransactions(transactions,kind,popup){
+ const items=pointPieItems(transactions,kind,popup);
+ const picked=items.find(item=>item.id===popup.pieChoice);
+ const rows=transactions.filter(t=>pointPieMatches(t,picked?.id,kind)).slice().sort((a,b)=>
+  b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
+ return `<section class="point-transaction-section">
+   <h4>🧾 Rincian Transaksi · ${rows.length} Catatan</h4>
+   ${picked?`<div class="point-active-filter">
+    <span>Menampilkan: <strong>${h(picked.label)}</strong></span>
+    <button type="button" data-point-pie-choice="">✕ Semua Pos</button></div>`:''}
+   ${rows.length?kpiDailyBreakdown(rows,kind):'<div class="review-modal-empty">Belum ada transaksi pada pilihan ini.</div>'}
+  </section>`;
+}
+
 function incomeChartPopup(popup){
- const period=popup.type==='income-year'||popup.type==='income-month'?popup.key:(popup.month||null),annual=!!period&&period.length===4;
- const periodPopup=popup.type==='income-month'||popup.type==='income-year';
- const tx=incomeFilterTransactions(period).filter(t=>popup.type!=='income-source'||incomeEntryMatches(t,popup.key)).slice().sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
+ const period=['income-year','income-month'].includes(popup.type)?popup.key:(popup.month||null);
+ const isPoint=['income-year','income-month'].includes(popup.type);
+ const tx=incomeFilterTransactions(period).filter(t=>popup.type!=='income-source'||incomeEntryMatches(t,popup.key))
+  .slice().sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
  const source=popup.type==='income-source'?incomeSourceData(period).find(item=>item.id===popup.key):null;
- const total=tx.reduce((sum,t)=>sum+num(t.amount),0);
- const title=periodPopup?'Komposisi Pemasukan · '+(period?incomePeriodLabel(period):incomeFilterLabel()):'Pemasukan · '+(source?.label||'Sumber Lainnya');
- return `<div class="review-modal-backdrop kpi-modal-backdrop income-breakdown-popup" id="review-modal-backdrop">
-  <div class="review-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="review-modal-title" aria-describedby="review-modal-subtitle">
-   <div class="review-modal-top"><div><h3 id="review-modal-title">${h(title)}</h3><p id="review-modal-subtitle">${periodPopup?'Kenali kontribusi setiap sumber. Pilih irisan untuk melihat transaksi penyusunnya.':'Periksa transaksi yang membentuk sumber pemasukan pilihanmu.'}</p></div>
-    <button type="button" class="review-modal-close" data-review-close aria-label="Tutup Rincian">✕</button></div>
-   <div class="review-modal-content kpi-modal-content">
-    ${periodPopup&&total>0?`<div class="income-popup-composition">${renderIncomeCalloutVisual(period)}</div>`:''}
-    ${!periodPopup||total===0?`<div class="income-pie-total income-popup-total"><span>Total Pemasukan · ${h(period?incomePeriodLabel(period):incomeFilterLabel())}</span><strong>${money(total)}</strong></div>`:''}
-    <h4 class="income-popup-transactions-heading">🧾 Rincian Transaksi · ${tx.length} Catatan</h4>
-    ${tx.length?kpiDailyBreakdown(tx,'income'):'<div class="review-modal-empty">Belum Ada Pemasukan pada periode ini.</div>'}
-   </div>
-  </div></div>`;
+ const total=tx.reduce((sum,t)=>sum+num(t.amount),0),periodText=period?incomePeriodLabel(period):incomeFilterLabel();
+ const title=isPoint?'Rincian Pemasukan · '+periodText:'Pemasukan · '+(source?.label||'Sumber Lainnya');
+ return `<div class="review-modal-backdrop kpi-modal-backdrop income-breakdown-popup ${isPoint?'point-detail-popup income-point-popup':''}" id="review-modal-backdrop">
+   <div class="review-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="review-modal-title" aria-describedby="review-modal-subtitle">
+    <div class="review-modal-top"><div><h3 id="review-modal-title">${h(title)}</h3>
+     <p id="review-modal-subtitle">${isPoint?'Komposisi dan transaksi pada titik terpilih, mengikuti filter pie.':periodText+' · '+tx.length+' transaksi tercatat'}</p></div>
+     <button type="button" class="review-modal-close" data-review-close aria-label="Tutup Rincian">✕</button></div>
+    <div class="review-modal-content kpi-modal-content">
+     ${isPoint?renderPointPie(tx,'income',popup):
+      `<div class="income-pie-total income-popup-total"><span>Total Pemasukan · ${h(periodText)}</span><strong>${money(total)}</strong></div>`}
+     ${isPoint?pointPopupTransactions(tx,'income',popup):
+      `<h4 class="income-popup-transactions-heading">🧾 Rincian Transaksi · ${tx.length} Catatan</h4>
+       ${tx.length?kpiDailyBreakdown(tx,'income'):'<div class="review-modal-empty">Belum ada pemasukan pada periode ini.</div>'}`}
+    </div></div></div>`;
 }
 
 function openIncomePopup(type,key){
@@ -7261,38 +7342,31 @@ function kpiBalanceBreakdown(){
 }
 function renderTrendPointPopup(popup){
  if(!['day','month','year'].includes(popup.mode)||popup.mode!==ui.comp.trend)return '';
- const periods=trendPeriods();
- if(!periods.keys.includes(popup.key))return '';
- const selectedIds=new Set(analysisCategories().map(c=>c.id));
- const selected=db.transactions.filter(t=>t.type==='expense'&&selectedIds.has(t.categoryId)&&trendRowTransaction(t,popup.key,popup.mode));
+ const periods=trendPeriods();if(!periods.keys.includes(popup.key))return '';
+ const dates=analysisDates(),ids=new Set(analysisCategories().map(c=>c.id));
+ let tx=db.transactions.filter(t=>t.type==='expense'&&ids.has(t.categoryId)&&
+  t.date>=dates.from&&t.date<=dates.to&&t.date<=analysisToday()&&
+  trendRowTransaction(t,popup.key,popup.mode));
  let label='Total Pengeluaran';
  if(popup.scope==='group'){
-  const group=analysisGroups().find(g=>g.id===popup.series);
-  if(!group)return '';
-  label=group.name;
-  selected.splice(0,selected.length,...selected.filter(t=>cat(t.categoryId)?.group===group.name));
+  const group=analysisGroups().find(g=>g.id===popup.series);if(!group)return '';
+  label=group.name;tx=tx.filter(t=>cat(t.categoryId)?.group===group.name);
  }else if(popup.scope==='category'){
-  const category=analysisCategories().find(c=>c.id===popup.series);
-  if(!category)return '';
-  label=category.label;
-  selected.splice(0,selected.length,...selected.filter(t=>t.categoryId===category.id));
+  const category=analysisCategories().find(c=>c.id===popup.series);if(!category)return '';
+  label=category.label;tx=tx.filter(t=>t.categoryId===category.id);
  }else if(popup.scope!=='total')return '';
- const tx=selected.sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
+ tx.sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
  const periodLabel=popup.mode==='day'?dateFmt(popup.key):popup.mode==='month'?monthFmt(popup.key):'Tahun '+popup.key;
- const amount=tx.reduce((sum,t)=>sum+num(t.amount),0);
  const title='Rincian '+label+' · '+periodLabel;
- const desc=(popup.scope==='total'?'Semua Kelompok/Pos Terpilih':popup.scope==='group'?'Kelompok Pengeluaran':'Pos Pengeluaran')+' · '+tx.length+' Transaksi';
- const rows=tx.length?(popup.mode==='day'?tx.map(transactionCalendarItem).join(''):kpiDailyBreakdown(tx,'expense')):'<div class="review-modal-empty">Belum Ada Pengeluaran Untuk Titik Ini.</div>';
- return `<div class="review-modal-backdrop trend-popup-backdrop" id="review-modal-backdrop">
-  <div class="review-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="review-modal-title" aria-describedby="review-modal-subtitle">
-   <div class="review-modal-top"><div><h3 id="review-modal-title">${h(title)}</h3><p id="review-modal-subtitle">${h(desc)}</p></div>
-    <button type="button" class="review-modal-close" data-review-close aria-label="Tutup Rincian Titik Grafik">✕</button></div>
-   <div class="review-modal-content">
-    <div class="trend-popup-total"><span>Pengeluaran Pada Titik Grafik</span><strong class="red">${money(amount)}</strong></div>
-    <p class="kpi-detail-note">Transaksi mengikuti periode, kelompok, dan pos yang dipilih dalam filter analisis.</p>
-    ${rows}
-   </div>
-  </div></div>`;
+ const desc=(popup.scope==='total'?'Semua kelompok/pos terpilih':popup.scope==='group'?'Kelompok pengeluaran':'Pos pengeluaran')+' · '+tx.length+' transaksi';
+ return `<div class="review-modal-backdrop trend-popup-backdrop point-detail-popup expense-point-popup" id="review-modal-backdrop">
+   <div class="review-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="review-modal-title" aria-describedby="review-modal-subtitle">
+    <div class="review-modal-top"><div><h3 id="review-modal-title">${h(title)}</h3><p id="review-modal-subtitle">${h(desc)}</p></div>
+     <button type="button" class="review-modal-close" data-review-close aria-label="Tutup Rincian Titik Grafik">✕</button></div>
+    <div class="review-modal-content">
+     ${renderPointPie(tx,'expense',popup)}
+     ${pointPopupTransactions(tx,'expense',popup)}
+    </div></div></div>`;
 }
 function openTrendPoint(element){
  const d=element.dataset;

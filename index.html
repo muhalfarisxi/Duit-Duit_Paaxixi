@@ -10015,7 +10015,7 @@ function budgetHistoryRows(kind){
   </article>`;
   return `<article class="budget-work-history-item"><span class="budget-history-icon transfer">✏️</span>
    <div class="budget-history-info"><strong>${h(cat(item.categoryId)?.label||item.categoryLabel||'Pos dihapus')}</strong>
-    <small>${h(dateFmt(item.date))} · ${item.correction?'Koreksi setelah penetapan':'Pengisian awal'}${item.note?' · '+h(item.note):''}</small></div>
+    <small>${h(dateFmt(item.date))} · ${item.correction?'Koreksi setelah penetapan':item.note==='Pengisian draft anggaran awal'?'Pengisian draft':'Perubahan anggaran awal'}${item.note?' · '+h(item.note):''}</small></div>
    <strong class="budget-history-amount">${money(item.previous)} → ${money(item.next)}</strong>
   </article>`;
  }).join('')}</div>`;
@@ -10396,9 +10396,11 @@ function budgetFlowDialogMarkup(kind,id=null,preselect=null){
   if(id&&!move)return '';
   heading=move?'Edit Pengalihan':'Alihkan Anggaran';icon='🔀';
   description='Pengalihan hanya mengubah alokasi pos, bukan saldo rekening.';
-  const opts=expenses().filter(c=>effectiveBudget(c.id)-spentByCat(c.id)>0||move?.from===c.id)
-   .map(c=>`<option value="${h(c.id)}" ${move?.from===c.id||!move&&preselect===c.id?'selected':''}>${h(c.group)} · ${h(c.label)} (Sisa ${money(effectiveBudget(c.id)-spentByCat(c.id))})</option>`).join('');
-  const dest=expenses().map(c=>`<option value="${h(c.id)}" ${move?.to===c.id||!move&&preselect&&c.id!==preselect&&c.id===expenses().find(x=>x.id!==preselect)?.id?'selected':''}>${h(c.group)} · ${h(c.label)}</option>`).join('');
+  const sources=expenses().filter(c=>effectiveBudget(c.id)-spentByCat(c.id)>0||move?.from===c.id);
+  const chosenFrom=move?.from||(preselect&&sources.some(c=>c.id===preselect)?preselect:sources[0]?.id);
+  const chosenTo=move?.to||(preselect&&preselect!==chosenFrom?preselect:expenses().find(c=>c.id!==chosenFrom)?.id);
+  const opts=sources.map(c=>`<option value="${h(c.id)}" ${chosenFrom===c.id?'selected':''}>${h(c.group)} · ${h(c.label)} (Sisa ${money(effectiveBudget(c.id)-spentByCat(c.id))})</option>`).join('');
+  const dest=expenses().map(c=>`<option value="${h(c.id)}" ${chosenTo===c.id?'selected':''}>${h(c.group)} · ${h(c.label)}</option>`).join('');
   body=`<form id="move-budget-form" class="budget-flow-form"><input type="hidden" name="editId" value="${h(move?.id||'')}">
     <label>Pos Asal (Sisa Anggaran)<select name="from" class="field" required>${opts}</select></label>
     ${!opts?'<p class="budget-flow-empty-hint">Belum ada pos dengan sisa anggaran untuk dialihkan.</p>':''}

@@ -6683,15 +6683,15 @@ function renderIncomeCalloutVisual(month){
  }).join('');
  const mobile=entries.map(e=>`<button class="income-mobile-source" type="button" data-income-source="${h(e.id)}" style="--income-dot:${e.color}"><span><strong>${h(e.label)}</strong><small>${money(e.value)}</small></span><b>${pct(e.value,total)}%</b></button>`).join('');
  return `<div class="income-callout-wrap">
-   <svg class="income-callout-svg" viewBox="0 0 760 ${H}" role="group" aria-label="Komposisi Pemasukan ${h(monthFmt(month))}: Pilih Irisan atau Label untuk melihat rincian">
+   <svg class="income-callout-svg" viewBox="0 0 760 ${H}" role="group" aria-label="Komposisi Pemasukan ${h(incomePeriodLabel(month))}: Pilih Irisan atau Label untuk melihat rincian">
     ${drawSide(left,false)}${drawSide(right,true)}
     <g transform="translate(${(cx-120).toFixed(1)} ${(cy-120).toFixed(1)})">${rings}</g>
     <text class="income-callout-center-small" x="${cx}" y="${cy-20}" text-anchor="middle">Total Pemasukan</text>
     <text class="income-callout-center-amount" x="${cx}" y="${cy+4}" text-anchor="middle" style="font-size:${money(total).length>13?12:money(total).length>11?14:16}px">${money(total)}</text>
-    <text class="income-callout-center-period" x="${cx}" y="${cy+25}" text-anchor="middle">${h(monthFmt(month))}</text>
+    <text class="income-callout-center-period" x="${cx}" y="${cy+25}" text-anchor="middle">${h(incomePeriodLabel(month))}</text>
    </svg>
-   <div class="income-callout-mobile"><div class="income-pie-plot"><svg viewBox="0 0 240 240" role="group" aria-label="Diagram Pemasukan ${h(monthFmt(month))}">${rings}</svg>
-    <div class="income-pie-middle" aria-hidden="true"><span>Total Masuk</span><strong title="${money(total)}">${money(total)}</strong><small>${h(monthFmt(month))}</small></div></div>
+   <div class="income-callout-mobile"><div class="income-pie-plot"><svg viewBox="0 0 240 240" role="group" aria-label="Diagram Pemasukan ${h(incomePeriodLabel(month))}">${rings}</svg>
+    <div class="income-pie-middle" aria-hidden="true"><span>Total Masuk</span><strong title="${money(total)}">${money(total)}</strong><small>${h(incomePeriodLabel(month))}</small></div></div>
     <div class="income-mobile-source-list">${mobile}</div>
    </div>
   </div>`;
@@ -6699,7 +6699,7 @@ function renderIncomeCalloutVisual(month){
 
 function incomeSourceData(month=incomeChosenMonth()){
  const map=new Map();
- db.transactions.filter(t=>t.type==='income'&&t.date.slice(0,7)===month).forEach(t=>{
+ db.transactions.filter(t=>t.type==='income'&&t.date.slice(0,month.length===4?4:7)===month).forEach(t=>{
   const c=cat(t.categoryId),id=c?.kind==='income'?t.categoryId:'_unknown';
   if(!map.has(id))map.set(id,{id,label:id==='_unknown'?'Sumber Lainnya':c.label,value:0,count:0});
   const row=map.get(id);row.value+=num(t.amount);row.count++;
@@ -6801,26 +6801,33 @@ function renderIncomeTrendCard(){
 }
 
 function incomeChartPopup(popup){
- const month=popup.type==='income-month'?popup.key:(popup.month||incomeChosenMonth()),monthlyView=popup.type==='income-month';
- const tx=db.transactions.filter(t=>t.type==='income'&&t.date.slice(0,7)===month&&(popup.type!=='income-source'||(popup.key==='_unknown'?cat(t.categoryId)?.kind!=='income':t.categoryId===popup.key))).slice().sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
- const source=popup.type==='income-source'?incomeSourceData(month).find(e=>e.id===popup.key):null,total=tx.reduce((n,t)=>n+num(t.amount),0);
- const title=monthlyView?'Komposisi Pemasukan · '+monthFmt(month):'Pemasukan · '+(source?.label||'Sumber Lainnya');
- return `<div class="review-modal-backdrop kpi-modal-backdrop income-breakdown-popup" id="review-modal-backdrop"><div class="review-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="review-modal-title" aria-describedby="review-modal-subtitle">
-  <div class="review-modal-top"><div><h3 id="review-modal-title">${h(title)}</h3><p id="review-modal-subtitle">${tx.length} Transaksi · ${h(monthFmt(month))}${monthlyView&&total?' · Pilih Irisan untuk Rincian':''}</p></div>
-   <button type="button" class="review-modal-close" data-review-close aria-label="Tutup Rincian">✕</button></div>
-  <div class="review-modal-content kpi-modal-content">
-   ${monthlyView&&total?`<div class="income-popup-composition">${renderIncomeCalloutVisual(month)}</div>`:''}
-   <div class="income-pie-total income-popup-total"><span>Total Pemasukan · ${h(monthFmt(month))}</span><strong>${money(total)}</strong></div>
-   <h4 class="income-popup-transactions-heading">🧾 Rincian Transaksi</h4>
-   ${tx.length?kpiDailyBreakdown(tx,'income'):'<div class="review-modal-empty">Belum Ada Pemasukan pada bulan ini.</div>'}
-  </div></div></div>`;
+ const period=popup.type==='income-year'||popup.type==='income-month'?popup.key:(popup.month||incomeChosenMonth()),annual=period.length===4;
+ const periodPopup=popup.type==='income-month'||popup.type==='income-year';
+ const tx=db.transactions.filter(t=>t.type==='income'&&t.date.slice(0,annual?4:7)===period&&(popup.type!=='income-source'||(popup.key==='_unknown'?cat(t.categoryId)?.kind!=='income':t.categoryId===popup.key))).slice().sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
+ const source=popup.type==='income-source'?incomeSourceData(period).find(item=>item.id===popup.key):null;
+ const total=tx.reduce((sum,t)=>sum+num(t.amount),0);
+ const title=periodPopup?'Komposisi Pemasukan · '+incomePeriodLabel(period):'Pemasukan · '+(source?.label||'Sumber Lainnya');
+ return `<div class="review-modal-backdrop kpi-modal-backdrop income-breakdown-popup" id="review-modal-backdrop">
+  <div class="review-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="review-modal-title" aria-describedby="review-modal-subtitle">
+   <div class="review-modal-top"><div><h3 id="review-modal-title">${h(title)}</h3><p id="review-modal-subtitle">${periodPopup?'Kenali kontribusi setiap sumber. Pilih irisan untuk melihat transaksi penyusunnya.':'Periksa transaksi yang membentuk sumber pemasukan pilihanmu.'}</p></div>
+    <button type="button" class="review-modal-close" data-review-close aria-label="Tutup Rincian">✕</button></div>
+   <div class="review-modal-content kpi-modal-content">
+    ${periodPopup&&total>0?`<div class="income-popup-composition">${renderIncomeCalloutVisual(period)}</div>`:''}
+    ${!periodPopup||total===0?`<div class="income-pie-total income-popup-total"><span>Total Pemasukan · ${h(incomePeriodLabel(period))}</span><strong>${money(total)}</strong></div>`:''}
+    <h4 class="income-popup-transactions-heading">🧾 Rincian Transaksi · ${tx.length} Catatan</h4>
+    ${tx.length?kpiDailyBreakdown(tx,'income'):'<div class="review-modal-empty">Belum Ada Pemasukan pada periode ini.</div>'}
+   </div>
+  </div></div>`;
 }
 
 function openIncomePopup(type,key){
- const month=ui.reviewPopup?.type==='income-month'?ui.reviewPopup.key:ui.reviewPopup?.type==='income-source'?ui.reviewPopup.month:incomeChosenMonth();
- if(type==='income-source'&&!incomeSourceData(month).some(e=>e.id===key))return;
+ const active=ui.reviewPopup,period=type==='income-month'||type==='income-year'?key:
+  active?.type==='income-month'||active?.type==='income-year'?active.key:
+  active?.type==='income-source'?active.month:incomeChosenMonth();
+ if(type==='income-source'&&!incomeSourceData(period).some(entry=>entry.id===key))return;
  if(type==='income-month'&&(!/^\d{4}-\d{2}$/.test(key)||key>analysisToday().slice(0,7)))return;
- ui.reviewPopup={type,key,month};render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});
+ if(type==='income-year'&&(!/^\d{4}$/.test(key)||key>analysisToday().slice(0,4)))return;
+ ui.reviewPopup={type,key,month:period};render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});
 }
 
 function renderDash(){let all=monthly(),exp=totalType('expense'),inc=totalType('income'),bt=budgetTotal(),accountBalances=balances(),kas=Object.values(accountBalances).reduce((s,x)=>s+x,0),alert=expenses().filter(c=>hasBudget(c.id)&&['danger','warn'].includes(status(c.id).s)).sort((a,b)=>{const priority={danger:0,warn:1};return (priority[status(a.id).s]??9)-(priority[status(b.id).s]??9)||pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1));}),debt=totalsDebt();
@@ -7038,9 +7045,9 @@ function debtOverviewPopupContent(){
 }
 
 function renderDashboardKpiPopup(){
- const popup=ui.reviewPopup;if(ui.view!=='dashboard'||!['dashboard-kpi','trend-point','debt-list','income-month','income-source'].includes(popup?.type))return '';
+ const popup=ui.reviewPopup;if(ui.view!=='dashboard'||!['dashboard-kpi','trend-point','debt-list','income-month','income-year','income-source'].includes(popup?.type))return '';
  if(popup.type==='trend-point')return renderTrendPointPopup(popup);
- if(popup.type==='income-month'||popup.type==='income-source')return incomeChartPopup(popup);
+ if(['income-month','income-year','income-source'].includes(popup.type))return incomeChartPopup(popup);
   if(popup.type==='debt-list')return `<div class="review-modal-backdrop debt-quick-backdrop highlighted-debt-popup" id="review-modal-backdrop"><div class="review-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="review-modal-title" aria-describedby="review-modal-subtitle"><div class="review-modal-top"><div><h3 id="review-modal-title">Daftar Utang & Piutang</h3><p id="review-modal-subtitle">Pantau Sisa Utang, Piutang yang Belum Kembali, dan Perkembangan Cicilan dalam Satu Tempat.</p></div><button type="button" class="review-modal-close" data-review-close aria-label="Tutup daftar utang dan piutang">✕</button></div><div class="review-modal-content">${debtOverviewPopupContent()}</div></div></div>`;
  const key=popup.key;
  let title='',description='',content='';
@@ -7613,9 +7620,9 @@ function dismissReviewPopup(){
  render();
  if(previous.type==='debt-list')document.querySelector('[data-debt-overview]')?.focus({preventScroll:true});
   else if(previous.type==='dashboard-kpi')document.querySelector('[data-dashboard-kpi="'+previous.key+'"]')?.focus({preventScroll:true});
- else if(previous.type==='income-month'||previous.type==='income-source'){
-  const elements=[...document.querySelectorAll(previous.type==='income-month'?'[data-income-month]':'[data-income-source]')];
-  elements.find(el=>previous.type==='income-month'?el.dataset.incomeMonth===previous.key:el.dataset.incomeSource===previous.key)?.focus({preventScroll:true});
+ else if(['income-month','income-year','income-source'].includes(previous.type)){
+  const selector=previous.type==='income-month'?'[data-income-month]':previous.type==='income-year'?'[data-income-year]':'[data-income-source]';
+  [...document.querySelectorAll(selector)].find(el=>previous.type==='income-month'?el.dataset.incomeMonth===previous.key:previous.type==='income-year'?el.dataset.incomeYear===previous.key:el.dataset.incomeSource===previous.key)?.focus({preventScroll:true});
  }
  else if(previous.type==='trend-point'){
   const prior=[...document.querySelectorAll('[data-trend-point]')].find(el=>el.dataset.trendKey===previous.key&&el.dataset.trendSeries===previous.series&&el.dataset.trendScope===previous.scope);
@@ -8424,7 +8431,7 @@ document.addEventListener('keydown',event=>{
   }
   return;
  }
- if((event.key==='Enter'||event.key===' ')&&event.target?.matches?.('[data-income-month],[data-income-source]')){event.preventDefault();openIncomePopup(event.target.dataset.incomeMonth!==undefined?'income-month':'income-source',event.target.dataset.incomeMonth??event.target.dataset.incomeSource);return;}
+ if((event.key==='Enter'||event.key===' ')&&event.target?.matches?.('[data-income-month],[data-income-year],[data-income-source]')){event.preventDefault();const t=event.target;openIncomePopup(t.dataset.incomeYear!==undefined?'income-year':t.dataset.incomeMonth!==undefined?'income-month':'income-source',t.dataset.incomeYear??t.dataset.incomeMonth??t.dataset.incomeSource);return;}
  if((event.key==='Enter'||event.key===' ')&&event.target?.matches?.('[data-trend-point]')){
   event.preventDefault();openTrendPoint(event.target);return;
  }
@@ -8512,6 +8519,7 @@ document.addEventListener('click',async e=>{
  if(aiDlg&&e.target===aiDlg){const b=aiDlg.getBoundingClientRect();if(e.clientX<b.left||e.clientX>b.right||e.clientY<b.top||e.clientY>b.bottom)closePaaxAiInsight();return;}
  const incomeSegment=e.target.closest?.('[data-income-source]');if(incomeSegment){openIncomePopup('income-source',incomeSegment.dataset.incomeSource);return;}
   const incomeMonth=e.target.closest?.('[data-income-month]');if(incomeMonth){openIncomePopup('income-month',incomeMonth.dataset.incomeMonth);return;}
+ const incomeYear=e.target.closest?.('[data-income-year]');if(incomeYear){openIncomePopup('income-year',incomeYear.dataset.incomeYear);return;}
   const trendPoint=e.target.closest('[data-trend-point]');
  if(trendPoint){openTrendPoint(trendPoint);return;}
  let x=e.target.closest('button');if(!x)return;

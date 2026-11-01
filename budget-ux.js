@@ -35,6 +35,8 @@ function setupPeriod(){
  label.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.stopPropagation();open(e)}});
  input.addEventListener('change',function(){window.requestAnimationFrame(refresh)});
  new MutationObserver(refresh).observe(input,{attributes:true,attributeFilter:['value']});
+ const content=document.getElementById('content');
+ if(content)new MutationObserver(refresh).observe(content,{childList:true});
  // Other views change the input value property without changing its attribute.
  document.addEventListener('change',function(e){if(e.target===input)window.setTimeout(refresh,0)});
 }

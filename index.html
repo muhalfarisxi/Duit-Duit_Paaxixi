@@ -6284,6 +6284,45 @@ body:has(.tx-search-backdrop){overflow:hidden}
  .pax-popup-header-controls .pax-popup-header-cta:hover{transform:none!important}
 }
 
+/* #127 Anggaran: dua menu, kelompok bertingkat dan status penetapan per bulan. */
+#content .budget-work-tabs-two{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}
+#content .budget-work-tabs-two button{min-width:0;white-space:normal;min-height:48px}
+#content .budget-editor-top{align-items:center}
+#content .budget-editor-groups{display:grid;gap:12px;margin-top:16px}
+#content .budget-editor-group{min-width:0;overflow:hidden;border:1.5px solid color-mix(in srgb,var(--budget-theme) 29%,#dce8f8);border-radius:17px;background:linear-gradient(135deg,color-mix(in srgb,var(--budget-theme) 7%,white),white);box-shadow:0 5px 17px #244b8010}
+#content .budget-editor-group[open]{border-color:color-mix(in srgb,var(--budget-theme) 47%,white)}
+#content .budget-editor-group-summary{display:flex;align-items:center;gap:13px;cursor:pointer;list-style:none;padding:15px}
+#content .budget-editor-group-summary::-webkit-details-marker{display:none}
+#content .budget-editor-group-summary::marker{content:""}
+#content .budget-editor-group-summary:focus-visible{outline:3px solid #87b6fb;outline-offset:-4px}
+#content .budget-editor-group-title{display:flex;flex:1;flex-direction:column;gap:4px;min-width:0}
+#content .budget-editor-group-title strong{font:900 clamp(15px,2vw,19px)/1.3 Fredoka,Nunito,sans-serif;color:#24517e}
+#content .budget-editor-group-title small{color:#7188a3;font:800 11px/1.4 Nunito,sans-serif}
+#content .budget-editor-chevron{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:11px;background:#ecf4ff;color:#286bb6}
+#content .budget-editor-chevron::before{content:"";display:block;width:11px;height:11px;box-sizing:border-box;border-right:2.5px solid currentColor;border-bottom:2.5px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .2s}
+#content .budget-editor-group[open] .budget-editor-chevron::before{transform:translateY(2px) rotate(225deg)}
+#content .budget-editor-group-body{padding:12px 14px 15px;border-top:1px solid #dce8f6;background:#f9fbff}
+#content .budget-editor-group-actions,#content .budget-editor-pos-actions,#content .budget-editor-shortcuts{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+#content .budget-editor-group-actions{margin-bottom:12px}
+#content .budget-editor-pos-list{display:grid;gap:9px}
+#content .budget-editor-pos{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px;border:1px solid #dbe7f6;border-radius:13px;background:#fff}
+#content .budget-editor-pos-title{display:flex;align-items:center;gap:9px;flex:1 1 220px;min-width:0}
+#content .budget-editor-pos-title>span:last-child{display:flex;flex-direction:column;gap:4px;min-width:0}
+#content .budget-editor-pos-title strong{font:900 13px/1.3 Nunito,sans-serif;color:#26527f}
+#content .budget-editor-pos-title small{font:800 10px/1.4 Nunito,sans-serif;color:#7690ac}
+#content .budget-editor-pos-actions .btn{min-height:36px}
+#content .budget-initial-lock-banner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:14px;padding:15px;border:1px solid #eed5a9;border-radius:15px;background:linear-gradient(120deg,#fff9ed,#fffdf9)}
+#content .budget-initial-lock-banner.is-locked{border-color:#bce4d4;background:linear-gradient(120deg,#effaf5,#fff)}
+#content .budget-initial-lock-text{display:flex;flex-direction:column;gap:4px;flex:1 1 225px}
+#content .budget-initial-lock-text strong{font:900 13px/1.3 Nunito,sans-serif;color:#956322}
+#content .budget-initial-lock-banner.is-locked .budget-initial-lock-text strong{color:#188065}
+#content .budget-initial-lock-text small{font:750 11px/1.5 Nunito,sans-serif;color:#7189a2}
+#content .budget-initial-lock-pill{display:inline-flex;align-items:center;padding:8px 11px;border:1px solid #c7e5d8;border-radius:999px;background:#fff;color:#278265;font:900 10px/1.3 Nunito,sans-serif}
+#content .budget-editor-shortcuts{margin:15px 0 6px;justify-content:flex-end}
+#content .budget-editor-panel .budget-work-history-head:not(:first-child){margin-top:19px}
+@media(max-width:600px){#content .budget-editor-pos-actions{width:100%;justify-content:flex-end}#content .budget-editor-group-body{padding:10px}#content .budget-work-tabs-two button{font-size:12px}}
+@media(prefers-reduced-motion:reduce){#content .budget-editor-chevron::before{transition:none}}
+
 </style>
 </head>
 <body>
@@ -9960,21 +9999,70 @@ function budgetHistoryRows(kind){
  }).join('')}</div>`;
 }
 function renderBudgetMonthlySection(){
- return `<section class="card budget-work-panel">
-  <div class="card-head"><div><h3>Anggaran per Kelompok</h3></div>
-   <div class="budget-monthly-actions" role="group" aria-label="Tambah pengelolaan anggaran">
-    <button type="button" class="btn sm primary budget-monthly-btn budget-monthly-btn-group" data-add-expense-group>＋ Tambah Kelompok</button>
-    <button type="button" class="btn sm budget-monthly-btn budget-monthly-btn-pos" data-add-budget-category="">＋ Tambah Pos</button>
-   </div></div>
-  <div class="budget-work-groups">${expenseGroups().map(budgetBudgetCard).join('')}</div>
-  <section class="budget-work-history-section" aria-label="Riwayat perubahan anggaran awal">
-    <div class="budget-work-history-head"><h4>🕘 Riwayat Perubahan Anggaran Awal</h4>
-     <span>${budgetScopeTransactions('base').length} catatan · ${h(monthFmt(ui.month))}</span></div>
-    ${budgetHistoryRows('base')}
+ const locked=budgetIsEstablished(),totals=budgetMonthTotals();
+ const groups=expenseGroups().map(g=>{
+  const rows=expenses().filter(c=>c.group===g.name),color=cleanGroupColor(g.color)||'#2563eb';
+  const expanded=(ui.budgetEditExpandedGroups||[]).includes(g.id);
+  const original=rows.reduce((n,c)=>n+baseBudget(c.id),0);
+  const effective=rows.reduce((n,c)=>n+effectiveBudget(c.id),0);
+  const used=rows.reduce((n,c)=>n+spentByCat(c.id),0);
+  return `<details class="budget-editor-group" data-budget-edit-accordion="${h(g.id)}" style="--budget-theme:${color}" ${expanded?'open':''}>
+   <summary class="budget-editor-group-summary">
+    ${symbolBadge(g.name,g.name,true)}
+    <span class="budget-editor-group-title"><strong>${h(g.name)}</strong>
+     <small>${rows.length} pos · Awal ${money(original)} · Efektif ${money(effective)} · Sisa ${money(effective-used)}</small></span>
+    <span class="budget-editor-chevron" aria-hidden="true"></span>
+   </summary>
+   <div class="budget-editor-group-body">
+    <div class="budget-editor-group-actions">
+     <button type="button" class="btn sm" data-edit-expense-group="${h(g.id)}">✏️ Nama & Warna Kelompok</button>
+     <button type="button" class="btn sm" data-add-budget-category="${h(g.name)}">＋ Tambah Pos</button>
+     <button type="button" class="btn sm danger" data-delete-expense-group="${h(g.id)}">Hapus Kelompok</button>
+    </div>
+    <div class="budget-editor-pos-list">${rows.map(c=>`<article class="budget-editor-pos">
+      <div class="budget-editor-pos-title">
+       ${symbolBadge(c.label,c.group,true)}
+       <span><strong>${h(c.label)}</strong><small>Awal ${money(baseBudget(c.id))} · Efektif ${money(effectiveBudget(c.id))}</small></span>
+      </div>
+      <div class="budget-editor-pos-actions">
+       <button type="button" class="btn sm" data-edit-budget-category="${h(c.id)}">Nama Pos</button>
+       <button type="button" class="btn sm primary" data-budget-pos-actions="${h(c.id)}">✏️ ${locked?'Edit Pos':'Isi Anggaran Awal'}</button>
+      </div>
+     </article>`).join('')||'<p class="budget-detail-empty">Belum ada pos. Pilih Tambah Pos untuk membuatnya.</p>'}</div>
+   </div>
+  </details>`;
+ }).join('');
+ return `<section class="card budget-work-panel budget-editor-panel">
+  <div class="budget-work-section-head budget-editor-top">
+   <div><h3>✏️ Edit Anggaran</h3><p>${h(monthFmt(ui.month))} · ${locked?'Anggaran awal sudah ditetapkan. Setiap koreksi perlu tindakan khusus.':'Isi nominal setiap pos, lalu tetapkan anggaran awal bulan ini.'}</p></div>
+   <div class="budget-monthly-actions">
+    <button type="button" class="btn sm primary" data-add-expense-group>＋ Tambah Kelompok</button>
+    <button type="button" class="btn sm" data-add-budget-category="">＋ Tambah Pos</button>
+   </div>
+  </div>
+  <div class="budget-initial-lock-banner ${locked?'is-locked':'is-draft'}">
+   <div class="budget-initial-lock-text">
+    <strong>${locked?'🔒 Anggaran Awal Sudah Ditetapkan':'📝 Anggaran Awal Belum Ditetapkan'}</strong>
+    <small>${locked?'Anggaran awal terkunci. Pilih Edit Pos → Ubah Anggaran Awal untuk koreksi yang tercatat.':'Pengalihan dan penyesuaian terkunci sampai anggaran awal ditetapkan.'}</small>
+   </div>
+   ${!locked?`<button type="button" class="btn primary" data-budget-establish ${totals.initial<=0?'disabled title="Isi setidaknya satu pos terlebih dahulu"':''}>✓ Tetapkan Anggaran Awal · ${money(totals.initial)}</button>`:
+    '<span class="budget-initial-lock-pill">✓ Ditetapkan</span>'}
+  </div>
+  <div class="budget-editor-groups">${groups||'<p class="budget-detail-empty">Belum ada kelompok pengeluaran.</p>'}</div>
+  ${locked?`<div class="budget-editor-shortcuts">
+   <button type="button" class="btn sm" data-budget-new-move>🔀 Alihkan Anggaran</button>
+   <button type="button" class="btn sm" data-budget-new-adjust>➕➖ Tambah / Kurangi</button>
+  </div>`:''}
+  <section class="budget-work-history-section" aria-label="Riwayat perubahan anggaran">
+   <div class="budget-work-history-head"><h4>🕘 Riwayat Perubahan Anggaran Awal</h4><span>${budgetScopeTransactions('base').length} catatan</span></div>
+   ${budgetHistoryRows('base')}
+   <div class="budget-work-history-head"><h4>🔀 Riwayat Pengalihan</h4><span>${budgetScopeTransactions('transfer').length} catatan</span></div>
+   ${budgetHistoryRows('transfer')}
+   <div class="budget-work-history-head"><h4>➕➖ Riwayat Tambah / Kurangi</h4><span>${budgetScopeTransactions('adjustment').length} catatan</span></div>
+   ${budgetHistoryRows('adjustment')}
   </section>
  </section>`;
 }
-
 /* #123 Rincian Anggaran: pemakaian per kelompok, lalu per pos di dropdown.
    Warna progress mengikuti perubahan efektif dari anggaran awal, terpisah dari status pemakaian. */
 function budgetDetailTotals(categories){
@@ -10164,8 +10252,9 @@ function renderBudgetAdjustmentSection(){
  </section>`;
 }
 function renderBudgets(){
- const t=budgetMonthTotals(),used=budgetUsed(),section=['monthly','detail','transfer','adjustment'].includes(ui.budgetSection)?ui.budgetSection:'monthly';
- const tabs=[['monthly','🗓️ Anggaran Bulanan'],['detail','📊 Rincian Anggaran'],['transfer','🔀 Alihkan Anggaran'],['adjustment','➕➖ Tambah / Kurangi']];
+ const t=budgetMonthTotals(),used=budgetUsed();
+ const section=['monthly','edit'].includes(ui.budgetSection)?'edit':'detail';
+ const tabs=[['detail','📊 Rincian Anggaran'],['edit','✏️ Edit Anggaran']];
  return `<div class="budget-work-root">
   <div class="budget-work-totals">
    <div><span>Anggaran Awal</span><strong>${money(t.initial)}</strong></div>
@@ -10175,10 +10264,12 @@ function renderBudgets(){
   </div>
   <div class="budget-work-remaining" aria-label="Pemakaian dan sisa anggaran bulan ini">
    <span>🧾 Terpakai <strong>${money(used)}${t.effective>0?' · '+pct(used,t.effective)+'%':' '}</strong></span>
-   <span>💰 Sisa bulan ini <strong class="${t.effective-used<0?'negative':''}">${money(t.effective-used)}</strong></span></div>
-  <nav class="budget-work-tabs" role="tablist" aria-label="Pengelolaan anggaran">
-   ${tabs.map(([key,label])=>`<button type="button" role="tab" data-budget-section="${key}" aria-selected="${section===key}" tabindex="${section===key?'0':'-1'}">${label}</button>`).join('')}</nav>
-  ${section==='monthly'?renderBudgetMonthlySection():section==='detail'?renderBudgetDetailsSection():section==='transfer'?renderBudgetTransferSection():renderBudgetAdjustmentSection()}
+   <span>💰 Sisa bulan ini <strong class="${t.effective-used<0?'negative':''}">${money(t.effective-used)}</strong></span>
+  </div>
+  <nav class="budget-work-tabs budget-work-tabs-two" role="tablist" aria-label="Anggaran">
+   ${tabs.map(([key,label])=>`<button type="button" role="tab" data-budget-section="${key}" aria-selected="${section===key}" tabindex="${section===key?'0':'-1'}">${label}</button>`).join('')}
+  </nav>
+  ${section==='edit'?renderBudgetMonthlySection():renderBudgetDetailsSection()}
  </div>`;
 }
 /* Popup mengedit anggaran awal dalam kelompok, alih anggaran, atau tambah/kurangi. */

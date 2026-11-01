@@ -1852,6 +1852,11 @@ body:has(.repay-popup-backdrop){overflow:hidden}
 @media(max-width:600px){.income-trend-range-dialog{padding:14px}.income-trend-toolbar .income-range-open{flex:1}.income-range-fields{gap:7px}.income-range-fields input{font-size:11px;padding:8px}}
 @media(prefers-reduced-motion:reduce){.income-trend-toolbar .income-range-open:hover{transform:none}}
 
+.income-pie-card .card-head,.income-trend-card .card-head{margin-bottom:8px}
+.income-pie-card .income-callout-wrap{padding:2px 0;min-height:310px}
+.income-pie-card .income-callout-svg{width:100%;max-width:940px;max-height:none}
+.income-callout-center-small{font-size:15px}
+@media(max-width:480px){.income-pie-card .income-callout-wrap{min-height:0}}
 /* Footer pribadi: copyright yang jelas, ringkas, dan senada dengan tema Paaxixi. */
 .paax-copyright-footer{
  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;
@@ -6660,7 +6665,7 @@ function renderIncomeCalloutVisual(month){
  const segments=entries.map(e=>{const start=cursor,end=start+e.value/total*2*Math.PI;cursor=end;return {...e,start,end,mid:(start+end)/2};});
  const left=segments.filter(e=>Math.cos(e.mid)<-.1).sort((a,b)=>Math.sin(a.mid)-Math.sin(b.mid));
  const right=segments.filter(e=>Math.cos(e.mid)>=-.1).sort((a,b)=>Math.sin(a.mid)-Math.sin(b.mid));
- const H=Math.max(340,Math.max(left.length,right.length)*65+75),cx=378,cy=H/2;
+ const H=Math.max(370,Math.max(left.length,right.length)*75+82),cx=378,cy=H/2,donutScale=1.58;
  const rings=segments.map(e=>{
   const label=h(e.label+' · '+money(e.value));
   return segments.length===1
@@ -6669,7 +6674,7 @@ function renderIncomeCalloutVisual(month){
  }).join('');
  const drawSide=(part,isRight)=>part.map((e,i)=>{
   const x=isRight?568:12,w=180,midY=H*(i+1)/(part.length+1),boxY=midY-26,edge=isRight?x:x+w,elbow=isRight?539:217;
-  const startX=cx+105*Math.cos(e.mid),startY=cy+105*Math.sin(e.mid);
+  const startX=cx+105*donutScale*Math.cos(e.mid),startY=cy+105*donutScale*Math.sin(e.mid);
   const path=`M ${startX.toFixed(1)} ${startY.toFixed(1)} L ${elbow} ${startY.toFixed(1)} L ${elbow} ${midY.toFixed(1)} L ${edge} ${midY.toFixed(1)}`;
   const text=e.label.length>22?e.label.slice(0,20)+'…':e.label;
   return `<path class="income-callout-leader" d="${path}" stroke="${e.color}"/><circle cx="${startX.toFixed(1)}" cy="${startY.toFixed(1)}" r="3.5" fill="${e.color}"/>
@@ -6685,13 +6690,12 @@ function renderIncomeCalloutVisual(month){
  return `<div class="income-callout-wrap">
    <svg class="income-callout-svg" viewBox="0 0 760 ${H}" role="group" aria-label="Komposisi Pemasukan ${h(incomePeriodLabel(month))}: Pilih Irisan atau Label untuk melihat rincian">
     ${drawSide(left,false)}${drawSide(right,true)}
-    <g transform="translate(${(cx-120).toFixed(1)} ${(cy-120).toFixed(1)})">${rings}</g>
-    <text class="income-callout-center-small" x="${cx}" y="${cy-20}" text-anchor="middle">Total Pemasukan</text>
-    <text class="income-callout-center-amount" x="${cx}" y="${cy+4}" text-anchor="middle" style="font-size:${money(total).length>13?12:money(total).length>11?14:16}px">${money(total)}</text>
-    <text class="income-callout-center-period" x="${cx}" y="${cy+25}" text-anchor="middle">${h(incomePeriodLabel(month))}</text>
+    <g transform="translate(${(cx-120*donutScale).toFixed(1)} ${(cy-120*donutScale).toFixed(1)}) scale(${donutScale})">${rings}</g>
+    <text class="income-callout-center-small" x="${cx}" y="${cy-17}" text-anchor="middle">Total Pemasukan</text>
+    <text class="income-callout-center-amount" x="${cx}" y="${cy+16}" text-anchor="middle" style="font-size:${money(total).length>14?18:money(total).length>12?20:23}px">${money(total)}</text>
    </svg>
    <div class="income-callout-mobile"><div class="income-pie-plot"><svg viewBox="0 0 240 240" role="group" aria-label="Diagram Pemasukan ${h(incomePeriodLabel(month))}">${rings}</svg>
-    <div class="income-pie-middle" aria-hidden="true"><span>Total Masuk</span><strong title="${money(total)}">${money(total)}</strong><small>${h(incomePeriodLabel(month))}</small></div></div>
+    <div class="income-pie-middle" aria-hidden="true"><span>Total Masuk</span><strong title="${money(total)}" style="font-size:${money(total).length>14?11:money(total).length>12?12:14}px">${money(total)}</strong></div></div>
     <div class="income-mobile-source-list">${mobile}</div>
    </div>
   </div>`;
@@ -6725,7 +6729,7 @@ function renderIncomePieCard(){
    <div class="income-month-menu-scroll">${incomeAvailableMonths().map(key=>`<button type="button" class="income-month-menu-item ${key===month?'active':''}" data-income-month-option="${h(key)}" aria-pressed="${key===month?'true':'false'}"><span class="income-month-menu-label">${h(monthFmt(key))}</span><small>${counts.get(key)||0} Transaksi</small>${key===month?'<span class="income-month-menu-check" aria-hidden="true">✓</span>':''}</button>`).join('')}</div></div>`:''}
  </div>`;
  return `<section class="card finance-spotlight-card finance-duo-card income-spotlight-card income-pie-card">
- <div class="card-head income-pie-card-head"><div><h3>Komposisi Pemasukan</h3><p>Kenali sumber pemasukan terbesar. Ketuk irisan atau label untuk meninjau transaksinya.</p></div>${monthSelector}</div>
+ <div class="card-head income-pie-card-head"><div><h3>Komposisi Pemasukan</h3></div>${monthSelector}</div>
  ${total>0?renderIncomeCalloutVisual(month):`<div class="income-chart-empty"><span>🌱</span><strong>Belum Ada Pemasukan</strong><small>Pilih bulan lain atau catat pemasukan untuk melihat sumbernya.</small></div>`}
  </section>`;
 }
@@ -6790,7 +6794,7 @@ function renderIncomeTrendCard(){
  const labels=coords.map((p,i)=>{if(n>9&&i%Math.ceil(n/8)!==0&&i!==n-1)return '';const label=annual?p.key:(()=>{const [y,m]=p.key.split('-').map(Number);return new Date(y,m-1,1).toLocaleDateString('id-ID',{month:'short'})+' '+String(y).slice(-2)})();return `<text class="income-trend-axis" x="${p.x.toFixed(1)}" y="238" text-anchor="middle">${h(label)}</text>`;}).join('');
  const period=range.from===range.to?incomePeriodLabel(range.from):incomePeriodLabel(range.from)+' – '+incomePeriodLabel(range.to);
  return `<section class="card finance-spotlight-card finance-duo-card income-trend-card">
-  <div class="card-head"><div><h3>Tren Pemasukan</h3><p>${annual?'Lihat pola pendapatan antartahun untuk memahami pertumbuhan jangka panjang.':'Bandingkan pemasukan antarbulan dan temukan perubahan yang perlu ditinjau.'}</p></div></div>
+  <div class="card-head"><div><h3>Tren Pemasukan</h3></div></div>
   <div class="income-trend-toolbar"><div class="income-trend-modes" role="group" aria-label="Jenis Tren Pemasukan"><button type="button" data-income-trend-mode="month" class="${!annual?'active':''}" aria-pressed="${!annual}">🗓️ Bulanan</button><button type="button" data-income-trend-mode="year" class="${annual?'active':''}" aria-pressed="${annual}">📅 Tahunan</button></div><button type="button" class="income-range-open" data-income-range-open aria-haspopup="dialog">⚙️ Atur Rentang ↗</button></div>
   <div class="income-trend-period"><span>Periode Grafik</span><strong>${h(period)}</strong></div>
   <div class="income-trend-summary"><span>Pemasukan ${h(incomePeriodLabel(last.key))}</span><strong>${money(last.value)}</strong><small class="${tone}">${h(comparison)}</small></div>

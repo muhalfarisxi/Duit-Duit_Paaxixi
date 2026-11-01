@@ -5314,6 +5314,125 @@ body:has(.tx-search-backdrop){overflow:hidden}
  #composition-card .group-scroll-track,.income-pie-card .group-scroll-track{scroll-behavior:auto}
 }
 
+
+/* #115 Header global: weton di sebelah logo Duit-Duit Paaxixi, seluruh menu. */
+.topbar .paax-header-content{min-width:0}
+.topbar .paax-top-brand-row{
+ display:flex;align-items:center;gap:12px;
+ max-width:100%;min-width:0;margin:1px 0 8px;
+}
+.topbar .paax-top-brand-row .paaxixi-doodle-kicker{
+ flex:none;max-width:none;margin:0;align-self:center;
+}
+.paax-weton-badge{
+ --weton-gold:#d9a029;
+ display:inline-flex;align-items:center;justify-content:center;
+ flex:0 1 auto;gap:9px;min-height:39px;min-width:0;
+ padding:7px 13px;border:1.5px solid #edcc7a;border-radius:14px;
+ background:linear-gradient(120deg,#fffaf0,#fff1c5 55%,#fff8e8);
+ color:#93610d;
+ box-shadow:0 5px 13px rgba(204,150,44,.14),inset 0 1px 0 rgba(255,255,255,.86);
+ position:relative;isolation:isolate;overflow:hidden;
+ animation:paaxWetonGlow 5s ease-in-out infinite;
+}
+.paax-weton-badge::before{
+ content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+ background:linear-gradient(110deg,transparent 22%,rgba(255,255,255,.72) 47%,transparent 70%);
+ transform:translateX(-140%);
+ animation:paaxWetonShine 6s ease-in-out infinite;
+}
+.paax-weton-icon{display:inline-grid;place-items:center;flex:none;width:24px;height:24px;
+ border-radius:8px;background:#ffe8a8;font-size:16px;line-height:1;
+ animation:paaxWetonWiggle 5.5s ease-in-out infinite}
+.paax-weton-label{font:900 12px/1.28 Nunito,system-ui,sans-serif;
+ letter-spacing:-.1px;color:#94600c;white-space:nowrap;min-width:0}
+.paax-weton-label-short{display:none}
+.paax-weton-spark{color:#e1af43;font-size:15px;flex:none;
+ animation:paaxWetonSpark 3.6s ease-in-out infinite}
+#page-subtitle:empty{display:none}
+@keyframes paaxWetonGlow{
+ 0%,100%{box-shadow:0 5px 13px rgba(204,150,44,.14),inset 0 1px 0 rgba(255,255,255,.86)}
+ 50%{box-shadow:0 7px 19px rgba(204,150,44,.25),inset 0 1px 0 rgba(255,255,255,.9)}
+}
+@keyframes paaxWetonShine{
+ 0%,14%{transform:translateX(-140%);opacity:0}
+ 24%{opacity:1}
+ 41%,100%{transform:translateX(140%);opacity:0}
+}
+@keyframes paaxWetonWiggle{
+ 0%,84%,100%{transform:rotate(0deg)}
+ 88%{transform:rotate(-8deg)}
+ 93%{transform:rotate(7deg)}
+}
+@keyframes paaxWetonSpark{
+ 0%,76%,100%{opacity:.6;transform:scale(.93)}
+ 83%{opacity:1;transform:scale(1.18)}
+}
+@media(max-width:1350px){
+ .topbar .paax-top-brand-row{gap:9px}
+ .paax-weton-badge{padding:7px 10px}
+ .paax-weton-label{font-size:11px}
+}
+@media(max-width:1040px){
+ .paax-weton-label-long{display:none}
+ .paax-weton-label-short{display:inline}
+ .paax-weton-badge{gap:6px}
+}
+@media(max-width:550px){
+ .topbar .paax-top-brand-row{gap:7px;flex-wrap:wrap}
+ .topbar .paax-top-brand-row .paaxixi-doodle-kicker{flex-shrink:0}
+ .paax-weton-badge{padding:5px 9px;min-height:34px}
+ .paax-weton-icon{width:21px;height:21px;font-size:14px}
+ .paax-weton-label{font-size:10.5px}
+}
+@media(prefers-reduced-motion:reduce){
+ .paax-weton-badge,.paax-weton-badge::before,.paax-weton-icon,.paax-weton-spark{
+  animation:none!important;transition:none!important
+ }
+}
+
+/* #115 Pusatkan panah accordion batas anggaran tanpa bias baseline font. */
+.budget-group-accordion .budget-summary-chevron{
+ display:grid;place-items:center;flex:0 0 36px;
+ width:36px;height:36px;padding:0;border-radius:11px;
+ font-size:0;line-height:0;text-align:center;
+ background:rgba(255,255,255,.82);
+ transform:none!important;
+}
+.budget-group-accordion .budget-summary-chevron::before{
+ content:"";display:block;box-sizing:border-box;width:11px;height:11px;
+ border-right:2.5px solid var(--budget-theme,#2563eb);
+ border-bottom:2.5px solid var(--budget-theme,#2563eb);
+ transform:translateY(-2px) rotate(45deg);
+ transform-origin:50% 50%;transition:transform .22s ease;
+}
+.budget-group-accordion[open] .budget-summary-chevron::before{
+ transform:translateY(3px) rotate(225deg);
+}
+.budget-manager-icon,.budget-summary-icon{
+ display:grid!important;place-items:center!important;
+ justify-items:center!important;align-items:center!important;
+ padding:0!important;overflow:hidden;
+}
+.budget-manager-icon>.category-symbol,
+.budget-summary-icon>.category-symbol,
+.budget-pos-label>.category-symbol{
+ display:grid!important;place-items:center!important;
+ padding:0!important;margin:0!important;line-height:1!important;
+ transform-origin:center center;
+}
+.budget-manager-icon>.category-symbol,.budget-summary-icon>.category-symbol{
+ width:100%!important;height:100%!important;background:transparent!important;
+}
+.budget-pos-label>.category-symbol{flex:0 0 36px;width:36px!important;height:36px!important}
+@media(max-width:640px){
+ .budget-group-accordion .budget-summary-chevron{flex-basis:32px;width:32px;height:32px}
+ .budget-pos-label>.category-symbol{flex-basis:32px;width:32px!important;height:32px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .budget-group-accordion .budget-summary-chevron::before{transition:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -5336,12 +5455,17 @@ body:has(.tx-search-backdrop){overflow:hidden}
   <div class="sidebar-bottom"><strong>Paaxixi Cloud</strong><p>Sinkronisasi online setelah login Firebase. Backup data tetap disarankan.</p></div>
 </aside>
 <main class="main">
-  <header class="topbar"><div><div class="page-eyebrow paaxixi-doodle paaxixi-doodle-kicker" role="img" aria-label="Duit-Duit Paaxixi">
+  <header class="topbar"><div class="paax-header-content"><div class="paax-top-brand-row"><div class="page-eyebrow paaxixi-doodle paaxixi-doodle-kicker" role="img" aria-label="Duit-Duit Paaxixi">
       <span class="paaxixi-coin" aria-hidden="true">Rp</span>
       <span class="paaxixi-word" data-paaxixi-letters>Duit-Duit</span>
       <span class="paaxixi-word" data-paaxixi-letters>Paaxixi</span>
       <span class="paaxixi-kicker-spark" aria-hidden="true">✦</span>
-    </div><h1 class="page-title" id="page-title">Dashboard Keuangan</h1><div class="tiny" id="page-subtitle">Pantau arus uangmu dalam satu tempat.</div></div><div class="top-controls"><button class="cloud-state" id="cloud-status" type="button" title="Status sinkronisasi">◯ Mode lokal</button><label class="month-pill month-pill-highlight" title="Periode laporan yang sedang aktif"><span class="month-pill-symbol" aria-hidden="true">▦</span><input id="month-input" type="month" aria-label="Pilih bulan laporan"></label><button class="btn primary" type="button" id="top-add">＋ Catat transaksi</button></div></header>
+    </div><div class="paax-weton-badge" id="header-weton-badge" role="group" aria-label="Tanggal dan hari pasaran Jawa saat ini">
+      <span class="paax-weton-icon" aria-hidden="true">🗓️</span>
+      <span class="paax-weton-label paax-weton-label-long" id="header-weton-date">Tanggal WIB</span>
+      <span class="paax-weton-label paax-weton-label-short" id="header-weton-short" aria-hidden="true"></span>
+      <span class="paax-weton-spark" aria-hidden="true">✦</span>
+    </div></div><h1 class="page-title" id="page-title">Dashboard Keuangan</h1><div class="tiny" id="page-subtitle">Pantau arus uangmu dalam satu tempat.</div></div><div class="top-controls"><button class="cloud-state" id="cloud-status" type="button" title="Status sinkronisasi">◯ Mode lokal</button><label class="month-pill month-pill-highlight" title="Periode laporan yang sedang aktif"><span class="month-pill-symbol" aria-hidden="true">▦</span><input id="month-input" type="month" aria-label="Pilih bulan laporan"></label><button class="btn primary" type="button" id="top-add">＋ Catat transaksi</button></div></header>
   <div class="content" id="content"></div>
   <footer class="footer-note paax-copyright-footer" aria-label="Hak Cipta Duit-Duit Paaxixi"><span class="paax-copyright-mark" aria-hidden="true">✦</span><span class="paax-copyright-main">© 2026 Copyright by <strong>Muhammad Alfa Risxi Gantenkkk</strong></span><span class="paax-copyright-separator" aria-hidden="true">·</span><span class="paax-copyright-brand">Duit-Duit Paaxixi <span aria-hidden="true">💙</span></span></footer>
 </main>
@@ -5583,6 +5707,21 @@ function tanggalWetonWIB(date=new Date()){
  return parts.weekday+' '+pasaran[index]+', '+day+' '+parts.month+' '+year;
 }
 
+
+/* Kalender Jawa WIB tetap terpampang di header global setiap menu. */
+function refreshHeaderWeton(){
+ const full=tanggalWetonWIB();
+ const fullEl=document.getElementById('header-weton-date');
+ const shortEl=document.getElementById('header-weton-short');
+ const badge=document.getElementById('header-weton-badge');
+ if(!badge||!fullEl||!shortEl)return;
+ if(fullEl.textContent===full)return;
+ fullEl.textContent=full;
+ shortEl.textContent=full.replace(/^(.+?),\s*(\d+)\s+(\S+)\s+(\d{4})$/,(_,day,date,month,year)=>day+' · '+date+' '+month.slice(0,3)+' '+year);
+ badge.setAttribute('aria-label',full+' (WIB)');
+ badge.title=full+' · Waktu Indonesia Barat';
+}
+
 /* #059 Judul interaktif bertema Paaxixi: konsisten di semua halaman dan kartu. */
 const PAX_CUTE_PAGE_ICONS={
  dashboard:'🏠',review:'📊',budgets:'🎯',debts:'🤝',reports:'🗃️',accounts:'⚙️'
@@ -5789,7 +5928,7 @@ function paxDecoratePopups(root=document){
  });
 }
 
-function labelNav(){const titles={dashboard:['Dashboard Keuangan',''],review:['Rincian Transaksi','Pilih tanggal atau kelompok untuk memeriksa transaksi dan membandingkan pengeluaran.'],budgets:['Anggaran Bulanan','Tetapkan batas tiap pos; alihkan sisa dari pos lain jika diperlukan.'],debts:['Utang & Piutang','Pilih status untuk melihat pinjaman yang belum lunas dan riwayat cicilannya.'],reports:['Arsip Laporan','Simpan laporan setiap akhir bulan agar angka periode tersebut terdokumentasi.'],accounts:['Rekening, Kategori & Sinkronisasi','Cocokkan saldo rekening, susun kategori, dan cadangkan data secara berkala.']};const item=titles[ui.view];decoratePaaxixiPageTitle(item[0]);document.getElementById('page-subtitle').textContent=ui.view==='dashboard'?tanggalWetonWIB():item[1];document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
+function labelNav(){const titles={dashboard:['Dashboard Keuangan',''],review:['Rincian Transaksi','Pilih tanggal atau kelompok untuk memeriksa transaksi dan membandingkan pengeluaran.'],budgets:['Anggaran Bulanan','Tetapkan batas tiap pos; alihkan sisa dari pos lain jika diperlukan.'],debts:['Utang & Piutang','Pilih status untuk melihat pinjaman yang belum lunas dan riwayat cicilannya.'],reports:['Arsip Laporan','Simpan laporan setiap akhir bulan agar angka periode tersebut terdokumentasi.'],accounts:['Rekening, Kategori & Sinkronisasi','Cocokkan saldo rekening, susun kategori, dan cadangkan data secara berkala.']};const item=titles[ui.view];decoratePaaxixiPageTitle(item[0]);document.getElementById('page-subtitle').textContent=ui.view==='dashboard'?'':item[1];refreshHeaderWeton();document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
 /* #081 Sejajarkan titik awal donut dan tren walau tinggi filternya berbeda. */
 let analysisChartResizeObserver=null,analysisChartAlignmentQueued=false;
 function alignAnalysisCharts(){
@@ -8687,7 +8826,7 @@ function renderBudgetGroupAccordion(g,index){
    <span class="budget-summary-totals"><span><small>Anggaran</small><b>${money(total)}</b></span>
     <span><small>Terpakai</small><b>${money(spent)}</b></span>
     <span><small>Sisa</small><b class="${remaining<0?'negative':''}">${money(remaining)}</b></span></span>
-   <span class="budget-summary-chevron" aria-hidden="true">⌄</span>
+   <span class="budget-summary-chevron" aria-hidden="true"></span>
   </summary>
   <div class="budget-accordion-body">
    <div class="budget-group-controls"><span>🧩 Pos dalam kelompok ${h(g.name)}</span>
@@ -9877,17 +10016,11 @@ if(x.id==='report-month'){ui.month=x.value||currentMonth();render()}
 if(x.id==='tx-group'){let cs=(ui.txType==='expense'?expenses():incomes()).filter(c=>c.group===x.value);let sel=document.getElementById('tx-category');if(sel)sel.innerHTML=cs.map(c=>`<option value="${h(c.id)}">${pickSymbol(c.label,c.group)} ${h(c.label)}</option>`).join('')}
 if(x.id==='new-cat-kind'){let sel=document.getElementById('new-cat-group');sel.innerHTML=(x.value==='income'?['BPS','Fastlink','Lainnya']:expenseGroups().map(g=>g.name)).map(g=>`<option value="${h(g)}">${pickSymbol(g,g)} ${h(g)}</option>`).join('')}});
 document.getElementById('top-add').addEventListener('click',()=>openTxModal('expense'));document.getElementById('cloud-status').addEventListener('click',()=>setView('accounts'));document.getElementById('import-file').addEventListener('change',e=>importJSON(e.target.files?.[0]));render();document.querySelector('.welcome-modal-close')?.focus({preventScroll:true});void muatQuoteMingguan();
-// Tanggal dashboard mengikuti hari WIB meski tab dibiarkan terbuka sampai hari berikutnya.
-setInterval(()=>{
- if(ui.view!=='dashboard')return;
- const el=document.getElementById('page-subtitle'),updated=tanggalWetonWIB();
- if(el&&el.textContent!==updated)el.textContent=updated;
-},60000);
+// Perbarui kalender WIB global meski tab tetap terbuka saat berganti hari.
+refreshHeaderWeton();
+setInterval(refreshHeaderWeton,60000);
 document.addEventListener('visibilitychange',()=>{
- if(!document.hidden&&ui.view==='dashboard'){
-  const el=document.getElementById('page-subtitle');
-  if(el)el.textContent=tanggalWetonWIB();
- }
+ if(!document.hidden)refreshHeaderWeton();
 });
 
 })();

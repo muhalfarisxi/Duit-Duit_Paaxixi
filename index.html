@@ -1721,6 +1721,52 @@ body:has(.repay-popup-backdrop){overflow:hidden}
 @media(max-width:1030px){.finance-bottom-grid{grid-template-columns:minmax(0,1fr)}.finance-bottom-grid>.card{min-height:auto}.finance-bottom-grid>.debt-spotlight-card .debt-fancy-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.finance-bottom-grid>.debt-spotlight-card .debt-overview-cta{margin-top:15px!important}}
 @media(max-width:600px){.finance-bottom-grid{gap:12px}.finance-bottom-grid>.debt-spotlight-card .debt-fancy-list{grid-template-columns:minmax(0,1fr)}.finance-recent-card{border-radius:18px}.finance-recent-card .card-head .action-buttons{justify-content:flex-start;width:100%}.finance-recent-card .tx-recent-end .amount{font-size:14px}}
 
+
+/* #097 Grafik pemasukan: filter bulan, palet hijau, callout bergaris, dan rincian pada titik tren. */
+.income-pie-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.income-pie-card-head>div{min-width:0}
+.income-month-picker{display:flex;align-items:center;gap:6px;position:relative;padding:0 11px;border-radius:999px;background:linear-gradient(120deg,#eafbf2,#e0f5eb);border:1.5px solid #afe1c7;color:#12734f;box-shadow:0 5px 14px #137a5721;transition:transform .2s,box-shadow .2s}
+.income-month-picker:hover{transform:translateY(-2px);box-shadow:0 8px 18px #137a5729}
+.income-month-picker>span:first-child{font-size:16px}
+.income-month-picker select{appearance:none;-webkit-appearance:none;min-width:110px;max-width:180px;background:transparent;border:0;color:#11764f;padding:10px 19px 10px 0;outline:none;font:900 12px/1.3 Nunito,sans-serif;cursor:pointer}
+.income-month-picker .income-month-chevron{position:absolute;right:11px;top:50%;transform:translateY(-55%);pointer-events:none;font-size:18px;font-weight:900}
+.income-month-picker:focus-within{outline:3px solid #75cda4;outline-offset:3px}
+.income-callout-wrap{min-width:0;flex:1;display:grid;place-items:center;overflow:visible;padding:6px 0}
+.income-callout-svg{display:block;width:100%;max-width:900px;max-height:590px;overflow:visible;filter:drop-shadow(0 6px 10px rgba(29,120,89,.07));animation:incomePieIn .65s ease-out both}
+.income-callout-leader{fill:none;stroke-width:1.7;opacity:.85;pointer-events:none}
+.income-callout-label{cursor:pointer;outline:none;transition:filter .18s ease}
+.income-callout-label:hover,.income-callout-label:focus-visible{filter:drop-shadow(0 3px 5px #16845a3a)}
+.income-callout-label:focus-visible rect{stroke-width:3}
+.income-callout-name{font:900 12px Nunito,sans-serif;fill:#205b4d}
+.income-callout-value{font:850 12px Nunito,sans-serif;fill:#22815b}
+.income-callout-center-small{fill:#6b9c8d;font:850 14px Nunito,sans-serif;pointer-events:none}
+.income-callout-center-count{fill:#157b59;font:900 21px Fredoka,Nunito,sans-serif;pointer-events:none}
+.income-callout-mobile{display:none}
+.income-pie-total{margin-top:8px;padding:13px 15px;border:1px solid #c8e8d5;box-shadow:0 5px 13px #1a795c16}
+.income-popup-composition{margin:0 0 10px}
+.income-breakdown-popup .review-modal-dialog{width:min(980px,calc(100% - 16px))}
+.income-breakdown-popup .review-modal-content{padding-top:12px}
+.income-popup-total{margin:8px 0 18px}
+.income-popup-transactions-heading{font:900 17px Fredoka,Nunito,sans-serif;color:#194e78;margin:16px 0 11px}
+@media(max-width:700px){
+ .income-callout-svg{display:none}
+ .income-callout-wrap{display:block;padding:7px 0}
+ .income-callout-mobile{display:flex;flex-direction:column;gap:8px}
+ .income-callout-mobile .income-pie-plot{max-width:240px;width:100%;margin:auto}
+ .income-callout-mobile .income-pie-middle{cursor:default}
+ .income-callout-mobile .income-pie-middle strong{font-size:23px}
+ .income-mobile-source-list{display:flex;flex-direction:column;gap:8px;max-height:300px;overflow:auto;padding:5px}
+ .income-mobile-source{display:flex;justify-content:space-between;align-items:center;gap:10px;position:relative;text-align:left;border-radius:12px;padding:10px 12px 10px 24px;background:#f4fbf7;border:1px solid #d8eee1;color:#1f634d}
+ .income-mobile-source::before{content:"";position:absolute;left:9px;top:13px;width:9px;height:9px;background:var(--income-dot);border-radius:50%}
+ .income-mobile-source span{min-width:0;display:flex;flex-direction:column;gap:2px}
+ .income-mobile-source strong{font:900 12px Nunito,sans-serif}
+ .income-mobile-source small{font:750 11px Nunito,sans-serif;color:#698c7f}
+ .income-mobile-source b{font:900 12px Nunito,sans-serif;border-radius:999px;padding:6px 7px;background:#d8f2e6;color:#137753}
+ .income-pie-card-head{align-items:flex-start}
+ .income-month-picker{margin-left:auto}
+}
+@media(prefers-reduced-motion:reduce){.income-callout-svg{animation:none!important}.income-month-picker,.income-callout-label{transition:none!important}}
+
 /* #047 Transaksi: tambah/edit via modal, daftar riwayat tanpa halaman tersendiri. */
 @media(max-width:820px){.bottom-nav{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .tx-entry-backdrop,.tx-history-backdrop{
@@ -4701,7 +4747,7 @@ const expenseGroups=()=>db.expenseGroups;
 const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],debts:[],reports:{}});
 function load(){try{let v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.accounts)&&Array.isArray(v.categories)&&Array.isArray(v.transactions)&&Array.isArray(v.debts)&&v.budgets&&Array.isArray(v.budgetMoves))return normalizeExpenseGroups(v);}catch(e){}return fresh()}
 let db=load();db.reports=db.reports||{};
-let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,debtEditorOpen:false,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,trendRangePopup:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupType:'receivable',debtPopupFilter:'open',incomeTrendMonths:6,reportMonth:currentMonth()};
+let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,debtEditorOpen:false,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,trendRangePopup:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupType:'receivable',debtPopupFilter:'open',incomeTrendMonths:6,incomePieMonth:null,reportMonth:currentMonth()};
 let cloud={configured:false,signedIn:false,ready:false,email:'',busy:false,error:'',empty:false,pendingDecision:false};
 function syncBadge(){let b=document.getElementById('cloud-status');if(!b)return;
  b.className='cloud-state'+(cloud.signedIn&&cloud.ready&&!cloud.pendingDecision?' online':cloud.busy?' wait':'');
@@ -6489,15 +6535,67 @@ function renderBudgetAlertDialog(items,hasBudgetValue){
   '</dialog>';
 }
 
-const incomePalette=["#16996b","#519cda","#826bd8","#ecae54","#d87ca5","#48b5ac","#a0b65d","#dc776b","#617bcc"];
-function incomeSourceData(){
+const incomePalette=["#087a57","#169871","#34b48c","#63caa6","#89d9ba","#a5e5cf","#2c906d","#57a98c","#b4eed9"];
+function incomeChosenMonth(){return ui.incomePieMonth||ui.month;}
+
+function incomeAvailableMonths(){
+ const known=new Set([ui.month,incomeChosenMonth()]);
+ db.transactions.filter(t=>t.type==='income').forEach(t=>{const m=t.date.slice(0,7);if(/^\d{4}-\d{2}$/.test(m))known.add(m);});
+ const [y,m]=ui.month.split('-').map(Number);
+ for(let i=0;i<12;i++){const d=new Date(y,m-1-i,1);known.add(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'));}
+ return [...known].filter(k=>/^\d{4}-(?:0[1-9]|1[0-2])$/.test(k)&&k<=analysisToday().slice(0,7)).sort().reverse();
+}
+
+function renderIncomeCalloutVisual(month){
+ const entries=incomeSourceData(month),total=entries.reduce((n,x)=>n+x.value,0);if(!total)return '';
+ let cursor=-Math.PI/2;
+ const segments=entries.map(e=>{const start=cursor,end=start+e.value/total*2*Math.PI;cursor=end;return {...e,start,end,mid:(start+end)/2};});
+ const left=segments.filter(e=>Math.cos(e.mid)<-.1).sort((a,b)=>Math.sin(a.mid)-Math.sin(b.mid));
+ const right=segments.filter(e=>Math.cos(e.mid)>=-.1).sort((a,b)=>Math.sin(a.mid)-Math.sin(b.mid));
+ const H=Math.max(340,Math.max(left.length,right.length)*65+75),cx=378,cy=H/2;
+ const rings=segments.map(e=>{
+  const label=h(e.label+' · '+money(e.value));
+  return segments.length===1
+   ?`<circle class="income-pie-sector" cx="120" cy="120" r="78" fill="none" stroke="${e.color}" stroke-width="38" tabindex="0" role="button" data-income-source="${h(e.id)}" aria-label="${label}"><title>${label}</title></circle>`
+   :`<path class="income-pie-sector" d="${incomePieArc(e.start,e.end)}" fill="${e.color}" stroke="white" stroke-width="2" tabindex="0" role="button" data-income-source="${h(e.id)}" aria-label="${label}"><title>${label}</title></path>`;
+ }).join('');
+ const drawSide=(part,isRight)=>part.map((e,i)=>{
+  const x=isRight?568:12,w=180,midY=H*(i+1)/(part.length+1),boxY=midY-26,edge=isRight?x:x+w,elbow=isRight?539:217;
+  const startX=cx+105*Math.cos(e.mid),startY=cy+105*Math.sin(e.mid);
+  const path=`M ${startX.toFixed(1)} ${startY.toFixed(1)} L ${elbow} ${startY.toFixed(1)} L ${elbow} ${midY.toFixed(1)} L ${edge} ${midY.toFixed(1)}`;
+  const text=e.label.length>22?e.label.slice(0,20)+'…':e.label;
+  return `<path class="income-callout-leader" d="${path}" stroke="${e.color}"/><circle cx="${startX.toFixed(1)}" cy="${startY.toFixed(1)}" r="3.5" fill="${e.color}"/>
+    <g class="income-callout-label" data-income-source="${h(e.id)}" role="button" tabindex="0" aria-label="${h(e.label+' '+pct(e.value,total)+'% '+money(e.value))}">
+     <title>${h(e.label+' · '+money(e.value))}</title>
+     <rect x="${x}" y="${boxY.toFixed(1)}" width="${w}" height="52" rx="12" fill="#f5fcf8" stroke="${e.color}" stroke-width="1.5"/>
+     <circle cx="${x+12}" cy="${(boxY+17).toFixed(1)}" r="4.5" fill="${e.color}"/>
+     <text x="${x+23}" y="${(boxY+20).toFixed(1)}" class="income-callout-name">${h(text)}</text>
+     <text x="${x+12}" y="${(boxY+39).toFixed(1)}" class="income-callout-value">${pct(e.value,total)}% · ${money(e.value)}</text>
+    </g>`;
+ }).join('');
+ const mobile=entries.map(e=>`<button class="income-mobile-source" type="button" data-income-source="${h(e.id)}" style="--income-dot:${e.color}"><span><strong>${h(e.label)}</strong><small>${money(e.value)}</small></span><b>${pct(e.value,total)}%</b></button>`).join('');
+ return `<div class="income-callout-wrap">
+   <svg class="income-callout-svg" viewBox="0 0 760 ${H}" role="group" aria-label="Komposisi Pemasukan ${h(monthFmt(month))}: Pilih Irisan atau Label untuk melihat rincian">
+    ${drawSide(left,false)}${drawSide(right,true)}
+    <g transform="translate(${(cx-120).toFixed(1)} ${(cy-120).toFixed(1)})">${rings}</g>
+    <text class="income-callout-center-small" x="${cx}" y="${cy-11}" text-anchor="middle">Komposisi</text>
+    <text class="income-callout-center-count" x="${cx}" y="${cy+18}" text-anchor="middle">${entries.length} Sumber</text>
+   </svg>
+   <div class="income-callout-mobile"><div class="income-pie-plot"><svg viewBox="0 0 240 240" role="group" aria-label="Diagram Pemasukan ${h(monthFmt(month))}">${rings}</svg>
+    <div class="income-pie-middle" aria-hidden="true"><span>Komposisi</span><strong>${entries.length}</strong><small>Sumber</small></div></div>
+    <div class="income-mobile-source-list">${mobile}</div>
+   </div>
+  </div>`;
+}
+
+function incomeSourceData(month=incomeChosenMonth()){
  const map=new Map();
- monthly().filter(t=>t.type==='income').forEach(t=>{
+ db.transactions.filter(t=>t.type==='income'&&t.date.slice(0,7)===month).forEach(t=>{
   const c=cat(t.categoryId),id=c?.kind==='income'?t.categoryId:'_unknown';
   if(!map.has(id))map.set(id,{id,label:id==='_unknown'?'Sumber Lainnya':c.label,value:0,count:0});
-  const entry=map.get(id);entry.value+=num(t.amount);entry.count++;
+  const row=map.get(id);row.value+=num(t.amount);row.count++;
  });
- return [...map.values()].filter(x=>x.value>0).sort((a,b)=>b.value-a.value).map((x,i)=>({...x,color:incomePalette[i%incomePalette.length]}));
+ return [...map.values()].filter(row=>row.value>0).sort((a,b)=>b.value-a.value).map((row,i)=>({...row,color:incomePalette[i%incomePalette.length]}));
 }
 
 function incomePieArc(start,end){
@@ -6508,19 +6606,12 @@ function incomePieArc(start,end){
 }
 
 function renderIncomePieCard(){
- const entries=incomeSourceData(),total=entries.reduce((n,x)=>n+x.value,0),txCount=entries.reduce((n,x)=>n+x.count,0);
- let cursor=-Math.PI/2;
- const arcs=entries.map(x=>{
-  if(entries.length===1)return `<circle class="income-pie-sector" cx="120" cy="120" r="78" fill="none" stroke="${x.color}" stroke-width="38" data-income-source="${h(x.id)}" role="button" tabindex="0" aria-label="${h(x.label)}: ${money(x.value)}"><title>${h(x.label)}: ${money(x.value)}</title></circle>`;
-  const next=cursor+2*Math.PI*x.value/total,d=incomePieArc(cursor,next);cursor=next;
-  return `<path class="income-pie-sector" fill="${x.color}" stroke="white" stroke-width="2" d="${d}" data-income-source="${h(x.id)}" role="button" tabindex="0" aria-label="${h(x.label)}: ${money(x.value)}"><title>${h(x.label)} · ${money(x.value)}</title></path>`;
- }).join('');
- const legend=entries.map((x,i)=>`<button class="income-pie-source" type="button" data-income-source="${h(x.id)}" style="--entry:${i}"><i style="background:${x.color}"></i><span>${h(x.label)}<small>${money(x.value)}</small></span><b>${pct(x.value,total)}%</b></button>`).join('');
+ const month=incomeChosenMonth(),entries=incomeSourceData(month),total=entries.reduce((n,x)=>n+x.value,0),txCount=entries.reduce((n,x)=>n+x.count,0);
+ const monthSelector=`<label class="income-month-picker" title="Pilih bulan pemasukan"><span aria-hidden="true">🗓️</span><select id="income-month-choice" data-income-month-choice aria-label="Pilih Bulan Komposisi Pemasukan">${incomeAvailableMonths().map(m=>`<option value="${h(m)}" ${month===m?'selected':''}>${h(monthFmt(m))}</option>`).join('')}</select><span class="income-month-chevron" aria-hidden="true">⌄</span></label>`;
  return `<section class="card finance-spotlight-card finance-duo-card income-spotlight-card income-pie-card">
-  <div class="card-head"><div><h3>Komposisi Pemasukan</h3><p>${h(monthFmt(ui.month))} · ${txCount} Transaksi Pemasukan.</p></div></div>
-  ${total>0?`<div class="income-pie-content"><div class="income-pie-plot"><svg viewBox="0 0 240 240" role="group" aria-label="Komposisi pemasukan ${h(monthFmt(ui.month))}">${arcs}</svg><button type="button" class="income-pie-middle" data-dashboard-kpi="income" aria-label="Lihat rincian semua pemasukan ${h(monthFmt(ui.month))}"><span>Total Masuk</span><strong title="${money(total)}">${shortMoney(total)}</strong><small>${h(monthFmt(ui.month))}</small></button></div><div class="income-pie-sources">${legend}</div></div>
-   <div class="income-pie-total"><span>Total Pemasukan</span><strong>${money(total)}</strong></div>`:
-   `<div class="income-chart-empty"><span>🌱</span><strong>Belum Ada Pemasukan</strong><small>Catat pemasukan pada ${h(monthFmt(ui.month))} agar komposisinya muncul.</small></div>`}
+  <div class="card-head income-pie-card-head"><div><h3>Komposisi Pemasukan</h3><p>${txCount} Transaksi · ${entries.length} Sumber Pemasukan.</p></div>${monthSelector}</div>
+  ${total>0?`${renderIncomeCalloutVisual(month)}<div class="income-pie-total" role="status"><span>Total Pemasukan · ${h(monthFmt(month))}</span><strong>${money(total)}</strong></div>`:
+   `<div class="income-chart-empty"><span>🌱</span><strong>Belum Ada Pemasukan</strong><small>Pilih bulan lain atau catat pemasukan agar diagram terisi.</small></div>`}
  </section>`;
 }
 
@@ -6561,17 +6652,28 @@ function renderIncomeTrendCard(){
 }
 
 function incomeChartPopup(popup){
- const month=popup.type==='income-month'?popup.key:ui.month;
+ const month=popup.type==='income-month'?popup.key:(popup.month||incomeChosenMonth()),monthlyView=popup.type==='income-month';
  const tx=db.transactions.filter(t=>t.type==='income'&&t.date.slice(0,7)===month&&(popup.type!=='income-source'||(popup.key==='_unknown'?cat(t.categoryId)?.kind!=='income':t.categoryId===popup.key))).slice().sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
- const source=popup.type==='income-source'?incomeSourceData().find(x=>x.id===popup.key):null,title=popup.type==='income-source'?'Sumber Pemasukan · '+(source?.label||'Lainnya'):'Pemasukan · '+monthFmt(month),total=tx.reduce((n,t)=>n+num(t.amount),0);
- return `<div class="review-modal-backdrop kpi-modal-backdrop" id="review-modal-backdrop"><div class="review-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="review-modal-title" aria-describedby="review-modal-subtitle"><div class="review-modal-top"><div><h3 id="review-modal-title">${h(title)}</h3><p id="review-modal-subtitle">${h(monthFmt(month))} · ${tx.length} Transaksi</p></div><button type="button" class="review-modal-close" data-review-close aria-label="Tutup rincian pemasukan">✕</button></div><div class="review-modal-content kpi-modal-content"><div class="kpi-summary-box kpi-summary-income"><span>Total Pemasukan</span><strong class="green">${money(total)}</strong></div>${tx.length?kpiDailyBreakdown(tx,'income'):'<div class="review-modal-empty">Belum Ada Pemasukan.</div>'}</div></div></div>`;
+ const source=popup.type==='income-source'?incomeSourceData(month).find(e=>e.id===popup.key):null,total=tx.reduce((n,t)=>n+num(t.amount),0);
+ const title=monthlyView?'Komposisi Pemasukan · '+monthFmt(month):'Pemasukan · '+(source?.label||'Sumber Lainnya');
+ return `<div class="review-modal-backdrop kpi-modal-backdrop income-breakdown-popup" id="review-modal-backdrop"><div class="review-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="review-modal-title" aria-describedby="review-modal-subtitle">
+  <div class="review-modal-top"><div><h3 id="review-modal-title">${h(title)}</h3><p id="review-modal-subtitle">${tx.length} Transaksi · ${h(monthFmt(month))}${monthlyView&&total?' · Pilih Irisan untuk Rincian':''}</p></div>
+   <button type="button" class="review-modal-close" data-review-close aria-label="Tutup Rincian">✕</button></div>
+  <div class="review-modal-content kpi-modal-content">
+   ${monthlyView&&total?`<div class="income-popup-composition">${renderIncomeCalloutVisual(month)}</div>`:''}
+   <div class="income-pie-total income-popup-total"><span>Total Pemasukan · ${h(monthFmt(month))}</span><strong>${money(total)}</strong></div>
+   <h4 class="income-popup-transactions-heading">🧾 Rincian Transaksi</h4>
+   ${tx.length?kpiDailyBreakdown(tx,'income'):'<div class="review-modal-empty">Belum Ada Pemasukan pada bulan ini.</div>'}
+  </div></div></div>`;
 }
 
 function openIncomePopup(type,key){
- if(type==='income-source'&&!incomeSourceData().some(x=>x.id===key))return;
- if(type==='income-month'&&(!/^\d{4}-\d{2}$/.test(key)||key>ui.month))return;
- ui.reviewPopup={type,key};render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});
+ const month=ui.reviewPopup?.type==='income-month'?ui.reviewPopup.key:ui.reviewPopup?.type==='income-source'?ui.reviewPopup.month:incomeChosenMonth();
+ if(type==='income-source'&&!incomeSourceData(month).some(e=>e.id===key))return;
+ if(type==='income-month'&&(!/^\d{4}-\d{2}$/.test(key)||key>analysisToday().slice(0,7)))return;
+ ui.reviewPopup={type,key,month};render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});
 }
+
 function renderDash(){let all=monthly(),exp=totalType('expense'),inc=totalType('income'),bt=budgetTotal(),accountBalances=balances(),kas=Object.values(accountBalances).reduce((s,x)=>s+x,0),alert=expenses().filter(c=>hasBudget(c.id)&&['danger','warn'].includes(status(c.id).s)).sort((a,b)=>{const priority={danger:0,warn:1};return (priority[status(a.id).s]??9)-(priority[status(b.id).s]??9)||pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1));}),debt=totalsDebt();
 return `${welcomeModal()}${all.length===0?`<div class="callout"><span>✦</span><div><strong>Mulai catatan pertamamu.</strong> Dashboard akan otomatis terisi. Mau melihat simulasi lebih dulu? <button class="btn sm" type="button" data-action="demo" style="margin-left:7px">Isi contoh 24 bulan</button></div></div>`:''}
 <div class="grid kpis">
@@ -8479,6 +8581,7 @@ if(a==='cloud-empty'){if(!window.ARUS_CLOUD||!cloud.ready)return toast('Cloud be
 if(a==='cloud-upload'){if(!window.ARUS_CLOUD||!cloud.ready)return toast('Cloud belum siap.',true);if(confirm('PERHATIAN: Timpa seluruh data CLOUD dengan salinan browser saat ini? Ini mengganti data tersinkron di HP dan laptop. Pastikan sudah mencadangkan JSON!'))try{cloud.busy=true;syncBadge();await window.ARUS_CLOUD.replace(db);cloud.pendingDecision=false;cloud.empty=false;cloud.busy=false;syncBadge();toast('Data berhasil diunggah ke cloud.')}catch(e){cloud.busy=false;showError(e)}}
 return;}});
 document.addEventListener('change',e=>{let x=e.target;
+ if(x.matches?.('[data-income-month-choice]')){const selected=x.value;if(!incomeAvailableMonths().includes(selected))return;ui.incomePieMonth=selected;render();document.querySelector('[data-income-month-choice]')?.focus({preventScroll:true});return;}
  if(x.matches?.('#finance-editor-backdrop [data-finance-swatch]')){
   const hidden=document.querySelector('#finance-editor-backdrop [data-finance-color-value]');
   if(hidden)hidden.value=x.value;
@@ -8536,7 +8639,7 @@ if(x.id==='comp-start'||x.id==='comp-end'){
  }
  ui.comp.from=from;ui.comp.to=to;resetTrendFromDonut();render();return;
 }
-if(x.id==='month-input'){ui.reviewPopup=null;ui.txModalOpen=false;ui.txHistoryOpen=false;ui.txSearchOpen=false;ui.txSearchQuery='';let next=x.value||currentMonth(),prev=ui.month;if(next>analysisToday().slice(0,7)){toast('Bulan yang dipilih tidak boleh melewati bulan berjalan.',true);render();return;}if(next>prev&&db.transactions.some(t=>t.date.slice(0,7)===prev)&&!db.reports[prev]&&confirm('Bulan '+monthFmt(prev)+' belum diarsipkan. Simpan laporan bulan ini sebelum berpindah?')){db.reports[prev]=buildReport(prev);save();toast('Arsip '+monthFmt(prev)+' disimpan.')}ui.month=next;ui.txEditId=null;ui.moveEditId=null;ui.comp.preset='month';ui.comp.from='';ui.comp.to='';resetTrendFromDonut();render()}
+if(x.id==='month-input'){ui.reviewPopup=null;ui.txModalOpen=false;ui.txHistoryOpen=false;ui.txSearchOpen=false;ui.txSearchQuery='';let next=x.value||currentMonth(),prev=ui.month;if(next>analysisToday().slice(0,7)){toast('Bulan yang dipilih tidak boleh melewati bulan berjalan.',true);render();return;}if(next>prev&&db.transactions.some(t=>t.date.slice(0,7)===prev)&&!db.reports[prev]&&confirm('Bulan '+monthFmt(prev)+' belum diarsipkan. Simpan laporan bulan ini sebelum berpindah?')){db.reports[prev]=buildReport(prev);save();toast('Arsip '+monthFmt(prev)+' disimpan.')}ui.month=next;ui.incomePieMonth=null;ui.txEditId=null;ui.moveEditId=null;ui.comp.preset='month';ui.comp.from='';ui.comp.to='';resetTrendFromDonut();render()}
 if(x.id==='report-month'){ui.month=x.value||currentMonth();render()}
 if(x.id==='tx-history-filter'){ui.txFilter=x.value;render();document.getElementById('tx-history-filter')?.focus({preventScroll:true})}
 

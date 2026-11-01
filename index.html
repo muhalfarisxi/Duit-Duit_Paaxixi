@@ -5240,6 +5240,15 @@ body:has(.tx-search-backdrop){overflow:hidden}
  animation:none!important;transition:none!important;transform:none!important}
 }
 
+
+/* Menu yang dibuka muncul di atas kartu tetangga, bukan tertutup olehnya. */
+.budget-manager-card:has(.budget-action-menu[open]),
+.budget-pos-entry:has(.budget-action-menu[open]){z-index:9}
+.budget-manager-card .budget-action-menu[open],
+.budget-pos-entry .budget-action-menu[open]{z-index:10}
+.budget-manager-card .budget-manager-head{z-index:2}
+.budget-manager-card .budget-manager-stats{z-index:0}
+
 </style>
 </head>
 <body>

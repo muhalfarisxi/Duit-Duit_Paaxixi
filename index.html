@@ -1647,6 +1647,60 @@ body:has(.repay-popup-backdrop){overflow:hidden}
  .income-fancy-row:hover,.debt-fancy-row:hover{transform:none}
 }
 
+
+/* #094 Dashboard pemasukan: donat per sumber dan tren total per bulan */
+.income-charts-grid>.debt-spotlight-card{grid-column:1/-1}
+.income-pie-card,.income-trend-card{min-height:390px}
+.income-pie-card:before{background:linear-gradient(90deg,#1eaf7e,#a3ead0,transparent)}
+.income-trend-card:before{background:linear-gradient(90deg,#31b1ab,#8bbceb,transparent)}
+.income-pie-content{display:grid;grid-template-columns:minmax(145px,.9fr) minmax(0,1.1fr);gap:10px;align-items:center;flex:1}
+.income-pie-plot{width:100%;max-width:270px;aspect-ratio:1;margin:auto;position:relative;display:grid;place-items:center}
+.income-pie-plot svg{width:100%;height:100%;filter:drop-shadow(0 7px 12px #166e5330);animation:incomePieIn .65s ease-out both}
+.income-pie-sector{cursor:pointer;transform-origin:120px 120px;transition:transform .2s,filter .2s;outline:none}
+.income-pie-sector:hover,.income-pie-sector:focus-visible{transform:scale(1.04);filter:brightness(1.08) drop-shadow(0 3px 4px #126e553d)}
+.income-pie-sector:focus-visible{stroke:#194573;stroke-width:3}
+.income-pie-middle{position:absolute;width:47%;height:47%;top:26.5%;left:26.5%;border:0;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;cursor:pointer;padding:4px;box-shadow:0 3px 10px #143c5412}
+.income-pie-middle span{font-size:clamp(9px,.95vw,12px);font-weight:850;color:#658aa0}
+.income-pie-middle strong{max-width:100%;white-space:nowrap;color:#12805b;font:900 clamp(13px,1.6vw,21px)/1.15 Nunito,sans-serif;animation:financeDuoMoneyPop .6s ease-out both}
+.income-pie-middle small{font-size:clamp(8px,.75vw,10px);font-weight:750;color:#8197a8}
+.income-pie-sources{min-width:0;max-height:277px;overflow-y:auto;scrollbar-width:thin;display:flex;flex-direction:column;gap:8px;padding:4px}
+.income-pie-source{display:flex;align-items:center;min-width:0;gap:8px;border:1px solid #d9ede4;background:linear-gradient(100deg,#f2fbf6,#f7fbff);border-radius:13px;padding:9px 10px;cursor:pointer;text-align:left;transition:transform .2s,box-shadow .2s}
+.income-pie-source:hover{transform:translateX(3px);box-shadow:0 6px 14px #246f5523}
+.income-pie-source i{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 0 3px #fff}
+.income-pie-source>span{min-width:0;flex:1;display:flex;flex-direction:column;gap:2px;overflow-wrap:anywhere;color:#214c75;font-size:11px;font-weight:900}
+.income-pie-source small{font-size:10px;color:#7892a9;font-weight:750}
+.income-pie-source b{background:#dcf4e7;color:#137c57;border-radius:999px;padding:4px 7px;font-size:11px}
+.income-pie-total{display:flex;align-items:center;justify-content:space-between;gap:7px;flex-wrap:wrap;border-radius:12px;margin-top:14px;padding:10px 12px;background:#eef9f2;color:#407461;font-weight:850;font-size:12px}
+.income-pie-total strong{font:900 clamp(14px,1.4vw,18px)/1.2 Nunito,sans-serif;color:#12845c}
+.income-trend-toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.income-trend-toolbar>span{font-size:11px;font-weight:850;color:#53858b}
+.income-trend-toolbar>div{display:flex;gap:4px;padding:4px;background:#eaf6f6;border:1px solid #d7ebeb;border-radius:12px}
+.income-trend-toolbar button{border:0;border-radius:9px;padding:7px 10px;background:transparent;color:#547e8e;font-size:11px;font-weight:850}
+.income-trend-toolbar button.active{background:#148a68;color:white;box-shadow:0 3px 9px #148a682a}
+.income-trend-summary{display:flex;flex-direction:column;gap:4px;background:linear-gradient(110deg,#effaf4,#f7fcff);border:1px solid #ceeade;border-radius:15px;padding:12px 14px}
+.income-trend-summary span{color:#5d8497;font-size:11px;font-weight:850}
+.income-trend-summary strong{font:900 clamp(20px,2.3vw,30px)/1.16 Nunito,sans-serif;letter-spacing:-.6px;color:#12805b;white-space:nowrap;animation:financeDuoMoneyPop .65s ease-out}
+.income-trend-summary small{font-size:11px;font-weight:850}
+.income-trend-summary .up{color:#16845f}.income-trend-summary .down{color:#cd5665}.income-trend-summary .flat{color:#7487a1}
+.income-trend-plot{flex:1;display:flex;align-items:center;min-height:178px;margin-top:10px}
+.income-trend-plot svg{max-width:100%;height:auto}
+.income-trend-axis{fill:#8296ac;font:750 12px Nunito,sans-serif}
+.income-trend-line{filter:drop-shadow(0 3px 4px #18886430);animation:incomeLineIn .75s ease-out both}
+.income-trend-area{animation:incomePieIn .75s ease-out both}
+.income-month-hit{cursor:pointer;outline:none}
+.income-month-hit:hover,.income-month-hit:focus-visible{fill:rgba(35,175,121,.13);stroke:#13835f;stroke-width:2}
+.income-trend-tip{text-align:center;margin:0;color:#8294a9;font-size:10px;font-weight:750}
+.income-trend-caveat{margin:7px 0 0;color:#94703b;font-size:10px;font-weight:750}
+.income-chart-empty{flex:1;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px;border:1px dashed #d0e7df;background:#f7fbfd;border-radius:15px;padding:22px}
+.income-chart-empty span{font-size:28px}.income-chart-empty strong{color:#1c7659;font:750 16px Fredoka,Nunito,sans-serif}.income-chart-empty small{font-size:11px;color:#8092aa;max-width:35ch}
+.income-charts-grid>.debt-spotlight-card .debt-fancy-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.income-charts-grid>.debt-spotlight-card .debt-overview-cta{max-width:350px;align-self:flex-end;margin-top:16px!important}
+@keyframes incomePieIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+@keyframes incomeLineIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media(min-width:1041px) and (max-width:1330px){.income-pie-content{grid-template-columns:1fr}.income-pie-plot{max-width:220px}.income-pie-sources{max-height:165px}}
+@media(max-width:600px){.income-pie-content{grid-template-columns:1fr}.income-pie-plot{max-width:220px}.income-pie-sources{max-height:200px}.income-pie-middle strong{font-size:clamp(15px,4vw,21px)}.income-trend-summary strong{font-size:clamp(19px,5vw,27px)}.income-charts-grid>.debt-spotlight-card .debt-fancy-list{grid-template-columns:1fr}.income-charts-grid>.debt-spotlight-card .debt-overview-cta{max-width:none;align-self:stretch}}
+@media(prefers-reduced-motion:reduce){.income-pie-plot svg,.income-pie-middle strong,.income-trend-summary strong,.income-trend-line,.income-trend-area{animation:none!important}.income-pie-sector,.income-pie-source{transition:none!important}.income-pie-source:hover{transform:none}}
+
 /* #047 Transaksi: tambah/edit via modal, daftar riwayat tanpa halaman tersendiri. */
 @media(max-width:820px){.bottom-nav{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .tx-entry-backdrop,.tx-history-backdrop{
@@ -4627,7 +4681,7 @@ const expenseGroups=()=>db.expenseGroups;
 const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],debts:[],reports:{}});
 function load(){try{let v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.accounts)&&Array.isArray(v.categories)&&Array.isArray(v.transactions)&&Array.isArray(v.debts)&&v.budgets&&Array.isArray(v.budgetMoves))return normalizeExpenseGroups(v);}catch(e){}return fresh()}
 let db=load();db.reports=db.reports||{};
-let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,debtEditorOpen:false,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,trendRangePopup:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupType:'receivable',debtPopupFilter:'open',reportMonth:currentMonth()};
+let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,debtEditorOpen:false,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,trendRangePopup:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupType:'receivable',debtPopupFilter:'open',incomeTrendMonths:6,reportMonth:currentMonth()};
 let cloud={configured:false,signedIn:false,ready:false,email:'',busy:false,error:'',empty:false,pendingDecision:false};
 function syncBadge(){let b=document.getElementById('cloud-status');if(!b)return;
  b.className='cloud-state'+(cloud.signedIn&&cloud.ready&&!cloud.pendingDecision?' online':cloud.busy?' wait':'');
@@ -4733,6 +4787,8 @@ const PAX_CUTE_CARD_TITLES={
  'Peringatan Anggaran':['🔔','coral'],
  'Penggunaan Anggaran':['🏷️','gold'],
  'Asal Pemasukan':['💵','green'],
+ 'Komposisi Pemasukan':['🍀','green'],
+ 'Tren Pemasukan':['📈','green'],
  'Utang & Piutang':['🤝','lavender'],
  'Transaksi Terbaru':['🧾','blue'],
  'Grafik Pengeluaran Per Kelompok':['📉','coral'],
@@ -6413,7 +6469,90 @@ function renderBudgetAlertDialog(items,hasBudgetValue){
   '</dialog>';
 }
 
-function renderDash(){let all=monthly(),exp=totalType('expense'),inc=totalType('income'),bt=budgetTotal(),accountBalances=balances(),kas=Object.values(accountBalances).reduce((s,x)=>s+x,0),alert=expenses().filter(c=>hasBudget(c.id)&&['danger','warn'].includes(status(c.id).s)).sort((a,b)=>{const priority={danger:0,warn:1};return (priority[status(a.id).s]??9)-(priority[status(b.id).s]??9)||pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1));}),bySource=incomes().map(c=>({...c,amount:all.filter(t=>t.type==='income'&&t.categoryId===c.id).reduce((s,t)=>s+num(t.amount),0)})).filter(c=>c.amount>0).sort((a,b)=>b.amount-a.amount),debt=totalsDebt();
+const incomePalette=["#16996b","#519cda","#826bd8","#ecae54","#d87ca5","#48b5ac","#a0b65d","#dc776b","#617bcc"];
+function incomeSourceData(){
+ const map=new Map();
+ monthly().filter(t=>t.type==='income').forEach(t=>{
+  const c=cat(t.categoryId),id=c?.kind==='income'?t.categoryId:'_unknown';
+  if(!map.has(id))map.set(id,{id,label:id==='_unknown'?'Sumber Lainnya':c.label,value:0,count:0});
+  const entry=map.get(id);entry.value+=num(t.amount);entry.count++;
+ });
+ return [...map.values()].filter(x=>x.value>0).sort((a,b)=>b.value-a.value).map((x,i)=>({...x,color:incomePalette[i%incomePalette.length]}));
+}
+
+function incomePieArc(start,end){
+ const cx=120,cy=120,outer=96,inner=59;
+ const xy=(r,a)=>`${(cx+r*Math.cos(a)).toFixed(3)} ${(cy+r*Math.sin(a)).toFixed(3)}`;
+ const large=end-start>Math.PI?1:0;
+ return `M ${xy(outer,start)} A ${outer} ${outer} 0 ${large} 1 ${xy(outer,end)} L ${xy(inner,end)} A ${inner} ${inner} 0 ${large} 0 ${xy(inner,start)} Z`;
+}
+
+function renderIncomePieCard(){
+ const entries=incomeSourceData(),total=entries.reduce((n,x)=>n+x.value,0),txCount=entries.reduce((n,x)=>n+x.count,0);
+ let cursor=-Math.PI/2;
+ const arcs=entries.map(x=>{
+  if(entries.length===1)return `<circle class="income-pie-sector" cx="120" cy="120" r="78" fill="none" stroke="${x.color}" stroke-width="38" data-income-source="${h(x.id)}" role="button" tabindex="0" aria-label="${h(x.label)}: ${money(x.value)}"><title>${h(x.label)}: ${money(x.value)}</title></circle>`;
+  const next=cursor+2*Math.PI*x.value/total,d=incomePieArc(cursor,next);cursor=next;
+  return `<path class="income-pie-sector" fill="${x.color}" stroke="white" stroke-width="2" d="${d}" data-income-source="${h(x.id)}" role="button" tabindex="0" aria-label="${h(x.label)}: ${money(x.value)}"><title>${h(x.label)} · ${money(x.value)}</title></path>`;
+ }).join('');
+ const legend=entries.map((x,i)=>`<button class="income-pie-source" type="button" data-income-source="${h(x.id)}" style="--entry:${i}"><i style="background:${x.color}"></i><span>${h(x.label)}<small>${money(x.value)}</small></span><b>${pct(x.value,total)}%</b></button>`).join('');
+ return `<section class="card finance-spotlight-card finance-duo-card income-spotlight-card income-pie-card">
+  <div class="card-head"><div><h3>Komposisi Pemasukan</h3><p>${h(monthFmt(ui.month))} · ${txCount} Transaksi Pemasukan.</p></div></div>
+  ${total>0?`<div class="income-pie-content"><div class="income-pie-plot"><svg viewBox="0 0 240 240" role="group" aria-label="Komposisi pemasukan ${h(monthFmt(ui.month))}">${arcs}</svg><button type="button" class="income-pie-middle" data-dashboard-kpi="income" aria-label="Lihat rincian semua pemasukan ${h(monthFmt(ui.month))}"><span>Total Masuk</span><strong title="${money(total)}">${shortMoney(total)}</strong><small>${h(monthFmt(ui.month))}</small></button></div><div class="income-pie-sources">${legend}</div></div>
+   <div class="income-pie-total"><span>Total Pemasukan</span><strong>${money(total)}</strong></div>`:
+   `<div class="income-chart-empty"><span>🌱</span><strong>Belum Ada Pemasukan</strong><small>Catat pemasukan pada ${h(monthFmt(ui.month))} agar komposisinya muncul.</small></div>`}
+ </section>`;
+}
+
+function incomeMonthlyRows(count){
+ const [year,month]=ui.month.split('-').map(Number),map=new Map();
+ db.transactions.forEach(t=>{if(t.type==='income')map.set(t.date.slice(0,7),(map.get(t.date.slice(0,7))||0)+num(t.amount));});
+ return Array.from({length:count},(_,i)=>{
+  const d=new Date(year,month-count+i,1);
+  const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  return {key,value:map.get(key)||0};
+ });
+}
+
+function renderIncomeTrendCard(){
+ const count=ui.incomeTrendMonths===12?12:6,rows=incomeMonthlyRows(count),last=rows[rows.length-1],prev=rows[rows.length-2],delta=last.value-prev.value;
+ const comparison=prev.value>0?(delta===0?'Tetap Dibanding Bulan Sebelumnya':`${delta>0?'↑ Naik':'↓ Turun'} ${Math.abs(Math.round(delta/prev.value*100))}% Dari Bulan Sebelumnya`):last.value>0?'Belum Ada Pembanding Bulan Lalu':'Belum Ada Pemasukan';
+ const tone=delta>0?'up':delta<0?'down':'flat',peak=Math.max(0,...rows.map(r=>r.value)),max=peak?peak*1.16:1;
+ const base=211,top=24,left=64,right=620;
+ const xy=rows.map((x,i)=>({...x,x:left+i*(right-left)/(count-1),y:base-x.value/max*(base-top)}));
+ const curve=xy.map((p,i)=>{
+  if(!i)return `M ${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
+  const q=xy[i-1],mid=(p.x+q.x)/2;
+  return `C ${mid.toFixed(1)} ${q.y.toFixed(1)} ${mid.toFixed(1)} ${p.y.toFixed(1)} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
+ }).join(' ');
+ const area=curve+` L ${right} ${base} L ${left} ${base} Z`;
+ const short=v=>v>=1e9?(v/1e9).toFixed(1)+' M':v>=1e6?(v/1e6).toFixed(1)+' jt':v>=1e3?Math.round(v/1000)+' rb':Math.round(v).toLocaleString('id-ID');
+ const grid=[0,.25,.5,.75,1].map(f=>{const y=base-(base-top)*f;return `<line x1="${left}" y1="${y.toFixed(1)}" x2="${right}" y2="${y.toFixed(1)}" stroke="#deebec" stroke-dasharray="4 6"/><text class="income-trend-axis" x="${left-9}" y="${(y+3).toFixed(1)}" text-anchor="end">${short(max*f)}</text>`;}).join('');
+ const points=xy.map((p,i)=>`<g style="--entry:${i}"><circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5" stroke="white" stroke-width="2.5" fill="#16966f" pointer-events="none"/><circle class="income-month-hit" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="15" fill="transparent" tabindex="0" role="button" data-income-month="${h(p.key)}" aria-label="Pemasukan ${h(monthFmt(p.key))}: ${money(p.value)}"><title>${h(monthFmt(p.key))} · ${money(p.value)} · Klik untuk rincian</title></circle></g>`).join('');
+ const labels=xy.map((p,i)=>{if(count===12&&i%2&&i!==count-1)return '';const [y,m]=p.key.split('-').map(Number),name=new Date(y,m-1,1).toLocaleDateString('id-ID',{month:'short'});return `<text class="income-trend-axis" x="${p.x.toFixed(1)}" y="238" text-anchor="middle">${h(name)}${m===1?' '+String(y).slice(-2):''}</text>`;}).join('');
+ return `<section class="card finance-spotlight-card finance-duo-card income-trend-card">
+  <div class="card-head"><div><h3>Tren Pemasukan</h3><p>Total Pemasukan Tiap Bulan hingga ${h(monthFmt(ui.month))}.</p></div></div>
+  <div class="income-trend-toolbar"><span>📈 ${count} Bulan Terakhir</span><div role="group" aria-label="Rentang Tren Pemasukan">${[6,12].map(n=>`<button type="button" data-income-range="${n}" aria-pressed="${count===n?'true':'false'}" class="${count===n?'active':''}">${n} Bulan</button>`).join('')}</div></div>
+  <div class="income-trend-summary"><span>Pemasukan ${h(monthFmt(last.key))}</span><strong>${money(last.value)}</strong><small class="${tone}">${h(comparison)}</small></div>
+  ${peak>0?`<div class="income-trend-plot"><svg viewBox="0 0 650 258" role="group" aria-label="Tren pemasukan bulanan"><defs><linearGradient id="income-area-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3fae8e" stop-opacity=".27"/><stop offset="1" stop-color="#3fae8e" stop-opacity=".02"/></linearGradient></defs>${grid}<path d="${area}" fill="url(#income-area-fill)" class="income-trend-area"/><path d="${curve}" fill="none" stroke="#15966b" stroke-width="4" stroke-linecap="round" class="income-trend-line"/>${points}${labels}</svg></div><p class="income-trend-tip">Klik Titik Grafik untuk Melihat Rincian Pemasukan Bulanan.</p>`:
+   `<div class="income-chart-empty"><span>📊</span><strong>Belum Ada Data Tren</strong><small>Grafik otomatis muncul ketika pemasukan mulai dicatat.</small></div>`}
+  ${ui.month===currentMonth()?'<p class="income-trend-caveat">Bulan Berjalan Belum Selesai; Totalnya Masih Bisa Bertambah.</p>':''}
+ </section>`;
+}
+
+function incomeChartPopup(popup){
+ const month=popup.type==='income-month'?popup.key:ui.month;
+ const tx=db.transactions.filter(t=>t.type==='income'&&t.date.slice(0,7)===month&&(popup.type!=='income-source'||(popup.key==='_unknown'?cat(t.categoryId)?.kind!=='income':t.categoryId===popup.key))).slice().sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
+ const source=popup.type==='income-source'?incomeSourceData().find(x=>x.id===popup.key):null,title=popup.type==='income-source'?'Sumber Pemasukan · '+(source?.label||'Lainnya'):'Pemasukan · '+monthFmt(month),total=tx.reduce((n,t)=>n+num(t.amount),0);
+ return `<div class="review-modal-backdrop kpi-modal-backdrop" id="review-modal-backdrop"><div class="review-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="review-modal-title" aria-describedby="review-modal-subtitle"><div class="review-modal-top"><div><h3 id="review-modal-title">${h(title)}</h3><p id="review-modal-subtitle">${h(monthFmt(month))} · ${tx.length} Transaksi</p></div><button type="button" class="review-modal-close" data-review-close aria-label="Tutup rincian pemasukan">✕</button></div><div class="review-modal-content kpi-modal-content"><div class="kpi-summary-box kpi-summary-income"><span>Total Pemasukan</span><strong class="green">${money(total)}</strong></div>${tx.length?kpiDailyBreakdown(tx,'income'):'<div class="review-modal-empty">Belum Ada Pemasukan.</div>'}</div></div></div>`;
+}
+
+function openIncomePopup(type,key){
+ if(type==='income-source'&&!incomeSourceData().some(x=>x.id===key))return;
+ if(type==='income-month'&&(!/^\d{4}-\d{2}$/.test(key)||key>ui.month))return;
+ ui.reviewPopup={type,key};render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});
+}
+function renderDash(){let all=monthly(),exp=totalType('expense'),inc=totalType('income'),bt=budgetTotal(),accountBalances=balances(),kas=Object.values(accountBalances).reduce((s,x)=>s+x,0),alert=expenses().filter(c=>hasBudget(c.id)&&['danger','warn'].includes(status(c.id).s)).sort((a,b)=>{const priority={danger:0,warn:1};return (priority[status(a.id).s]??9)-(priority[status(b.id).s]??9)||pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1));}),debt=totalsDebt();
 return `${welcomeModal()}${all.length===0?`<div class="callout"><span>✦</span><div><strong>Mulai catatan pertamamu.</strong> Dashboard akan otomatis terisi. Mau melihat simulasi lebih dulu? <button class="btn sm" type="button" data-action="demo" style="margin-left:7px">Isi contoh 24 bulan</button></div></div>`:''}
 <div class="grid kpis">
 ${metricCard('Pemasukan Bulan Ini',inc,'↑','green','Transaksi Pemasukan')}${metricCard('Pengeluaran Bulan Ini',exp,'↓','red','Transaksi Pengeluaran')}${metricCard('Sisa Anggaran',bt>0?bt-budgetUsed():0,'◴',bt>0&&bt-budgetUsed()<0?'red':'green',bt>0?`Dari Total ${money(bt)}`:'Belum Ada Anggaran')}${metricCard('Total Saldo Rekening',kas,'▤',kas<0?'red':'blue','Saldo Seluruh Rekening, Sepanjang Waktu')}
@@ -6421,13 +6560,9 @@ ${metricCard('Pemasukan Bulan Ini',inc,'↑','green','Transaksi Pemasukan')}${me
 ${renderBudgetAlertStrip(alert,bt)}
 <div class="analytics-comp-trend">${renderComposition()}${renderTrendPanel()}</div>
 ${renderPaaxixiSmartFinanceInsight()}
-<div class="grid finance-duo-grid">
- <section class="card finance-spotlight-card income-spotlight-card finance-duo-card">
-  <div class="card-head"><div><h3>Asal Pemasukan</h3><p>Urutan sumber berdasarkan nominal pemasukan yang tercatat pada ${h(monthFmt(ui.month))}.</p></div></div>
-  <div class="income-fancy-list">${bySource.length?bySource.slice(0,7).map((c,i)=>`<div class="income-fancy-row" style="--duo-order:${i}">
-    <div class="income-fancy-info"><strong>${h(c.label)} <span class="income-fancy-share">${pct(c.amount,inc)}%</span></strong><small>Bagian dari total pemasukan bulan ini</small></div>
-    <strong class="finance-duo-amount">${money(c.amount)}</strong></div>`).join(''):empty('↗','Belum Ada Pemasukan','Catat pemasukan agar sumbernya terlihat di sini.')}</div>
- </section>
+<div class="grid finance-duo-grid income-charts-grid">
+ ${renderIncomePieCard()}
+ ${renderIncomeTrendCard()}
  <section class="card finance-spotlight-card debt-spotlight-card finance-duo-card">
   <div class="card-head"><div><h3>Utang & Piutang</h3><p>Sisa pinjaman setelah cicilan, terpisah dari pemasukan dan pengeluaran rutin.</p></div></div>
   <div class="debt-fancy-list">
@@ -6630,8 +6765,9 @@ function debtOverviewPopupContent(){
 }
 
 function renderDashboardKpiPopup(){
- const popup=ui.reviewPopup;if(ui.view!=='dashboard'||!['dashboard-kpi','trend-point','debt-list'].includes(popup?.type))return '';
+ const popup=ui.reviewPopup;if(ui.view!=='dashboard'||!['dashboard-kpi','trend-point','debt-list','income-month','income-source'].includes(popup?.type))return '';
  if(popup.type==='trend-point')return renderTrendPointPopup(popup);
+ if(popup.type==='income-month'||popup.type==='income-source')return incomeChartPopup(popup);
   if(popup.type==='debt-list')return `<div class="review-modal-backdrop debt-quick-backdrop highlighted-debt-popup" id="review-modal-backdrop"><div class="review-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="review-modal-title" aria-describedby="review-modal-subtitle"><div class="review-modal-top"><div><h3 id="review-modal-title">Daftar Utang & Piutang</h3><p id="review-modal-subtitle">Pantau Sisa Utang, Piutang yang Belum Kembali, dan Perkembangan Cicilan dalam Satu Tempat.</p></div><button type="button" class="review-modal-close" data-review-close aria-label="Tutup daftar utang dan piutang">✕</button></div><div class="review-modal-content">${debtOverviewPopupContent()}</div></div></div>`;
  const key=popup.key;
  let title='',description='',content='';
@@ -7204,6 +7340,10 @@ function dismissReviewPopup(){
  render();
  if(previous.type==='debt-list')document.querySelector('[data-debt-overview]')?.focus({preventScroll:true});
   else if(previous.type==='dashboard-kpi')document.querySelector('[data-dashboard-kpi="'+previous.key+'"]')?.focus({preventScroll:true});
+ else if(previous.type==='income-month'||previous.type==='income-source'){
+  const elements=[...document.querySelectorAll(previous.type==='income-month'?'[data-income-month]':'[data-income-source]')];
+  elements.find(el=>previous.type==='income-month'?el.dataset.incomeMonth===previous.key:el.dataset.incomeSource===previous.key)?.focus({preventScroll:true});
+ }
  else if(previous.type==='trend-point'){
   const prior=[...document.querySelectorAll('[data-trend-point]')].find(el=>el.dataset.trendKey===previous.key&&el.dataset.trendSeries===previous.series&&el.dataset.trendScope===previous.scope);
   prior?.focus({preventScroll:true});
@@ -8008,6 +8148,7 @@ document.addEventListener('keydown',event=>{
   }
   return;
  }
+ if((event.key==='Enter'||event.key===' ')&&event.target?.matches?.('[data-income-month],[data-income-source]')){event.preventDefault();openIncomePopup(event.target.dataset.incomeMonth!==undefined?'income-month':'income-source',event.target.dataset.incomeMonth??event.target.dataset.incomeSource);return;}
  if((event.key==='Enter'||event.key===' ')&&event.target?.matches?.('[data-trend-point]')){
   event.preventDefault();openTrendPoint(event.target);return;
  }
@@ -8088,7 +8229,9 @@ document.addEventListener('click',async e=>{
  if(trendDialog&&e.target===trendDialog){const b=trendDialog.getBoundingClientRect();if(e.clientX<b.left||e.clientX>b.right||e.clientY<b.top||e.clientY>b.bottom)closeTrendRangePopup();return;}
  const aiDlg=document.getElementById('paax-ai-dialog');
  if(aiDlg&&e.target===aiDlg){const b=aiDlg.getBoundingClientRect();if(e.clientX<b.left||e.clientX>b.right||e.clientY<b.top||e.clientY>b.bottom)closePaaxAiInsight();return;}
- const trendPoint=e.target.closest('[data-trend-point]');
+ const incomeSegment=e.target.closest?.('[data-income-source]');if(incomeSegment){openIncomePopup('income-source',incomeSegment.dataset.incomeSource);return;}
+  const incomeMonth=e.target.closest?.('[data-income-month]');if(incomeMonth){openIncomePopup('income-month',incomeMonth.dataset.incomeMonth);return;}
+  const trendPoint=e.target.closest('[data-trend-point]');
  if(trendPoint){openTrendPoint(trendPoint);return;}
  let x=e.target.closest('button');if(!x)return;
  if(x.dataset.paaxAiOpen!==undefined){void paaxAiOpenWhenReady();return;}
@@ -8213,6 +8356,7 @@ if(x.dataset.debtOverview){
   ui.debtPopupFilter=x.dataset.debtPopupFilter;
   render();document.querySelector('[data-debt-popup-filter="'+ui.debtPopupFilter+'"]')?.focus({preventScroll:true});return;
  }
+ if(x.dataset.incomeRange!==undefined){const n=Number(x.dataset.incomeRange);if(![6,12].includes(n))return;ui.incomeTrendMonths=n;render();document.querySelector('[data-income-range="'+n+'"]')?.focus({preventScroll:true});return;}
  if(x.dataset.dashboardKpi){
  if(!['income','expense','budget','balance'].includes(x.dataset.dashboardKpi))return;
  ui.reviewPopup={type:'dashboard-kpi',key:x.dataset.dashboardKpi};

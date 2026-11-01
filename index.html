@@ -6152,6 +6152,53 @@ body:has(.tx-search-backdrop){overflow:hidden}
  )::before,#content .review-block>summary::before{transition:none!important}
 }
 
+
+/* #125 Sisa Anggaran Dashboard: progress kelompok dan pos memakai satu komponen
+   animasi yang sama dengan tab Rincian Anggaran. */
+#content .review-modal-dialog .budget-bygroup .budget-detail-chart-wrap{
+ margin-top:16px;margin-bottom:2px;
+}
+#content .review-modal-dialog .budget-bygroup .budget-detail-progress-head{
+ margin-bottom:12px;
+}
+#content .review-modal-dialog .budget-bygroup .budget-detail-chart{height:17px}
+#content .review-modal-dialog .budget-bygroup .budget-detail-chart-foot{
+ margin-top:15px;gap:8px;
+}
+#content .review-modal-dialog .budget-bygroup .budget-detail-equation{
+ margin:13px 0 0;gap:7px;
+}
+#content .review-modal-dialog .budget-bygroup .budget-detail-chip{
+ padding:6px 9px;font-size:10px;
+}
+#content .review-modal-dialog .budget-bygroup .budget-detail-change{font-size:10px}
+#content .review-modal-dialog .budget-bygroup-title{align-items:center}
+#content .review-modal-dialog .budget-bygroup-pos .budget-detail-chart{height:14px}
+#content .review-modal-dialog .budget-bygroup-pos .budget-detail-chart-wrap{
+ margin:12px 0 2px;
+}
+#content .review-modal-dialog .budget-bygroup-pos .budget-detail-chart-foot{
+ margin-top:14px;
+}
+#content .review-modal-dialog .budget-bygroup-pos .budget-detail-equation{
+ margin:11px 0 0;
+}
+#content .review-modal-dialog .budget-bygroup-unallocated{
+ margin:12px 0 0;padding:9px 11px;border:1px solid #dbe7f7;border-radius:10px;
+ color:#68819e;background:#f4f8ff;font:800 11px/1.45 Nunito,sans-serif;
+}
+@media(max-width:600px){
+ #content .review-modal-dialog .budget-bygroup .budget-detail-chart-foot{
+  justify-content:space-between;
+ }
+ #content .review-modal-dialog .budget-bygroup .budget-detail-limit-pill{
+  font-size:9px;
+ }
+ #content .review-modal-dialog .budget-bygroup .budget-detail-chip{
+  padding:6px 7px;font-size:9px;
+ }
+}
+
 </style>
 </head>
 <body>
@@ -8669,9 +8716,11 @@ function kpiBudgetBreakdown(){
    const budgeted=hasBudget(c.id),budget=budgeted?effectiveBudget(c.id):0,spent=spentByCat(c.id);
    return {c,budgeted,budget,spent,left:budget-spent,st:budgeted?status(c.id):{s:'unset',label:'Belum Dianggarkan'}};
   }).filter(r=>r.budgeted||r.spent>0);
-  const allocated=rows.filter(r=>r.budgeted),budget=allocated.reduce((v,r)=>v+r.budget,0),spent=allocated.reduce((v,r)=>v+r.spent,0);
+  // Untuk menjaga kesesuaian total, pengeluaran tanpa alokasi tetap ditampilkan
+  // terpisah dan tidak masuk pemakaian anggaran kelompok.
+  const allocated=rows.filter(r=>r.budgeted),totals=budgetDetailTotals(allocated.map(r=>r.c));
   const unbudgeted=rows.filter(r=>!r.budgeted).reduce((v,r)=>v+r.spent,0);
-  return {g,rows,budget,spent,left:budget-spent,unbudgeted};
+  return {g,rows,totals,budget:totals.effective,spent:totals.used,left:totals.remaining,unbudgeted};
  }).filter(g=>g.rows.length).sort((a,b)=>Number(b.left<0)-Number(a.left<0)||b.budget-a.budget||a.g.name.localeCompare(b.g.name,'id'));
  const total=budgetTotal(),used=budgetUsed(),left=total>0?total-used:0;
  const unbudgeted=byGroup.reduce((v,g)=>v+g.unbudgeted,0);
@@ -8680,43 +8729,54 @@ function kpiBudgetBreakdown(){
   <span class="${left<0?'red':'green'}">Sisa Anggaran <b>${money(left)}</b></span></div>`;
  if(!byGroup.length)return overview+'<div class="review-modal-empty">Belum Ada Anggaran Atau Pengeluaran Bulan Ini.</div>';
  const cards=byGroup.map(group=>{
-  const {g,rows,budget,spent,left:balance,unbudgeted:outside}=group;
-  const over=balance<0,percentage=budget>0?100*spent/budget:0,width=budget>0?Math.max(0,Math.min(100,percentage)):0;
-  const state=over?'danger':budget<=0?'unset':percentage>=80?'warn':'ok';
-  const stateText=over?'Melewati batas':budget<=0?'Belum dianggarkan':percentage>=80?'Hampir habis':'Aman';
+  const {g,rows,totals,unbudgeted:outside}=group;
+  const state=budgetDetailUsageStatus(totals),changed=budgetDetailChangeTone(totals);
   const positions=rows.sort((a,b)=>Number(b.left<0&&b.budgeted)-Number(a.left<0&&a.budgeted)||b.spent-a.spent).map(r=>{
-   const pw=r.budget>0?Math.max(0,Math.min(100,100*r.spent/r.budget)):r.budgeted&&r.spent>0?100:0;
-   const ps=r.budgeted?(r.left<0?'danger':r.budget>0&&r.left<=r.budget*.2?'warn':'ok'):'unset';
-   return `<div class="budget-bygroup-pos">
-    <div class="budget-bygroup-poshead"><span>${symbolBadge(r.c.label,r.c.group,true)}<strong>${h(r.c.label)}</strong></span>${pill(r.st.s,r.st.label)}</div>
-    <div class="budget-bygroup-numbers"><span>Anggaran <b>${r.budgeted?money(r.budget):'Belum diatur'}</b></span>
+   const detail=budgetDetailTotals([r.c]);
+   return `<article class="budget-bygroup-pos">
+    <div class="budget-bygroup-poshead">
+     <span>${symbolBadge(r.c.label,r.c.group,true)}<strong>${h(r.c.label)}</strong></span>
+     ${r.budgeted?budgetDetailChangePill(detail):'<span class="budget-detail-change tone-steady">📌 Belum dianggarkan</span>'}
+    </div>
+    <div class="budget-bygroup-numbers">
+     <span>Anggaran efektif <b>${r.budgeted?money(detail.effective):'Belum diatur'}</b></span>
      <span>Terpakai <b>${money(r.spent)}</b></span>
-     <span>Sisa <b class="${r.budgeted?(r.left<0?'red':'green'):''}">${r.budgeted?money(r.left):'—'}</b></span></div>
-    ${r.budgeted?`<div class="budget-bygroup-posbar ${ps}"><span style="width:${pw.toFixed(2)}%"></span></div>`:''}
-   </div>`;
+     <span>Sisa <b class="${r.budgeted?(detail.remaining<0?'red':'green'):''}">${r.budgeted?money(detail.remaining):'—'}</b></span>
+    </div>
+    ${r.budgeted?`${budgetDetailProgress(detail,r.c.label)}
+      ${budgetDetailEquation(detail)}`:
+      '<p class="budget-bygroup-unallocated">📌 Pos ini belum memiliki alokasi anggaran. Pemakaiannya tidak masuk progress kelompok.</p>'}
+   </article>`;
   }).join('');
   return `<details class="budget-bygroup">
    <summary>
-    <div class="budget-bygroup-title"><span class="budget-bygroup-icon" aria-hidden="true">${pickSymbol(g.name,g.name)}</span>
-     <span><strong>${h(g.name)}</strong><small>${rows.length} pos · ${stateText}</small></span><span class="budget-bygroup-arrow" aria-hidden="true">⌄</span></div>
-    <div class="budget-bygroup-numbers"><span>Anggaran <b>${money(budget)}</b></span><span>Terpakai <b>${money(spent)}</b></span>
-     <span>Sisa <b class="${balance<0?'red':'green'}">${money(balance)}</b></span></div>
-    <div class="budget-bygroup-track ${state}" role="img" aria-label="Kelompok ${h(g.name)}, terpakai ${money(spent)} dari anggaran ${money(budget)}, sisa ${money(balance)}">
-     <span style="width:${width.toFixed(2)}%"></span></div>
-    <div class="budget-bygroup-foot"><span>${budget>0?Math.round(percentage)+'% anggaran terpakai':'Belum ada anggaran'}</span>
-     <span>${over?'⚠ Lebih '+money(-balance):'Sisa '+money(balance)}</span></div>
+    <div class="budget-bygroup-title">
+     <span class="budget-bygroup-icon" aria-hidden="true">${pickSymbol(g.name,g.name)}</span>
+     <span><strong>${h(g.name)}</strong><small>${rows.length} pos · ${state.label}</small></span>
+     ${budgetDetailChangePill(totals)}
+     <span class="budget-bygroup-arrow" aria-hidden="true">⌄</span>
+    </div>
+    <div class="budget-bygroup-numbers">
+     <span>Anggaran efektif <b>${money(totals.effective)}</b></span>
+     <span>Terpakai <b>${money(totals.used)}</b></span>
+     <span>Sisa <b class="${totals.remaining<0?'red':'green'}">${money(totals.remaining)}</b></span>
+    </div>
+    ${budgetDetailProgress(totals,g.name)}
+    ${budgetDetailEquation(totals)}
     ${outside>0?`<div class="budget-bygroup-extra">+ ${money(outside)} pengeluaran tanpa anggaran, tidak masuk hitungan sisa</div>`:''}
     <div class="budget-bygroup-hint">Lihat rincian pos <span aria-hidden="true">⌄</span></div>
-   </summary><div class="budget-bygroup-items">${positions}</div>
+   </summary>
+   <div class="budget-bygroup-items">${positions}</div>
   </details>`;
  }).join('');
  return overview+
-  '<div class="budget-bygroup-guide"><strong>Grafik Sisa Anggaran Per Kelompok</strong><span>Ketuk kelompok untuk melihat sisa anggaran setiap pos.</span></div>'+
+  '<div class="budget-bygroup-guide"><strong>Grafik Sisa Anggaran Per Kelompok</strong><span>Klik kelompok untuk melihat pemakaian, perubahan anggaran, dan batas setiap pos.</span></div>'+
   '<div class="budget-bygroup-list">'+cards+'</div>'+
   (unbudgeted>0?`<p class="kpi-detail-note">Pengeluaran tanpa anggaran ${money(unbudgeted)} tidak masuk perhitungan Sisa Anggaran, tetapi tetap tercatat dalam laporan pengeluaran.</p>`:
    '<p class="kpi-detail-note">Perhitungan sisa hanya mencakup pos yang dianggarkan. Seluruh transaksi tetap tercatat di laporan pengeluaran.</p>')+
   '<div class="kpi-modal-actions"><button type="button" class="btn sm budget-nav-highlight" data-nav="budgets"><span class="budget-nav-spark" aria-hidden="true">✦</span>Kelola / Alihkan Anggaran <span class="budget-nav-arrow" aria-hidden="true">→</span></button></div>';
 }
+
 function kpiBalanceBreakdown(){
  const current=balances();
  const accounts=[...db.accounts.map(a=>({id:a.id,name:a.name,type:a.type,opening:num(a.opening)}))];

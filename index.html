@@ -3058,20 +3058,38 @@ body:has(.tx-search-backdrop){overflow:hidden}
  21%,23%{opacity:.96;transform:rotate(18deg)}
  25%{opacity:.12;transform:rotate(42deg)}
 }
+/* Peringatan anggaran: nama modul di kiri, status pemberitahuan rata kanan. */
 .budget-alert-strip{
- width:100%;display:flex;align-items:center;gap:11px;margin:13px 0 0;
- padding:11px 15px;text-align:left;cursor:pointer;border:1px solid #ecd9b1;border-radius:15px;
- background:linear-gradient(110deg,#fff8e9,#fffdf8);color:#775621;transition:transform .18s,box-shadow .18s
+ width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;
+ gap:20px;margin:13px 0 0;padding:14px 19px;text-align:left;
+ cursor:pointer;border:1px solid #ecd9b1;border-radius:15px;
+ background:linear-gradient(110deg,#fff8e9,#fffdf8);color:#775621;
+ transition:transform .18s,box-shadow .18s
 }
 .budget-alert-strip:hover{transform:translateY(-2px);box-shadow:0 7px 17px #274e851e}
 .budget-alert-strip-danger{background:linear-gradient(110deg,#fff0ee,#fffbf8);border-color:#efc6bc;color:#a04642}
 .budget-alert-strip-safe{background:linear-gradient(110deg,#effbf7,#fafffc);border-color:#cce8dd;color:#28685d}
 .budget-alert-strip-unset{background:linear-gradient(110deg,#f2f8ff,#fbfdff);border-color:#d7e5f9;color:#496c96}
-.budget-alert-strip-icon{font-size:23px;line-height:1;flex:none}
-.budget-alert-strip-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.budget-alert-strip-heading{min-width:0;display:flex;align-items:center;gap:11px}
+.budget-alert-strip-icon{
+ width:39px;height:39px;display:grid;place-items:center;border-radius:12px;
+ background:rgba(255,255,255,.64);border:1px solid rgba(255,255,255,.7);
+ font-size:23px;line-height:1;flex:none
+}
+.budget-alert-strip-label{
+ min-width:0;font:800 clamp(15px,1.5vw,19px)/1.3 Fredoka,Nunito,sans-serif;
+ letter-spacing:-.25px
+}
+.budget-alert-strip-end{min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:clamp(17px,3vw,45px)}
+.budget-alert-strip-copy{min-width:0;display:flex;flex-direction:column;gap:3px;text-align:right}
 .budget-alert-strip-copy strong{font:900 13px/1.3 Nunito,sans-serif}
 .budget-alert-strip-copy small{font:750 11px/1.4 Nunito,sans-serif;opacity:.85}
-.budget-alert-strip-cta{font:900 11px/1.3 Nunito,sans-serif;flex:none}
+.budget-alert-strip-cta{font:900 11px/1.3 Nunito,sans-serif;flex:none;white-space:nowrap}
+@media(max-width:760px){
+ .budget-alert-strip{grid-template-columns:minmax(0,1fr);gap:12px}
+ .budget-alert-strip-end{justify-content:flex-end;gap:17px}
+}
+
 .budget-alert-strip:focus-visible,.budget-alert-dialog button:focus-visible{outline:3px solid #84b9fe;outline-offset:2px}
 .budget-alert-dialog{
  width:min(560px,calc(100% - 25px));max-height:min(86dvh,730px);overflow:auto;
@@ -3112,7 +3130,10 @@ body:has(.tx-search-backdrop){overflow:hidden}
  .analytics-comp-trend #composition-card .comp-recap-narrow{grid-template-columns:minmax(118px,.82fr) minmax(0,1.18fr);gap:5px}
  .analytics-comp-trend #composition-card .comp-recap-small-ring{max-width:180px}
  .analytics-comp-trend .trend-panel{padding:14px 12px}
- .budget-alert-strip{padding:10px;gap:7px}
+ .budget-alert-strip{padding:12px 13px;gap:10px}
+ .budget-alert-strip-icon{width:35px;height:35px;font-size:21px}
+ .budget-alert-strip-label{font-size:15px}
+ .budget-alert-strip-end{gap:12px}
  .budget-alert-strip-copy strong{font-size:12px}
  .budget-alert-strip-copy small,.budget-alert-strip-cta{font-size:10px}
  .budget-alert-dialog{padding:13px}
@@ -6039,13 +6060,16 @@ function budgetAlertCounts(items){
 }
 function renderBudgetAlertStrip(items,hasBudgetValue){
  const n=budgetAlertCounts(items),tone=n.danger?'danger':n.warn?'warn':hasBudgetValue>0?'safe':'unset';
- const title=items.length?items.length+' pos perlu perhatian':hasBudgetValue>0?'Anggaran dalam kondisi aman':'Belum ada batas anggaran';
- const info=items.length?[n.danger?n.danger+' melewati batas':'',n.warn?n.warn+' hampir habis':''].filter(Boolean).join(' · '):
-  hasBudgetValue>0?'Semua pos masih dalam batas aman':'Atur anggaran agar peringatan aktif';
+ const title=items.length?items.length+' Pos Perlu Perhatian':hasBudgetValue>0?'Anggaran Dalam Kondisi Aman':'Belum Ada Batas Anggaran';
+ const info=items.length?[n.danger?n.danger+' Melewati Batas':'',n.warn?n.warn+' Hampir Habis':''].filter(Boolean).join(' · '):
+  hasBudgetValue>0?'Semua Pos Masih Dalam Batas Aman':'Atur Anggaran Agar Peringatan Aktif';
  return '<button type="button" class="budget-alert-strip budget-alert-strip-'+tone+'" data-budget-alert-open aria-haspopup="dialog" aria-controls="budget-alert-dialog">'+
-  '<span class="budget-alert-strip-icon" aria-hidden="true">'+(n.danger?'🚨':n.warn?'🔔':hasBudgetValue>0?'🌿':'🎯')+'</span>'+
-  '<span class="budget-alert-strip-copy"><strong>'+title+'</strong><small>'+h(info+' · '+monthFmt(ui.month))+'</small></span>'+
-  '<span class="budget-alert-strip-cta">Lihat rincian ↗</span></button>';
+  '<span class="budget-alert-strip-heading">'+
+   '<span class="budget-alert-strip-icon" aria-hidden="true">'+(n.danger?'🚨':n.warn?'🔔':hasBudgetValue>0?'🌿':'🎯')+'</span>'+
+   '<span class="budget-alert-strip-label">Peringatan Pengelolaan Anggaran</span></span>'+
+  '<span class="budget-alert-strip-end">'+
+   '<span class="budget-alert-strip-copy"><strong>'+h(title)+'</strong><small>'+h(info+' · '+monthFmt(ui.month))+'</small></span>'+
+   '<span class="budget-alert-strip-cta">Lihat Rincian ↗</span></span></button>';
 }
 function renderBudgetAlertDialog(items,hasBudgetValue){
  const n=budgetAlertCounts(items);

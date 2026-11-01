@@ -5200,7 +5200,7 @@ const expenseGroups=()=>db.expenseGroups;
 const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],debts:[],reports:{}});
 function load(){try{let v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.accounts)&&Array.isArray(v.categories)&&Array.isArray(v.transactions)&&Array.isArray(v.debts)&&v.budgets&&Array.isArray(v.budgetMoves))return normalizeExpenseGroups(v);}catch(e){}return fresh()}
 let db=load();db.reports=db.reports||{};
-let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,debtEditorOpen:false,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,trendRangePopup:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupType:'receivable',debtPopupFilter:'open',incomeTrendMode:'month',incomeTrendFrom:'',incomeTrendTo:'',incomeTrendRangeOpen:false,incomePieMonth:null,incomeMonthMenuOpen:false,incomeFilter:{preset:'month',from:'',to:'',group:null},incomeTrendVisible:null,reportMonth:currentMonth()};
+let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,debtEditorOpen:false,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,budgetExpandedGroups:null,comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,trendRangePopup:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupType:'receivable',debtPopupFilter:'open',incomeTrendMode:'month',incomeTrendFrom:'',incomeTrendTo:'',incomeTrendRangeOpen:false,incomePieMonth:null,incomeMonthMenuOpen:false,incomeFilter:{preset:'month',from:'',to:'',group:null},incomeTrendVisible:null,reportMonth:currentMonth()};
 let cloud={configured:false,signedIn:false,ready:false,email:'',busy:false,error:'',empty:false,pendingDecision:false};
 function syncBadge(){let b=document.getElementById('cloud-status');if(!b)return;
  b.className='cloud-state'+(cloud.signedIn&&cloud.ready&&!cloud.pendingDecision?' online':cloud.busy?' wait':'');
@@ -8211,14 +8211,38 @@ function renderReview(){
   </section>${renderReviewPopup()}`;
 }
 function expenseGroupManager(){
- return `<section class="card" id="expense-group-manager" style="margin-bottom:16px">
-  <div class="card-head"><div><h3>Kelola Kelompok Pengeluaran</h3><p>Kelompok membantu membaca pola belanja; pindahkan posnya sebelum menghapus kelompok.</p></div><button type="button" class="btn primary sm" data-add-expense-group>＋ Tambah Kelompok</button></div>
-  <div class="inline-cards">${expenseGroups().map(g=>{
-    const count=expenses().filter(c=>c.group===g.name).length;
-    return `<div class="inline-line"><div style="display:flex;align-items:center;gap:10px;min-width:0"><span class="dot" style="background:${h(g.color)};height:14px;width:14px"></span>${symbolBadge(g.name,g.name,true)}<div style="min-width:0"><strong>${h(g.name)}</strong><small>${count} Pos Pengeluaran</small></div></div>
-      <div class="action-buttons"><button type="button" class="btn sm" data-edit-expense-group="${h(g.id)}">Edit</button><button type="button" class="btn sm danger" data-delete-expense-group="${h(g.id)}">Hapus</button></div></div>`;
-  }).join('')}</div>
-  <p class="tiny" style="margin-top:12px">Mengganti nama tidak menghapus transaksi. Untuk menghapus kelompok, pindahkan posnya terlebih dahulu.</p>
+ const groups=expenseGroups();
+ return `<section class="card budget-groups-manager" id="expense-group-manager">
+  <div class="card-head"><div><h3>Kelompok Pengeluaran</h3>
+   <p>Warna membedakan kelompok dan setiap posnya. Gunakan Kelola untuk mengubah nama atau warna.</p></div>
+   <button type="button" class="btn primary sm" data-add-expense-group>＋ Tambah Kelompok</button></div>
+  <div class="budget-manager-grid">${groups.map(g=>{
+    const color=cleanGroupColor(g.color)||'#2563eb';
+    const categories=expenses().filter(c=>c.group===g.name);
+    const allocated=categories.reduce((sum,c)=>sum+effectiveBudget(c.id),0);
+    const spent=categories.reduce((sum,c)=>sum+spentByCat(c.id),0);
+    const remaining=allocated-spent;
+    return `<article class="budget-manager-card" style="--budget-theme:${color};--budget-theme-light:color-mix(in srgb,${color} 11%,white)">
+      <span class="budget-manager-glow" aria-hidden="true"></span>
+      <div class="budget-manager-head"><span class="budget-manager-icon">${symbolBadge(g.name,g.name,true)}</span>
+       <div class="budget-manager-title"><strong>${h(g.name)}</strong>
+        <small>${categories.length} pos pengeluaran</small></div>
+       <details class="budget-action-menu budget-manager-menu">
+        <summary aria-label="Kelola kelompok ${h(g.name)}">⚙️ Kelola</summary>
+        <div class="budget-action-menu-list">
+         <button type="button" data-edit-expense-group="${h(g.id)}">✏️ Edit Kelompok</button>
+         <button type="button" class="danger" data-delete-expense-group="${h(g.id)}">🗑️ Hapus Kelompok</button>
+        </div>
+       </details>
+      </div>
+      <div class="budget-manager-stats">
+       <span><small>Anggaran</small><b>${money(allocated)}</b></span>
+       <span><small>Terpakai</small><b>${money(spent)}</b></span>
+       <span><small>Sisa</small><b class="${remaining<0?'negative':''}">${money(remaining)}</b></span>
+      </div>
+     </article>`;
+   }).join('')}</div>
+  <p class="budget-manager-note">💡 Mengganti nama tidak menghapus transaksi. Sebelum menghapus kelompok, pindahkan pos-posnya terlebih dahulu.</p>
  </section>`;
 }
 let financeEditorReturnFocus=null;
@@ -8294,8 +8318,72 @@ function restorePendingBudgetInputs(entries){
   if(input)input.value=value;
  }
 }
+
+/* #113 Pengelompokan anggaran berbasis kartu: warna dan perhitungan tetap dari data asli. */
+function renderBudgetGroupAccordion(g,index){
+ const color=cleanGroupColor(g.color)||'#2563eb';
+ const categories=expenses().filter(c=>c.group===g.name);
+ const total=categories.reduce((n,c)=>n+effectiveBudget(c.id),0);
+ const spent=categories.reduce((n,c)=>n+spentByCat(c.id),0);
+ const remaining=total-spent;
+ const flagged=categories.filter(c=>hasBudget(c.id)&&['warn','danger'].includes(status(c.id).s)).length;
+ const expanded=ui.budgetExpandedGroups===null?index===0:ui.budgetExpandedGroups.includes(g.id);
+ const theme='--budget-theme:'+color+';--budget-theme-light:color-mix(in srgb,'+color+' 11%,white)';
+ const rows=categories.map(c=>{
+  const base=baseBudget(c.id),effective=effectiveBudget(c.id),used=spentByCat(c.id),left=effective-used,st=status(c.id),budgeted=hasBudget(c.id);
+  const fraction=effective>0?Math.min(100,Math.max(0,pct(used,effective))):0;
+  const state=budgeted?st.s:'unset';
+  return `<article class="budget-pos-entry" data-budget-pos-row="${h(c.id)}">
+    <div class="budget-pos-header">
+     <div class="budget-pos-label">${symbolBadge(c.label,c.group,true)}
+      <div><strong>${h(c.label)}</strong><small>Pos dalam kelompok ${h(g.name)}</small></div>
+     </div>
+     <details class="budget-action-menu budget-pos-edit-menu">
+      <summary aria-label="Kelola pos ${h(c.label)}">⚙️ Kelola Pos</summary>
+      <div class="budget-action-menu-list">
+       <button type="button" data-edit-budget-category="${h(c.id)}">✏️ Edit Pos</button>
+       <button type="button" class="danger" data-delete-category="${h(c.id)}">🗑️ Hapus Pos</button>
+      </div>
+     </details>
+    </div>
+    <div class="budget-pos-metrics">
+     <label class="budget-pos-metric budget-pos-input"><span>Anggaran Dasar</span>
+       <input type="text" inputmode="decimal" data-rupiah="1" data-budget-id="${h(c.id)}"
+         aria-label="Anggaran ${h(c.label)}" value="${fmtAmount(base)}"></label>
+     <div class="budget-pos-metric"><span>Anggaran Efektif</span><strong>${money(effective)}</strong></div>
+     <div class="budget-pos-metric"><span>Terpakai</span><strong>${money(used)}</strong></div>
+     <div class="budget-pos-metric budget-pos-remaining"><span>Sisa Anggaran</span>
+       <strong class="${left<0?'negative':st.s==='warn'?'warning':''}">${budgeted?money(left):'Belum Dianggarkan'}</strong>
+       <div class="budget-pos-progress" role="progressbar" aria-label="Persentase terpakai ${h(c.label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(fraction)}">
+         <i style="width:${fraction}%"></i></div>
+       ${budgeted?`<small class="budget-pos-status budget-status-${h(state)}">${h(st.label)}</small>`:''}
+     </div>
+    </div>
+   </article>`;
+ }).join('');
+ return `<details class="budget-group-accordion" data-budget-accordion="${h(g.id)}" style="${h(theme)}" ${expanded?'open':''}>
+  <summary class="budget-accordion-summary">
+   <span class="budget-summary-icon">${symbolBadge(g.name,g.name,true)}</span>
+   <span class="budget-summary-title"><strong>${h(g.name)}</strong><small>${categories.length} Pos Pengeluaran ${flagged?' · '+flagged+' perlu perhatian':''}</small></span>
+   <span class="budget-summary-totals"><span><small>Anggaran</small><b>${money(total)}</b></span>
+    <span><small>Terpakai</small><b>${money(spent)}</b></span>
+    <span><small>Sisa</small><b class="${remaining<0?'negative':''}">${money(remaining)}</b></span></span>
+   <span class="budget-summary-chevron" aria-hidden="true">⌄</span>
+  </summary>
+  <div class="budget-accordion-body">
+   <div class="budget-group-controls"><span>🧩 Pos dalam kelompok ${h(g.name)}</span>
+    <div class="budget-group-buttons">
+      <button type="button" data-edit-expense-group="${h(g.id)}">✏️ Edit Kelompok</button>
+      <button type="button" data-add-budget-category="${h(g.name)}">＋ Tambah Pos</button>
+    </div>
+   </div>
+   <div class="budget-pos-list">${rows||'<p class="budget-pos-empty">Belum ada pos di kelompok ini. Gunakan Tambah Pos untuk mengisinya.</p>'}</div>
+  </div>
+ </details>`;
+}
+
 function renderBudgets(){let bt=budgetTotal(),bu=budgetUsed(),moveLog=db.budgetMoves.filter(m=>m.month===ui.month).slice().sort((a,b)=>b.date.localeCompare(a.date));let withBalance=expenses().filter(c=>hasBudget(c.id)&&effectiveBudget(c.id)-spentByCat(c.id)>0),options=expenses().map(c=>`<option value="${h(c.id)}">${pickSymbol(c.label,c.group)} ${h(c.group)} • ${h(c.label)}</option>`).join('');return `<div class="grid kpis budget-kpis">${metricCard('Total Anggaran Bulan Ini',bt,'◴','blue','Termasuk Hasil Pemindahan')}${metricCard('Terpakai Dari Pos Beranggaran',bu,'↓','orange','Tidak Termasuk Pos Tanpa Batas')}${metricCard('Sisa Pos Beranggaran',bt-bu,'✓',bt-bu<0?'red':'green','Sisa Gabungan Semua Pos')}</div>
-${expenseGroupManager()}<div class="card" style="margin-bottom:16px"><div class="card-head"><div><h3>Atur Batas Tiap Kategori</h3><p>Isi batas tiap pos untuk ${h(monthFmt(ui.month))}; gunakan 0 jika belum ingin mengalokasikan anggaran.</p></div><button class="btn sm primary" type="button" data-add-budget-category="">＋ Tambah Pos</button></div><form id="budget-form"><div class="table-scroll"><table class="table"><thead><tr><th>Pos Pengeluaran</th><th>Anggaran Dasar</th><th>Anggaran Efektif</th><th>Terpakai</th><th>Sisa / Status</th></tr></thead><tbody>${expenseGroups().map(g=>`<tr><td colspan="5" class="group-heading"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><span class="symbol-line">${symbolBadge(g.name,g.name,true)}${h(g.name)}</span><div class="action-buttons"><button class="btn sm" type="button" data-edit-expense-group="${h(g.id)}">✎ Edit Kelompok</button><button class="btn sm" type="button" data-add-budget-category="${h(g.name)}">＋ Tambah Pos</button></div></div></td></tr>${expenses().filter(c=>c.group===g.name).map(c=>{let ef=effectiveBudget(c.id),spent=spentByCat(c.id),st=status(c.id);return `<tr><td><div class="symbol-line">${symbolBadge(c.label,c.group,true)}<strong>${h(c.label)}</strong></div><div class="action-buttons" style="justify-content:flex-start;margin-top:6px"><button class="btn sm" type="button" data-edit-budget-category="${h(c.id)}" aria-label="Edit pos ${h(c.label)}">Edit</button><button class="btn sm danger" type="button" data-delete-category="${h(c.id)}" aria-label="Hapus pos ${h(c.label)}">Hapus</button></div></td><td><input aria-label="Anggaran ${h(c.label)}" type="text" inputmode="decimal" data-rupiah="1" data-budget-id="${h(c.id)}" value="${fmtAmount(baseBudget(c.id))}"></td><td>${money(ef)}</td><td>${money(spent)}</td><td>${hasBudget(c.id)?`<strong class="${st.s==='danger'?'red':st.s==='warn'?'orange':'green'}">${money(ef-spent)}</strong><div class="track ${st.s==='danger'?'danger':st.s==='warn'?'warn':''}"><div style="width:${Math.min(100,Math.max(0,pct(spent,Math.max(ef,1))))}%"></div></div>${pill(st.s,st.label)}`:'<span class="tiny">Belum dianggarkan</span>'}</td></tr>`}).join('')}`).join('')}</tbody></table></div><div class="form-actions"><button type="submit" class="btn primary">Simpan Anggaran ${h(monthFmt(ui.month))}</button></div></form></div>
+${expenseGroupManager()}<div class="card" style="margin-bottom:16px"><div class="card-head"><div><h3>Atur Batas Tiap Kategori</h3><p>Isi batas tiap pos untuk ${h(monthFmt(ui.month))}; gunakan 0 jika belum ingin mengalokasikan anggaran.</p></div><button class="btn sm primary" type="button" data-add-budget-category="">＋ Tambah Pos</button></div><form id="budget-form"><div class="budget-accordion-list">${expenseGroups().map(renderBudgetGroupAccordion).join('')}</div><div class="form-actions budget-accordion-save"><button type="submit" class="btn primary">Simpan Anggaran ${h(monthFmt(ui.month))}</button></div></form></div>
 <div class="grid layout-equal"><section class="card"><div class="card-head"><div><h3>Alihkan Sisa Anggaran</h3><p>Pilih pos asal yang masih memiliki sisa, lalu pos tujuan yang memerlukan tambahan.</p></div></div><form id="move-budget-form"><input type="hidden" name="editId" value="${h(ui.moveEditId||'')}"><div class="form-grid"><div class="form-field"><label class="field-label">Dari Pos Yang Masih Ada Sisa</label><select class="field" name="from" required>${withBalance.concat(ui.moveEditId?expenses().filter(c=>c.id===db.budgetMoves.find(m=>m.id===ui.moveEditId)?.from&&!withBalance.some(x=>x.id===c.id)):[]).map(c=>`<option value="${h(c.id)}" ${ui.moveEditId&&db.budgetMoves.find(m=>m.id===ui.moveEditId)?.from===c.id?'selected':''}>${h(c.label)} (${money(effectiveBudget(c.id)-spentByCat(c.id))})</option>`).join('')}</select></div><div class="form-field"><label class="field-label">Ke Pos Yang Membutuhkan</label><select class="field" name="to" required>${ui.moveEditId?expenses().map(c=>`<option value="${h(c.id)}" ${db.budgetMoves.find(m=>m.id===ui.moveEditId)?.to===c.id?'selected':''}>${h(c.group)} • ${h(c.label)}</option>`).join(''):options}</select></div><div class="form-field full"><label class="field-label">Jumlah Anggaran Yang Dialihkan (Rp)</label><input class="field" name="amount" type="text" inputmode="decimal" data-rupiah="1" placeholder="50.000" value="${ui.moveEditId?fmtAmount(db.budgetMoves.find(m=>m.id===ui.moveEditId)?.amount):''}" required></div></div><div class="form-actions"><button type="submit" class="btn teal full" ${!withBalance.length?'disabled':''}>${ui.moveEditId?'✓ Simpan alih anggaran':'↗ Alihkan Anggaran'}</button>${ui.moveEditId?'<button type="button" class="btn" data-action="cancel-move-edit">Batal</button>':''}</div></form><div class="tip" style="margin-top:15px">Pengalihan hanya mengubah pagu antar kategori, tidak mengurangi saldo rekening dan tidak membuat transaksi pengeluaran baru.</div></section>
 <section class="card"><div class="card-head"><div><h3>Riwayat Alih Anggaran</h3><p>Cek kembali asal, tujuan, dan nominal pemindahan anggaran ${h(monthFmt(ui.month))}.</p></div></div>${moveLog.length?moveLog.map(m=>`<div class="list-item"><div><div class="list-title">${h(cat(m.from)?.label||'?')} → ${h(cat(m.to)?.label||'?')}</div><div class="list-sub">${dateFmt(m.date)}</div></div><div><div class="amount blue">${money(m.amount)}</div><div class="action-buttons"><button class="btn sm" data-edit-move="${h(m.id)}">Edit</button><button class="btn sm danger" data-delete-move="${h(m.id)}">Hapus</button></div></div></div>`).join(''):empty('◴','Belum ada pemindahan','Sisa anggaran bisa dipindahkan untuk menutup pos lain yang menipis.')}</section></div>`}
 /* Formulir utang/piutang bersama: dapat dipakai dari dashboard dan halaman daftar. */
@@ -8997,6 +9085,19 @@ document.addEventListener('keydown',event=>{
  if(event.key==='Escape'&&ui.showWelcomePopup){event.preventDefault();dismissWelcome();return;}
  if(event.key==='Escape'&&ui.comp.menu){const kind=ui.comp.menu;dismissCompositionPopup();document.querySelector('[data-comp-menu="'+kind+'"].comp-popup-trigger')?.focus();}
 });
+
+/* Native details saves open state across subsequent renders without changing amounts. */
+document.addEventListener('toggle',event=>{
+ const group=event.target;
+ if(ui.view!=='budgets'||!group?.matches?.('details[data-budget-accordion]'))return;
+ const ids=expenseGroups().map(g=>g.id);
+ const selected=ui.budgetExpandedGroups===null?(ids[0]?[ids[0]]:[]):[...ui.budgetExpandedGroups];
+ const id=group.dataset.budgetAccordion;
+ if(group.open&&!selected.includes(id))selected.push(id);
+ if(!group.open){const idx=selected.indexOf(id);if(idx!==-1)selected.splice(idx,1);}
+ ui.budgetExpandedGroups=selected;
+},true);
+
 document.addEventListener('click',async e=>{
 
  const pointPiece=e.target.closest?.('[data-point-pie-choice]');

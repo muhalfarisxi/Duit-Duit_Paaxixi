@@ -230,3 +230,32 @@ body.comp-pos-modal-open{overflow:hidden}
  #composition-card .comp-direct-groups{gap:5px}
 }
 @media(prefers-reduced-motion:reduce){#composition-card .comp-recap-arc,#composition-card .comp-recap-callout,#composition-card .comp-recap-rail-label{animation:none!important;transition:none!important}}
+
+
+/* #110 Tema hijau untuk popup Rincian per Pos Pemasukan, tetap memakai interaksi donut. */
+.income-multi-overlay{background:rgba(7,48,36,.51)}
+.income-multi-overlay .comp-multi-modal{background:linear-gradient(145deg,#fbfffc,#fff);border-color:#bfe8d2}
+.income-multi-overlay .comp-pos-header{border-color:#d9eee3}
+.income-multi-overlay .comp-pos-heading-icon{background:#def7e9;border-color:#bfe7d0}
+.income-multi-overlay .comp-pos-header h3{color:#117650}
+.income-multi-overlay .comp-pos-header p{color:#729981}
+.income-multi-overlay .comp-pos-close{background:#effaf3;border-color:#cde8d7;color:#227957}
+.income-multi-overlay .comp-multi-total{border-color:#c9e9d7;background:linear-gradient(110deg,#ebfaf1,#f8fffb)}
+.income-multi-overlay .comp-multi-total span{color:#59866e}
+.income-multi-overlay .comp-multi-total strong{color:#087953}
+.income-multi-overlay .comp-multi-card{border-color:#d7ebdf;background:linear-gradient(130deg,#fff,#f8fefb)}
+.income-multi-overlay .comp-multi-card-symbol{background:#e7f8ed;border-color:#cdebd9}
+.income-multi-overlay .comp-multi-card-heading strong{color:#167452}
+.income-multi-overlay .comp-multi-card-heading small{color:#739885}
+.income-multi-overlay .comp-multi-card-aggregate{background:#e6f8ee;color:#17845d}
+.income-multi-overlay .comp-multi-track{stroke:#def1e7}
+.income-multi-overlay .comp-multi-center strong{color:#097a54}
+.income-multi-overlay .comp-multi-label,.income-multi-overlay .comp-multi-center small{color:#78a08c}
+.income-multi-overlay .comp-multi-note{color:#558b73}
+.income-multi-overlay .comp-multi-row{border-color:#deeee4}
+.income-multi-overlay .comp-multi-row:is(:hover,.selected,:focus-visible){background:#f0faf4}
+.income-multi-overlay .comp-multi-row-label{color:#2f6950}
+.income-multi-overlay .comp-multi-row-cash{color:#668977}
+.income-multi-overlay .comp-multi-row-ratio{color:#127d56;background:#e3f7ec}
+.income-multi-overlay .comp-multi-meter{background:#e5f4ed}
+.income-multi-overlay .comp-pos-foot{border-color:#d8ebdf;color:#719482}

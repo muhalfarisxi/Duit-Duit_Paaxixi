@@ -11404,7 +11404,14 @@ document.addEventListener('click',async e=>{
   return;
  }
  const budgetGroup=e.target.closest?.('[data-budget-open-group]');
- if(budgetGroup){openBudgetFlowDialog('group',budgetGroup.dataset.budgetOpenGroup);return;}
+ if(budgetGroup){
+  const groupId=budgetGroup.dataset.budgetOpenGroup;
+  ui.budgetSection='edit';
+  ui.budgetEditExpandedGroups=[...new Set([...(ui.budgetEditExpandedGroups||[]),groupId])];
+  render();
+  document.querySelector('[data-budget-edit-accordion="'+groupId+'"]>summary')?.focus({preventScroll:true});
+  return;
+ }
  if(e.target.closest?.('[data-budget-new-move]')){openBudgetFlowDialog('move');return;}
  if(e.target.closest?.('[data-budget-new-adjust]')){openBudgetFlowDialog('adjust');return;}
  const editAdjust=e.target.closest?.('[data-edit-budget-adjustment]');
@@ -11767,7 +11774,7 @@ if(x.hasAttribute('data-add-expense-group')){openFinanceEditor('group');return;}
  if(x.dataset.editCategory){ui.categoryEditId=x.dataset.editCategory;render();return}
  if(x.hasAttribute('data-add-budget-category')){openFinanceEditor('pos',null,x.dataset.addBudgetCategory);return;}
  if(x.dataset.editBudgetCategory){openFinanceEditor('pos',x.dataset.editBudgetCategory);return;}
-if(x.dataset.editMove){ui.budgetSection='transfer';openBudgetFlowDialog('move',x.dataset.editMove);return}
+if(x.dataset.editMove){ui.budgetSection='edit';openBudgetFlowDialog('move',x.dataset.editMove);return}
 if(x.dataset.editRepay){let [id,pid]=x.dataset.editRepay.split('|');openRepayPopup(id,pid);return}
 if(x.dataset.openReport){ui.reportMonth=x.dataset.openReport;setView('reports');document.getElementById('print-area')?.scrollIntoView({behavior:'smooth'});return}
 if(x.dataset.deleteReport){let m=x.dataset.deleteReport;if(await confirmDelete('Hapus arsip '+monthFmt(m)+'? Transaksi asli tetap aman.')){delete db.reports[m];if(ui.reportMonth===m)ui.reportMonth=Object.keys(db.reports).sort().reverse()[0]||ui.month;save();render();toast('Arsip dihapus, transaksi tetap ada.')}return}

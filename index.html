@@ -1906,6 +1906,47 @@ body:has(.repay-popup-backdrop){overflow:hidden}
 @keyframes expensePieBarIn{from{transform:scaleX(0);transform-origin:left}to{transform:scaleX(1);transform-origin:left}}
 @media(prefers-reduced-motion:reduce){.expense-pie-detail-item i>b{animation:none}}
 
+
+/* #103 Animasi donat pemasukan: pantulan lembut, bayangan 3D, kilau berjalan.
+   Kotak label dan connector sengaja tidak dianimasikan agar tetap stabil. */
+.income-callout-svg .income-donut-motion{
+ transform-box:view-box;
+ transform-origin:var(--income-donut-center-x,378px) var(--income-donut-center-y,185px);
+ animation:paaxIncomeFloat 6.8s ease-in-out infinite;
+ filter:drop-shadow(0 5px 4px rgba(8,102,75,.22)) drop-shadow(0 12px 11px rgba(8,102,75,.13));
+ will-change:transform;
+}
+.income-donut-depth{opacity:.23;filter:blur(.65px)}
+.income-donut-glint{opacity:0;mix-blend-mode:screen;filter:drop-shadow(0 0 3px #ffffffb8);animation:paaxIncomeGlint 11.5s linear infinite}
+.income-callout-svg .income-pie-sector:hover,.income-callout-svg .income-pie-sector:focus-visible{filter:brightness(1.09) drop-shadow(0 3px 4px #0a74523b)}
+.income-callout-svg .income-callout-label:focus-visible{outline:none}
+.income-callout-svg .income-donut-motion .income-pie-sector{transition:transform .25s ease,filter .25s ease}
+.income-callout-svg .income-donut-motion .income-pie-sector:active{filter:brightness(1.16)}
+.income-callout-mobile .income-donut-motion{
+ transform-box:view-box;transform-origin:120px 120px;
+ animation:paaxIncomeFloat 6.8s ease-in-out infinite;
+ filter:drop-shadow(0 6px 5px rgba(8,102,75,.16))
+}
+@keyframes paaxIncomeFloat{
+ 0%,100%{transform:translateY(0) scale(1) rotate(0)}
+ 27%{transform:translateY(-2px) scale(1.006) rotate(-.28deg)}
+ 47%{transform:translateY(-4px) scale(1.013) rotate(.33deg)}
+ 66%{transform:translateY(-1px) scale(1.003) rotate(0)}
+ 82%{transform:translateY(-3px) scale(1.008) rotate(-.18deg)}
+}
+@keyframes paaxIncomeGlint{
+ 0%,10%,34%,100%{opacity:0;stroke-dashoffset:0}
+ 13%{opacity:.7;stroke-dashoffset:-45}
+ 22%{opacity:.5;stroke-dashoffset:-230}
+ 29%{opacity:.14;stroke-dashoffset:-375}
+ 33%{opacity:0;stroke-dashoffset:-470}
+}
+@media(prefers-reduced-motion:reduce){
+ .income-callout-svg .income-donut-motion,.income-callout-mobile .income-donut-motion{animation:none!important;transform:none!important;will-change:auto!important}
+ .income-donut-glint{animation:none!important;opacity:0!important}
+ .income-callout-svg .income-donut-motion .income-pie-sector{transition:none!important}
+}
+
 /* Footer pribadi: copyright yang jelas, ringkas, dan senada dengan tema Paaxixi. */
 .paax-copyright-footer{
  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;
@@ -6736,15 +6777,16 @@ function renderIncomeCalloutVisual(month){
      <text x="${x+12}" y="${(boxY+39).toFixed(1)}" class="income-callout-value">${pct(e.value,total)}% · ${money(e.value)}</text>
     </g>`;
  }).join('');
+ const ringArt=`<circle class="income-donut-depth" cx="120" cy="123.5" r="77.5" fill="none" stroke="#0a6d4c" stroke-width="38" pointer-events="none"/>${rings}<circle class="income-donut-glint" cx="120" cy="120" r="77.5" fill="none" stroke="#ffffff" stroke-width="21" stroke-linecap="round" stroke-dasharray="27 570" pointer-events="none"/>`;
  const mobile=entries.map(e=>`<button class="income-mobile-source" type="button" data-income-source="${h(e.id)}" style="--income-dot:${e.color}"><span><strong>${h(e.label)}</strong><small>${money(e.value)}</small></span><b>${pct(e.value,total)}%</b></button>`).join('');
  return `<div class="income-callout-wrap">
    <svg class="income-callout-svg" viewBox="0 0 760 ${H}" role="group" aria-label="Komposisi Pemasukan ${h(incomePeriodLabel(month))}: Pilih Irisan atau Label untuk melihat rincian">
     ${drawSide(left,false)}${drawSide(right,true)}
-    <g transform="translate(${(cx-120*donutScale).toFixed(1)} ${(cy-120*donutScale).toFixed(1)}) scale(${donutScale})">${rings}</g>
+    <g class="income-donut-motion" style="--income-donut-center-x:${cx}px;--income-donut-center-y:${cy}px"><g transform="translate(${(cx-120*donutScale).toFixed(1)} ${(cy-120*donutScale).toFixed(1)}) scale(${donutScale})">${ringArt}</g></g>
     <text class="income-callout-center-small" x="${cx}" y="${cy-17}" text-anchor="middle">Total Pemasukan</text>
     <text class="income-callout-center-amount" x="${cx}" y="${cy+16}" text-anchor="middle" style="font-size:${money(total).length>14?18:money(total).length>12?20:23}px">${money(total)}</text>
    </svg>
-   <div class="income-callout-mobile"><div class="income-pie-plot"><svg viewBox="0 0 240 240" role="group" aria-label="Diagram Pemasukan ${h(incomePeriodLabel(month))}">${rings}</svg>
+   <div class="income-callout-mobile"><div class="income-pie-plot"><svg viewBox="0 0 240 240" role="group" aria-label="Diagram Pemasukan ${h(incomePeriodLabel(month))}"><g class="income-donut-motion income-donut-mobile-motion">${ringArt}</g></svg>
     <div class="income-pie-middle" aria-hidden="true"><span>Total Masuk</span><strong title="${money(total)}" style="font-size:${money(total).length>14?11:money(total).length>12?12:14}px">${money(total)}</strong></div></div>
     <div class="income-mobile-source-list">${mobile}</div>
    </div>

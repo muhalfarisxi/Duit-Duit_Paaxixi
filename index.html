@@ -5825,6 +5825,114 @@ body:has(.tx-search-backdrop){overflow:hidden}
 /* #122 Popup rincian tetap di belakang saat detail berikutnya ditampilkan. */
 .review-modal-backdrop[data-review-modal-parent]{z-index:1080;pointer-events:none}
 #review-modal-backdrop{z-index:1100}
+
+/* #123 Anggaran: rincian per kelompok -> pos, warna progress menunjukkan perubahan alokasi. */
+#content .budget-work-tabs button{font-size:clamp(11px,1.04vw,13px);padding-inline:clamp(8px,1.15vw,18px)}
+#content .budget-detail-panel{min-width:0}
+#content .budget-detail-panel .budget-work-section-head{align-items:center}
+#content .budget-detail-legend{display:flex;align-items:center;justify-content:flex-end;gap:6px 11px;flex-wrap:wrap}
+#content .budget-detail-legend>span{display:inline-flex;align-items:center;gap:6px;color:#5c7896;font:850 11px/1.3 Nunito,sans-serif;white-space:nowrap}
+#content .budget-detail-legend i{width:12px;height:12px;border-radius:5px;background:#4385dc}
+#content .budget-detail-legend .tone-increase i{background:#20b391}
+#content .budget-detail-legend .tone-decrease i{background:#eca54f}
+#content .budget-detail-groups{display:grid;gap:13px;min-width:0}
+#content .budget-detail-group{
+ --detail-fill:#4385dc;--detail-surface:#f0f7ff;--detail-ink:#2862a9;
+ min-width:0;border:1.5px solid color-mix(in srgb,var(--budget-theme) 29%,white);
+ border-radius:18px;overflow:hidden;background:linear-gradient(124deg,
+ color-mix(in srgb,var(--budget-theme) 6%,white),white);
+ box-shadow:0 6px 17px rgba(24,70,119,.06);
+ transition:border-color .2s ease,box-shadow .22s ease,transform .2s ease;
+}
+#content .budget-detail-group:hover{box-shadow:0 10px 24px rgba(28,81,130,.12)}
+#content .budget-detail-group[open]{border-color:color-mix(in srgb,var(--budget-theme) 48%,white);box-shadow:0 11px 25px rgba(29,79,136,.12)}
+#content .budget-detail-summary{display:block;padding:17px 18px 13px;list-style:none;cursor:pointer;outline-offset:-4px}
+#content .budget-detail-summary::-webkit-details-marker{display:none}
+#content .budget-detail-summary::marker{content:""}
+#content .budget-detail-summary:focus-visible{outline:3px solid #92bdf5;border-radius:16px}
+#content .budget-detail-group-head,#content .budget-detail-pos-header{display:flex;align-items:center;flex-wrap:wrap;gap:8px 11px;min-width:0}
+#content .budget-detail-group-icon,#content .budget-detail-pos-symbol{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:#f1f6ff}
+#content .budget-detail-group-name,#content .budget-detail-pos-name{display:flex;flex:1 1 155px;flex-direction:column;gap:3px;min-width:0}
+#content .budget-detail-group-name strong{font:900 19px/1.2 Fredoka,Nunito,sans-serif;color:#204a7c;overflow-wrap:anywhere}
+#content .budget-detail-pos-name strong{font:900 14px/1.3 Nunito,sans-serif;color:#244d7b;overflow-wrap:anywhere}
+#content .budget-detail-group-name small,#content .budget-detail-pos-name small{font:800 10px/1.4 Nunito,sans-serif;color:#8396b0}
+#content .budget-detail-change,#content .budget-detail-state{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:none;border-radius:999px;padding:6px 9px;font:900 10px/1.2 Nunito,sans-serif;white-space:nowrap;border:1px solid #d6e5f9}
+#content .budget-detail-change{background:#edf4ff;color:#4474a6}
+#content .budget-detail-change.tone-increase{background:#e7f9f1;border-color:#b7e6d3;color:#168368}
+#content .budget-detail-change.tone-decrease{background:#fff3e4;border-color:#f0d2a7;color:#a56e2c}
+#content .budget-detail-state.state-safe{color:#228163;border-color:#bce6d2;background:#edfbf4}
+#content .budget-detail-state.state-warn{color:#96611c;border-color:#f3d7a3;background:#fff5e5}
+#content .budget-detail-state.state-danger{color:#b24942;border-color:#f2c2bb;background:#fff0ed}
+#content .budget-detail-state.state-unset{color:#607a99;background:#eff4fa}
+#content .budget-detail-chevron{display:grid;place-items:center;flex:none;width:29px;height:29px;border-radius:9px;background:#edf4ff;color:#326499;font:900 23px Nunito,sans-serif;transition:transform .2s ease}
+#content .budget-detail-group[open]>.budget-detail-summary .budget-detail-chevron{transform:rotate(180deg)}
+#content .budget-detail-figures{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+#content .budget-detail-figures>span{display:flex;flex-direction:column;gap:5px;min-width:0;padding:9px 10px;background:#ffffffc9;border:1px solid #e1ecf8;border-radius:12px}
+#content .budget-detail-figures small{font:800 10px/1.35 Nunito,sans-serif;color:#718da9}
+#content .budget-detail-figures b{font:950 clamp(12px,1.4vw,16px)/1.23 Nunito,sans-serif;color:#214e84;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+#content .budget-detail-figures .remaining{border-color:#c1e6d5;background:#eafaf2}
+#content .budget-detail-figures .remaining b{color:#117857}
+#content .budget-detail-figures .remaining.negative{border-color:#f3c8c1;background:#fff0ed}
+#content .budget-detail-figures .remaining.negative b{color:#b54743}
+#content .budget-detail-progress-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:7px;margin:13px 0 8px;font:850 11px/1.3 Nunito,sans-serif;color:#6b86a2}
+#content .budget-detail-progress-head strong{color:#2d5682;font-variant-numeric:tabular-nums}
+#content .budget-detail-progress-percentage{font:900 11px/1.3 Nunito,sans-serif;color:#2b5f95}
+#content .budget-detail-progress{position:relative;width:100%;height:13px;overflow:hidden;border-radius:999px;background:#e5edf8;box-shadow:inset 0 2px 4px #1c49701a;isolation:isolate}
+#content .budget-detail-progress-fill{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(105deg,#86b8f7,#4385dc,#2e66be);box-shadow:inset 0 -2px 3px #1744681b;transform-origin:left center;animation:budgetDetailGrow .72s cubic-bezier(.2,.8,.3,1) both}
+#content .budget-detail-progress.tone-increase .budget-detail-progress-fill{background:linear-gradient(105deg,#7cdebd,#2dbb96,#0b9175)}
+#content .budget-detail-progress.tone-decrease .budget-detail-progress-fill{background:linear-gradient(105deg,#ffdc9b,#f2b35e,#dc8a2d)}
+#content .budget-detail-progress-overflow{position:absolute;right:0;top:0;bottom:0;width:16%;background:repeating-linear-gradient(125deg,#c74949 0,#c74949 5px,#ffa29a 5px,#ffa29a 9px);mix-blend-mode:multiply;animation:budgetDetailGrow .8s ease-out both}
+#content .budget-detail-equation{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;margin-top:12px}
+#content .budget-detail-chip{display:inline-flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:4px;min-width:0;max-width:100%;padding:7px 9px;border-radius:10px;border:1px solid #d5e2f4;background:#eef5ff;color:#416d9b;font:850 10px/1.3 Nunito,sans-serif}
+#content .budget-detail-chip b{font-weight:950;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+#content .budget-detail-chip.is-adjust{background:#f4efff;color:#7354a4;border-color:#dfd4fb}
+#content .budget-detail-chip.is-transfer{background:#fff4e7;color:#a56d31;border-color:#f2dabd}
+#content .budget-detail-chip.is-effective{background:#e7f8f0;color:#127756;border-color:#b6e5cf;box-shadow:0 3px 9px #299a6b15}
+#content .budget-detail-open-hint{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:12px;color:#6a8eaf;font:900 10px/1.2 Nunito,sans-serif}
+#content .budget-detail-open-hint span{font-size:17px;transition:transform .2s}
+#content .budget-detail-group[open] .budget-detail-open-hint span{transform:rotate(180deg)}
+#content .budget-detail-group-body{border-top:1px solid #dce8f7;padding:13px 14px 16px;background:#f8fbff}
+#content .budget-detail-pos-list{display:grid;gap:10px}
+#content .budget-detail-pos{padding:14px;border:1px solid #dce7f5;border-radius:14px;background:white;min-width:0}
+#content .budget-detail-pos.tone-increase{border-left:4px solid #37b596}
+#content .budget-detail-pos.tone-decrease{border-left:4px solid #e7a954}
+#content .budget-detail-pos.tone-steady{border-left:4px solid #70a4e9}
+#content .budget-detail-pos-symbol{width:33px;height:33px}
+#content .budget-detail-pos .budget-detail-figures{margin-top:10px}
+#content .budget-detail-pos .budget-detail-progress{height:11px}
+#content .budget-detail-pos .budget-detail-equation{margin-top:10px}
+#content .budget-detail-empty{padding:15px;border:1px dashed #cbdff4;border-radius:12px;text-align:center;color:#6784a3;font:800 12px/1.5 Nunito,sans-serif}
+#budget-flow-backdrop .budget-flow-pos-usage.allocation-increase .budget-flow-pos-track>span{background:linear-gradient(100deg,#7cdebd,#2dbb96,#0b9175)}
+#budget-flow-backdrop .budget-flow-pos-usage.allocation-decrease .budget-flow-pos-track>span{background:linear-gradient(100deg,#ffdc9b,#f2b35e,#dc8a2d)}
+#budget-flow-backdrop .budget-flow-pos-usage.is-danger .budget-flow-pos-track>span{background:repeating-linear-gradient(115deg,#e66f63 0,#e66f63 12px,#f49c86 12px,#f49c86 20px)}
+@keyframes budgetDetailGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@media(max-width:850px){
+ #content .budget-work-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}
+ #content .budget-work-tabs button{min-width:0;white-space:normal;font-size:12px;padding:10px 8px;min-height:43px}
+}
+@media(max-width:620px){
+ #content .budget-detail-group-head{gap:7px}
+ #content .budget-detail-group-name{flex:1 1 calc(100% - 95px)}
+ #content .budget-detail-group-head .budget-detail-chevron{order:3;margin-left:auto}
+ #content .budget-detail-figures{gap:6px}
+ #content .budget-detail-figures>span{padding:8px 7px}
+ #content .budget-detail-figures small{font-size:9px}
+ #content .budget-detail-figures b{font-size:clamp(10px,2.7vw,13px)}
+ #content .budget-detail-summary{padding:13px 11px}
+ #content .budget-detail-group-body{padding:10px}
+ #content .budget-detail-pos{padding:11px}
+ #content .budget-detail-chip{padding:6px 7px}
+}
+@media(max-width:390px){
+ #content .budget-detail-figures{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #content .budget-detail-figures .remaining{grid-column:1/-1}
+ #content .budget-detail-change,#content .budget-detail-state{font-size:9px;padding:5px 7px}
+}
+@media(prefers-reduced-motion:reduce){
+ #content .budget-detail-progress-fill,#content .budget-detail-progress-overflow{animation:none!important}
+ #content .budget-detail-group,#content .budget-detail-chevron,#content .budget-detail-open-hint span{transition:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -6005,7 +6113,7 @@ const expenseGroups=()=>db.expenseGroups;
 const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],budgetAdjustments:[],budgetBaseHistory:[],debts:[],reports:{}});
 function load(){try{let v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.accounts)&&Array.isArray(v.categories)&&Array.isArray(v.transactions)&&Array.isArray(v.debts)&&v.budgets&&Array.isArray(v.budgetMoves))return normalizeExpenseGroups(v);}catch(e){}return fresh()}
 let db=load();db.reports=db.reports||{};
-let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,debtEditorOpen:false,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,budgetExpandedGroups:null,budgetSection:'monthly',comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,trendRangePopup:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupType:'receivable',debtPopupFilter:'open',incomeTrendMode:'month',incomeTrendFrom:'',incomeTrendTo:'',incomeTrendRangeOpen:false,incomePieMonth:null,incomeMonthMenuOpen:false,incomeFilter:{preset:'month',from:'',to:'',group:null},incomeTrendVisible:null,reportMonth:currentMonth()};
+let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,debtEditId:null,debtEditorOpen:false,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,budgetExpandedGroups:null,budgetDetailExpandedGroups:[],budgetSection:'monthly',comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,trendRangePopup:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupType:'receivable',debtPopupFilter:'open',incomeTrendMode:'month',incomeTrendFrom:'',incomeTrendTo:'',incomeTrendRangeOpen:false,incomePieMonth:null,incomeMonthMenuOpen:false,incomeFilter:{preset:'month',from:'',to:'',group:null},incomeTrendVisible:null,reportMonth:currentMonth()};
 let cloud={configured:false,signedIn:false,ready:false,email:'',busy:false,error:'',empty:false,pendingDecision:false};
 function syncBadge(){let b=document.getElementById('cloud-status');if(!b)return;
  b.className='cloud-state'+(cloud.signedIn&&cloud.ready&&!cloud.pendingDecision?' online':cloud.busy?' wait':'');
@@ -9441,6 +9549,133 @@ function renderBudgetMonthlySection(){
   </section>
  </section>`;
 }
+
+/* #123 Rincian Anggaran: pemakaian per kelompok, lalu per pos di dropdown.
+   Warna progress mengikuti perubahan efektif dari anggaran awal, terpisah dari status pemakaian. */
+function budgetDetailTotals(categories){
+ const initial=categories.reduce((sum,c)=>sum+baseBudget(c.id),0);
+ const adjustment=categories.reduce((sum,c)=>sum+budgetAdjustmentNet(c.id),0);
+ const transfer=categories.reduce((sum,c)=>sum+budgetTransferNet(c.id),0);
+ const effective=categories.reduce((sum,c)=>sum+effectiveBudget(c.id),0);
+ const used=categories.reduce((sum,c)=>sum+spentByCat(c.id),0);
+ return {initial,adjustment,transfer,effective,used,remaining:effective-used,change:effective-initial};
+}
+function budgetDetailChangeTone(total){
+ return total.change>0?'increase':total.change<0?'decrease':'steady';
+}
+function budgetDetailUsageStatus(total){
+ if(total.remaining<0)return {tone:'danger',icon:'🚨',label:'Melewati Batas'};
+ if(total.effective<=0)return {tone:'unset',icon:'📌',label:'Belum Dianggarkan'};
+ if(total.remaining===0)return {tone:'warn',icon:'🔔',label:'Batas Tercapai'};
+ if(total.remaining<=total.effective*.2)return {tone:'warn',icon:'🔔',label:'Menipis'};
+ return {tone:'safe',icon:'🌱',label:'Aman'};
+}
+function budgetDetailSigned(value){
+ return (value<0?'−':'+')+money(Math.abs(value));
+}
+function budgetDetailProgress(total,label){
+ const rate=total.effective>0?Math.max(0,total.used/total.effective*100):total.used>0?100:0;
+ const fill=Math.min(100,rate);
+ const change=budgetDetailChangeTone(total),state=budgetDetailUsageStatus(total);
+ const percent=total.effective>0?Math.round(rate).toLocaleString('id-ID')+'% terpakai':'Belum ada batas positif';
+ const aria='Pemakaian '+label+': '+money(total.used)+' dari '+money(total.effective)+', '+percent+
+  (total.change===0?', anggaran awal tetap':', anggaran '+(total.change>0?'bertambah ':'berkurang ')+money(Math.abs(total.change))+' dari awal');
+ return `<div class="budget-detail-progress-head">
+   <span>💸 Terpakai <strong>${money(total.used)}</strong></span>
+   <span class="budget-detail-progress-percentage">${percent}</span>
+  </div>
+  <div class="budget-detail-progress tone-${change} state-${state.tone} ${rate>100?'is-over':''}"
+   role="progressbar" aria-label="${h(aria)}" aria-valuemin="0" aria-valuemax="100"
+   aria-valuenow="${Math.round(fill)}">
+   <span class="budget-detail-progress-fill" style="width:${fill.toFixed(2)}%"></span>
+   ${rate>100?'<span class="budget-detail-progress-overflow" aria-hidden="true"></span>':''}
+  </div>`;
+}
+function budgetDetailEquation(total){
+ return `<div class="budget-detail-equation">
+  <span class="budget-detail-chip is-base">📌 Awal <b>${money(total.initial)}</b></span>
+  <span class="budget-detail-chip is-adjust">➕➖ Penyesuaian <b>${budgetDetailSigned(total.adjustment)}</b></span>
+  <span class="budget-detail-chip is-transfer">🔀 Pengalihan <b>${budgetDetailSigned(total.transfer)}</b></span>
+  <strong class="budget-detail-chip is-effective">✅ Efektif <b>${money(total.effective)}</b></strong>
+ </div>`;
+}
+function budgetDetailStatePill(total){
+ const state=budgetDetailUsageStatus(total);
+ return `<span class="budget-detail-state state-${state.tone}">${state.icon} ${state.label}</span>`;
+}
+function budgetDetailChangePill(total){
+ const tone=budgetDetailChangeTone(total);
+ return `<span class="budget-detail-change tone-${tone}">
+  ${tone==='increase'?'↗ Bertambah':tone==='decrease'?'↘ Berkurang':'◆ Tetap'}
+  ${tone==='steady'?'':money(Math.abs(total.change))}
+ </span>`;
+}
+function renderBudgetDetailPos(pos){
+ const total=budgetDetailTotals([pos]);
+ return `<article class="budget-detail-pos tone-${budgetDetailChangeTone(total)}">
+  <div class="budget-detail-pos-header">
+   <span class="budget-detail-pos-symbol">${symbolBadge(pos.label,pos.group,true)}</span>
+   <div class="budget-detail-pos-name"><strong>${h(pos.label)}</strong><small>Pos pengeluaran</small></div>
+   ${budgetDetailChangePill(total)}
+   ${budgetDetailStatePill(total)}
+  </div>
+  <div class="budget-detail-figures">
+   <span><small>Anggaran efektif</small><b>${money(total.effective)}</b></span>
+   <span><small>Terpakai</small><b>${money(total.used)}</b></span>
+   <span class="remaining ${total.remaining<0?'negative':''}"><small>${total.remaining<0?'Kelebihan':'Sisa'}</small><b>${money(Math.abs(total.remaining))}</b></span>
+  </div>
+  ${budgetDetailProgress(total,pos.label)}
+  ${budgetDetailEquation(total)}
+ </article>`;
+}
+function renderBudgetDetailGroup(group){
+ const categories=expenses().filter(c=>c.group===group.name);
+ const total=budgetDetailTotals(categories);
+ const color=cleanGroupColor(group.color)||'#2563eb';
+ const expanded=(ui.budgetDetailExpandedGroups||[]).includes(group.id);
+ const flagged=categories.filter(c=>['warn','danger'].includes(budgetDetailUsageStatus(budgetDetailTotals([c])).tone)).length;
+ return `<details class="budget-detail-group tone-${budgetDetailChangeTone(total)}"
+   data-budget-detail-accordion="${h(group.id)}" style="--budget-theme:${color}" ${expanded?'open':''}>
+  <summary class="budget-detail-summary">
+   <div class="budget-detail-group-head">
+    <span class="budget-detail-group-icon">${symbolBadge(group.name,group.name,true)}</span>
+    <div class="budget-detail-group-name"><strong>${h(group.name)}</strong>
+     <small>${categories.length} pos${flagged?' · '+flagged+' perlu perhatian':''}</small></div>
+    ${budgetDetailChangePill(total)}
+    ${budgetDetailStatePill(total)}
+    <span class="budget-detail-chevron" aria-hidden="true">⌄</span>
+   </div>
+   <div class="budget-detail-figures">
+    <span><small>Anggaran efektif</small><b>${money(total.effective)}</b></span>
+    <span><small>Terpakai</small><b>${money(total.used)}</b></span>
+    <span class="remaining ${total.remaining<0?'negative':''}"><small>${total.remaining<0?'Kelebihan':'Sisa'}</small><b>${money(Math.abs(total.remaining))}</b></span>
+   </div>
+   ${budgetDetailProgress(total,group.name)}
+   ${budgetDetailEquation(total)}
+   <span class="budget-detail-open-hint" aria-hidden="true">${expanded?'Tutup rincian pos':'Lihat rincian tiap pos'} <span>⌄</span></span>
+  </summary>
+  <div class="budget-detail-group-body">
+   ${categories.length?`<div class="budget-detail-pos-list">${categories.map(renderBudgetDetailPos).join('')}</div>`:
+    '<p class="budget-detail-empty">Belum ada pos pengeluaran dalam kelompok ini.</p>'}
+  </div>
+ </details>`;
+}
+function renderBudgetDetailsSection(){
+ const groups=expenseGroups();
+ return `<section class="card budget-work-panel budget-detail-panel" aria-label="Rincian anggaran per kelompok dan pos">
+   <div class="budget-work-section-head">
+    <div><h3>📊 Rincian Anggaran</h3><p>Pemakaian setiap kelompok; buka kelompok untuk melihat pos di dalamnya.</p></div>
+    <div class="budget-detail-legend" aria-label="Arti warna progress">
+     <span class="tone-steady"><i></i> Tetap</span>
+     <span class="tone-increase"><i></i> Ditambah</span>
+     <span class="tone-decrease"><i></i> Dikurangi</span>
+    </div>
+   </div>
+   <div class="budget-detail-groups">${groups.map(renderBudgetDetailGroup).join('')||
+     '<div class="budget-detail-empty">Belum ada kelompok pengeluaran. Tambahkan kelompok dari Anggaran Bulanan.</div>'}</div>
+ </section>`;
+}
+
 function renderBudgetTransferSection(){
  const rows=budgetScopeTransactions('transfer'),amount=rows.reduce((n,r)=>n+num(r.amount),0);
  return `<section class="card budget-work-panel">
@@ -9467,8 +9702,8 @@ function renderBudgetAdjustmentSection(){
  </section>`;
 }
 function renderBudgets(){
- const t=budgetMonthTotals(),used=budgetUsed(),section=['monthly','transfer','adjustment'].includes(ui.budgetSection)?ui.budgetSection:'monthly';
- const tabs=[['monthly','🗓️ Anggaran Bulanan'],['transfer','🔀 Alihkan Anggaran'],['adjustment','➕➖ Tambah / Kurangi']];
+ const t=budgetMonthTotals(),used=budgetUsed(),section=['monthly','detail','transfer','adjustment'].includes(ui.budgetSection)?ui.budgetSection:'monthly';
+ const tabs=[['monthly','🗓️ Anggaran Bulanan'],['detail','📊 Rincian Anggaran'],['transfer','🔀 Alihkan Anggaran'],['adjustment','➕➖ Tambah / Kurangi']];
  return `<div class="budget-work-root">
   <div class="budget-work-totals">
    <div><span>Anggaran Awal</span><strong>${money(t.initial)}</strong></div>
@@ -9481,7 +9716,7 @@ function renderBudgets(){
    <span>💰 Sisa bulan ini <strong class="${t.effective-used<0?'negative':''}">${money(t.effective-used)}</strong></span></div>
   <nav class="budget-work-tabs" role="tablist" aria-label="Pengelolaan anggaran">
    ${tabs.map(([key,label])=>`<button type="button" role="tab" data-budget-section="${key}" aria-selected="${section===key}" tabindex="${section===key?'0':'-1'}">${label}</button>`).join('')}</nav>
-  ${section==='monthly'?renderBudgetMonthlySection():section==='transfer'?renderBudgetTransferSection():renderBudgetAdjustmentSection()}
+  ${section==='monthly'?renderBudgetMonthlySection():section==='detail'?renderBudgetDetailsSection():section==='transfer'?renderBudgetTransferSection():renderBudgetAdjustmentSection()}
  </div>`;
 }
 /* Popup mengedit anggaran awal dalam kelompok, alih anggaran, atau tambah/kurangi. */
@@ -9506,6 +9741,7 @@ function budgetFlowDialogMarkup(kind,id=null){
    ${categories.map(c=>{
     const base=baseBudget(c.id),delta=budgetAdjustmentNet(c.id),transfer=budgetTransferNet(c.id),spent=spentByCat(c.id),effective=effectiveBudget(c.id);
     const remaining=effective-spent,usedRate=effective>0?Math.max(0,spent/effective*100):null;
+    const allocationTone=effective>base?'increase':effective<base?'decrease':'steady';
     const visualState=remaining<0?'danger':effective<=0?'unset':remaining<=effective*.2?'warn':'ok';
     const visualLabel=visualState==='danger'?'Melewati Batas':visualState==='warn'?(remaining===0?'Batas Tercapai':'Menipis'):visualState==='unset'?'Belum Dianggarkan':'Aman';
     const visualIcon=visualState==='danger'?'🚨':visualState==='warn'?'🔔':visualState==='unset'?'📌':'🌱';
@@ -9525,7 +9761,7 @@ function budgetFlowDialogMarkup(kind,id=null){
       <span class="budget-flow-chip is-transfer">🔀 Pengalihan <b>${transfer<0?'−':'+'}${money(Math.abs(transfer))}</b></span>
       <strong class="budget-flow-chip is-effective">✅ Efektif <b>${money(effective)}</b></strong>
      </div>
-     <div class="budget-flow-pos-usage is-${visualState}" aria-label="Pemakaian anggaran ${h(c.label)}">
+     <div class="budget-flow-pos-usage is-${visualState} allocation-${allocationTone}" aria-label="Pemakaian anggaran ${h(c.label)}">
       <div class="budget-flow-pos-usage-head">
        <span class="budget-flow-pos-used"><small>💸 Sudah digunakan</small><strong>${money(spent)}</strong></span>
        <span class="budget-flow-pos-state">${visualIcon} ${visualLabel}</span>
@@ -10459,6 +10695,13 @@ document.addEventListener('keydown',event=>{
 /* Native details saves open state across subsequent renders without changing amounts. */
 document.addEventListener('toggle',event=>{
  const group=event.target;
+ if(ui.view!=='budgets'||!group?.isConnected||!group.matches?.('details[data-budget-detail-accordion]'))return;
+ const id=group.dataset.budgetDetailAccordion;
+ const previous=Array.isArray(ui.budgetDetailExpandedGroups)?ui.budgetDetailExpandedGroups:[];
+ ui.budgetDetailExpandedGroups=group.open?[...new Set([...previous,id])]:previous.filter(value=>value!==id);
+},true);
+document.addEventListener('toggle',event=>{
+ const group=event.target;
  if(ui.view!=='budgets'||!group?.matches?.('details[data-budget-accordion]'))return;
  const ids=expenseGroups().map(g=>g.id);
  const selected=ui.budgetExpandedGroups===null?(ids[0]?[ids[0]]:[]):[...ui.budgetExpandedGroups];
@@ -10476,7 +10719,7 @@ document.addEventListener('click',async e=>{
  const budgetTab=e.target.closest?.('[data-budget-section]');
  if(budgetTab){
   ui.budgetSection=budgetTab.dataset.budgetSection;
-  if(!['monthly','transfer','adjustment'].includes(ui.budgetSection))ui.budgetSection='monthly';
+  if(!['monthly','detail','transfer','adjustment'].includes(ui.budgetSection))ui.budgetSection='monthly';
   render();document.querySelector('[data-budget-section="'+ui.budgetSection+'"]')?.focus({preventScroll:true});
   return;
  }

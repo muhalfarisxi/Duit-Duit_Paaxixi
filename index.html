@@ -5696,6 +5696,72 @@ body:has(.tx-search-backdrop){overflow:hidden}
  .budget-flow-group-actions button{flex:1 1 auto}
 }
 
+
+/* #119 Penegasan kolom efektif/sisa; tombol tambah mengikuti urutan Kelompok → Pos. */
+#content .budget-monthly-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+#content .budget-monthly-actions .budget-monthly-btn{
+ position:relative;isolation:isolate;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;
+ min-height:43px;padding:10px 15px;border-radius:13px;white-space:nowrap;
+ font:900 12px/1.25 Nunito,sans-serif;
+ transition:transform .2s ease,box-shadow .2s ease,background .2s ease,border-color .2s ease;
+}
+#content .budget-monthly-btn::before{
+ content:"";pointer-events:none;position:absolute;inset:0;z-index:-1;
+ background:linear-gradient(112deg,transparent 28%,rgba(255,255,255,.32) 45%,transparent 62%);
+ transform:translateX(-160%);animation:budgetAddButtonGlint 5.4s ease-in-out infinite;
+}
+#content .budget-monthly-btn-group{
+ color:#fff;border:1px solid #285fa7;
+ background:linear-gradient(125deg,#12315d,#2863aa);
+ box-shadow:0 5px 13px rgba(24,68,120,.2);
+}
+#content .budget-monthly-btn-pos{
+ color:#1f5791;border:1.5px solid #bbd6f8;
+ background:linear-gradient(125deg,#fff,#eef6ff);
+ box-shadow:0 4px 11px rgba(34,86,150,.1);
+}
+#content .budget-monthly-btn:not(:disabled):hover{
+ transform:translateY(-2px);box-shadow:0 9px 18px rgba(27,83,143,.22);
+}
+#content .budget-monthly-btn:not(:disabled):active{transform:translateY(0) scale(.98)}
+#content .budget-monthly-btn:focus-visible{outline:3px solid #90c2f5;outline-offset:3px}
+#content .budget-work-group-stats span{
+ position:relative;isolation:isolate;overflow:hidden;
+ transition:transform .2s ease,box-shadow .22s ease,border-color .22s ease;
+}
+#content .budget-work-group-stats span:nth-child(1){background:rgba(255,255,255,.72)}
+#content .budget-work-group-stats span:nth-child(2){
+ background:linear-gradient(135deg,#e6f0ff,#f7fbff);
+ border-color:#afd0fb;box-shadow:0 4px 12px rgba(45,105,205,.1);
+}
+#content .budget-work-group-stats span:nth-child(2) small{color:#4774b0}
+#content .budget-work-group-stats span:nth-child(2) b{color:#1756ac}
+#content .budget-work-group-stats span:nth-child(3){
+ background:linear-gradient(135deg,#e4f9ec,#f7fffa);
+ border-color:#9fdfbd;box-shadow:0 4px 12px rgba(24,139,90,.1);
+}
+#content .budget-work-group-stats span:nth-child(3) small{color:#36835f}
+#content .budget-work-group-stats span:nth-child(3) b{color:#0d8054}
+#content .budget-work-group-stats span:nth-child(3) b.negative{color:#be4254}
+#content .budget-work-group:hover .budget-work-group-stats span:nth-child(2),
+#content .budget-work-group:hover .budget-work-group-stats span:nth-child(3){
+ transform:translateY(-2px);box-shadow:0 7px 15px rgba(28,99,145,.14);
+}
+@keyframes budgetAddButtonGlint{
+ 0%,63%,100%{transform:translateX(-160%)}
+ 78%{transform:translateX(160%)}
+}
+@media(max-width:610px){
+ #content .budget-monthly-actions{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ #content .budget-monthly-actions .budget-monthly-btn{
+  width:100%;min-width:0;white-space:normal;min-height:42px;padding:9px 7px;font-size:11px;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ #content .budget-monthly-btn::before{animation:none!important}
+ #content .budget-monthly-btn,#content .budget-work-group-stats span{transition:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -9201,8 +9267,8 @@ function renderBudgetMonthlySection(){
  return `<section class="card budget-work-panel">
   <div class="card-head"><div><h3>Anggaran per Kelompok</h3></div>
    <div class="budget-monthly-actions" role="group" aria-label="Tambah pengelolaan anggaran">
-    <button type="button" class="btn sm" data-add-budget-category="">＋ Tambah Pos</button>
-    <button type="button" class="btn sm primary" data-add-expense-group>＋ Tambah Kelompok</button>
+    <button type="button" class="btn sm primary budget-monthly-btn budget-monthly-btn-group" data-add-expense-group>＋ Tambah Kelompok</button>
+    <button type="button" class="btn sm budget-monthly-btn budget-monthly-btn-pos" data-add-budget-category="">＋ Tambah Pos</button>
    </div></div>
   <div class="budget-work-groups">${expenseGroups().map(budgetBudgetCard).join('')}</div>
   <section class="budget-work-history-section" aria-label="Riwayat perubahan anggaran awal">

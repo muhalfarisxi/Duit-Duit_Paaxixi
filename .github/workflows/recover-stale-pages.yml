@@ -1,4 +1,4 @@
-name: Repair GitHub Pages deployment lock
+name: Repair Pages publishing source
 on:
   push:
     branches: [main]
@@ -7,36 +7,27 @@ on:
 permissions:
   contents: read
   pages: write
-  deployments: write
 jobs:
-  clear-stale-deployment-record:
+  reset-source:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Clear confirmed-completed deployment record that blocks new builds
+      - name: Reaffirm main root Pages build configuration
         env:
           GH_TOKEN: ${{ github.token }}
-          STALE_SHA: 38bef4d902d581b63621141e4d3ca23efa860164
         run: |
           set -euo pipefail
-          base="https://api.github.com/repos/$GITHUB_REPOSITORY"
-          api() { curl -sSL -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GH_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" "$@"; }
-          api -f "$base/deployments?per_page=100" > /tmp/deployments.json
-          deployment_id=$(jq -r --arg sha "$STALE_SHA" '.[] | select(.sha==$sha and .environment=="github-pages") | .id' /tmp/deployments.json | head -1)
-          if [[ -z "$deployment_id" ]]; then
-            echo "No stale GitHub Pages deployment record remains."
-            exit 0
-          fi
-          echo "Stale completed record id: $deployment_id"
-          api "$base/deployments/$deployment_id/statuses?per_page=10" | jq '[.[]|{state,created_at}]'
-          mark=$(api -o /tmp/deploy-mark.json -w '%{http_code}' -X POST \
-            -d '{"state":"inactive","description":"Superseded by current main; clear Pages deployment lock","auto_inactive":false}' \
-            "$base/deployments/$deployment_id/statuses")
-          echo "Set inactive HTTP $mark"
-          status=$(api -o /tmp/deploy-delete.json -w '%{http_code}' -X DELETE "$base/deployments/$deployment_id")
-          echo "Delete old deployment record HTTP $status"
-          if [[ "$status" != "204" ]]; then
-            cat /tmp/deploy-delete.json
+          BASE="https://api.github.com/repos/${GITHUB_REPOSITORY}/pages"
+          HEADERS=(-H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" -H "Authorization: Bearer $GH_TOKEN")
+          echo "Attempting non-destructive Pages configuration refresh..."
+          code=$(curl -sS -L "${HEADERS[@]}" -X PUT "$BASE" -d '{"build_type":"legacy","source":{"branch":"main","path":"/"}}' -o /tmp/pages-result -w '%{http_code}')
+          echo "Config update HTTP: $code"
+          if [[ "$code" != "204" ]]; then
+            cat /tmp/pages-result
+            echo "::error::Pages Settings require account-level Administration permission unavailable to GitHub Actions. No site settings were changed."
             exit 1
           fi
-          echo "Stale deployment record removed, repository files preserved."
+          echo "Pages source refreshed; requesting a new build..."
+          code=$(curl -sS -L "${HEADERS[@]}" -X POST "$BASE/builds" -o /tmp/pages-build -w '%{http_code}')
+          echo "Build request HTTP: $code"
+          if [[ "$code" != "201" && "$code" != "202" ]]; then cat /tmp/pages-build; exit 1; fi

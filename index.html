@@ -5632,6 +5632,25 @@ body:has(.tx-search-backdrop){overflow:hidden}
  .budget-work-tabs button,.budget-work-group,.budget-flow-backdrop,.budget-flow-dialog{animation:none!important;transition:none!important}
 }
 
+
+/* Monitoring dashboard memperlihatkan perubahan anggaran tanpa mengubah pengalihan. */
+.budget-dashboard-delta{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;
+ padding:12px 15px;margin:0 0 14px;border:1px solid #bcd7f8;border-radius:15px;
+ background:linear-gradient(120deg,#eff6ff,#fff);box-shadow:0 6px 17px #2c67ac0c}
+.budget-dashboard-delta-label{font:900 11px/1.4 Nunito,sans-serif;color:#386ca1}
+.budget-dashboard-delta-formula{display:flex;align-items:center;gap:7px;flex-wrap:wrap;flex:1;min-width:0}
+.budget-dashboard-delta-formula span{font:850 11px Nunito,sans-serif;color:#426a94;white-space:nowrap;
+ padding:5px 7px;border-radius:8px;background:#fff}
+.budget-dashboard-delta-formula strong{color:#174877}
+.budget-dashboard-delta-formula .added{background:#e9f9f0;color:#147b54}
+.budget-dashboard-delta-formula .reduced{background:#fff0e8;color:#bd5c39}
+.budget-dashboard-delta-formula .effective{background:#e6f0ff;color:#1655a6;font-weight:900}
+.budget-dashboard-delta button{cursor:pointer;min-height:31px;padding:6px 9px;border:1px solid #bad4f5;
+ border-radius:10px;background:#fff;color:#245e9d;font:900 10px Nunito,sans-serif;
+ transition:background .2s,transform .2s}
+.budget-dashboard-delta button:hover{background:#e8f2ff;transform:translateY(-1px)}
+@media(prefers-reduced-motion:reduce){.budget-dashboard-delta button{transition:none!important}}
+
 </style>
 </head>
 <body>
@@ -8030,12 +8049,30 @@ function openIncomePopup(type,key){
  ui.reviewPopup={type,key,month:period};render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});
 }
 
+
+/* Perubahan anggaran yang dicatat terpisah tetap terlihat di monitoring dashboard. */
+function renderBudgetDashboardDelta(){
+ const t=budgetMonthTotals();
+ if(!t.added&&!t.reduced)return '';
+ const net=t.added-t.reduced;
+ return '<section class="budget-dashboard-delta" aria-label="Perubahan anggaran bulan ini">'+
+ '<span class="budget-dashboard-delta-label">🧮 Perubahan Anggaran · '+h(monthFmt(ui.month))+'</span>'+
+ '<div class="budget-dashboard-delta-formula">'+
+ '<span>Awal <strong>'+money(t.initial)+'</strong></span>'+
+ '<span class="added">+ '+money(t.added)+'</span>'+
+ '<span class="reduced">− '+money(t.reduced)+'</span>'+
+ '<span class="effective">= '+money(t.effective)+'</span>'+
+ '</div><button type="button" data-budget-go-adjust>Kelola Perubahan ↗</button>'+
+ '</section>';
+}
+
 function renderDash(){let all=monthly(),exp=totalType('expense'),inc=totalType('income'),bt=budgetTotal(),accountBalances=balances(),kas=Object.values(accountBalances).reduce((s,x)=>s+x,0),alert=expenses().filter(c=>hasBudget(c.id)&&['danger','warn'].includes(status(c.id).s)).sort((a,b)=>{const priority={danger:0,warn:1};return (priority[status(a.id).s]??9)-(priority[status(b.id).s]??9)||pct(spentByCat(b.id),Math.max(effectiveBudget(b.id),1))-pct(spentByCat(a.id),Math.max(effectiveBudget(a.id),1));}),debt=totalsDebt();
 return `${welcomeModal()}${all.length===0?`<div class="callout"><span>✦</span><div><strong>Mulai catatan pertamamu.</strong> Dashboard akan otomatis terisi. Mau melihat simulasi lebih dulu? <button class="btn sm" type="button" data-action="demo" style="margin-left:7px">Isi contoh 24 bulan</button></div></div>`:''}
 <div class="grid kpis">
 ${metricCard('Pemasukan Bulan Ini',inc,'↑','green','Transaksi Pemasukan')}${metricCard('Pengeluaran Bulan Ini',exp,'↓','red','Transaksi Pengeluaran')}${metricCard('Sisa Anggaran',bt>0?bt-budgetUsed():0,'◴',bt>0&&bt-budgetUsed()<0?'red':'green',bt>0?`Dari Total ${money(bt)}`:'Belum Ada Anggaran')}${metricCard('Total Saldo Rekening',kas,'▤',kas<0?'red':'blue','Saldo Seluruh Rekening, Sepanjang Waktu')}
 </div>
 ${renderBudgetAlertStrip(alert,bt)}
+${renderBudgetDashboardDelta()}
 <div class="analytics-comp-trend">${renderComposition()}${renderTrendPanel()}</div>
 ${renderPaaxixiSmartFinanceInsight()}
 <div class="grid finance-duo-grid income-charts-grid">
@@ -10054,6 +10091,9 @@ document.addEventListener('toggle',event=>{
 
 document.addEventListener('click',async e=>{
 
+ if(e.target.closest?.('[data-budget-go-adjust]')){
+  setView('budgets');ui.budgetSection='adjustment';render();return;
+ }
  const budgetTab=e.target.closest?.('[data-budget-section]');
  if(budgetTab){
   ui.budgetSection=budgetTab.dataset.budgetSection;

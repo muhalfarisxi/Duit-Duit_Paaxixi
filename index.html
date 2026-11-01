@@ -1552,24 +1552,99 @@ body:has(.repay-popup-backdrop){overflow:hidden}
 }
 
 
-/* #090 Dashboard ringkas: penggunaan anggaran sudah dicakup peringatan dan popup. */
-.income-overview-grid{
- display:grid;grid-template-columns:minmax(0,1.2fr) minmax(260px,.8fr);
- align-items:start;gap:clamp(20px,3vw,42px);
+/* #093 Dua kartu ringkasan keuangan: sumber pemasukan dan Utang/Piutang terpisah. */
+.finance-duo-grid{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;
+ gap:16px;margin:0 0 16px;
 }
-.income-overview-sources,.income-overview-debts{min-width:0}
-.income-overview-debts{
- border-left:1px solid #dfe8f5;padding-left:clamp(18px,3vw,34px);
+.finance-duo-card{
+ min-width:0;display:flex;flex-direction:column;gap:0;overflow:hidden;
+ border-radius:23px;border:1px solid #d7e6fa;position:relative;
+ box-shadow:0 12px 32px rgba(26,70,132,.065);
 }
-.income-overview-debts-title{
- color:#17467f;font:900 13px/1.4 Nunito,sans-serif;margin:0 0 15px;
+.finance-duo-card::before{
+ content:"";position:absolute;inset:0 0 auto 0;height:4px;
+ background:linear-gradient(90deg,#6dc9a5,#c8f3df,transparent);pointer-events:none;opacity:.9;
 }
-.income-overview-debts .debt-overview-cta{margin-top:10px}
-@media(max-width:1100px){
- .income-overview-grid{grid-template-columns:minmax(0,1fr);gap:19px}
- .income-overview-debts{
-  border-left:0;border-top:1px solid #dfe8f5;padding-left:0;padding-top:16px;
- }
+.debt-spotlight-card::before{background:linear-gradient(90deg,#56a2df,#b9a5f7,transparent)}
+.finance-duo-card .card-head{margin:0 0 19px;flex:none}
+.finance-duo-card .card-head h3{
+ font-size:clamp(18px,1.75vw,25px)!important;
+}
+.finance-duo-card .card-head p{color:#6a83a4;font-size:12px;line-height:1.5;margin-top:9px;max-width:48ch}
+.finance-duo-card .pax-heading-icon{box-shadow:0 6px 16px rgba(24,85,146,.12)}
+.finance-duo-card .card-head .pax-heading-sparkle{animation-duration:4s}
+.income-fancy-list,.debt-fancy-list{display:flex;flex-direction:column;gap:11px;min-width:0;flex:1}
+.income-fancy-row,.debt-fancy-row{
+ display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;
+ padding:13px 15px;border-radius:15px;position:relative;isolation:isolate;
+ border:1px solid #dfeaf9;background:linear-gradient(120deg,#f9fcff,#f1f7ff);
+ box-shadow:0 5px 13px rgba(24,71,130,.035);
+ animation:financeDuoRowEnter .45s ease-out both;
+ animation-delay:calc(var(--duo-order,0) * 70ms);
+ transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;
+}
+.income-fancy-row:hover,.debt-fancy-row:hover{
+ transform:translateY(-2px);box-shadow:0 9px 22px rgba(25,70,126,.095);border-color:#bdd5f4;
+}
+.income-fancy-row{background:linear-gradient(110deg,#f3fbf8,#f5faff);border-color:#daede7}
+.income-fancy-info,.debt-fancy-info{min-width:0;flex:1;display:flex;flex-direction:column;gap:4px}
+.income-fancy-info strong,.debt-fancy-info strong{
+ display:block;font:750 clamp(12px,1.18vw,15px)/1.35 Fredoka,Nunito,sans-serif;
+ color:#224b79;overflow-wrap:anywhere;
+}
+.income-fancy-info small,.debt-fancy-info small{color:#788eaa;font-size:11px;font-weight:750;line-height:1.35}
+.income-fancy-share{
+ display:inline-block;border-radius:999px;padding:2px 7px;margin-left:4px;
+ color:#167e5a;background:#dff5e8;font:900 10px/1.3 Nunito,sans-serif;white-space:nowrap;
+}
+.finance-duo-amount{
+ flex:none;max-width:100%;display:inline-block;white-space:nowrap;
+ color:#1d477b;font:900 clamp(16px,1.6vw,24px)/1.15 Nunito,sans-serif;
+ letter-spacing:-.7px;font-variant-numeric:tabular-nums;
+ animation:financeDuoMoneyPop .65s cubic-bezier(.2,.8,.2,1.1) both,
+           financeDuoMoneyGlow 4.8s ease-in-out 1s infinite;
+ animation-delay:calc(var(--duo-order,0) * 90ms),calc(1s + var(--duo-order,0) * 90ms);
+}
+.income-fancy-row .finance-duo-amount{color:#167c5b}
+.debt-fancy-row.positive{background:linear-gradient(115deg,#eefaf4,#e7f7ef);border-color:#cce9da}
+.debt-fancy-row.negative{background:linear-gradient(115deg,#fff5f5,#ffedf0);border-color:#f1d4db}
+.debt-fancy-row.positive .debt-fancy-info strong,.debt-fancy-row.positive .finance-duo-amount{color:#137e5a}
+.debt-fancy-row.negative .debt-fancy-info strong,.debt-fancy-row.negative .finance-duo-amount{color:#c34b5a}
+.debt-spotlight-card .debt-fancy-list{flex:none}
+.debt-spotlight-card .debt-overview-cta{
+ margin-top:auto!important;min-height:45px;padding:11px 14px;
+ border-radius:13px;font-weight:900!important;
+}
+@keyframes financeDuoRowEnter{
+ from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}
+}
+@keyframes financeDuoMoneyPop{
+ 0%{opacity:0;transform:translateY(8px) scale(.94)}
+ 65%{opacity:1;transform:translateY(-2px) scale(1.035)}
+ 100%{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes financeDuoMoneyGlow{
+ 0%,100%{filter:drop-shadow(0 0 0 transparent)}
+ 50%{filter:drop-shadow(0 3px 5px rgba(32,98,133,.16))}
+}
+@media(max-width:1040px){.finance-duo-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){
+ .finance-duo-grid{gap:12px;margin-bottom:13px}
+ .finance-duo-card{border-radius:18px}
+ .finance-duo-card .card-head{margin-bottom:16px}
+ .finance-duo-card .card-head h3{font-size:19px!important}
+ .income-fancy-row,.debt-fancy-row{padding:12px;gap:10px;flex-wrap:wrap}
+ .finance-duo-amount{font-size:clamp(16px,4.8vw,23px);margin-left:auto}
+}
+@media(max-width:380px){
+ .income-fancy-row,.debt-fancy-row{flex-direction:column;align-items:stretch}
+ .finance-duo-amount{align-self:flex-end}
+}
+@media(prefers-reduced-motion:reduce){
+ .finance-duo-card .card-head .pax-heading-sparkle,.finance-duo-amount,
+ .income-fancy-row,.debt-fancy-row{animation:none!important;transition:none!important}
+ .income-fancy-row:hover,.debt-fancy-row:hover{transform:none}
 }
 
 /* #047 Transaksi: tambah/edit via modal, daftar riwayat tanpa halaman tersendiri. */
@@ -4658,6 +4733,7 @@ const PAX_CUTE_CARD_TITLES={
  'Peringatan Anggaran':['🔔','coral'],
  'Penggunaan Anggaran':['🏷️','gold'],
  'Asal Pemasukan':['💵','green'],
+ 'Utang & Piutang':['🤝','lavender'],
  'Transaksi Terbaru':['🧾','blue'],
  'Grafik Pengeluaran Per Kelompok':['📉','coral'],
  'Grafik Pemasukan Per Kelompok':['📈','green'],
@@ -6345,8 +6421,22 @@ ${metricCard('Pemasukan Bulan Ini',inc,'↑','green','Transaksi Pemasukan')}${me
 ${renderBudgetAlertStrip(alert,bt)}
 <div class="analytics-comp-trend">${renderComposition()}${renderTrendPanel()}</div>
 ${renderPaaxixiSmartFinanceInsight()}
-<section class="card finance-spotlight-card income-spotlight-card"><div class="card-head"><div><h3>Asal Pemasukan</h3><p>Periksa sumber pemasukan terbesar dan pastikan pendapatan rutin sudah tercatat.</p></div></div><div class="income-overview-grid"><div class="income-overview-sources">${bySource.length?bySource.slice(0,7).map(c=>`<div class="stat-pair"><span>${h(c.label)} <span style="color:#8a9bb3">• ${pct(c.amount,inc)}%</span></span><strong>${money(c.amount)}</strong></div>`).join(''):empty('↗','Belum Ada Pemasukan','Misalnya dividen Fastlink, gaji atau tukin BPS.')}
-</div><div class="income-overview-debts" aria-label="Ringkasan utang dan piutang"><div class="income-overview-debts-title">Utang &amp; Piutang</div><div class="stat-pair"><span>Piutang Belum Kembali</span><strong class="green">${money(debt.receivable)}</strong></div><div class="stat-pair"><span>Utang Belum Dilunasi</span><strong class="red">${money(debt.payable)}</strong></div><button type="button" class="btn sm full finance-spotlight-action debt-overview-cta" data-debt-overview="open" aria-haspopup="dialog"><span aria-hidden="true">↗</span> Lihat Utang & Piutang <span class="spotlight-arrow" aria-hidden="true">→</span></button></div></div></section>
+<div class="grid finance-duo-grid">
+ <section class="card finance-spotlight-card income-spotlight-card finance-duo-card">
+  <div class="card-head"><div><h3>Asal Pemasukan</h3><p>Urutan sumber berdasarkan nominal pemasukan yang tercatat pada ${h(monthFmt(ui.month))}.</p></div></div>
+  <div class="income-fancy-list">${bySource.length?bySource.slice(0,7).map((c,i)=>`<div class="income-fancy-row" style="--duo-order:${i}">
+    <div class="income-fancy-info"><strong>${h(c.label)} <span class="income-fancy-share">${pct(c.amount,inc)}%</span></strong><small>Bagian dari total pemasukan bulan ini</small></div>
+    <strong class="finance-duo-amount">${money(c.amount)}</strong></div>`).join(''):empty('↗','Belum Ada Pemasukan','Catat pemasukan agar sumbernya terlihat di sini.')}</div>
+ </section>
+ <section class="card finance-spotlight-card debt-spotlight-card finance-duo-card">
+  <div class="card-head"><div><h3>Utang & Piutang</h3><p>Sisa pinjaman setelah cicilan, terpisah dari pemasukan dan pengeluaran rutin.</p></div></div>
+  <div class="debt-fancy-list">
+   <div class="debt-fancy-row positive" style="--duo-order:0"><div class="debt-fancy-info"><strong>Piutang Belum Kembali</strong><small>Uang yang masih dipinjam orang lain</small></div><strong class="finance-duo-amount">${money(debt.receivable)}</strong></div>
+   <div class="debt-fancy-row negative" style="--duo-order:1"><div class="debt-fancy-info"><strong>Utang Belum Dilunasi</strong><small>Uang yang masih perlu kamu bayar</small></div><strong class="finance-duo-amount">${money(debt.payable)}</strong></div>
+  </div>
+  <button type="button" class="btn sm full finance-spotlight-action debt-overview-cta" data-debt-overview="open" aria-haspopup="dialog"><span aria-hidden="true">↗</span> Lihat Utang & Piutang <span class="spotlight-arrow" aria-hidden="true">→</span></button>
+ </section>
+</div>
 <section class="card"><div class="card-head"><div><h3>Transaksi Terbaru</h3><p>Periksa transaksi ${h(monthFmt(ui.month))}; Edit jika ada nominal atau kategori yang keliru.</p></div><div class="action-buttons"><button type="button" class="btn sm ghost tx-nav-cta" data-tx-history>Semua Transaksi <span class="nav-cta-arrow" aria-hidden="true">↗</span></button><button type="button" class="btn sm tx-nav-cta" data-nav="reports">Arsip Bulan <span class="nav-cta-arrow" aria-hidden="true">↗</span></button></div></div>${all.length?all.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt?.localeCompare(a.createdAt||'')||0).slice(0,6).map(txRow).join(''):empty('⇄','Belum Ada Transaksi','Klik “Catat transaksi” untuk membuat catatan baru.')}</section>${renderDashboardKpiPopup()}${renderBudgetAlertDialog(alert,bt)}`}
 
 /* #035 Rincian interaktif kartu Dashboard; semuanya memakai sumber data yang sama. */

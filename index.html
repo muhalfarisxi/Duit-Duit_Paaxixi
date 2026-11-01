@@ -10278,7 +10278,43 @@ function budgetFlowDialogMarkup(kind,id=null){
  const move=kind==='move'&&id?db.budgetMoves.find(m=>m.id===id):null;
  const adjustment=kind==='adjust'&&id?budgetAdjustmentsForMonth().find(a=>a.id===id):null;
  let heading='',description='',icon='',body='';
- if(kind==='group'){
+ if(kind==='pos-actions'){
+  const pos=cat(id);if(!pos||pos.kind!=='expense')return '';
+  const locked=budgetIsEstablished();
+  heading='Edit Pos · '+pos.label;description=locked?'Pilih tindakan. Koreksi anggaran awal harus dilakukan secara khusus.':'Isi anggaran awal dan tetapkan bulan ini sebelum pengalihan atau penyesuaian.';
+  icon=pickSymbol(pos.label,pos.group);
+  body=`<div class="budget-pos-action-choices">
+   <div class="budget-pos-action-baseline"><strong>${h(pos.label)}</strong><span>Awal ${money(baseBudget(pos.id))} · Efektif ${money(effectiveBudget(pos.id))}</span></div>
+   <button type="button" data-budget-choice="base" data-budget-choice-pos="${h(pos.id)}">
+    <span class="budget-pos-choice-icon">📝</span><span><strong>${locked?'Ubah Anggaran Awal':'Isi Anggaran Awal'}</strong>
+    <small>${locked?'Koreksi nilai dasar dengan alasan serta riwayat perubahan.':'Isi nilai dasar sebelum penetapan bulan ini.'}</small></span><span>↗</span></button>
+   <button type="button" data-budget-choice="move" data-budget-choice-pos="${h(pos.id)}" ${!locked?'disabled title="Tetapkan anggaran awal terlebih dahulu"':''}>
+    <span class="budget-pos-choice-icon">🔀</span><span><strong>Alihkan Anggaran</strong><small>Memindahkan alokasi antara pos tanpa mengubah total.</small></span><span>↗</span></button>
+   <button type="button" data-budget-choice="adjust" data-budget-choice-pos="${h(pos.id)}" ${!locked?'disabled title="Tetapkan anggaran awal terlebih dahulu"':''}>
+    <span class="budget-pos-choice-icon">➕➖</span><span><strong>Tambah / Kurangi Anggaran</strong><small>Penyesuaian tersimpan terpisah dari nominal dasar.</small></span><span>↗</span></button>
+   ${!locked?'<p class="budget-flow-empty-hint">🔒 Tetapkan anggaran awal terlebih dahulu untuk membuka dua tindakan terakhir.</p>':''}
+  </div>`;
+ }else if(kind==='base'){
+  const pos=cat(id);if(!pos||pos.kind!=='expense')return '';
+  const locked=budgetIsEstablished();
+  heading=(locked?'Ubah':'Isi')+' Anggaran Awal · '+pos.label;icon='📝';
+  description=locked?'Koreksi nilai yang sudah ditetapkan akan dicatat dalam riwayat.':'Nominal baru disimpan sebagai draft sebelum anggaran bulan ini ditetapkan.';
+  body=`<form id="budget-initial-pos-form" class="budget-flow-form">
+    <input name="categoryId" type="hidden" value="${h(pos.id)}">
+    <div class="budget-initial-form-notice ${locked?'locked':'draft'}">
+     <strong>${locked?'🔒 Koreksi Anggaran Awal':'📝 Draft Anggaran Awal'}</strong>
+     <small>${locked?'Anggaran awal sudah ditetapkan. Pengalihan dan penyesuaian sebelumnya tidak dihapus.':'Simpan nominal ini, isi pos lain, kemudian tetapkan anggaran awal bulan ini.'}</small></div>
+    <label>Nominal Awal Saat Ini <span class="budget-base-display">${money(baseBudget(pos.id))}</span></label>
+    <label>${locked?'Ubah Anggaran Awal (Rp)':'Anggaran Awal (Rp)'}
+      <input type="text" name="amount" class="field" data-rupiah="1" inputmode="decimal" value="${fmtAmount(baseBudget(pos.id))}" required></label>
+    ${locked?`<label>Alasan Koreksi (wajib)
+       <textarea name="note" rows="2" class="field" maxlength="220" placeholder="Alasan perubahan anggaran awal" required></textarea></label>
+     <label class="budget-initial-confirm"><input type="checkbox" name="confirmed" value="yes" required>
+       Saya memahami koreksi anggaran awal ini akan disimpan dalam riwayat.</label>`:''}
+    <div class="budget-flow-actions"><button type="button" class="btn" data-budget-close-dialog>Batal</button>
+      <button type="submit" class="btn primary">✓ ${locked?'Simpan Koreksi Awal':'Simpan Draft Anggaran'}</button></div>
+  </form>`;
+ }else if(kind==='group'){
   if(!group)return '';
   heading='Anggaran Awal · '+group.name;icon='🏷️';
   description='Ubah anggaran awal tanpa menghapus riwayat penyesuaian atau pengalihan.';

@@ -5817,6 +5817,11 @@ body:has(.tx-search-backdrop){overflow:hidden}
  .budget-flow-pos-equation .budget-flow-chip,.budget-flow-pos-title .budget-flow-pos-edit button{transition:none!important}
 }
 
+/* #121 Popup bertingkat: editor di depan, popup induk tetap di belakang. */
+#finance-editor-backdrop{z-index:3650}
+#paaxixi-delete-dialog{z-index:4400}
+#budget-flow-backdrop[aria-hidden="true"]{pointer-events:none}
+.toast{z-index:4600}
 </style>
 </head>
 <body>
@@ -9160,7 +9165,7 @@ function financeEditorMarkup(kind){
  </div>`;
 }
 function openFinanceEditor(kind,id=null,groupName=null){
- closeBudgetFlowDialog(false);
+ // Popup induk tetap hidup saat edit pos/kelompok dibuka.
  if(ui.view!=='budgets')setView('budgets');
  if(kind==='group'){
   if(id&&!expenseGroups().some(g=>g.id===id))return toast('Kelompok tidak ditemukan.',true);
@@ -9173,19 +9178,26 @@ function openFinanceEditor(kind,id=null,groupName=null){
   ui.budgetCategoryGroup=pos?.group||(expenseGroups().some(g=>g.name===groupName)?groupName:expenseGroups()[0].name);
  }
  financeEditorReturnFocus=document.activeElement;
+ const parent=document.getElementById('budget-flow-backdrop');
+ if(parent){parent.inert=true;parent.setAttribute('aria-hidden','true');}
  document.getElementById('finance-editor-backdrop')?.remove();
  document.body.insertAdjacentHTML('beforeend',financeEditorMarkup(kind));
  paxDecoratePopups(document);
  document.querySelector('#finance-editor-backdrop [data-editor-focus]')?.focus({preventScroll:true});
 }
-function closeFinanceEditor(){
+function closeFinanceEditor(restore=true){
  const modal=document.getElementById('finance-editor-backdrop');
  if(!modal)return;
  modal.remove();
+ const parent=document.getElementById('budget-flow-backdrop');
+ if(parent){parent.inert=false;parent.removeAttribute('aria-hidden');}
  ui.expenseGroupEditId=null;ui.budgetCategoryEditId=null;ui.budgetCategoryGroup=null;
  const previous=financeEditorReturnFocus;
  financeEditorReturnFocus=null;
- if(previous?.isConnected)previous.focus({preventScroll:true});
+ if(restore){
+  if(previous?.isConnected)previous.focus({preventScroll:true});
+  else parent?.querySelector('[data-budget-close-dialog]')?.focus({preventScroll:true});
+ }
 }
 function cachePendingBudgetInputs(){
  return [...document.querySelectorAll('#budget-form [data-budget-id]')].map(input=>[input.dataset.budgetId,input.value]);
@@ -10171,6 +10183,19 @@ document.addEventListener('pointerdown',event=>{
 });
 document.addEventListener('keydown',event=>{
 
+ const dialog=document.querySelector('#finance-editor-backdrop .finance-editor-dialog');
+ if(dialog){
+  if(event.key==='Escape'){event.preventDefault();closeFinanceEditor();return;}
+  if(event.key==='Tab'){
+   const focusable=[...dialog.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled)')];
+   if(focusable.length){
+    const first=focusable[0],last=focusable[focusable.length-1];
+    if(event.shiftKey&&(document.activeElement===first||!dialog.contains(document.activeElement))){event.preventDefault();last.focus();}
+    else if(!event.shiftKey&&(document.activeElement===last||!dialog.contains(document.activeElement))){event.preventDefault();first.focus();}
+   }
+  }
+  return;
+ }
  const budgetDialog=document.getElementById('budget-flow-backdrop');
  if(budgetDialog){
   if(event.key==='Escape'){event.preventDefault();closeBudgetFlowDialog();return;}
@@ -10267,19 +10292,6 @@ document.addEventListener('keydown',event=>{
      if(event.shiftKey&&(document.activeElement===first||!dialog.contains(document.activeElement))){event.preventDefault();last.focus();}
      else if(!event.shiftKey&&(document.activeElement===last||!dialog.contains(document.activeElement))){event.preventDefault();first.focus();}
     }
-   }
-  }
-  return;
- }
- const dialog=document.querySelector('#finance-editor-backdrop .finance-editor-dialog');
- if(dialog){
-  if(event.key==='Escape'){event.preventDefault();closeFinanceEditor();return;}
-  if(event.key==='Tab'){
-   const focusable=[...dialog.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled)')];
-   if(focusable.length){
-    const first=focusable[0],last=focusable[focusable.length-1];
-    if(event.shiftKey&&(document.activeElement===first||!dialog.contains(document.activeElement))){event.preventDefault();last.focus();}
-    else if(!event.shiftKey&&(document.activeElement===last||!dialog.contains(document.activeElement))){event.preventDefault();first.focus();}
    }
   }
   return;

@@ -6448,6 +6448,10 @@ function render(){
  const oldAiScroll=document.querySelector('.paax-ai-dialog-body')?.scrollTop||0;
  const oldBudgetHistoryScroll=document.querySelector('.budget-work-history-list')?.scrollTop;
  const oldReviewGroupsScroll=document.querySelector('#content .review-group-list')?.scrollTop;
+ const modalScrolls=['#review-modal-backdrop .review-modal-content',
+  '#tx-history-backdrop .tx-history-content','#tx-search-backdrop .tx-search-content',
+  '#debt-editor-backdrop .debt-editor-content','#repay-popup-backdrop .repay-popup-content']
+  .map(selector=>[selector,document.querySelector(selector)?.scrollTop]);
  const oldGroupScroll=Object.fromEntries([...document.querySelectorAll('[data-group-scroll-track]')].map(track=>[track.dataset.groupScrollTrack,track.scrollLeft]));
  const expandedDebtIds=[...document.querySelectorAll('[data-debt-quick-id]')].filter(card=>card.querySelector('details[open]')).map(card=>card.dataset.debtQuickId);
  labelNav();
@@ -6466,6 +6470,10 @@ function render(){
  requestAnimationFrame(updateGroupScrollArrows);
  if(Number.isFinite(oldBudgetHistoryScroll)&&document.querySelector('.budget-work-history-list'))
   document.querySelector('.budget-work-history-list').scrollTop=oldBudgetHistoryScroll;
+ modalScrolls.forEach(([selector,scroll])=>{
+  const content=document.querySelector(selector);
+  if(content&&Number.isFinite(scroll))content.scrollTop=scroll;
+ });
  if(Number.isFinite(oldReviewGroupsScroll)&&document.querySelector('#content .review-group-list'))
   document.querySelector('#content .review-group-list').scrollTop=oldReviewGroupsScroll;
  const seriesScroller=document.querySelector('#trend-analysis .trend-series-buttons');
@@ -8606,9 +8614,24 @@ ${kind!=='transfer'?`<div class="form-field"><label class="field-label">Kelompok
   </div>
  </div>`;
 }
+/* Kembalikan fokus ke daftar/rincian asal setelah mengedit transaksi. */
+let txModalOrigin=null;
+function restoreTxModalOrigin(transactionId=null){
+ const previous=txModalOrigin;txModalOrigin=null;
+ if(!previous)return false;
+ const parent=document.getElementById(previous.parentId);
+ if(!parent)return false;
+ const control=transactionId?[...parent.querySelectorAll('[data-edit-tx]')].find(x=>x.dataset.editTx===transactionId):null;
+ const fallback=parent.querySelector('[data-review-close],[data-tx-search-close],[data-close-tx-history]');
+ const target=control||fallback;
+ if(target){target.focus({preventScroll:true});return true;}
+ return false;
+}
 function openTxModal(type='expense',id=null){
  const existing=id?db.transactions.find(t=>t.id===id):null;
  if(id&&!existing)return toast('Transaksi tidak ditemukan.',true);
+ const source=document.activeElement?.closest?.('#review-modal-backdrop,#tx-history-backdrop,#tx-search-backdrop');
+ txModalOrigin=source?{parentId:source.id}:null;
  ui.txEditId=existing?.id||null;
  ui.txType=existing?.type||(['expense','income','transfer'].includes(type)?type:'expense');
  ui.txModalOpen=true;render();
@@ -8618,6 +8641,7 @@ function dismissTxModal(){
  if(!ui.txModalOpen)return;
  const previous=ui.txEditId;
  ui.txModalOpen=false;ui.txEditId=null;render();
+ if(restoreTxModalOrigin(previous))return;
  if(previous){
   const previousEdit=[...document.querySelectorAll('[data-edit-tx]')].find(el=>el.dataset.editTx===previous);
   if(previousEdit){previousEdit.focus({preventScroll:true});return;}
@@ -9590,9 +9614,22 @@ function renderDebtEditorPopup(){
   </section>
  </div>`;
 }
+let debtEditorOrigin=null;
+function restoreDebtEditorOrigin(debtId=null){
+ const origin=debtEditorOrigin;debtEditorOrigin=null;
+ if(!origin)return false;
+ const parent=document.getElementById(origin.parentId);
+ if(!parent)return false;
+ const edit=debtId?[...parent.querySelectorAll('[data-edit-debt]')].find(x=>x.dataset.editDebt===debtId):null;
+ const target=edit||parent.querySelector('[data-review-close],[data-close-debt-editor],[data-close-tx-history]');
+ if(target){target.focus({preventScroll:true});return true;}
+ return false;
+}
 function openDebtEditorPopup(id=null){
  const record=id?db.debts.find(d=>d.id===id):null;
  if(id&&!record){toast("Catatan utang/piutang tidak ditemukan.",true);return;}
+ const source=document.activeElement?.closest?.('#review-modal-backdrop,#tx-history-backdrop,#repay-popup-backdrop');
+ debtEditorOrigin=source?{parentId:source.id}:null;
  ui.debtSelected=null;ui.repayEditId=null;ui.debtEditId=record?.id||null;ui.debtEditorOpen=true;
  render();
  (document.querySelector("#debt-editor-backdrop [name=person]")||document.querySelector("[data-close-debt-editor]"))?.focus({preventScroll:true});
@@ -9601,6 +9638,7 @@ function dismissDebtEditorPopup(){
  if(!ui.debtEditorOpen)return;
  const id=ui.debtEditId;
  ui.debtEditId=null;ui.debtEditorOpen=false;render();
+ if(restoreDebtEditorOrigin(id))return;
  const previous=id?[...document.querySelectorAll("[data-edit-debt]")].find(x=>x.dataset.editDebt===id):null;
  (previous||document.querySelector("[data-debt-add]")||document.querySelector("[data-debt-overview]"))?.focus({preventScroll:true});
 }
@@ -9933,7 +9971,7 @@ if(id==='cloud-login-form'){if(!window.ARUS_CLOUD)return toast('Firebase belum d
 if(id==='tx-form'){let type=f.get('type'),amount=positive(f.get('amount')),accountId=f.get('accountId'),toAccountId=f.get('toAccountId'),categoryId=f.get('categoryId'),date=f.get('date'),title=String(f.get('title')||'').trim(),editId=String(f.get('editId')||'');if(!amount||!acc(accountId)||!/^(?:\d{4})-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/.test(date)||!title)return toast('Lengkapi transaksi dengan benar.',true);if(type==='transfer'){if(!acc(toAccountId)||accountId===toAccountId)return toast('Pilih dua rekening berbeda.',true)}else if(!cat(categoryId)||cat(categoryId).kind!==type)return toast('Pilih kategori yang valid.',true);
 let original=db.transactions.find(t=>t.id===editId);if(editId&&!original)return toast('Transaksi tidak ditemukan.',true);
 let item={id:original?.id||uid(),type,amount,accountId,toAccountId:type==='transfer'?toAccountId:undefined,categoryId:type==='transfer'?undefined:categoryId,date,title,note:String(f.get('note')||'').trim(),createdAt:original?.createdAt||new Date().toISOString()};
-if(original)Object.assign(original,item);else db.transactions.push(item);paxMarkSaved('transaction',item.id);ui.txEditId=null;ui.txModalOpen=false;save();ui.month=date.slice(0,7);render();toast(original?'Perubahan transaksi disimpan.':'Transaksi berhasil disimpan.');return}
+if(original)Object.assign(original,item);else db.transactions.push(item);paxMarkSaved('transaction',item.id);ui.txEditId=null;ui.txModalOpen=false;save();ui.month=date.slice(0,7);render();restoreTxModalOrigin(item.id);toast(original?'Perubahan transaksi disimpan.':'Transaksi berhasil disimpan.');return}
 
 if(id==='budget-form'){
  const inputs=[...form.querySelectorAll('[data-budget-id]')];

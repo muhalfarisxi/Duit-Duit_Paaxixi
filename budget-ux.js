@@ -72,16 +72,24 @@ function setupPeriod(){
   nav.append(prev,yearToggle,next);
   const yearList=node('div','budget-month-year-list');yearList.hidden=true;yearList.setAttribute('aria-label','Daftar tahun');
   const monthGrid=node('div','budget-month-grid');
+  const calendarBody=node('div','budget-month-body');
+  calendarBody.append(yearList,monthGrid);
   const footer=node('div','budget-month-footer');
   const note=node('span','budget-month-footer-note','✨ Bulan aktif ditandai dengan warna biru.');
   const now=node('button','budget-month-today','↗ Bulan ini');now.type='button';
   footer.append(note,now);
-  panel.append(head,nav,yearList,monthGrid,footer);
+  panel.append(head,nav,calendarBody,footer);
   portal.append(shade,panel);document.body.append(portal);
   currentPortal=portal;
   label.setAttribute('aria-expanded','true');
   label.classList.add('budget-ux-period-open');
-  function hideYears(){yearList.hidden=true;yearToggle.setAttribute('aria-expanded','false')}
+  function hideYears(){
+   yearList.hidden=true;
+   panel.classList.remove('is-choosing-year');
+   monthGrid.inert=false;
+   monthGrid.removeAttribute('aria-hidden');
+   yearToggle.setAttribute('aria-expanded','false');
+  }
   function drawMonths(){
    yearToggle.replaceChildren(node('span','budget-month-year-spark','✦'),node('span','budget-month-year-value',String(year)));
    prev.disabled=year<=minYear;next.disabled=year>=maxYear;
@@ -127,8 +135,17 @@ function setupPeriod(){
   prev.addEventListener('click',function(){if(year>minYear){year--;hideYears();drawMonths()}});
   next.addEventListener('click',function(){if(year<maxYear){year++;hideYears();drawMonths()}});
   yearToggle.addEventListener('click',function(){
-   const open=yearList.hidden;yearList.hidden=!open;yearToggle.setAttribute('aria-expanded',String(open));
-   if(open){drawYears();yearList.querySelector('.is-selected')?.scrollIntoView({block:'nearest'})}
+   const open=yearList.hidden;
+   if(!open){hideYears();yearToggle.focus({preventScroll:true});return}
+   drawYears();
+   yearList.hidden=false;
+   panel.classList.add('is-choosing-year');
+   monthGrid.inert=true;
+   monthGrid.setAttribute('aria-hidden','true');
+   yearToggle.setAttribute('aria-expanded','true');
+   const selectedYear=yearList.querySelector('.is-selected');
+   selectedYear?.scrollIntoView({block:'nearest'});
+   selectedYear?.focus({preventScroll:true});
   });
   now.addEventListener('click',function(){
    const code=max;

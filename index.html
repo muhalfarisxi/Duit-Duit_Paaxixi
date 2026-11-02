@@ -7068,7 +7068,7 @@ function paxPromotePopupHeaderActions(root=document){
    '.kpi-modal-actions button[data-nav],'+
    '.tx-history-footer button[data-nav],.tx-history-footer button[data-tx-create],'+
    '.budget-alert-dialog-footer button[data-nav],'+
-   '.debt-quick-action button[data-debt-add],'+
+   '.debt-quick-action button[data-tx-create-debt],'+
    '.point-pie-actions button[data-point-pie-choice=""]'
   )].filter(button=>!button.matches('.point-pie-actions button.selected'));
   if(!buttons.length)return;
@@ -9296,7 +9296,7 @@ function debtOverviewPopupContent(){
    <div class="debt-quick-tabs" role="group" aria-label="Filter status berdasarkan jenis yang dipilih">${tabs}</div>
    ${selected.length?section(type,typeTitle):`<div class="review-modal-empty">Belum Ada Catatan ${type==='receivable'?'Piutang':'Utang'} Dengan Status ${filter==='open'?'Belum Lunas':filter==='closed'?'Sudah Lunas':'Apa Pun'}.</div>`}
   <p class="debt-quick-explain">Data berasal dari daftar Utang & Piutang. Saldo berlaku sepanjang waktu; cicilan bukan pemasukan atau pengeluaran rutin.</p>
-  <div class="debt-quick-action"><button type="button" class="btn primary finance-spotlight-action debt-manage-cta" data-tx-create-debt><span aria-hidden="true">＋</span> Catat Utang / Piutang <span class="spotlight-arrow" aria-hidden="true">→</span></button></div></div>`;
+  <div class="debt-quick-action"><button type="button" class="btn primary finance-spotlight-action debt-manage-cta" data-tx-create-debt><span aria-hidden="true">＋</span> Catat Transaksi <span class="spotlight-arrow" aria-hidden="true">→</span></button></div></div>`;
 }
 
 function renderExpenseCompositionPopup(popup){

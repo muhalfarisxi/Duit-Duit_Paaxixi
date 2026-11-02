@@ -831,3 +831,33 @@ dialog.budget-viz-portal .budget-viz-portal-pos{cursor:pointer}
  .budget-viz-filter-summary-copy strong{font-size:11px}
  .budget-viz-filter-summary-copy small{font-size:9px}
  .budget-viz-pos-eligible{font-size:10px}}
+
+
+/* #141 Harmoni tombol dropdown: indikator tetap tepat di tengah. */
+.budget-viz-trigger .budget-viz-chevron,
+.month-pill .budget-ux-period-caret{
+ border:1px solid #c0d8f9;border-radius:10px;
+ background:linear-gradient(135deg,#edf6ff,#dcecff);
+ box-shadow:0 3px 9px #225b9d18;transition:background .22s,box-shadow .22s,border-color .22s;
+}
+.budget-viz-trigger:hover .budget-viz-chevron,
+.budget-viz-picker.is-open .budget-viz-chevron{
+ background:linear-gradient(135deg,#dceaff,#c8e1ff);
+ border-color:#89b5e9;box-shadow:0 5px 13px #286db32a;
+}
+.budget-viz-picker.is-open .budget-viz-chevron::after{transform:translateY(2px) rotate(225deg)}
+.budget-month-year-toggle[aria-expanded="true"]{
+ background:linear-gradient(115deg,#d6eaff,#e9f6ff);
+ border-color:#84b4ea;box-shadow:0 5px 15px #2166ab23;
+}
+.budget-viz-portal-group-arrow,
+.budget-viz-portal-pos-check{
+ display:grid;place-items:center;flex:none;width:30px;height:30px;
+ border:1px solid #c8ddf6;border-radius:10px;background:#f2f8ff;
+ line-height:1;
+}
+.budget-viz-portal-group:hover .budget-viz-portal-group-arrow{transform:translateX(3px) scale(1.06)}
+@media(prefers-reduced-motion:reduce){
+ .budget-viz-trigger .budget-viz-chevron,.month-pill .budget-ux-period-caret,
+ .budget-viz-portal-group-arrow,.budget-viz-portal-pos-check{transition:none!important}
+}

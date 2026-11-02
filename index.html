@@ -6785,6 +6785,124 @@ body details.pax-enhanced-details[open]>:not(summary){animation:paxDetailsReveal
  #content .debt-kind-tabs>button>b{min-width:19px}
 }
 
+
+/* #145 Kalender interaktif untuk semua input tanggal, tanpa mengubah format data ISO. */
+.pax-date-field{position:relative;display:block;width:100%;min-width:0;isolation:isolate}
+.pax-date-field>input[type="date"]{width:100%!important;min-width:0;padding-right:51px!important;
+ font-variant-numeric:tabular-nums;cursor:pointer;transition:border-color .18s,box-shadow .18s}
+.pax-date-field>input[type="date"]::-webkit-calendar-picker-indicator{
+ opacity:0;pointer-events:none;width:0;height:0;margin:0;padding:0}
+.pax-date-field>input[type="date"]:hover{border-color:#8db7ef!important}
+.pax-date-field>input[type="date"]:focus-visible{border-color:#5796e3!important;
+ box-shadow:0 0 0 4px #4f96ed20!important}
+.pax-date-trigger{position:absolute;top:50%;right:7px;transform:translateY(-50%);z-index:2;
+ display:grid;place-items:center;width:37px;height:37px;box-sizing:border-box;
+ border:1px solid #c6ddfb;border-radius:12px;background:linear-gradient(135deg,#f3f9ff,#e0eeff);
+ color:#3676c6;cursor:pointer;transition:background .2s,box-shadow .2s,border-color .2s}
+.pax-date-trigger svg{width:19px;height:19px;stroke:currentColor;stroke-width:2.1;fill:none;
+ stroke-linecap:round;stroke-linejoin:round}
+.pax-date-field:hover .pax-date-trigger,.pax-date-trigger:hover{
+ background:linear-gradient(135deg,#dcecff,#c6e0ff);border-color:#86b4f0;
+ box-shadow:0 5px 15px #3577be24}
+.pax-date-trigger:focus-visible{outline:3px solid #78adf3;outline-offset:2px}
+dialog.pax-calendar-dialog{position:fixed;margin:auto;inset:0;max-width:calc(100vw - 20px);
+ width:min(468px,calc(100vw - 24px));max-height:calc(100dvh - 24px);padding:0;
+ border:1px solid #c8dafa;border-radius:25px;background:#fafdff;color:#1b4375;
+ box-shadow:0 28px 100px #09264a63,0 0 0 1px #ffffff77;
+ overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;
+ animation:paxCalendarAppear .3s cubic-bezier(.16,.88,.26,1.08) both;
+ font-family:Nunito,ui-sans-serif,system-ui,sans-serif}
+dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
+ backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+ animation:paxCalendarBackdrop .22s ease both}
+.pax-cal-hero{position:relative;overflow:hidden;padding:18px 21px 19px;
+ background:linear-gradient(125deg,#174777,#2e6eb4 64%,#8574c9);color:#fff}
+.pax-cal-hero::after{content:"";position:absolute;right:-40px;top:-55px;width:180px;height:180px;
+ border:2px solid #ffffff38;border-radius:50%;box-shadow:0 0 0 29px #ffffff0d;
+ pointer-events:none}
+.pax-cal-head{display:flex;align-items:center;gap:11px;position:relative;z-index:1}
+.pax-cal-logo{display:grid;place-items:center;flex:none;width:43px;height:43px;
+ border:1px solid #ffffff5c;border-radius:14px;background:#ffffff28;font-size:23px;
+ box-shadow:0 5px 17px #102d6330;animation:paxCalendarBop 3.5s ease-in-out infinite}
+.pax-cal-titles{flex:1;min-width:0;display:grid;gap:4px}
+.pax-cal-eyebrow{font:900 10px/1.2 Nunito,sans-serif;letter-spacing:1.1px;color:#cee4ff}
+.pax-cal-titles strong{font:600 21px/1.18 Fredoka,Nunito,sans-serif;overflow-wrap:anywhere}
+.pax-cal-close{position:relative;z-index:2;width:35px;height:35px;display:grid;place-items:center;
+ border:1px solid #ffffff54;border-radius:11px;background:#ffffff26;color:#fff;font-size:20px}
+.pax-cal-close:hover{background:#ffffff45}
+.pax-cal-subtitle{position:relative;z-index:1;margin:12px 0 0;color:#edf5ff;font:750 12px/1.4 Nunito,sans-serif}
+.pax-cal-body{padding:19px 21px 20px}
+.pax-cal-navigation{display:grid;grid-template-columns:40px minmax(0,1fr) 40px;
+ align-items:center;gap:9px;margin-bottom:15px}
+.pax-cal-nav{width:40px;height:40px;display:grid;place-items:center;border:1px solid #cfdef8;
+ border-radius:12px;background:#f0f6ff;color:#2863aa;font-size:25px;line-height:1;
+ transition:transform .17s,background .17s}
+.pax-cal-nav:not(:disabled):hover{transform:scale(1.07);background:#ddeeff}
+.pax-cal-navigation-controls{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:7px}
+.pax-cal-navigation-controls select{appearance:none;-webkit-appearance:none;width:100%;min-width:0;
+ height:40px;padding:6px 24px 6px 11px;border:1.5px solid #cbdff8;border-radius:11px;
+ background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' stroke='%23316cb6' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 7px center/15px;
+ color:#245d9b;font:900 13px Nunito,sans-serif;text-align:center;cursor:pointer}
+.pax-cal-weekdays,.pax-cal-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.pax-cal-weekdays{margin-bottom:7px}
+.pax-cal-weekdays span{text-align:center;padding:8px 0;color:#7b96b7;
+ font:900 10px Nunito,sans-serif}
+.pax-cal-weekdays span:nth-last-child(-n+2){color:#bc88a8}
+.pax-cal-days button,.pax-cal-empty{width:100%;min-width:0;aspect-ratio:1/1;
+ display:grid;place-items:center;border-radius:12px;font:900 13px Nunito,sans-serif}
+.pax-cal-days button{position:relative;border:1px solid transparent;background:#f1f6ff;
+ color:#2b5d92;transition:transform .16s,background .16s,box-shadow .16s,border-color .16s}
+.pax-cal-days button:not(:disabled):hover{transform:translateY(-3px) scale(1.06);
+ border-color:#8ebbef;background:#deeeff;box-shadow:0 5px 13px #2b78c621}
+.pax-cal-days button.is-weekend:not(.is-selected){background:#f6f0ff;color:#8059b2}
+.pax-cal-days button.is-today{border-color:#78b5e7;box-shadow:inset 0 0 0 1px #6a9ed8}
+.pax-cal-days button.is-today::after{content:"";position:absolute;bottom:4px;width:4px;height:4px;
+ background:currentColor;border-radius:50%}
+.pax-cal-days button.is-selected,.pax-cal-days button.is-selected:hover{
+ color:white;background:linear-gradient(135deg,#347bcd,#6e65c8);border-color:#3379c5;
+ box-shadow:0 5px 13px #346cbd4a}
+.pax-cal-days button:disabled{color:#a9b7c9;background:#f7f9fc;opacity:.52;cursor:not-allowed}
+.pax-cal-empty{background:transparent}
+.pax-cal-today-row{display:flex;align-items:center;justify-content:center;margin:12px 0 15px}
+.pax-cal-today{min-height:36px;padding:8px 14px;border:1px solid #abd2f7;
+ background:#eaf5ff;border-radius:12px;color:#286bb6;font:900 11px Nunito,sans-serif}
+.pax-cal-today:not(:disabled):hover{background:#d8edff}
+.pax-cal-today:disabled{opacity:.4}
+.pax-cal-manual{border-top:1px dashed #d1e0f5;padding-top:15px}
+.pax-cal-manual-label{display:flex;align-items:center;gap:7px;margin-bottom:8px;
+ font:900 12px Nunito,sans-serif;color:#315e92}
+.pax-cal-manual-row{display:flex;align-items:stretch;gap:8px}
+.pax-cal-manual input{flex:1;min-width:0;min-height:43px;padding:10px 12px;
+ border:1.5px solid #ccdef6;border-radius:12px;background:#fff;
+ color:#285184;font:850 14px Nunito,sans-serif;letter-spacing:.2px}
+.pax-cal-manual input:focus{outline:3px solid #9fc8fa;outline-offset:1px}
+.pax-cal-apply{flex:none;min-height:43px;border:1px solid #286cba;border-radius:12px;
+ padding:10px 15px;background:linear-gradient(115deg,#367dca,#245da8);color:white;
+ font:900 12px Nunito,sans-serif;box-shadow:0 5px 12px #215ca424}
+.pax-cal-apply:hover{filter:brightness(1.07);transform:translateY(-1px)}
+.pax-cal-error{margin:7px 0 0;color:#bf4253;font:850 11px/1.4 Nunito,sans-serif}
+.pax-cal-error[hidden]{display:none}
+.pax-cal-help{margin:7px 0 0;color:#8096af;font:750 10px/1.5 Nunito,sans-serif}
+.pax-cal-navigation-controls select:focus-visible,.pax-cal-days button:focus-visible,
+.pax-cal-nav:focus-visible,.pax-cal-close:focus-visible,.pax-cal-apply:focus-visible{
+ outline:3px solid #8bc0fa;outline-offset:2px}
+@keyframes paxCalendarAppear{from{opacity:0;transform:translateY(14px) scale(.95)}
+ to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes paxCalendarBackdrop{from{opacity:0}to{opacity:1}}
+@keyframes paxCalendarBop{0%,86%,100%{transform:rotate(0)}91%{transform:rotate(-9deg)}96%{transform:rotate(6deg)}}
+@media(max-width:480px){
+ dialog.pax-calendar-dialog{border-radius:19px;width:calc(100vw - 18px);max-height:calc(100dvh - 18px)}
+ .pax-cal-hero{padding:15px 15px 17px}.pax-cal-body{padding:14px 13px 16px}
+ .pax-cal-titles strong{font-size:18px}.pax-cal-logo{width:38px;height:38px;font-size:21px}
+ .pax-cal-days button,.pax-cal-empty{border-radius:10px;font-size:12px}
+ .pax-cal-weekdays,.pax-cal-days{gap:4px}
+ .pax-cal-manual-row{gap:6px}.pax-cal-apply{padding:8px 11px}
+}
+@media(prefers-reduced-motion:reduce){
+ dialog.pax-calendar-dialog,dialog.pax-calendar-dialog::backdrop,.pax-cal-logo{animation:none!important}
+ .pax-cal-nav,.pax-cal-days button,.pax-date-trigger{transition:none!important}
+}
+
 /* #127 Anggaran: dua menu, kelompok bertingkat dan status penetapan per bulan. */
 #content .budget-work-tabs-two{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}
 #content .budget-work-tabs-two button{min-width:0;white-space:normal;min-height:48px}
@@ -7465,6 +7583,247 @@ function paxEnhanceDropdowns(root=document){
  });
 }
 
+
+/* Kalender Paaxixi global: semua tanggal tetap input[type=date] ISO untuk
+   FormData, validasi, filter, dan sinkronisasi. Popup mendukung klik atau ketik. */
+const paxCalMonthNames=['Januari','Februari','Maret','April','Mei','Juni',
+ 'Juli','Agustus','September','Oktober','November','Desember'];
+let paxCalDialog=null,paxCalTarget=null,paxCalYear=2026,paxCalMonth=0;
+function paxCalISO(y,m,d){
+ return String(y).padStart(4,'0')+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+}
+function paxCalValid(value){
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(String(value||'')))return false;
+ const [year,month,day]=value.split('-').map(Number);
+ return year>=1900&&year<=2100&&month>=1&&month<=12&&day>=1&&
+  day<=new Date(year,month,0).getDate();
+}
+function paxCalParse(text){
+ const value=String(text||'').trim();
+ if(paxCalValid(value))return value;
+ const slash=value.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+ if(!slash)return '';
+ const date=String(slash[3]).padStart(4,'0')+'-'+slash[2].padStart(2,'0')+'-'+slash[1].padStart(2,'0');
+ return paxCalValid(date)?date:'';
+}
+function paxCalBounds(input){
+ const lo=paxCalValid(input?.min)?input.min:'1900-01-01';
+ const hi=paxCalValid(input?.max)?input.max:'2100-12-31';
+ return {min:lo,max:hi};
+}
+function paxCalWithin(iso,input){
+ const bounds=paxCalBounds(input);
+ return paxCalValid(iso)&&iso>=bounds.min&&iso<=bounds.max;
+}
+function paxCalText(iso){
+ if(!paxCalValid(iso))return '';
+ const [y,m,d]=iso.split('-');
+ return d+'/'+m+'/'+y;
+}
+function paxCalEnhance(root=document){
+ if(!root?.querySelectorAll)return;
+ const fields=[];
+ if(root.matches?.('input[type="date"]'))fields.push(root);
+ root.querySelectorAll('input[type="date"]').forEach(field=>fields.push(field));
+ fields.forEach(input=>{
+  if(input.dataset.paxDateEnhanced==='1'||input.closest('.pax-calendar-dialog'))return;
+  if(input.closest('.pax-date-field')){input.dataset.paxDateEnhanced='1';return}
+  if(!input.parentNode)return;
+  input.dataset.paxDateEnhanced='1';
+  const wrap=document.createElement('span');
+  wrap.className='pax-date-field';
+  input.parentNode.insertBefore(wrap,input);
+  wrap.append(input);
+  const button=document.createElement('button');
+  button.type='button';
+  button.className='pax-date-trigger';
+  button.setAttribute('aria-label','Pilih tanggal di kalender');
+  button.title='Pilih tanggal';
+  button.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 15h3"/></svg>';
+  wrap.append(button);
+ });
+}
+function paxCalLabel(input){
+ const label=input?.closest('.form-field')?.querySelector('.field-label')||
+  (input?.id?document.querySelector('label[for="'+CSS.escape(input.id)+'"]'):null);
+ return (label?.textContent||input?.closest('label')?.textContent||'Pilih tanggal').trim().slice(0,90);
+}
+function paxCalRender(){
+ const dialog=paxCalDialog,input=paxCalTarget;
+ if(!dialog||!input)return;
+ const bounds=paxCalBounds(input),today=analysisToday();
+ const monthName=paxCalMonthNames[paxCalMonth],selected=input.value;
+ const years=Array.from({length:Number(bounds.max.slice(0,4))-Number(bounds.min.slice(0,4))+1},
+  (_,i)=>Number(bounds.min.slice(0,4))+i);
+ const fromMonth=paxCalISO(paxCalYear,paxCalMonth,1);
+ const lastDay=new Date(paxCalYear,paxCalMonth+1,0).getDate();
+ const endMonth=paxCalISO(paxCalYear,paxCalMonth,lastDay);
+ const previous=new Date(paxCalYear,paxCalMonth-1,1);
+ const next=new Date(paxCalYear,paxCalMonth+1,1);
+ const prevAllowed=paxCalISO(previous.getFullYear(),previous.getMonth(),
+  new Date(previous.getFullYear(),previous.getMonth()+1,0).getDate())>=bounds.min;
+ const nextAllowed=paxCalISO(next.getFullYear(),next.getMonth(),1)<=bounds.max;
+ const offset=(new Date(paxCalYear,paxCalMonth,1).getDay()+6)%7;
+ const cellCount=Math.ceil((offset+lastDay)/7)*7;
+ const weekdays=['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
+ let days=Array.from({length:cellCount},(_,i)=>{
+  const day=i-offset+1;
+  if(day<1||day>lastDay)return '<span class="pax-cal-empty" aria-hidden="true"></span>';
+  const iso=paxCalISO(paxCalYear,paxCalMonth,day);
+  const disabled=!paxCalWithin(iso,input);
+  const classes=[iso===selected?'is-selected':'',iso===today?'is-today':'',i%7>=5?'is-weekend':''].filter(Boolean).join(' ');
+  return `<button type="button" data-pax-cal-day="${iso}" class="${classes}"
+   aria-label="${day} ${monthName} ${paxCalYear}" aria-pressed="${iso===selected?'true':'false'}"
+   ${disabled?'disabled':''}>${day}</button>`;
+ }).join('');
+ dialog.innerHTML=`
+ <div class="pax-cal-hero">
+  <div class="pax-cal-head">
+   <span class="pax-cal-logo" aria-hidden="true">🗓️</span>
+   <div class="pax-cal-titles"><span class="pax-cal-eyebrow">KALENDER PAAXIXI ✦</span>
+    <strong id="pax-cal-title">Pilih Tanggal</strong></div>
+   <button type="button" class="pax-cal-close" data-pax-cal-close aria-label="Tutup kalender">×</button>
+  </div>
+  <p class="pax-cal-subtitle">${h(paxCalLabel(input))}</p>
+ </div>
+ <div class="pax-cal-body">
+  <div class="pax-cal-navigation">
+   <button type="button" class="pax-cal-nav" data-pax-cal-prev aria-label="Bulan sebelumnya"
+    ${prevAllowed?'':'disabled'}>‹</button>
+   <div class="pax-cal-navigation-controls">
+    <select data-pax-cal-month aria-label="Pilih bulan">${paxCalMonthNames.map((name,i)=>
+     `<option value="${i}" ${i===paxCalMonth?'selected':''}>${name}</option>`).join('')}</select>
+    <select data-pax-cal-year aria-label="Pilih tahun">${years.map(year=>
+     `<option value="${year}" ${year===paxCalYear?'selected':''}>${year}</option>`).join('')}</select>
+   </div>
+   <button type="button" class="pax-cal-nav" data-pax-cal-next aria-label="Bulan berikutnya"
+    ${nextAllowed?'':'disabled'}>›</button>
+  </div>
+  <div class="pax-cal-weekdays">${weekdays.map(day=>`<span>${day}</span>`).join('')}</div>
+  <div class="pax-cal-days" role="group" aria-label="Tanggal ${monthName} ${paxCalYear}">${days}</div>
+  <div class="pax-cal-today-row"><button type="button" class="pax-cal-today"
+   data-pax-cal-today ${paxCalWithin(today,input)?'':'disabled'}>✦ Pilih Hari Ini</button></div>
+  <div class="pax-cal-manual">
+   <label class="pax-cal-manual-label" for="pax-cal-manual-input">✎ Ketik tanggal manual</label>
+   <div class="pax-cal-manual-row">
+    <input id="pax-cal-manual-input" data-pax-cal-manual type="text" inputmode="numeric"
+     autocomplete="off" placeholder="DD/MM/YYYY" value="${h(paxCalText(selected))}">
+    <button class="pax-cal-apply" data-pax-cal-apply type="button">Terapkan</button>
+   </div>
+   <p class="pax-cal-error" data-pax-cal-error role="alert" hidden></p>
+   <p class="pax-cal-help">Bisa juga diketik YYYY-MM-DD. Kalender mengikuti batas tanggal formulir.</p>
+  </div>
+ </div>`;
+}
+function paxCalClose(){
+ if(!paxCalDialog)return;
+ const dialog=paxCalDialog;
+ paxCalDialog=null;paxCalTarget=null;
+ if(dialog.open)dialog.close();
+ dialog.remove();
+}
+function paxCalSelect(iso){
+ const input=paxCalTarget;
+ if(!input||!input.isConnected||!paxCalWithin(iso,input))return false;
+ paxCalClose();
+ const changed=input.value!==iso;
+ input.value=iso;
+ if(changed){
+  input.dispatchEvent(new Event('input',{bubbles:true}));
+  input.dispatchEvent(new Event('change',{bubbles:true}));
+ }
+ if(input.isConnected)input.focus({preventScroll:true});
+ return true;
+}
+function paxCalOpen(input){
+ if(!input||input.disabled||input.readOnly||input.type!=='date')return;
+ paxCalClose();
+ paxCalTarget=input;
+ const bounds=paxCalBounds(input),candidate=paxCalValid(input.value)?input.value:analysisToday();
+ const chosen=candidate<bounds.min?bounds.min:candidate>bounds.max?bounds.max:candidate;
+ paxCalYear=Number(chosen.slice(0,4));paxCalMonth=Number(chosen.slice(5,7))-1;
+ const dlg=document.createElement('dialog');
+ dlg.className='pax-calendar-dialog';
+ dlg.setAttribute('aria-labelledby','pax-cal-title');
+ paxCalDialog=dlg;
+ document.body.append(dlg);
+ paxCalRender();
+ dlg.addEventListener('click',event=>{
+  event.stopPropagation();
+  if(event.target===dlg||event.target.closest('[data-pax-cal-close]')){paxCalClose();return}
+  const day=event.target.closest('[data-pax-cal-day]');
+  if(day){paxCalSelect(day.dataset.paxCalDay);return}
+  if(event.target.closest('[data-pax-cal-today]')){paxCalSelect(analysisToday());return}
+  const direction=event.target.closest('[data-pax-cal-prev]')?-1:
+   event.target.closest('[data-pax-cal-next]')?1:0;
+  if(direction){
+   const d=new Date(paxCalYear,paxCalMonth+direction,1);
+   paxCalYear=d.getFullYear();paxCalMonth=d.getMonth();paxCalRender();return;
+  }
+  if(event.target.closest('[data-pax-cal-apply]')){paxCalApplyManual();return}
+ });
+ dlg.addEventListener('change',event=>{
+  event.stopPropagation();
+  if(event.target.matches('[data-pax-cal-month],[data-pax-cal-year]')){
+   paxCalMonth=Number(dlg.querySelector('[data-pax-cal-month]').value);
+   paxCalYear=Number(dlg.querySelector('[data-pax-cal-year]').value);
+   paxCalRender();
+  }
+ });
+ dlg.addEventListener('keydown',event=>{
+  if(event.target.matches('[data-pax-cal-manual]')&&event.key==='Enter'){
+   event.preventDefault();paxCalApplyManual();
+  }
+ });
+ dlg.addEventListener('cancel',event=>{event.preventDefault();paxCalClose()});
+ dlg.showModal();
+ const active=dlg.querySelector('.pax-cal-days .is-selected:not(:disabled)')||
+  dlg.querySelector('.pax-cal-navigation-controls select');
+ active?.focus({preventScroll:true});
+}
+function paxCalApplyManual(){
+ const input=paxCalDialog?.querySelector('[data-pax-cal-manual]');
+ const error=paxCalDialog?.querySelector('[data-pax-cal-error]');
+ if(!input||!error)return;
+ const iso=paxCalParse(input.value);
+ if(!iso){error.hidden=false;error.textContent='Tanggal tidak valid. Gunakan DD/MM/YYYY, misalnya 02/11/2026.';input.focus();return}
+ if(!paxCalWithin(iso,paxCalTarget)){
+  const bounds=paxCalBounds(paxCalTarget);
+  error.hidden=false;error.textContent='Tanggal harus antara '+paxCalText(bounds.min)+' dan '+paxCalText(bounds.max)+'.';
+  input.focus();return;
+ }
+ paxCalSelect(iso);
+}
+function paxCalSetup(){
+ paxCalEnhance(document);
+ document.addEventListener('click',event=>{
+  const button=event.target.closest?.('.pax-date-trigger');
+  const input=button?.closest('.pax-date-field')?.querySelector('input[type="date"]')||
+   (event.target.matches?.('input[type="date"]')?event.target:null);
+  if(!input||input.closest('.pax-calendar-dialog'))return;
+  event.preventDefault();event.stopPropagation();
+  paxCalOpen(input);
+ },true);
+ document.addEventListener('keydown',event=>{
+  if(event.target.matches?.('input[type="date"]')&&event.altKey&&event.key==='ArrowDown'){
+   event.preventDefault();paxCalOpen(event.target);
+  }
+ });
+ document.addEventListener('change',event=>{
+  const input=event.target;
+  if(input.matches?.('#debt-form input[name="date"]')){
+   const due=input.form?.querySelector('input[name="dueDate"]');
+   if(due){due.min=input.value||'';if(due.value&&due.min&&due.value<due.min)due.value='';}
+  }
+ });
+ const observer=new MutationObserver(mutations=>{
+  mutations.forEach(record=>record.addedNodes.forEach(node=>{
+   if(node.nodeType===1)paxCalEnhance(node);
+  }));
+ });
+ observer.observe(document.body,{childList:true,subtree:true});
+}
+
 function labelNav(){const titles={dashboard:['Dashboard Keuangan',''],review:['Rincian Transaksi',''],budgets:['Anggaran Bulanan',''],debts:['Utang & Piutang',''],reports:['Arsip Laporan','Simpan laporan setiap akhir bulan agar angka periode tersebut terdokumentasi.'],accounts:['Rekening, Kategori & Sinkronisasi','Cocokkan saldo rekening, susun kategori, dan cadangkan data secara berkala.']};const item=titles[ui.view];decoratePaaxixiPageTitle(item[0]);document.getElementById('page-subtitle').textContent=ui.view==='dashboard'?'':item[1];refreshHeaderWeton();document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
 /* #081 Sejajarkan titik awal donut dan tren walau tinggi filternya berbeda. */
 let analysisChartResizeObserver=null,analysisChartAlignmentQueued=false;
@@ -7616,6 +7975,7 @@ function render(){
  paxDecorateMini(document.getElementById('content'));
  paxDecoratePopups(document.getElementById('content'));
  paxEnhanceDropdowns(document.getElementById('content'));
+ paxCalEnhance(document.getElementById('content'));
  expandedDebtIds.forEach(id=>{const card=[...document.querySelectorAll('[data-debt-quick-id]')].find(x=>x.dataset.debtQuickId===id);card?.querySelector('details')?.setAttribute('open','');});
  expandedDebtDashIds.forEach(id=>{const card=[...document.querySelectorAll('[data-debt-card-id]')].find(x=>x.dataset.debtCardId===id);card?.querySelector('.debt-dash-details')?.setAttribute('open','');});
  paxAnimateSaved();
@@ -12695,7 +13055,7 @@ if(x.id==='report-month'){ui.month=x.value||currentMonth();render()}
 
 if(x.id==='tx-group'){let cs=(ui.txType==='expense'?expenses():incomes()).filter(c=>c.group===x.value);let sel=document.getElementById('tx-category');if(sel)sel.innerHTML=cs.map(c=>`<option value="${h(c.id)}">${pickSymbol(c.label,c.group)} ${h(c.label)}</option>`).join('')}
 if(x.id==='new-cat-kind'){let sel=document.getElementById('new-cat-group');sel.innerHTML=(x.value==='income'?['BPS','Fastlink','Lainnya']:expenseGroups().map(g=>g.name)).map(g=>`<option value="${h(g)}">${pickSymbol(g,g)} ${h(g)}</option>`).join('')}});
-document.getElementById('top-add').addEventListener('click',()=>openTxModal(ui.view==='debts'?'payable':'expense'));document.getElementById('cloud-status').addEventListener('click',()=>setView('accounts'));document.getElementById('import-file').addEventListener('change',e=>importJSON(e.target.files?.[0]));render();document.querySelector('.welcome-modal-close')?.focus({preventScroll:true});void muatQuoteMingguan();
+document.getElementById('top-add').addEventListener('click',()=>openTxModal(ui.view==='debts'?'payable':'expense'));document.getElementById('cloud-status').addEventListener('click',()=>setView('accounts'));document.getElementById('import-file').addEventListener('change',e=>importJSON(e.target.files?.[0]));render();paxCalSetup();document.querySelector('.welcome-modal-close')?.focus({preventScroll:true});void muatQuoteMingguan();
 // Perbarui kalender WIB global meski tab tetap terbuka saat berganti hari.
 refreshHeaderWeton();
 setInterval(refreshHeaderWeton,60000);

@@ -6484,16 +6484,6 @@ body:has(.tx-search-backdrop){overflow:hidden}
 .debt-kind-tabs>button:hover:not(.active){transform:translateY(-2px);box-shadow:0 6px 15px #1b52941a}
 .debt-dashboard .debt-main-filter-bar{gap:7px;justify-content:flex-start}
 .debt-dashboard .debt-filter-pill{min-height:39px;padding:8px 11px}
-.debt-due-notice{display:flex;align-items:center;gap:12px;padding:14px 17px;
- border:1.5px solid #f0c69b;border-radius:17px;
- background:linear-gradient(118deg,#fff6e8,#fffbf6 90%);box-shadow:0 6px 16px #ba783014}
-.debt-due-notice-icon{flex:none;width:42px;height:42px;display:grid;place-items:center;
- background:#ffedce;border-radius:13px;font-size:22px;animation:debtAlertWiggle 4s ease-in-out infinite}
-.debt-due-notice>div{flex:1;min-width:0}
-.debt-due-notice strong{font:900 14px/1.35 Nunito,sans-serif;color:#99601e}
-.debt-due-notice p{font:750 11px/1.5 Nunito,sans-serif;color:#987950;margin:3px 0 0}
-.debt-due-notice-action{white-space:nowrap}
-.debt-due-notice-compact{margin:0 0 15px}
 .debt-due-pill{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-height:32px;
  width:max-content;max-width:100%;margin:12px 0 0;padding:7px 11px;border:1px solid #bcd9f5;
  background:#eaf4ff;border-radius:11px;color:#326a9f;font:800 11px/1.35 Nunito,sans-serif}
@@ -6503,8 +6493,6 @@ body:has(.tx-search-backdrop){overflow:hidden}
 .debt-due-pill.debt-due-soon{background:#fff3df;border-color:#f3d4a0;color:#ad6b19}
 .debt-due-pill.debt-due-paid{background:#e7f7ef;border-color:#bce8d4;color:#158266}
 .debt-due-pill.debt-due-undated{background:#f2f5fa;border-color:#dee6f2;color:#788da2}
-.debt-dash-buttons .debt-dash-remind{border-color:#a2c5f0;background:#f3f8ff;color:#2668a9}
-.debt-dash-buttons .debt-dash-remind:hover{background:#e2f1ff}
 @keyframes debtAlertWiggle{0%,78%,100%{transform:rotate(0)}85%{transform:rotate(-9deg)}92%{transform:rotate(7deg)}}
 @media(max-width:620px){.debt-kind-tabs{gap:5px;padding:5px}.debt-kind-tabs>button{font-size:11px;gap:5px;min-height:43px;padding:7px 3px}
  .debt-kind-tabs>button>span{width:21px;height:21px;font-size:14px}
@@ -6632,6 +6620,71 @@ body details.pax-enhanced-details[open]>:not(summary){animation:paxDetailsReveal
 @media(prefers-reduced-motion:reduce){
  #content :is(.review-export-caret,.comp-chevron,.income-month-chevron,.review-group-chevron){transition:none!important}
  body details.pax-enhanced-details[open]>:not(summary){animation:none!important}
+}
+
+/* #143 Pengingat dashboard: satu pusat perhatian, bukan tombol Tagih per kartu. */
+#content .debt-home-alert{display:grid;gap:12px;margin:0 0 18px;
+ border:1.5px solid #ebd0aa;border-radius:22px;padding:16px 18px;
+ background:linear-gradient(125deg,#fffaee,#fff 67%,#f5f9ff);
+ box-shadow:0 9px 27px #84642d12;animation:debtCardArrive .38s ease-out both}
+#content .debt-home-alert-heading{display:flex;align-items:center;gap:13px;min-width:0}
+#content .debt-home-alert-icon{display:grid;place-items:center;flex:none;
+ width:49px;height:49px;border-radius:16px;background:#fff0d4;
+ border:1px solid #f0d6ae;font-size:25px;
+ animation:debtAlertWiggle 4s ease-in-out infinite}
+#content .debt-home-alert-copy{flex:1;min-width:0}
+#content .debt-home-alert-titleline{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+#content .debt-home-alert-titleline h3{margin:0;color:#214d7c;
+ font:600 clamp(16px,1.6vw,21px)/1.3 Fredoka,Nunito,sans-serif}
+#content .debt-home-alert-count{display:inline-flex;align-items:center;
+ padding:5px 9px;border-radius:999px;background:#ffe9d2;color:#a65a22;
+ border:1px solid #f2d3ad;font:900 10px/1.3 Nunito,sans-serif}
+#content .debt-home-alert-copy p{margin:4px 0 0;color:#7185a0;
+ font:750 11px/1.5 Nunito,sans-serif}
+#content .debt-home-alert-all{display:inline-flex;align-items:center;justify-content:center;
+ gap:7px;flex:none;min-height:40px;padding:9px 13px;white-space:nowrap;
+ color:#fff;background:linear-gradient(115deg,#194879,#296ba9);border:1px solid #1c588e;
+ border-radius:12px;font:900 11px Nunito,sans-serif;transition:transform .18s,box-shadow .18s}
+#content .debt-home-alert-all:hover{transform:translateY(-2px);box-shadow:0 6px 14px #20579134}
+#content .debt-home-alert-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+#content .debt-home-alert-item{display:flex;align-items:center;gap:9px;min-width:0;
+ padding:11px 12px;cursor:pointer;text-align:left;border:1px solid #f0d8b8;border-radius:14px;
+ background:linear-gradient(112deg,#fff2e0,#fffaf4);color:#214e7e;
+ transition:transform .2s,box-shadow .2s,border-color .2s}
+#content .debt-home-alert-item.debt-home-alert-overdue{border-color:#efc0c5;
+ background:linear-gradient(112deg,#fff0f0,#fffafd)}
+#content .debt-home-alert-item:hover{transform:translateY(-2px);border-color:#7ab1ec;
+ box-shadow:0 6px 16px #255e9b1c}
+#content .debt-home-alert-item:focus-visible{outline:3px solid #7ab1ec;outline-offset:2px}
+#content .debt-home-alert-item-icon{display:grid;place-items:center;flex:none;
+ width:32px;height:32px;border-radius:10px;background:#ffffffbf;font-size:17px}
+#content .debt-home-alert-person{min-width:0;flex:1;display:grid;gap:4px}
+#content .debt-home-alert-person strong{color:#23517c;font:900 12px/1.2 Nunito,sans-serif;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#content .debt-home-alert-person small{color:#728aa2;font:750 10px/1.4 Nunito,sans-serif}
+#content .debt-home-alert-value{min-width:0;display:grid;gap:4px;text-align:right}
+#content .debt-home-alert-value strong{font:900 12px/1.25 Nunito,sans-serif;color:#254e78;
+ white-space:nowrap}
+#content .debt-home-alert-value small{font:900 10px/1.3 Nunito,sans-serif;color:#a8711d}
+#content .debt-home-alert-overdue .debt-home-alert-value small{color:#b94855}
+#content .debt-home-alert-chevron{font-size:22px;color:#5488bf}
+#content .debt-home-alert-more{margin:0;padding:0 4px;font:800 11px/1.5 Nunito,sans-serif;color:#7189a3}
+#content .debt-home-alert-target{outline:3px solid #e9ad4a;outline-offset:4px;
+ animation:debtTargetPulse .85s ease-out 2}
+@keyframes debtTargetPulse{0%,100%{box-shadow:0 3px 12px #d78b2530}
+ 50%{box-shadow:0 0 0 7px #f3c56b36,0 9px 20px #d78b2530}}
+@media(max-width:920px){#content .debt-home-alert-list{grid-template-columns:1fr}}
+@media(max-width:580px){#content .debt-home-alert{padding:12px;gap:9px;border-radius:17px}
+ #content .debt-home-alert-heading{flex-wrap:wrap;gap:9px}
+ #content .debt-home-alert-icon{width:37px;height:37px;font-size:19px;border-radius:11px}
+ #content .debt-home-alert-titleline h3{font-size:16px}
+ #content .debt-home-alert-all{margin-left:auto;min-height:35px;font-size:10px}
+ #content .debt-home-alert-item{padding:10px 8px;gap:7px}
+ #content .debt-home-alert-value strong{font-size:11px}
+ #content .debt-home-alert-value small{font-size:9px}}
+@media(prefers-reduced-motion:reduce){
+ #content .debt-home-alert,#content .debt-home-alert-icon,#content .debt-home-alert-target{animation:none!important}
+ #content .debt-home-alert-all,#content .debt-home-alert-item{transition:none!important}
 }
 
 /* #127 Anggaran: dua menu, kelompok bertingkat dan status penetapan per bulan. */
@@ -6979,16 +7032,6 @@ function debtSortedRows(rows){
   ((a.dueDate||'9999-12-31').localeCompare(b.dueDate||'9999-12-31'))||
   String(b.date).localeCompare(String(a.date)));
 }
-function debtReminderText(d){
- const sisa=money(debtBalance(d)),status=debtDueInfo(d);
- const due=status.dueDate?dateFmt(status.dueDate):'belum ditentukan';
- return d.type==='receivable'?
-  'Halo '+d.person+', aku mau mengingatkan piutang sebesar '+sisa+
-  ' yang rencananya dikembalikan pada '+due+'. Boleh kabari kapan bisa dilunasi? Terima kasih ya.':
-  'Pengingat pribadi: bayar utang kepada '+d.person+' sebesar '+sisa+
-  ', jatuh tempo '+due+'. Pastikan rekening dan cicilan diperbarui di Duit-Duit Paaxixi.';
-}
-
 const totalsDebt=()=>db.debts.reduce((o,d)=>{o[d.type]+=debtBalance(d);return o},{receivable:0,payable:0});
 const status=(id)=>{if(!hasBudget(id))return {s:'unset',label:'Belum Diatur'};let limit=effectiveBudget(id),left=limit-spentByCat(id);if(left<0)return {s:'danger',label:'Melewati Batas'};if(limit<=0)return {s:'danger',label:'Anggaran Habis'};if(left<=limit*.2)return {s:'warn',label:'Menipis'};return {s:'ok',label:'Aman'}};
 const pill=(s,text)=>`<span class="badge ${s==='danger'?'danger':s==='warn'?'warn':s==='unset'?'neutral':''}">${h(text)}</span>`;
@@ -7468,7 +7511,7 @@ function render(){
  const expandedDebtDashIds=[...document.querySelectorAll('[data-debt-card-id]')].filter(card=>card.querySelector('.debt-dash-details[open]')).map(card=>card.dataset.debtCardId);
  labelNav();
  document.getElementById('content').innerHTML=({dashboard:renderDash,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])()+renderTxHistoryPopup()+renderTxSearchPopup()+renderTxModal()+renderTrendRangePopup()+renderIncomeTrendRangePopup()+renderIncomeMonthDialog()+renderDebtEditorPopup()+renderRepayPopup();
- if(ui.view==='dashboard'){const debtNotice=renderDebtReminderBanner(true);if(debtNotice)document.getElementById('content').insertAdjacentHTML('afterbegin',debtNotice);}
+ if(ui.view==='dashboard'){const debtNotice=renderDebtDashboardReminder();if(debtNotice)document.getElementById('content').insertAdjacentHTML('afterbegin',debtNotice);}
  decoratePaaxixiSectionTitles();
  paaxObserveKpiWidths();
  paxCompDecorate();
@@ -11017,17 +11060,40 @@ function dismissDebtEditorPopup(){
  const previous=id?[...document.querySelectorAll("[data-edit-debt]")].find(x=>x.dataset.editDebt===id):null;
  (previous||document.querySelector("[data-debt-add]")||document.querySelector("[data-debt-overview]"))?.focus({preventScroll:true});
 }
-function renderDebtReminderBanner(compact=false){
- const active=db.debts.filter(d=>debtBalance(d)>0);
- const overdue=active.filter(d=>debtDueInfo(d).code==='overdue');
- const soon=active.filter(d=>debtDueInfo(d).code==='soon');
- if(!overdue.length&&!soon.length)return '';
- return `<aside class="debt-due-notice ${compact?'debt-due-notice-compact':''}" role="status" aria-live="polite">
-  <span class="debt-due-notice-icon" aria-hidden="true">⏰</span>
-  <div><strong>${overdue.length?'Ada '+overdue.length+' pinjaman melewati jatuh tempo':'Ada '+soon.length+' pinjaman mendekati jatuh tempo'}</strong>
-   <p>${[overdue.length?overdue.length+' terlambat':'',soon.length?soon.length+' jatuh tempo dalam 7 hari':''].filter(Boolean).join(' · ')}. Periksa daftar dan siapkan pengingat pembayaran.</p></div>
-  ${compact?'<button type="button" class="btn sm debt-due-notice-action" data-nav="debts">Periksa →</button>':''}
- </aside>`;
+/* Notifikasi di dashboard utama: hanya pinjaman yang benar-benar perlu perhatian. */
+function renderDebtDashboardReminder(){
+ const urgent=debtSortedRows(db.debts.filter(d=>debtBalance(d)>0&&
+  ['overdue','soon'].includes(debtDueInfo(d).code)));
+ if(!urgent.length)return '';
+ const overdue=urgent.filter(d=>debtDueInfo(d).code==='overdue').length;
+ const soon=urgent.length-overdue;
+ const summary=[overdue?overdue+' terlambat':'',soon?soon+' jatuh tempo dalam 7 hari':'']
+  .filter(Boolean).join(' · ');
+ return `<section class="debt-home-alert" aria-labelledby="debt-home-alert-title">
+  <div class="debt-home-alert-heading">
+   <span class="debt-home-alert-icon" aria-hidden="true">⏰</span>
+   <div class="debt-home-alert-copy">
+    <div class="debt-home-alert-titleline"><h3 id="debt-home-alert-title">Pengingat Utang & Piutang</h3>
+     <span class="debt-home-alert-count">${urgent.length} perlu perhatian</span></div>
+    <p>${summary}. Prioritaskan yang telah melewati jatuh tempo.</p>
+   </div>
+   <button type="button" class="btn sm debt-home-alert-all" data-nav="debts">Lihat semua <span aria-hidden="true">↗</span></button>
+  </div>
+  <div class="debt-home-alert-list">
+   ${urgent.slice(0,4).map(d=>{
+    const due=debtDueInfo(d);
+    const type=d.type==='payable'?'Utang':'Piutang';
+    return `<button type="button" class="debt-home-alert-item debt-home-alert-${due.code}"
+      data-debt-notice-open="${h(d.id)}" aria-label="Lihat ${type.toLowerCase()} ${h(d.person)} yang ${h(due.label.toLowerCase())}">
+     <span class="debt-home-alert-item-icon" aria-hidden="true">${due.code==='overdue'?'⚠️':'📅'}</span>
+     <span class="debt-home-alert-person"><strong>${h(d.person)}</strong><small>${type} · Jatuh tempo ${dateFmt(due.dueDate)}</small></span>
+     <span class="debt-home-alert-value"><strong>${money(debtBalance(d))}</strong><small>${h(due.label)}</small></span>
+     <span class="debt-home-alert-chevron" aria-hidden="true">›</span>
+    </button>`;
+   }).join('')}
+  </div>
+  ${urgent.length>4?`<p class="debt-home-alert-more">+${urgent.length-4} catatan lainnya. Buka Utang & Piutang untuk melihat semuanya.</p>`:''}
+ </section>`;
 }
 function renderDebts(){
  const totals=totalsDebt(),kind=['all','payable','receivable'].includes(ui.debtKindFilter)?ui.debtKindFilter:'all';
@@ -11056,7 +11122,6 @@ function renderDebts(){
     <div class="debt-total-caption">${countOpen('receivable')} pinjaman belum kembali</div>
    </section>
   </div>
-  ${renderDebtReminderBanner()}
   <section class="card debt-main-list-card">
    <div class="card-head"><div><h3>Daftar Utang & Piutang</h3><p>Urutan otomatis: terlambat, segera jatuh tempo, mendatang, lalu lunas.</p></div></div>
    <div class="debt-kind-tabs" role="group" aria-label="Filter jenis pinjaman">
@@ -11094,8 +11159,7 @@ function renderDebts(){
       <div class="debt-dash-card-actions">
        <span class="debt-dash-progress-label">${Math.round(progress)}% terlunasi</span>
        <div class="debt-dash-buttons">
-        ${!isPaid?`<button type="button" class="btn sm debt-dash-pay" data-repay="${h(d.id)}">＋ Cicilan</button>
-         <button type="button" class="btn sm debt-dash-remind" data-debt-remind="${h(d.id)}">${isPayable?'🔔 Ingatkan':'✉ Tagih'}</button>`:''}
+        ${!isPaid?`<button type="button" class="btn sm debt-dash-pay" data-repay="${h(d.id)}">＋ Cicilan</button>`:''}
         <button type="button" class="btn sm" data-edit-debt="${h(d.id)}">✎ Edit</button>
         <button type="button" class="btn sm danger" data-delete-debt="${h(d.id)}">Hapus</button>
        </div>
@@ -12283,7 +12347,21 @@ if(x.dataset.debtOverview){
   ui.debtPopupType='receivable';ui.debtPopupFilter='all';ui.reviewPopup={type:'debt-list'};
   render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});return;
  }
- if(x.dataset.debtKindFilter){
+ if(x.dataset.debtNoticeOpen){
+ const debt=db.debts.find(d=>d.id===x.dataset.debtNoticeOpen);
+ if(!debt)return;
+ ui.debtKindFilter='all';ui.debtFilter='all';
+ setView('debts');
+ requestAnimationFrame(()=>{
+  const card=[...document.querySelectorAll('[data-debt-card-id]')].find(el=>el.dataset.debtCardId===debt.id);
+  if(!card)return;
+  card.tabIndex=-1;card.classList.add('debt-home-alert-target');
+  card.focus({preventScroll:true});
+  card.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});
+ });
+ return;
+}
+if(x.dataset.debtKindFilter){
  const next=x.dataset.debtKindFilter;if(!['all','payable','receivable'].includes(next))return;
  ui.debtKindFilter=next;render();document.querySelector('[data-debt-kind-filter="'+next+'"]')?.focus({preventScroll:true});return;
 }
@@ -12429,15 +12507,6 @@ if(x.dataset.deleteRepay){let [id,pid]=x.dataset.deleteRepay.split('|'),d=db.deb
 if(x.dataset.deleteDebt){const d=db.debts.find(v=>v.id===x.dataset.deleteDebt);if(!d)return toast('Catatan utang/piutang tidak ditemukan.',true);if((d.settlements||[]).length)return toast('Hapus seluruh cicilan pada catatan ini terlebih dahulu sebelum menghapus pinjaman.',true);if(await confirmDelete('Hapus catatan pinjaman dengan '+d.person+'?')){db.debts=db.debts.filter(v=>v.id!==d.id);ui.debtEditId=null;ui.debtEditorOpen=false;save();render();toast('Pinjaman dihapus.')}return}
 if(x.dataset.deleteCategory){let id=x.dataset.deleteCategory;if(db.transactions.some(t=>t.categoryId===id)||db.budgetMoves.some(t=>t.from===id||t.to===id)||(db.budgetAdjustments||[]).some(a=>a.categoryId===id)||Object.keys(db.budgets).some(k=>k.endsWith('|'+id)&&num(db.budgets[k])!==0))return toast('Kategori masih digunakan transaksi/anggaran. Ubah atau hapus rujukannya dahulu.',true);if(await confirmDelete('Hapus kategori '+cat(id)?.label+'?')){db.categories=db.categories.filter(c=>c.id!==id);save();render();toast('Kategori dihapus.')}return}
 if(x.dataset.deleteAccount){let id=x.dataset.deleteAccount;if(db.accounts.length===1)return toast('Harus ada setidaknya satu rekening.',true);if(db.transactions.some(t=>t.accountId===id||t.toAccountId===id)||db.debts.some(d=>d.accountId===id||(d.settlements||[]).some(s=>s.accountId===id)))return toast('Rekening sudah dipakai transaksi/pinjaman dan tidak dapat dihapus.',true);if(await confirmDelete('Hapus rekening yang belum digunakan ini?')){db.accounts=db.accounts.filter(a=>a.id!==id);save();render();toast('Rekening dihapus.')}return}
-if(x.dataset.debtRemind){
- const debt=db.debts.find(d=>d.id===x.dataset.debtRemind);if(!debt||debtBalance(debt)<=0)return;
- const message=debtReminderText(debt);
- try{if(!navigator.clipboard?.writeText)throw Error('Clipboard tidak tersedia');
- await navigator.clipboard.writeText(message);
- toast(debt.type==='receivable'?'Pesan penagihan disalin, siap dikirim.':'Pengingat pembayaran disalin.');
- }catch(error){window.prompt('Salin pesan pengingat ini:',message);}
- return;
-}
 if(x.dataset.repay){openRepayPopup(x.dataset.repay);return}
 if(x.dataset.action){let a=x.dataset.action;
 if(cloud.pendingDecision&&!['cloud-upload','cloud-empty','cloud-logout','export','export-precloud'].includes(a))return toast('Cloud kosong. Putuskan dahulu apakah akan mengunggah data lokal atau mulai dari kosong.',true);

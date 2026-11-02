@@ -6687,6 +6687,104 @@ body details.pax-enhanced-details[open]>:not(summary){animation:paxDetailsReveal
  #content .debt-home-alert-all,#content .debt-home-alert-item{transition:none!important}
 }
 
+/* #144 Konsistensi warna Utang coral, Piutang ungu, Semua biru.
+   Keterangan repetitif dipangkas; efek hover dan state tetap informatif. */
+#content .debt-dashboard,.tx-debt-dialog{
+ --pax-utang:#c25868;--pax-utang-light:#fff0f2;--pax-utang-border:#edb5bf;
+ --pax-piutang:#8755c9;--pax-piutang-light:#f5efff;--pax-piutang-border:#d6c0f4;
+}
+#content .debt-total-owed{
+ --debt-accent:var(--pax-utang);border-color:var(--pax-utang-border);
+ background:linear-gradient(128deg,#fff1f3,#ffe9ed 67%,#fff9fa);
+}
+#content .debt-total-receivable{
+ --debt-accent:var(--pax-piutang);border-color:var(--pax-piutang-border);
+ background:linear-gradient(128deg,#f5eeff,#eee4ff 67%,#fcfaff);
+}
+#content .debt-total-owed .debt-total-value{color:#9c3648}
+#content .debt-total-receivable .debt-total-value{color:#7540b4}
+#content .debt-total-card .debt-total-caption{color:#6b7691}
+#content .debt-kind-tabs>button[data-debt-kind-filter="payable"]{
+ color:var(--pax-utang);border-color:#f0cdd3;background:linear-gradient(118deg,#fff6f7,#fff);
+}
+#content .debt-kind-tabs>button[data-debt-kind-filter="receivable"]{
+ color:var(--pax-piutang);border-color:#e1d2f6;background:linear-gradient(118deg,#fbf7ff,#fff);
+}
+#content .debt-kind-tabs>button[data-debt-kind-filter="payable"]>span,
+#content .debt-kind-tabs>button[data-debt-kind-filter="payable"]>b{
+ color:var(--pax-utang);background:#fbe3e7
+}
+#content .debt-kind-tabs>button[data-debt-kind-filter="receivable"]>span,
+#content .debt-kind-tabs>button[data-debt-kind-filter="receivable"]>b{
+ color:var(--pax-piutang);background:#eee1ff
+}
+#content .debt-kind-tabs>button[data-debt-kind-filter="payable"].active{
+ color:#fff;border-color:#b84658;
+ background:linear-gradient(120deg,#d97682,#bc4d64);
+ box-shadow:0 7px 19px #b84d643c
+}
+#content .debt-kind-tabs>button[data-debt-kind-filter="receivable"].active{
+ color:#fff;border-color:#7848c2;
+ background:linear-gradient(120deg,#a783df,#7a4bc2);
+ box-shadow:0 7px 19px #7d52bd38
+}
+#content .debt-kind-tabs>button[data-debt-kind-filter="all"].active{
+ background:linear-gradient(120deg,#256ab2,#397fcb);border-color:#2968ac
+}
+#content .debt-kind-tabs>button.active>span,
+#content .debt-kind-tabs>button.active>b{
+ color:#fff!important;background:#ffffff28!important
+}
+#content .debt-dash-state.is-owed{background:#ffe4e8;color:#a43d51}
+#content .debt-dash-state.is-receivable{background:#f0e4ff;color:#7543b4}
+#content .debt-kind-tabs>button:focus-visible,
+#content .debt-main-filter-bar button:focus-visible,
+#content .tx-debt-direction>button:focus-visible{
+ outline:3px solid #94bff4;outline-offset:3px
+}
+#content .tx-debt-direction>button[data-tx-debt-direction="payable"]{
+ border-color:#f1cbd1;background:linear-gradient(120deg,#fff6f8,#fff);color:var(--pax-utang)
+}
+#content .tx-debt-direction>button[data-tx-debt-direction="receivable"]{
+ border-color:#e4d3fa;background:linear-gradient(120deg,#faf6ff,#fff);color:var(--pax-piutang)
+}
+#content .tx-debt-direction>button[data-tx-debt-direction="payable"]>span{
+ color:var(--pax-utang);background:#fee6ea
+}
+#content .tx-debt-direction>button[data-tx-debt-direction="receivable"]>span{
+ color:var(--pax-piutang);background:#eee3ff
+}
+#content .tx-debt-direction>button[data-tx-debt-direction="payable"]>strong{color:#ac4057}
+#content .tx-debt-direction>button[data-tx-debt-direction="receivable"]>strong{color:#7948b6}
+#content .tx-debt-direction>button[data-tx-debt-direction="payable"].active{
+ border-color:#c75a6a;background:linear-gradient(118deg,#ffe8ec,#fff9fa);
+ box-shadow:0 0 0 3px #c85a6a1c,0 5px 15px #bc4d6420
+}
+#content .tx-debt-direction>button[data-tx-debt-direction="receivable"].active{
+ border-color:#9062d6;background:linear-gradient(118deg,#f0e6ff,#faf6ff);
+ box-shadow:0 0 0 3px #9062d61b,0 5px 15px #8052bd20
+}
+#content .tx-debt-direction>button.active::after{
+ content:"✓";position:absolute;top:6px;right:9px;font:900 13px Nunito,sans-serif;color:inherit
+}
+#content .tx-debt-direction>button{position:relative}
+#content .tx-debt-direction>button[data-tx-debt-direction="payable"].active::after{color:#b54c61}
+#content .tx-debt-direction>button[data-tx-debt-direction="receivable"].active::after{color:#8150c5}
+#content .tx-debt-form .tx-debt-description{
+ display:flex;align-items:center;gap:7px;padding:0;margin:0 0 12px;
+ border:0;border-radius:0;background:transparent;box-shadow:none;
+ color:#647e99;font:750 11px/1.45 Nunito,sans-serif
+}
+#content .tx-debt-form .tx-debt-description>span{
+ display:grid;place-items:center;flex:none;width:19px;height:19px;
+ border-radius:50%;background:#e9f2ff;color:#3d75b9;font:900 12px Nunito,sans-serif
+}
+@media(max-width:620px){
+ #content .tx-debt-direction>button.active::after{top:4px;right:6px;font-size:11px}
+ #content .debt-kind-tabs>button{gap:5px}
+ #content .debt-kind-tabs>button>b{min-width:19px}
+}
+
 /* #127 Anggaran: dua menu, kelompok bertingkat dan status penetapan per bulan. */
 #content .budget-work-tabs-two{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}
 #content .budget-work-tabs-two button{min-width:0;white-space:normal;min-height:48px}
@@ -7367,7 +7465,7 @@ function paxEnhanceDropdowns(root=document){
  });
 }
 
-function labelNav(){const titles={dashboard:['Dashboard Keuangan',''],review:['Rincian Transaksi','Pilih tanggal atau kelompok untuk memeriksa transaksi dan membandingkan pengeluaran.'],budgets:['Anggaran Bulanan',''],debts:['Utang & Piutang','Pilih status untuk melihat pinjaman yang belum lunas dan riwayat cicilannya.'],reports:['Arsip Laporan','Simpan laporan setiap akhir bulan agar angka periode tersebut terdokumentasi.'],accounts:['Rekening, Kategori & Sinkronisasi','Cocokkan saldo rekening, susun kategori, dan cadangkan data secara berkala.']};const item=titles[ui.view];decoratePaaxixiPageTitle(item[0]);document.getElementById('page-subtitle').textContent=ui.view==='dashboard'?'':item[1];refreshHeaderWeton();document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
+function labelNav(){const titles={dashboard:['Dashboard Keuangan',''],review:['Rincian Transaksi',''],budgets:['Anggaran Bulanan',''],debts:['Utang & Piutang',''],reports:['Arsip Laporan','Simpan laporan setiap akhir bulan agar angka periode tersebut terdokumentasi.'],accounts:['Rekening, Kategori & Sinkronisasi','Cocokkan saldo rekening, susun kategori, dan cadangkan data secara berkala.']};const item=titles[ui.view];decoratePaaxixiPageTitle(item[0]);document.getElementById('page-subtitle').textContent=ui.view==='dashboard'?'':item[1];refreshHeaderWeton();document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
 /* #081 Sejajarkan titik awal donut dan tren walau tinggi filternya berbeda. */
 let analysisChartResizeObserver=null,analysisChartAlignmentQueued=false;
 function alignAnalysisCharts(){
@@ -9353,7 +9451,7 @@ ${renderPaaxixiSmartFinanceInsight()}
 </div>
 <div class="grid finance-bottom-grid">
  <section class="card finance-spotlight-card debt-spotlight-card finance-duo-card">
-  <div class="card-head"><div><h3>Utang & Piutang</h3><p>Sisa pinjaman setelah cicilan, terpisah dari pemasukan dan pengeluaran rutin.</p></div></div>
+  <div class="card-head"><div><h3>Utang & Piutang</h3><p>Sisa kewajiban yang belum dilunasi dari seluruh periode.</p></div></div>
   <div class="debt-fancy-list">
    <div class="debt-fancy-row positive" style="--duo-order:0"><div class="debt-fancy-info"><strong>Piutang Belum Kembali</strong><small>Uang yang masih dipinjam orang lain</small></div><strong class="finance-duo-amount">${money(debt.receivable)}</strong></div>
    <div class="debt-fancy-row negative" style="--duo-order:1"><div class="debt-fancy-info"><strong>Utang Belum Dilunasi</strong><small>Uang yang masih perlu kamu bayar</small></div><strong class="finance-duo-amount">${money(debt.payable)}</strong></div>
@@ -9672,14 +9770,14 @@ function renderTxKindTabs(kind,editing=false){
 }
 function renderTxDebtModal(kind){
  const payable=kind==='payable';
- const meaning=payable?'Uang yang kamu pinjam dari orang lain. Saldo rekening bertambah saat pinjaman diterima.':
-  'Uang yang kamu pinjamkan kepada orang lain. Saldo rekening berkurang saat uang diberikan.';
+ const meaning=payable?'Saldo rekening bertambah saat menerima pinjaman.':
+  'Saldo rekening berkurang saat memberikan pinjaman.';
  return `<div class="tx-entry-backdrop" id="tx-entry-backdrop">
   <div class="tx-entry-dialog is-create-mode tx-debt-dialog" role="dialog" aria-modal="true" aria-labelledby="tx-entry-heading" aria-describedby="tx-entry-desc">
    <div class="tx-entry-heading">
     <span class="tx-entry-symbol" aria-hidden="true">🤝</span>
     <div><div class="tx-heading-title-row"><h3 id="tx-entry-heading">Catat Transaksi Baru</h3><span class="tx-mode-label">${payable?'Utang':'Piutang'}</span></div>
-     <p id="tx-entry-desc">Isi rincian ${payable?'uang yang dipinjam':'uang yang dipinjamkan'} untuk memantau cicilan dan sisa pinjaman.</p></div>
+     <p id="tx-entry-desc">Lengkapi nominal, pihak terkait, dan jatuh tempo.</p></div>
     <button type="button" class="tx-entry-close" data-close-tx-modal aria-label="Tutup form transaksi">✕</button>
    </div>
    <div class="tx-entry-body">
@@ -9691,11 +9789,11 @@ function renderTxDebtModal(kind){
     <form id="debt-form" class="tx-entry-form tx-debt-form">
      <input type="hidden" name="type" value="${kind}">
      <input type="hidden" name="editId" value="">
-     <p class="tx-debt-description">${meaning} Pinjaman dan cicilan tidak dihitung sebagai pemasukan atau pengeluaran rutin.</p>
+     <p class="tx-debt-description"><span aria-hidden="true">ⓘ</span> ${meaning}</p>
      <div class="form-grid">
       <div class="form-field"><label class="field-label">Tanggal Pinjaman</label><input class="field" type="date" name="date" value="${ui.month===currentMonth()?today():ui.month+'-01'}" required></div>
       <div class="form-field"><label class="field-label">Nominal (Rp)</label><input class="field" type="text" inputmode="decimal" data-rupiah="1" name="amount" placeholder="500.000" required></div>
-      <div class="form-field full"><label class="field-label">📅 Estimasi Tanggal Pengembalian / Jatuh Tempo</label><input class="field" type="date" name="dueDate" min="${ui.month===currentMonth()?today():ui.month+'-01'}" required><small class="tx-debt-date-help">Pengingat muncul ketika tersisa 7 hari atau tanggal sudah terlewat.</small></div>
+      <div class="form-field full"><label class="field-label">📅 Estimasi Tanggal Pengembalian / Jatuh Tempo</label><input class="field" type="date" name="dueDate" min="${ui.month===currentMonth()?today():ui.month+'-01'}" required><small class="tx-debt-date-help">Pengingat otomatis di dashboard saat jatuh tempo ≤7 hari atau terlambat.</small></div>
       <div class="form-field full"><label class="field-label">${payable?'Nama pemberi pinjaman':'Nama peminjam'}</label><input class="field" name="person" maxlength="100" placeholder="Nama orang atau pihak" required></div>
       <div class="form-field full"><label class="field-label">${payable?'Rekening yang menerima uang':'Rekening yang digunakan'}</label>${selectAcc('accountId','')}</div>
       <div class="form-field full"><label class="field-label">Catatan (Opsional)</label><textarea class="field" name="note" rows="2" maxlength="300" placeholder="Contoh: Rencana pelunasan akhir bulan"></textarea></div>
@@ -11021,11 +11119,11 @@ function renderDebtEditorPopup(){
    <header class="repay-popup-head">
     <span class="repay-popup-emoji" aria-hidden="true">${editing?"✎":"🤝"}</span>
     <div><h3 id="debt-editor-heading">${editing?"Edit Utang / Piutang":"Catat Utang / Piutang"}</h3>
-     <p id="debt-editor-description">${editing?"Perbarui catatan tanpa menghapus riwayat cicilan.":"Isi catatan baru untuk mulai memantau pembayaran."}</p></div>
+     <p id="debt-editor-description">${editing?'Riwayat cicilan tetap tersimpan.':'Tentukan jumlah dan estimasi pengembalian.'}</p></div>
     <button type="button" class="repay-popup-close" data-close-debt-editor aria-label="Tutup editor utang piutang">✕</button>
    </header>
    <div class="repay-popup-content">
-    <p class="repay-popup-help">Piutang = uang yang kamu pinjamkan. Utang = uang yang kamu pinjam. Saldo rekening menyesuaikan catatan ini.</p>
+    
     <form id="debt-form"><input type="hidden" name="editId" value="${h(ui.debtEditId||'')}"><div class="form-grid"><div class="form-field"><label class="field-label">Jenis</label><select class="field" name="type"><option value="receivable" ${db.debts.find(d=>d.id===ui.debtEditId)?.type==='receivable'?'selected':''}>Piutang — saya meminjamkan</option><option value="payable" ${db.debts.find(d=>d.id===ui.debtEditId)?.type==='payable'?'selected':''}>Utang — saya meminjam</option></select></div><div class="form-field"><label class="field-label">Tanggal</label><input class="field" type="date" name="date" value="${db.debts.find(d=>d.id===ui.debtEditId)?.date||today()}" required></div><div class="form-field"><label class="field-label">Estimasi Jatuh Tempo</label><input class="field" type="date" name="dueDate" min="${db.debts.find(d=>d.id===ui.debtEditId)?.date||today()}" value="${h(db.debts.find(d=>d.id===ui.debtEditId)?.dueDate||'')}" ${ui.debtEditId?'':'required'}></div><div class="form-field"><label class="field-label">Nama Orang / Pihak</label><input class="field" name="person" maxlength="100" placeholder="Nama peminjam / pemberi" value="${h(db.debts.find(d=>d.id===ui.debtEditId)?.person||'')}" required></div><div class="form-field"><label class="field-label">Jumlah (Rp)</label><input class="field" type="text" inputmode="decimal" data-rupiah="1" name="amount" value="${ui.debtEditId?fmtAmount(db.debts.find(d=>d.id===ui.debtEditId)?.amount):''}" required></div><div class="form-field full"><label class="field-label">Rekening Uang Keluar / Masuk</label>${selectAcc('accountId',db.debts.find(d=>d.id===ui.debtEditId)?.accountId||'')}</div><div class="form-field full"><label class="field-label">Catatan (Opsional)</label><input class="field" name="note" maxlength="300" value="${h(db.debts.find(d=>d.id===ui.debtEditId)?.note||'')}" placeholder="Contoh: Jatuh tempo akhir bulan"></div></div><div class="form-actions"><button type="submit" class="btn teal">${ui.debtEditId?'✓ Simpan perubahan':'＋ Simpan catatan utang / piutang'}</button><button class="btn" type="button" data-close-debt-editor>Batal</button></div></form>
    </div>
   </section>
@@ -11123,7 +11221,7 @@ function renderDebts(){
    </section>
   </div>
   <section class="card debt-main-list-card">
-   <div class="card-head"><div><h3>Daftar Utang & Piutang</h3><p>Urutan otomatis: terlambat, segera jatuh tempo, mendatang, lalu lunas.</p></div></div>
+   <div class="card-head"><div><h3>Daftar Utang & Piutang</h3></div></div>
    <div class="debt-kind-tabs" role="group" aria-label="Filter jenis pinjaman">
     ${[['all','✦','Semua',db.debts.length],['payable','↙','Utang',db.debts.filter(d=>d.type==='payable').length],['receivable','↗','Piutang',db.debts.filter(d=>d.type==='receivable').length]].map(([id,icon,name,count])=>`<button type="button" data-debt-kind-filter="${id}" class="${kind===id?'active':''}" aria-pressed="${kind===id?'true':'false'}"><span aria-hidden="true">${icon}</span>${name}<b>${count}</b></button>`).join('')}
    </div>
@@ -12427,7 +12525,7 @@ if(x.dataset.txDebtDirection){
  const account=form.querySelector('select[name="accountId"]')?.closest('.form-field')?.querySelector('.field-label');
  if(account)account.textContent=owed?'Rekening yang menerima uang':'Rekening yang digunakan';
  const desc=form.querySelector('.tx-debt-description');
- if(desc)desc.textContent=(owed?'Uang yang kamu pinjam. Saldo rekening bertambah ketika diterima.':'Uang yang kamu pinjamkan. Saldo rekening berkurang saat diberikan.')+' Pinjaman dan cicilan tidak dihitung sebagai pemasukan/pengeluaran rutin.';
+ if(desc){const info=desc.querySelector('span[aria-hidden]');desc.textContent='';if(info)desc.append(info,' ');desc.append(owed?'Saldo rekening bertambah saat menerima pinjaman.':'Saldo rekening berkurang saat memberikan pinjaman.');}
  const submit=form.querySelector('button[type="submit"]');if(submit)submit.lastChild.textContent='Simpan '+(owed?'Utang':'Piutang');
  document.querySelectorAll('[data-tx-debt-direction]').forEach(btn=>{const active=btn.dataset.txDebtDirection===direction;btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active));});
  document.querySelector('#tx-entry-heading + .tx-mode-label')?.replaceChildren(document.createTextNode(owed?'Utang':'Piutang'));

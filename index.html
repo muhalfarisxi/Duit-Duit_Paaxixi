@@ -7282,14 +7282,17 @@ function render(){
   .map(selector=>[selector,document.querySelector(selector)?.scrollTop]);
  const oldGroupScroll=Object.fromEntries([...document.querySelectorAll('[data-group-scroll-track]')].map(track=>[track.dataset.groupScrollTrack,track.scrollLeft]));
  const expandedDebtIds=[...document.querySelectorAll('[data-debt-quick-id]')].filter(card=>card.querySelector('details[open]')).map(card=>card.dataset.debtQuickId);
+ const expandedDebtDashIds=[...document.querySelectorAll('[data-debt-card-id]')].filter(card=>card.querySelector('.debt-dash-details[open]')).map(card=>card.dataset.debtCardId);
  labelNav();
  document.getElementById('content').innerHTML=({dashboard:renderDash,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])()+renderTxHistoryPopup()+renderTxSearchPopup()+renderTxModal()+renderTrendRangePopup()+renderIncomeTrendRangePopup()+renderIncomeMonthDialog()+renderDebtEditorPopup()+renderRepayPopup();
+ if(ui.view==='dashboard'){const debtNotice=renderDebtReminderBanner(true);if(debtNotice)document.getElementById('content').insertAdjacentHTML('afterbegin',debtNotice);}
  decoratePaaxixiSectionTitles();
  paaxObserveKpiWidths();
  paxCompDecorate();
  paxDecorateMini(document.getElementById('content'));
  paxDecoratePopups(document.getElementById('content'));
  expandedDebtIds.forEach(id=>{const card=[...document.querySelectorAll('[data-debt-quick-id]')].find(x=>x.dataset.debtQuickId===id);card?.querySelector('details')?.setAttribute('open','');});
+ expandedDebtDashIds.forEach(id=>{const card=[...document.querySelectorAll('[data-debt-card-id]')].find(x=>x.dataset.debtCardId===id);card?.querySelector('.debt-dash-details')?.setAttribute('open','');});
  paxAnimateSaved();
  document.querySelectorAll('[data-group-scroll-track]').forEach(track=>{
   const old=oldGroupScroll[track.dataset.groupScrollTrack];
@@ -10829,12 +10832,32 @@ function dismissDebtEditorPopup(){
  const previous=id?[...document.querySelectorAll("[data-edit-debt]")].find(x=>x.dataset.editDebt===id):null;
  (previous||document.querySelector("[data-debt-add]")||document.querySelector("[data-debt-overview]"))?.focus({preventScroll:true});
 }
+function renderDebtReminderBanner(compact=false){
+ const active=db.debts.filter(d=>debtBalance(d)>0);
+ const overdue=active.filter(d=>debtDueInfo(d).code==='overdue');
+ const soon=active.filter(d=>debtDueInfo(d).code==='soon');
+ if(!overdue.length&&!soon.length)return '';
+ return `<aside class="debt-due-notice ${compact?'debt-due-notice-compact':''}" role="status" aria-live="polite">
+  <span class="debt-due-notice-icon" aria-hidden="true">⏰</span>
+  <div><strong>${overdue.length?'Ada '+overdue.length+' pinjaman melewati jatuh tempo':'Ada '+soon.length+' pinjaman mendekati jatuh tempo'}</strong>
+   <p>${[overdue.length?overdue.length+' terlambat':'',soon.length?soon.length+' jatuh tempo dalam 7 hari':''].filter(Boolean).join(' · ')}. Periksa daftar dan siapkan pengingat pembayaran.</p></div>
+  ${compact?'<button type="button" class="btn sm debt-due-notice-action" data-nav="debts">Periksa →</button>':''}
+ </aside>`;
+}
 function renderDebts(){
- const totals=totalsDebt(),totalCount=db.debts.length;
- const openCount=db.debts.filter(d=>debtBalance(d)>0).length,closedCount=totalCount-openCount;
- const active=db.debts.filter(d=>ui.debtFilter==='all'||(ui.debtFilter==='open'?debtBalance(d)>0:debtBalance(d)===0))
-  .slice().sort((a,b)=>Number(debtBalance(b)>0)-Number(debtBalance(a)>0)||b.date.localeCompare(a.date));
+ const totals=totalsDebt(),kind=['all','payable','receivable'].includes(ui.debtKindFilter)?ui.debtKindFilter:'all';
+ const kindRows=db.debts.filter(d=>kind==='all'||d.type===kind);
  const countOpen=type=>db.debts.filter(d=>d.type===type&&debtBalance(d)>0).length;
+ const status=ui.debtFilter||'all';
+ const counts={
+  all:kindRows.length,
+  open:kindRows.filter(d=>debtBalance(d)>0).length,
+  soon:kindRows.filter(d=>debtDueInfo(d).code==='soon').length,
+  overdue:kindRows.filter(d=>debtDueInfo(d).code==='overdue').length,
+  closed:kindRows.filter(d=>debtBalance(d)<=0).length
+ };
+ const active=debtSortedRows(kindRows.filter(d=>status==='all'||
+  (status==='open'?debtBalance(d)>0:status==='closed'?debtBalance(d)===0:debtDueInfo(d).code===status)));
  return `<div class="debt-dashboard">
   <div class="debt-dashboard-summary" aria-label="Ringkasan utang dan piutang">
    <section class="debt-total-card debt-total-owed">
@@ -10848,27 +10871,35 @@ function renderDebts(){
     <div class="debt-total-caption">${countOpen('receivable')} pinjaman belum kembali</div>
    </section>
   </div>
+  ${renderDebtReminderBanner()}
   <section class="card debt-main-list-card">
-   <div class="card-head"><div><h3>Daftar Utang & Piutang</h3><p>Pilih status, periksa sisa pinjaman, atau buka rincian cicilan setiap kartu.</p></div></div>
+   <div class="card-head"><div><h3>Daftar Utang & Piutang</h3><p>Urutan otomatis: terlambat, segera jatuh tempo, mendatang, lalu lunas.</p></div></div>
+   <div class="debt-kind-tabs" role="group" aria-label="Filter jenis pinjaman">
+    ${[['all','✦','Semua',db.debts.length],['payable','↙','Utang',db.debts.filter(d=>d.type==='payable').length],['receivable','↗','Piutang',db.debts.filter(d=>d.type==='receivable').length]].map(([id,icon,name,count])=>`<button type="button" data-debt-kind-filter="${id}" class="${kind===id?'active':''}" aria-pressed="${kind===id?'true':'false'}"><span aria-hidden="true">${icon}</span>${name}<b>${count}</b></button>`).join('')}
+   </div>
    <div class="debt-main-filter-bar" role="group" aria-label="Filter status utang dan piutang">
-    ${[['open','Belum Lunas',openCount],['closed','Sudah Lunas',closedCount],['all','Semua',totalCount]].map(([value,label,count])=>`<button type="button" class="debt-filter-pill ${ui.debtFilter===value?'active':''}" data-debt-list-filter="${value}" aria-pressed="${ui.debtFilter===value?'true':'false'}"><span>${label}</span><b>${count}</b></button>`).join('')}
+    ${[['all','Semua'],['open','Belum Lunas'],['soon','7 Hari Lagi'],['overdue','Terlambat'],['closed','Lunas']].map(([id,label])=>`<button type="button" class="debt-filter-pill ${status===id?'active':''}" data-debt-list-filter="${id}" aria-pressed="${status===id?'true':'false'}"><span>${label}</span><b>${counts[id]}</b></button>`).join('')}
    </div>
    <div class="debt-main-list-body" role="list">
     ${active.length?active.map((d,i)=>{
      const remaining=debtBalance(d),original=num(d.amount),paid=Math.max(0,original-remaining);
      const progress=original>0?Math.max(0,Math.min(100,100*paid/original)):0;
      const installments=(d.settlements||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)));
-     const isPayable=d.type==='payable',isPaid=remaining<=0;
+     const isPayable=d.type==='payable',isPaid=remaining<=0,due=debtDueInfo(d);
+     const color=Array.from(String(d.id||d.person)).reduce((n,c)=>n+c.charCodeAt(0),0)%6;
      const label=isPayable?'Utang':'Piutang';
-     return `<article class="debt-row debt-dash-entry debt-palette-${i%6} ${isPaid?'debt-fully-paid':''}" style="--debt-index:${Math.min(i,12)}" role="listitem">
+     return `<article class="debt-row debt-dash-entry debt-palette-${color} ${isPaid?'debt-fully-paid':''}" data-debt-card-id="${h(d.id)}" style="--debt-index:${Math.min(i,12)}" role="listitem">
       <div class="debt-dash-card-head">
        <div class="debt-dash-person">
         <span class="debt-dash-avatar" aria-hidden="true">${isPayable?'↙':'↗'}</span>
         <div><div class="debt-title">${h(d.person)}</div><div class="debt-detail">${dateFmt(d.date)} · ${h(acc(d.accountId)?.name||'Rekening tidak tersedia')}</div></div>
        </div>
-       <span class="debt-dash-state ${isPaid?'is-paid':isPayable?'is-owed':'is-receivable'}">${isPaid?'✓ Lunas':label+' aktif'}</span>
+       <span class="debt-dash-state ${isPaid?'is-paid':isPayable?'is-owed':'is-receivable'}">${isPaid?'✓ Lunas':label}</span>
       </div>
       ${d.note?`<p class="debt-dash-note">✎ ${h(d.note)}</p>`:''}
+      <div class="debt-due-pill debt-due-${due.code}"><span aria-hidden="true">${due.code==='overdue'?'⚠️':due.code==='soon'?'⏰':due.code==='paid'?'✅':'📅'}</span>
+       <strong>${h(due.label)}</strong>${due.dueDate&&!isPaid?`<small> · ${dateFmt(due.dueDate)}</small>`:''}
+      </div>
       <div class="debt-dash-metrics">
        <div><small>Nominal awal</small><strong>${money(original)}</strong></div>
        <div><small>Sudah dibayar</small><strong>${money(paid)}</strong></div>
@@ -10878,7 +10909,8 @@ function renderDebts(){
       <div class="debt-dash-card-actions">
        <span class="debt-dash-progress-label">${Math.round(progress)}% terlunasi</span>
        <div class="debt-dash-buttons">
-        ${!isPaid?`<button type="button" class="btn sm debt-dash-pay" data-repay="${h(d.id)}">＋ Cicilan</button>`:''}
+        ${!isPaid?`<button type="button" class="btn sm debt-dash-pay" data-repay="${h(d.id)}">＋ Cicilan</button>
+         <button type="button" class="btn sm debt-dash-remind" data-debt-remind="${h(d.id)}">${isPayable?'🔔 Ingatkan':'✉ Tagih'}</button>`:''}
         <button type="button" class="btn sm" data-edit-debt="${h(d.id)}">✎ Edit</button>
         <button type="button" class="btn sm danger" data-delete-debt="${h(d.id)}">Hapus</button>
        </div>
@@ -10893,7 +10925,7 @@ function renderDebts(){
        </div>
       </details>
      </article>`;
-    }).join(''):empty('◈','Belum Ada Catatan','Belum ada catatan untuk filter ini. Pilih Semua untuk melihat seluruh catatan.')}
+    }).join(''):empty('◈','Belum Ada Catatan','Belum ada catatan pada filter ini. Pilih Semua untuk melihat seluruh catatan.')}
    </div>
   </section>
  </div>`;
@@ -12066,7 +12098,11 @@ if(x.dataset.debtOverview){
   ui.debtPopupType='receivable';ui.debtPopupFilter='all';ui.reviewPopup={type:'debt-list'};
   render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});return;
  }
- if(x.dataset.debtListFilter){if(!['open','closed','all'].includes(x.dataset.debtListFilter))return;ui.debtFilter=x.dataset.debtListFilter;render();document.querySelector('[data-debt-list-filter="'+ui.debtFilter+'"]')?.focus({preventScroll:true});return;}
+ if(x.dataset.debtKindFilter){
+ const next=x.dataset.debtKindFilter;if(!['all','payable','receivable'].includes(next))return;
+ ui.debtKindFilter=next;render();document.querySelector('[data-debt-kind-filter="'+next+'"]')?.focus({preventScroll:true});return;
+}
+if(x.dataset.debtListFilter){if(!['open','closed','all','soon','overdue'].includes(x.dataset.debtListFilter))return;ui.debtFilter=x.dataset.debtListFilter;render();document.querySelector('[data-debt-list-filter="'+ui.debtFilter+'"]')?.focus({preventScroll:true});return;}
  if(x.dataset.debtPopupType){
   if(!['receivable','payable'].includes(x.dataset.debtPopupType))return;
   ui.debtPopupType=x.dataset.debtPopupType;
@@ -12208,6 +12244,15 @@ if(x.dataset.deleteRepay){let [id,pid]=x.dataset.deleteRepay.split('|'),d=db.deb
 if(x.dataset.deleteDebt){const d=db.debts.find(v=>v.id===x.dataset.deleteDebt);if(!d)return toast('Catatan utang/piutang tidak ditemukan.',true);if((d.settlements||[]).length)return toast('Hapus seluruh cicilan pada catatan ini terlebih dahulu sebelum menghapus pinjaman.',true);if(await confirmDelete('Hapus catatan pinjaman dengan '+d.person+'?')){db.debts=db.debts.filter(v=>v.id!==d.id);ui.debtEditId=null;ui.debtEditorOpen=false;save();render();toast('Pinjaman dihapus.')}return}
 if(x.dataset.deleteCategory){let id=x.dataset.deleteCategory;if(db.transactions.some(t=>t.categoryId===id)||db.budgetMoves.some(t=>t.from===id||t.to===id)||(db.budgetAdjustments||[]).some(a=>a.categoryId===id)||Object.keys(db.budgets).some(k=>k.endsWith('|'+id)&&num(db.budgets[k])!==0))return toast('Kategori masih digunakan transaksi/anggaran. Ubah atau hapus rujukannya dahulu.',true);if(await confirmDelete('Hapus kategori '+cat(id)?.label+'?')){db.categories=db.categories.filter(c=>c.id!==id);save();render();toast('Kategori dihapus.')}return}
 if(x.dataset.deleteAccount){let id=x.dataset.deleteAccount;if(db.accounts.length===1)return toast('Harus ada setidaknya satu rekening.',true);if(db.transactions.some(t=>t.accountId===id||t.toAccountId===id)||db.debts.some(d=>d.accountId===id||(d.settlements||[]).some(s=>s.accountId===id)))return toast('Rekening sudah dipakai transaksi/pinjaman dan tidak dapat dihapus.',true);if(await confirmDelete('Hapus rekening yang belum digunakan ini?')){db.accounts=db.accounts.filter(a=>a.id!==id);save();render();toast('Rekening dihapus.')}return}
+if(x.dataset.debtRemind){
+ const debt=db.debts.find(d=>d.id===x.dataset.debtRemind);if(!debt||debtBalance(debt)<=0)return;
+ const message=debtReminderText(debt);
+ try{if(!navigator.clipboard?.writeText)throw Error('Clipboard tidak tersedia');
+ await navigator.clipboard.writeText(message);
+ toast(debt.type==='receivable'?'Pesan penagihan disalin, siap dikirim.':'Pengingat pembayaran disalin.');
+ }catch(error){window.prompt('Salin pesan pengingat ini:',message);}
+ return;
+}
 if(x.dataset.repay){openRepayPopup(x.dataset.repay);return}
 if(x.dataset.action){let a=x.dataset.action;
 if(cloud.pendingDecision&&!['cloud-upload','cloud-empty','cloud-logout','export','export-precloud'].includes(a))return toast('Cloud kosong. Putuskan dahulu apakah akan mengunggah data lokal atau mulai dari kosong.',true);

@@ -6284,6 +6284,53 @@ body:has(.tx-search-backdrop){overflow:hidden}
  .pax-popup-header-controls .pax-popup-header-cta:hover{transform:none!important}
 }
 
+/* #126a Semua Transaksi: tombol header sejajar, rapat, dan tetap di kanan. */
+.tx-history-dialog .tx-entry-heading:has(.pax-popup-header-controls){
+  flex-wrap:nowrap;align-items:center;
+}
+.tx-history-dialog .tx-entry-heading>.pax-popup-header-controls{
+  flex:0 0 auto;width:auto;min-width:0;margin-left:auto;
+  display:flex;align-items:center;justify-content:flex-end;gap:10px;
+}
+.tx-history-dialog .pax-popup-header-actions{
+  display:flex;flex:0 0 auto;width:auto;min-width:0;
+  align-items:center;justify-content:flex-end;flex-wrap:nowrap;gap:9px;
+}
+.tx-history-dialog .pax-popup-header-cta{
+  flex:0 0 auto;white-space:nowrap;min-height:42px;
+}
+.tx-history-dialog .pax-popup-header-controls .tx-entry-close{
+  position:static;flex:0 0 auto;margin:0;
+}
+@media(max-width:840px){
+  .tx-history-dialog .tx-entry-heading:has(.pax-popup-header-controls){
+    position:relative;flex-wrap:wrap;align-items:center;
+    padding-right:56px;
+  }
+  .tx-history-dialog .tx-entry-heading>.pax-popup-header-controls{
+    flex:1 0 100%;width:100%;margin:3px 0 0;
+    justify-content:flex-end;
+  }
+  .tx-history-dialog .pax-popup-header-actions{
+    width:auto;max-width:100%;justify-content:flex-end;
+    flex-wrap:nowrap;
+  }
+  .tx-history-dialog .pax-popup-header-controls .tx-entry-close{
+    position:absolute;right:12px;top:12px;
+  }
+}
+@media(max-width:460px){
+  .tx-history-dialog .pax-popup-header-actions{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+    width:100%;gap:7px;
+  }
+  .tx-history-dialog .pax-popup-header-cta{
+    width:100%;min-width:0;white-space:normal;line-height:1.25;
+    padding:8px 6px;font-size:10px;
+  }
+  .tx-history-dialog .pax-popup-header-actions .nav-cta-arrow{display:none}
+}
+
 /* #127 Anggaran: dua menu, kelompok bertingkat dan status penetapan per bulan. */
 #content .budget-work-tabs-two{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}
 #content .budget-work-tabs-two button{min-width:0;white-space:normal;min-height:48px}

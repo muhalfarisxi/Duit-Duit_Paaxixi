@@ -7765,12 +7765,15 @@ function paxCalOpen(input){
  dlg.addEventListener('change',event=>{
   event.stopPropagation();
   if(event.target.matches('[data-pax-cal-month],[data-pax-cal-year]')){
+   const focused=event.target.matches('[data-pax-cal-year]')?'[data-pax-cal-year]':'[data-pax-cal-month]';
    paxCalMonth=Number(dlg.querySelector('[data-pax-cal-month]').value);
    paxCalYear=Number(dlg.querySelector('[data-pax-cal-year]').value);
-   paxCalRender();
+   paxCalRender();dlg.querySelector(focused)?.focus({preventScroll:true});
   }
  });
  dlg.addEventListener('keydown',event=>{
+  // Jangan izinkan shortcut Escape/Tab dari popup lain menutup editor transaksi.
+  event.stopPropagation();
   if(event.target.matches('[data-pax-cal-manual]')&&event.key==='Enter'){
    event.preventDefault();paxCalApplyManual();
   }
@@ -7807,6 +7810,12 @@ function paxCalSetup(){
  document.addEventListener('keydown',event=>{
   if(event.target.matches?.('input[type="date"]')&&event.altKey&&event.key==='ArrowDown'){
    event.preventDefault();paxCalOpen(event.target);
+  }
+ });
+ document.addEventListener('input',event=>{
+  const input=event.target;
+  if(input.matches?.('input[type="date"]')){
+   input.setCustomValidity(input.value&&!paxCalValid(input.value)?'Gunakan tahun 1900–2100 dan tanggal yang valid.':'');
   }
  });
  document.addEventListener('change',event=>{
@@ -7952,6 +7961,7 @@ function syncRenderedPopupLayers(){
  }
 }
 function render(){
+ if(paxCalDialog)paxCalClose();
  const prev=document.querySelector('.comp-popover');
  const oldKind=prev?.dataset?.compPopup,oldScroll=prev?.querySelector('.comp-popover-items')?.scrollTop||0;
  const oldTrendScroll=document.querySelector('.trend-scroll')?.scrollLeft;

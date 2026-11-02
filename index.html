@@ -6609,6 +6609,31 @@ body select.field:not(.budget-viz-native):focus-visible{outline:3px solid #88bbf
  .debt-kind-tabs>button{transition:none!important}
  .debt-due-notice-icon{animation:none!important}}
 
+
+/* Tambahan dropdown non-native: pilihan filter dan menu ekspor berpusat seragam. */
+#content :is(.review-export-caret,.comp-chevron,.income-month-chevron,.review-group-chevron){
+ display:grid!important;place-items:center!important;flex:0 0 29px!important;
+ width:29px!important;height:29px!important;min-width:29px!important;box-sizing:border-box;
+ margin-left:5px!important;padding:0!important;border:1px solid #c5dcf8!important;
+ border-radius:10px!important;background:linear-gradient(140deg,#f9fcff,#dfedff)!important;
+ color:#2c69af!important;box-shadow:0 3px 10px #2766ae14;
+ transition:background .2s,box-shadow .2s,border-color .2s!important}
+#content :is(.review-export-toggle,.comp-picker,.income-month-picker,.review-group):hover
+ :is(.review-export-caret,.comp-chevron,.income-month-chevron,.review-group-chevron){
+ border-color:#8eb8ed!important;box-shadow:0 5px 13px #2766ae2d}
+#content .review-export-wrap.open .review-export-caret,
+#content .comp-picker.is-open .comp-chevron,
+#content .income-month-picker.is-open .income-month-chevron,
+#content .review-group.is-open .review-group-chevron{
+ background:linear-gradient(140deg,#d4e7ff,#ecf7ff)!important;border-color:#87b0e5!important}
+body details.pax-enhanced-details[open]>:not(summary){animation:paxDetailsReveal .24s ease-out both}
+@keyframes paxDetailsReveal{from{opacity:.2;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:1120px){.debt-dashboard .debt-main-list-body{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){
+ #content :is(.review-export-caret,.comp-chevron,.income-month-chevron,.review-group-chevron){transition:none!important}
+ body details.pax-enhanced-details[open]>:not(summary){animation:none!important}
+}
+
 /* #127 Anggaran: dua menu, kelompok bertingkat dan status penetapan per bulan. */
 #content .budget-work-tabs-two{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}
 #content .budget-work-tabs-two button{min-width:0;white-space:normal;min-height:48px}

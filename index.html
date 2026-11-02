@@ -6790,6 +6790,36 @@ function balancesAt(month){let end=month+'-31',r={};db.accounts.forEach(a=>r[a.i
  db.transactions.filter(t=>t.date<=end).forEach(t=>{if(t.type==='income')r[t.accountId]=(r[t.accountId]||0)+num(t.amount);else if(t.type==='expense')r[t.accountId]=(r[t.accountId]||0)-num(t.amount);else if(t.type==='transfer'){r[t.accountId]=(r[t.accountId]||0)-num(t.amount);r[t.toAccountId]=(r[t.toAccountId]||0)+num(t.amount)}});
  db.debts.filter(d=>d.date<=end).forEach(d=>{let sign=d.type==='receivable'?-1:1;r[d.accountId]=(r[d.accountId]||0)+sign*num(d.amount);(d.settlements||[]).filter(z=>z.date<=end).forEach(z=>r[z.accountId]=(r[z.accountId]||0)-sign*num(z.amount))});return r}
 const debtBalance=d=>Math.max(0,num(d.amount)-(d.settlements||[]).reduce((s,p)=>s+num(p.amount),0));
+/* Jatuh tempo memakai kalender WIB, bukan masa berlaku filter bulan. */
+function debtDueInfo(d){
+ if(debtBalance(d)<=0)return {code:'paid',days:null,label:'✓ Lunas',dueDate:d.dueDate||''};
+ const due=String(d.dueDate||'');
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(due)||!Number.isFinite(Date.parse(due+'T00:00:00Z')))
+  return {code:'undated',days:null,label:'Belum ada jatuh tempo',dueDate:''};
+ const days=Math.round((Date.parse(due+'T00:00:00Z')-Date.parse(analysisToday()+'T00:00:00Z'))/86400000);
+ return {code:days<0?'overdue':days<=7?'soon':'upcoming',days,
+  label:days<0?'Terlambat '+Math.abs(days)+' hari':days===0?'Jatuh tempo hari ini':
+   days<=7?days+' hari menuju jatuh tempo':'Jatuh tempo '+dateFmt(due),dueDate:due};
+}
+function debtDueRank(d){
+ const st=debtDueInfo(d);
+ return st.code==='overdue'?0:st.code==='soon'?1:st.code==='upcoming'?2:st.code==='undated'?3:4;
+}
+function debtSortedRows(rows){
+ return rows.slice().sort((a,b)=>debtDueRank(a)-debtDueRank(b)||
+  ((a.dueDate||'9999-12-31').localeCompare(b.dueDate||'9999-12-31'))||
+  String(b.date).localeCompare(String(a.date)));
+}
+function debtReminderText(d){
+ const sisa=money(debtBalance(d)),status=debtDueInfo(d);
+ const due=status.dueDate?dateFmt(status.dueDate):'belum ditentukan';
+ return d.type==='receivable'?
+  'Halo '+d.person+', aku mau mengingatkan piutang sebesar '+sisa+
+  ' yang rencananya dikembalikan pada '+due+'. Boleh kabari kapan bisa dilunasi? Terima kasih ya.':
+  'Pengingat pribadi: bayar utang kepada '+d.person+' sebesar '+sisa+
+  ', jatuh tempo '+due+'. Pastikan rekening dan cicilan diperbarui di Duit-Duit Paaxixi.';
+}
+
 const totalsDebt=()=>db.debts.reduce((o,d)=>{o[d.type]+=debtBalance(d);return o},{receivable:0,payable:0});
 const status=(id)=>{if(!hasBudget(id))return {s:'unset',label:'Belum Diatur'};let limit=effectiveBudget(id),left=limit-spentByCat(id);if(left<0)return {s:'danger',label:'Melewati Batas'};if(limit<=0)return {s:'danger',label:'Anggaran Habis'};if(left<=limit*.2)return {s:'warn',label:'Menipis'};return {s:'ok',label:'Aman'}};
 const pill=(s,text)=>`<span class="badge ${s==='danger'?'danger':s==='warn'?'warn':s==='unset'?'neutral':''}">${h(text)}</span>`;
@@ -9401,13 +9431,14 @@ function txRow(t){
 /* Lima pilihan pencatatan memakai satu popup, sementara data utang tetap
    disimpan di db.debts (bukan sebagai pengeluaran/pemasukan biasa). */
 function renderTxKindTabs(kind,editing=false){
- const kinds=[['expense','↘','Pengeluaran'],['income','↗','Pemasukan'],
-  ['transfer','⇄','Transfer'],['payable','🤝','Utang'],['receivable','💰','Piutang']];
- return kinds.map(([id,symbol,label])=>
-  `<button type="button" data-txtype="${id}" aria-pressed="${kind===id?'true':'false'}"
+ const options=[['expense','↘','Pengeluaran'],['income','↗','Pemasukan'],
+  ['transfer','⇄','Transfer'],['debt','🤝','Utang / Piutang']];
+ return options.map(([id,symbol,label])=>{
+  const active=id==='debt'?['payable','receivable'].includes(kind):kind===id;
+  return `<button type="button" data-txtype="${id}" aria-pressed="${active?'true':'false'}"
    ${editing?'disabled title="Jenis transaksi tetap saat mengedit"':''}
-   class="${kind===id?'active':''}"><span class="tx-type-glyph" aria-hidden="true">${symbol}</span><span class="tx-type-label">${label}</span></button>`
- ).join('');
+   class="${active?'active':''}"><span class="tx-type-glyph" aria-hidden="true">${symbol}</span><span class="tx-type-label">${label}</span></button>`;
+ }).join('');
 }
 function renderTxDebtModal(kind){
  const payable=kind==='payable';
@@ -9423,6 +9454,10 @@ function renderTxDebtModal(kind){
    </div>
    <div class="tx-entry-body">
     <div class="pill-tabs tx-type-selector" role="group" aria-label="Jenis transaksi">${renderTxKindTabs(kind)}</div>
+    <div class="tx-debt-direction" role="group" aria-label="Pilih apakah transaksi ini utang atau piutang">
+     <button type="button" data-tx-debt-direction="payable" aria-pressed="${payable?'true':'false'}" class="${payable?'active':''}"><span aria-hidden="true">↙</span><strong>Utang</strong><small>Saya meminjam uang</small></button>
+     <button type="button" data-tx-debt-direction="receivable" aria-pressed="${!payable?'true':'false'}" class="${!payable?'active':''}"><span aria-hidden="true">↗</span><strong>Piutang</strong><small>Saya meminjamkan uang</small></button>
+    </div>
     <form id="debt-form" class="tx-entry-form tx-debt-form">
      <input type="hidden" name="type" value="${kind}">
      <input type="hidden" name="editId" value="">
@@ -9430,6 +9465,7 @@ function renderTxDebtModal(kind){
      <div class="form-grid">
       <div class="form-field"><label class="field-label">Tanggal Pinjaman</label><input class="field" type="date" name="date" value="${ui.month===currentMonth()?today():ui.month+'-01'}" required></div>
       <div class="form-field"><label class="field-label">Nominal (Rp)</label><input class="field" type="text" inputmode="decimal" data-rupiah="1" name="amount" placeholder="500.000" required></div>
+      <div class="form-field full"><label class="field-label">📅 Estimasi Tanggal Pengembalian / Jatuh Tempo</label><input class="field" type="date" name="dueDate" min="${ui.month===currentMonth()?today():ui.month+'-01'}" required><small class="tx-debt-date-help">Pengingat muncul ketika tersisa 7 hari atau tanggal sudah terlewat.</small></div>
       <div class="form-field full"><label class="field-label">${payable?'Nama pemberi pinjaman':'Nama peminjam'}</label><input class="field" name="person" maxlength="100" placeholder="Nama orang atau pihak" required></div>
       <div class="form-field full"><label class="field-label">${payable?'Rekening yang menerima uang':'Rekening yang digunakan'}</label>${selectAcc('accountId','')}</div>
       <div class="form-field full"><label class="field-label">Catatan (Opsional)</label><textarea class="field" name="note" rows="2" maxlength="300" placeholder="Contoh: Rencana pelunasan akhir bulan"></textarea></div>
@@ -10759,7 +10795,7 @@ function renderDebtEditorPopup(){
    </header>
    <div class="repay-popup-content">
     <p class="repay-popup-help">Piutang = uang yang kamu pinjamkan. Utang = uang yang kamu pinjam. Saldo rekening menyesuaikan catatan ini.</p>
-    <form id="debt-form"><input type="hidden" name="editId" value="${h(ui.debtEditId||'')}"><div class="form-grid"><div class="form-field"><label class="field-label">Jenis</label><select class="field" name="type"><option value="receivable" ${db.debts.find(d=>d.id===ui.debtEditId)?.type==='receivable'?'selected':''}>Piutang — saya meminjamkan</option><option value="payable" ${db.debts.find(d=>d.id===ui.debtEditId)?.type==='payable'?'selected':''}>Utang — saya meminjam</option></select></div><div class="form-field"><label class="field-label">Tanggal</label><input class="field" type="date" name="date" value="${db.debts.find(d=>d.id===ui.debtEditId)?.date||today()}" required></div><div class="form-field"><label class="field-label">Nama Orang / Pihak</label><input class="field" name="person" maxlength="100" placeholder="Nama peminjam / pemberi" value="${h(db.debts.find(d=>d.id===ui.debtEditId)?.person||'')}" required></div><div class="form-field"><label class="field-label">Jumlah (Rp)</label><input class="field" type="text" inputmode="decimal" data-rupiah="1" name="amount" value="${ui.debtEditId?fmtAmount(db.debts.find(d=>d.id===ui.debtEditId)?.amount):''}" required></div><div class="form-field full"><label class="field-label">Rekening Uang Keluar / Masuk</label>${selectAcc('accountId',db.debts.find(d=>d.id===ui.debtEditId)?.accountId||'')}</div><div class="form-field full"><label class="field-label">Catatan (Opsional)</label><input class="field" name="note" maxlength="300" value="${h(db.debts.find(d=>d.id===ui.debtEditId)?.note||'')}" placeholder="Contoh: Jatuh tempo akhir bulan"></div></div><div class="form-actions"><button type="submit" class="btn teal">${ui.debtEditId?'✓ Simpan perubahan':'＋ Simpan catatan utang / piutang'}</button><button class="btn" type="button" data-close-debt-editor>Batal</button></div></form>
+    <form id="debt-form"><input type="hidden" name="editId" value="${h(ui.debtEditId||'')}"><div class="form-grid"><div class="form-field"><label class="field-label">Jenis</label><select class="field" name="type"><option value="receivable" ${db.debts.find(d=>d.id===ui.debtEditId)?.type==='receivable'?'selected':''}>Piutang — saya meminjamkan</option><option value="payable" ${db.debts.find(d=>d.id===ui.debtEditId)?.type==='payable'?'selected':''}>Utang — saya meminjam</option></select></div><div class="form-field"><label class="field-label">Tanggal</label><input class="field" type="date" name="date" value="${db.debts.find(d=>d.id===ui.debtEditId)?.date||today()}" required></div><div class="form-field"><label class="field-label">Estimasi Jatuh Tempo</label><input class="field" type="date" name="dueDate" min="${db.debts.find(d=>d.id===ui.debtEditId)?.date||today()}" value="${h(db.debts.find(d=>d.id===ui.debtEditId)?.dueDate||'')}" ${ui.debtEditId?'':'required'}></div><div class="form-field"><label class="field-label">Nama Orang / Pihak</label><input class="field" name="person" maxlength="100" placeholder="Nama peminjam / pemberi" value="${h(db.debts.find(d=>d.id===ui.debtEditId)?.person||'')}" required></div><div class="form-field"><label class="field-label">Jumlah (Rp)</label><input class="field" type="text" inputmode="decimal" data-rupiah="1" name="amount" value="${ui.debtEditId?fmtAmount(db.debts.find(d=>d.id===ui.debtEditId)?.amount):''}" required></div><div class="form-field full"><label class="field-label">Rekening Uang Keluar / Masuk</label>${selectAcc('accountId',db.debts.find(d=>d.id===ui.debtEditId)?.accountId||'')}</div><div class="form-field full"><label class="field-label">Catatan (Opsional)</label><input class="field" name="note" maxlength="300" value="${h(db.debts.find(d=>d.id===ui.debtEditId)?.note||'')}" placeholder="Contoh: Jatuh tempo akhir bulan"></div></div><div class="form-actions"><button type="submit" class="btn teal">${ui.debtEditId?'✓ Simpan perubahan':'＋ Simpan catatan utang / piutang'}</button><button class="btn" type="button" data-close-debt-editor>Batal</button></div></form>
    </div>
   </section>
  </div>`;
@@ -11305,7 +11341,31 @@ if(id==='budget-adjustment-form'){
  closeBudgetFlowDialog(false);render();
  toast(old?'Perubahan anggaran berhasil diperbarui.':'Perubahan anggaran berhasil dicatat.');return;
 }
-if(id==='debt-form'){let amount=positive(f.get('amount')),person=String(f.get('person')||'').trim(),date=f.get('date'),accountId=f.get('accountId'),editId=f.get('editId'),old=db.debts.find(d=>d.id===editId);if(!amount||!person||!acc(accountId)||!/^(?:\d{4})-\d{2}-\d{2}$/.test(date))return toast('Isi data pinjaman dengan benar.',true);let settled=old?(old.settlements||[]).reduce((s,x)=>s+num(x.amount),0):0;if(editId&&!old)return toast('Catatan yang diedit tidak ditemukan.',true);if(amount<settled)return toast('Nominal awal tidak boleh lebih kecil dari total cicilan.',true);let detail={type:f.get('type')==='payable'?'payable':'receivable',person,amount,date,accountId,note:String(f.get('note')||'').trim()};if(old)Object.assign(old,detail);else db.debts.push({id:uid(),...detail,settlements:[]});paxMarkSaved('debt',person);const fromUnifiedTx=Boolean(form.closest('#tx-entry-backdrop'));ui.debtEditId=null;ui.debtEditorOpen=false;if(fromUnifiedTx){ui.txModalOpen=false;ui.txEditId=null;txModalOrigin=null;}save();render();if(!fromUnifiedTx)restoreDebtEditorOrigin(old?.id||db.debts[db.debts.length-1]?.id);else(document.querySelector('#top-add')||document.querySelector('[data-tx-create]'))?.focus({preventScroll:true});toast('Catatan pinjaman disimpan.');return}
+if(id==='debt-form'){
+ let amount=positive(f.get('amount')),person=String(f.get('person')||'').trim();
+ const date=String(f.get('date')||''),dueDate=String(f.get('dueDate')||'');
+ const accountId=f.get('accountId'),editId=f.get('editId'),old=db.debts.find(d=>d.id===editId);
+ if(editId&&!old)return toast('Catatan yang diedit tidak ditemukan.',true);
+ if(!amount||!person||!acc(accountId)||!/^\d{4}-\d{2}-\d{2}$/.test(date))
+  return toast('Isi data pinjaman dengan benar.',true);
+ if((!dueDate&&!old)||(dueDate&&(!/^\d{4}-\d{2}-\d{2}$/.test(dueDate)||dueDate<date||!Number.isFinite(Date.parse(dueDate+'T00:00:00Z')))))
+  return toast('Tanggal jatuh tempo wajib diisi dan tidak boleh sebelum tanggal pinjaman.',true);
+ const settled=old?(old.settlements||[]).reduce((sum,p)=>sum+num(p.amount),0):0;
+ if(amount<settled)return toast('Nominal awal tidak boleh lebih kecil dari total cicilan.',true);
+ const type=f.get('type');
+ if(!['payable','receivable'].includes(type))return toast('Pilih jenis utang atau piutang.',true);
+ const detail={type,person,amount,date,dueDate:dueDate||old?.dueDate||'',accountId,note:String(f.get('note')||'').trim()};
+ if(old)Object.assign(old,detail);else db.debts.push({id:uid(),...detail,settlements:[]});
+ paxMarkSaved('debt',person);
+ const fromUnifiedTx=Boolean(form.closest('#tx-entry-backdrop'));
+ ui.debtEditId=null;ui.debtEditorOpen=false;
+ if(fromUnifiedTx){ui.txModalOpen=false;ui.txEditId=null;txModalOrigin=null;}
+ if(!save())return;
+ render();
+ if(!fromUnifiedTx)restoreDebtEditorOrigin(old?.id||db.debts[db.debts.length-1]?.id);
+ else document.getElementById('top-add')?.focus({preventScroll:true});
+ toast(old?'Catatan pinjaman diperbarui.':'Catatan pinjaman disimpan, pengingat jatuh tempo aktif.');return;
+}
 if(id==='repay-form'){let d=db.debts.find(d=>d.id===f.get('debtId')),editId=f.get('editId'),old=d?.settlements?.find(s=>s.id===editId),amount=positive(f.get('amount')),accountId=f.get('accountId'),date=f.get('date');if(!d||!amount||amount>debtBalance(d)+(old?.amount||0)||!acc(accountId)||!/^(?:\d{4})-\d{2}-\d{2}$/.test(date))return toast('Jumlah cicilan melebihi sisa atau data tidak valid.',true);if(old)Object.assign(old,{date,amount,accountId});else d.settlements.push({id:uid(),date,amount,accountId});ui.debtSelected=null;ui.repayEditId=null;save();render();restoreRepayPopupOrigin(d.id,editId);toast('Pembayaran disimpan.');return}
 if(id==='account-form'){let name=String(f.get('name')||'').trim(),opening=integer(f.get('opening')),editId=f.get('editId'),old=db.accounts.find(a=>a.id===editId);if(!name||!Number.isFinite(opening)||opening<0)return toast('Nama atau saldo awal tidak valid.',true);if(db.accounts.some(a=>a.id!==editId&&a.name.toLowerCase()===name.toLowerCase()))return toast('Nama rekening sudah ada.',true);if(old)Object.assign(old,{name,type:f.get('type'),opening});else db.accounts.push({id:uid(),name,type:f.get('type'),opening});paxMarkSaved('account',old?.id||db.accounts[db.accounts.length-1].id);ui.accountEditId=null;save();render();toast('Rekening berhasil disimpan.');return}
 if(id==='expense-group-form'){
@@ -12057,7 +12117,27 @@ if(x.dataset.txHistoryKind!==undefined){
 if(x.dataset.txSearch!==undefined){openTxSearch();return;}
  if(x.dataset.txHistory!==undefined){openTxHistory();return;}
  if(x.dataset.txCreate!==undefined){openTxModal(ui.view==='debts'?'payable':'expense');return;}
- if(x.dataset.nav){setView(x.dataset.nav);return}if(x.dataset.txtype){ui.txType=x.dataset.txtype;render();document.querySelector('[data-txtype="'+ui.txType+'"]')?.focus({preventScroll:true});return}
+ if(x.dataset.nav){setView(x.dataset.nav);return}
+if(x.dataset.txDebtDirection){
+ const direction=x.dataset.txDebtDirection;if(!['payable','receivable'].includes(direction))return;
+ const form=document.querySelector('#tx-entry-backdrop #debt-form');if(!form)return;
+ ui.txType=direction;form.elements.type.value=direction;
+ const owed=direction==='payable';
+ const label=form.querySelector('input[name="person"]')?.closest('.form-field')?.querySelector('.field-label');
+ if(label)label.textContent=owed?'Nama pemberi pinjaman':'Nama peminjam';
+ const account=form.querySelector('select[name="accountId"]')?.closest('.form-field')?.querySelector('.field-label');
+ if(account)account.textContent=owed?'Rekening yang menerima uang':'Rekening yang digunakan';
+ const desc=form.querySelector('.tx-debt-description');
+ if(desc)desc.textContent=(owed?'Uang yang kamu pinjam. Saldo rekening bertambah ketika diterima.':'Uang yang kamu pinjamkan. Saldo rekening berkurang saat diberikan.')+' Pinjaman dan cicilan tidak dihitung sebagai pemasukan/pengeluaran rutin.';
+ const submit=form.querySelector('button[type="submit"]');if(submit)submit.lastChild.textContent='Simpan '+(owed?'Utang':'Piutang');
+ document.querySelectorAll('[data-tx-debt-direction]').forEach(btn=>{const active=btn.dataset.txDebtDirection===direction;btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active));});
+ document.querySelector('#tx-entry-heading + .tx-mode-label')?.replaceChildren(document.createTextNode(owed?'Utang':'Piutang'));
+ return;
+}
+if(x.dataset.txtype){
+ const kind=x.dataset.txtype;ui.txType=kind==='debt'?'payable':kind;render();
+ document.querySelector('[data-txtype="'+kind+'"]')?.focus({preventScroll:true});return;
+}
 if(x.dataset.reviewType){
  if(!['expense','income'].includes(x.dataset.reviewType))return;
  ui.reviewType=x.dataset.reviewType;ui.reviewOpenGroups=[];ui.reviewPopup=null;reviewPopupHistory=[];

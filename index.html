@@ -7055,6 +7055,16 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 .budget-income-items>div{display:flex;align-items:center;gap:8px;border:1px solid #e0ebf8;border-radius:11px;background:#fff;padding:10px}
 .budget-income-items>div>span{flex:1;min-width:0;display:grid;gap:3px}
 
+/* Navigasi investasi tampil pada desktop dan HP. */
+#side-nav [data-nav="investments"]{background:linear-gradient(105deg,#254b78aa,#4c609255)}
+#side-nav [data-nav="investments"].active{background:linear-gradient(115deg,#275da0,#4d6db7);color:#fff}
+#side-nav [data-nav="investments"] .nav-icon{font-size:19px}
+@media(max-width:820px){
+ .bottom-nav{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+ .bottom-nav button{font-size:clamp(8px,2vw,10px);min-width:0}
+ .bottom-nav [data-nav="investments"] .nav-icon{font-size:21px}
+}
+
 /* #127 Anggaran: dua menu, kelompok bertingkat dan status penetapan per bulan. */
 #content .budget-work-tabs-two{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}
 #content .budget-work-tabs-two button{min-width:0;white-space:normal;min-height:48px}
@@ -7135,7 +7145,8 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
   <button type="button" data-nav="budgets"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M16 14h5"/><circle cx="17" cy="14" r="0.8" fill="currentColor" stroke="none"/></svg></span> Anggaran Bulanan</button>
   <button type="button" data-nav="debts"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h4l3 2 3-2h4l4 4-5 6a2 2 0 0 1-3 0l-2-2"/><path d="m2 10 3 3m17-3-3 3M9 14l2 2m-5 0 2 2"/></svg></span> Utang & Piutang</button>
   <button type="button" data-nav="reports"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18m-12 4h6"/></svg></span> Arsip Laporan</button>
-  <button type="button" data-nav="accounts"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9m4 0h3M4 17h3m4 0h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></span> Rekening</button></nav>
+  <button type="button" data-nav="accounts"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9m4 0h3M4 17h3m4 0h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></span> Rekening</button>
+  <button type="button" data-nav="investments"><span class="nav-icon" aria-hidden="true">📈</span> Portofolio Investasi</button></nav>
   <div class="sidebar-bottom"><strong>Paaxixi Cloud</strong><p>Sinkronisasi online setelah login Firebase. Backup data tetap disarankan.</p></div>
 </aside>
 <main class="main">
@@ -7175,6 +7186,7 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
     <button type="button" data-nav="review"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v10h10"/><path d="M21.1 15.7A10 10 0 1 1 8.3 2.7"/><path d="M12 2a10 10 0 0 1 10 10H12z"/></svg></span> Tinjau</button>
   <button type="button" data-nav="budgets"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M16 14h5"/><circle cx="17" cy="14" r="0.8" fill="currentColor" stroke="none"/></svg></span> Anggaran</button>
   <button type="button" data-nav="accounts"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9m4 0h3M4 17h3m4 0h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></span> Lainnya</button>
+  <button type="button" data-nav="investments"><span class="nav-icon" aria-hidden="true">📈</span> Investasi</button>
 </nav>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -7341,14 +7353,14 @@ function syncBadge(){let b=document.getElementById('cloud-status');if(!b)return;
 }
 function normalizeDb(value){if(!validDb(value))throw Error('Data cloud tidak valid');return normalizeExpenseGroups({...fresh(),...value,reports:value.reports&&typeof value.reports==='object'?value.reports:{}})}
 function showError(e){toast('Gagal sinkronisasi: '+(e?.message||String(e)),true)}
-window.addEventListener('arus-cloud-state',e=>{let d=e.detail||{},previousEmail=cloud.email;if((d.email&&d.email!==previousEmail)||d.signedIn===false){cloud.wasLoaded=false;cloud.pendingDecision=false;}cloud={...cloud,...d};syncBadge();if(ui.view==='accounts')render()});
+window.addEventListener('arus-cloud-state',e=>{let d=e.detail||{},previousEmail=cloud.email;if((d.email&&d.email!==previousEmail)||d.signedIn===false){cloud.wasLoaded=false;cloud.pendingDecision=false;}cloud={...cloud,...d};syncBadge();if(['accounts','investments'].includes(ui.view))render()});
 window.addEventListener('arus-cloud-data',e=>{let d=e.detail||{};cloud.ready=true;cloud.busy=false;cloud.error='';cloud.empty=!d.data;
  if(d.data){try{let next=normalizeDb(d.data);if(!cloud.wasLoaded && (db.transactions.length||db.debts.length||(db.investmentAssets||[]).length||Object.keys(db.reports||{}).length)&&JSON.stringify(next)!==JSON.stringify(db)){
  try{if(!localStorage.getItem('arus-cadangan-sebelum-cloud'))localStorage.setItem('arus-cadangan-sebelum-cloud',JSON.stringify(db));}catch(_){}}
  db=next;localStorage.setItem(KEY,JSON.stringify(db));cloud.pendingDecision=false;cloud.wasLoaded=true;}catch(error){showError(error);return}}
  else if(!cloud.wasLoaded){cloud.pendingDecision=!!(db.transactions.length||db.debts.length||Object.values(db.budgets).some(n=>num(n)>0)||db.accounts.length>1||(db.investmentAssets||[]).length>0||(db.investmentTrades||[]).length>0||Object.keys(db.reports||{}).length);}
  syncBadge();render();if(!d.data&&cloud.pendingDecision)toast('Cloud kosong dan browser memiliki data. Pilih cara memulai cloud pada Rekening & Data.');});
-window.addEventListener('arus-cloud-error',e=>{cloud.busy=false;cloud.error=e.detail?.message||'Gangguan jaringan';showError(cloud.error);syncBadge();if(ui.view==='accounts')render()});
+window.addEventListener('arus-cloud-error',e=>{cloud.busy=false;cloud.error=e.detail?.message||'Gangguan jaringan';showError(cloud.error);syncBadge();if(['accounts','investments'].includes(ui.view))render()});
 function save(){try{
  db.version=2;db.reports=db.reports||{};
  localStorage.setItem(KEY,JSON.stringify(db));
@@ -7989,7 +8001,7 @@ function paxCalSetup(){
  observer.observe(document.body,{childList:true,subtree:true});
 }
 
-function labelNav(){const titles={dashboard:['Dashboard Keuangan',''],review:['Rincian Transaksi',''],budgets:['Anggaran Bulanan',''],debts:['Utang & Piutang',''],reports:['Arsip Laporan','Simpan laporan setiap akhir bulan agar angka periode tersebut terdokumentasi.'],accounts:['Rekening & Dompet','']};const item=titles[ui.view];decoratePaaxixiPageTitle(item[0]);document.getElementById('page-subtitle').textContent=ui.view==='dashboard'?'':item[1];refreshHeaderWeton();document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
+function labelNav(){const titles={dashboard:['Dashboard Keuangan',''],review:['Rincian Transaksi',''],budgets:['Anggaran Bulanan',''],debts:['Utang & Piutang',''],reports:['Arsip Laporan','Simpan laporan setiap akhir bulan agar angka periode tersebut terdokumentasi.'],accounts:['Rekening & Dompet',''],investments:['Portofolio Investasi','']};const item=titles[ui.view];decoratePaaxixiPageTitle(item[0]);document.getElementById('page-subtitle').textContent=ui.view==='dashboard'?'':item[1];refreshHeaderWeton();document.getElementById('month-input').value=ui.month;document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===ui.view);if(el.dataset.nav===ui.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});syncBadge()}
 /* #081 Sejajarkan titik awal donut dan tren walau tinggi filternya berbeda. */
 let analysisChartResizeObserver=null,analysisChartAlignmentQueued=false;
 function alignAnalysisCharts(){
@@ -8133,7 +8145,7 @@ function render(){
  const expandedDebtIds=[...document.querySelectorAll('[data-debt-quick-id]')].filter(card=>card.querySelector('details[open]')).map(card=>card.dataset.debtQuickId);
  const expandedDebtDashIds=[...document.querySelectorAll('[data-debt-card-id]')].filter(card=>card.querySelector('.debt-dash-details[open]')).map(card=>card.dataset.debtCardId);
  labelNav();
- document.getElementById('content').innerHTML=({dashboard:renderDash,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts}[ui.view])()+renderTxHistoryPopup()+renderTxSearchPopup()+renderTxModal()+renderTrendRangePopup()+renderIncomeTrendRangePopup()+renderIncomeMonthDialog()+renderDebtEditorPopup()+renderRepayPopup();
+ document.getElementById('content').innerHTML=({dashboard:renderDash,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts,investments:renderInvestments}[ui.view])()+renderTxHistoryPopup()+renderTxSearchPopup()+renderTxModal()+renderTrendRangePopup()+renderIncomeTrendRangePopup()+renderIncomeMonthDialog()+renderDebtEditorPopup()+renderRepayPopup();
  if(ui.view==='dashboard'){const debtNotice=renderDebtDashboardReminder();if(debtNotice)document.getElementById('content').insertAdjacentHTML('afterbegin',debtNotice);}
  decoratePaaxixiSectionTitles();
  paaxObserveKpiWidths();
@@ -12374,7 +12386,7 @@ function saveDeletedTransaction(){
  if(next)next.scrollTop=scroll;
  document.querySelector('#tx-search-backdrop #tx-search-input, #review-modal-backdrop [data-review-close], #tx-history-backdrop [data-close-tx-history]')?.focus({preventScroll:true});
 }
-function setView(view){closeBudgetFlowDialog(false);if(view==='transactions'){openTxHistory();return;}if(ui.view!==view){closeFinanceEditor();ui.reviewPopup=null;reviewPopupHistory=[];}ui.txModalOpen=false;ui.txEditId=null;ui.txHistoryOpen=false;ui.txSearchOpen=false;ui.txSearchQuery='';ui.debtEditorOpen=false;ui.debtEditId=null;ui.debtSelected=null;ui.repayEditId=null;ui.comp.menu=null;if(!['dashboard','review','budgets','debts','reports','accounts'].includes(view))return;ui.view=view;render();window.scrollTo({top:0,behavior:'smooth'})}
+function setView(view){closeBudgetFlowDialog(false);if(view==='transactions'){openTxHistory();return;}if(ui.view!==view){closeFinanceEditor();ui.reviewPopup=null;reviewPopupHistory=[];}ui.txModalOpen=false;ui.txEditId=null;ui.txHistoryOpen=false;ui.txSearchOpen=false;ui.txSearchQuery='';ui.debtEditorOpen=false;ui.debtEditId=null;ui.debtSelected=null;ui.repayEditId=null;ui.comp.menu=null;if(!['dashboard','review','budgets','debts','reports','accounts','investments'].includes(view))return;ui.investmentModal=null;ui.view=view;render();window.scrollTo({top:0,behavior:'smooth'})}
 function demo(){
  if(cloud.signedIn){toast('Keluar dari akun cloud sebelum memuat simulasi.',true);return}
  const lastMonth=currentMonth();

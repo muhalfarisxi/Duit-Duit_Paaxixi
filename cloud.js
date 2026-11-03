@@ -16,20 +16,22 @@ if (!configured) {
     let detach=null,ready=false,currentUID=null,remoteParts={},lastData=null,writePromise=Promise.resolve(),working=false,requestedSeq=0;
     const copy=v=>JSON.parse(JSON.stringify(v));
     const split=data=>{
-      const parts={meta:{version:2,accounts:data.accounts,categories:data.categories,...(Array.isArray(data.expenseGroups)?{expenseGroups:data.expenseGroups}:{}),budgets:data.budgets,budgetMoves:data.budgetMoves,debts:data.debts,accountCorrections:data.accountCorrections||[],budgetAdjustments:data.budgetAdjustments||[],budgetBaseHistory:data.budgetBaseHistory||[],budgetInitialStates:data.budgetInitialStates||{}}};
+      const parts={meta:{version:2,accounts:data.accounts,categories:data.categories,...(Array.isArray(data.expenseGroups)?{expenseGroups:data.expenseGroups}:{}),budgets:data.budgets,budgetMoves:data.budgetMoves,debts:data.debts,accountCorrections:data.accountCorrections||[],budgetAdjustments:data.budgetAdjustments||[],budgetBaseHistory:data.budgetBaseHistory||[],budgetInitialStates:data.budgetInitialStates||{},investmentAssets:data.investmentAssets||[],investmentSnapshots:data.investmentSnapshots||[]}};
       for(const t of data.transactions||[]){const key='month_'+String(t.date).slice(0,7); (parts[key]??={transactions:[]}).transactions.push(t)}
+      for(const trade of data.investmentTrades||[]){const key='investment_'+String(trade.date).slice(0,4);(parts[key]??={investmentTrades:[]}).investmentTrades.push(trade)}
       for(const [m,r] of Object.entries(data.reports||{}))parts['report_'+m]={report:r};
       return parts;
     };
     const assemble=parts=>{
       if(!parts.meta)return null;
-      const m=parts.meta,transactions=[],reports={};
+      const m=parts.meta,transactions=[],investmentTrades=[],reports={};
       for(const [key,value] of Object.entries(parts)){
         if(key.startsWith('month_') && Array.isArray(value.transactions))transactions.push(...value.transactions);
+        if(key.startsWith('investment_') && Array.isArray(value.investmentTrades))investmentTrades.push(...value.investmentTrades);
         if(key.startsWith('report_') && value.report)reports[key.slice(7)]=value.report;
       }
       return {version:2,accounts:m.accounts||[],categories:m.categories||[],expenseGroups:m.expenseGroups,transactions,
-              budgets:m.budgets||{},budgetMoves:m.budgetMoves||[],debts:m.debts||[],accountCorrections:m.accountCorrections||[],budgetAdjustments:m.budgetAdjustments||[],budgetBaseHistory:m.budgetBaseHistory||[],budgetInitialStates:m.budgetInitialStates||{},reports};
+              budgets:m.budgets||{},budgetMoves:m.budgetMoves||[],debts:m.debts||[],accountCorrections:m.accountCorrections||[],budgetAdjustments:m.budgetAdjustments||[],budgetBaseHistory:m.budgetBaseHistory||[],budgetInitialStates:m.budgetInitialStates||{},investmentAssets:m.investmentAssets||[],investmentSnapshots:m.investmentSnapshots||[],investmentTrades,reports};
     };
     function docCol(){return collection(firestore,'users',currentUID,'arus')}
     async function doWrite(data,force){

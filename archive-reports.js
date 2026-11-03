@@ -120,13 +120,11 @@ function chartTrend(r){
   return '<path d="'+area+'" fill="url(#archive-area-'+a.key+')" class="archive-line-area"/>'+
    '<path d="'+path+'" fill="none" stroke="'+a.color+'" stroke-width="3.8" stroke-linejoin="round" stroke-linecap="round" class="archive-line-path" pathLength="1" style="--archive-line-delay:'+(idx*0.2)+'s"/>'+points;
  }).join('');
- const last=rows[n-1];
  return '<div class="archive-trend archive-dashboard-trend"><div class="archive-trend-legend"><span><i class="is-income"></i>Pemasukan</span><span><i class="is-expense"></i>Pengeluaran</span></div>'+
   '<div class="archive-line-canvas"><svg class="archive-line-svg" viewBox="0 0 '+width+' '+height+'" role="group" aria-label="Grafik tren pemasukan dan pengeluaran enam bulan, setiap titik berlabel rupiah dan dapat dibuka untuk melihat rincian transaksi">'+
   '<defs><linearGradient id="archive-area-income" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#15966b" stop-opacity=".2"/><stop offset="1" stop-color="#15966b" stop-opacity=".01"/></linearGradient>'+
   '<linearGradient id="archive-area-expense" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#d95770" stop-opacity=".14"/><stop offset="1" stop-color="#d95770" stop-opacity=".01"/></linearGradient></defs>'+
   grid+charts+labels+'</svg></div>'+
-  '<div class="archive-trend-selected" role="status" aria-live="polite"><span>📊 '+esc(monthText(last.month))+'</span><strong>Masuk '+fmt(last.income)+' · Keluar '+fmt(last.expense)+'</strong></div>'+
   '<small class="archive-trend-hint">✨ Klik titik atau angka untuk membuka rincian transaksi pemasukan atau pengeluaran bulan tersebut.</small></div>';
 }
 function insightMarkup(r){
@@ -290,6 +288,9 @@ function pdfReport(r){
     return {x:p.x+4*Math.cos(angle),y:p.y+4*Math.sin(angle)};
    });
    commands.push(rgb(item.color)+' rg '+dots.map((d,i)=>d.x.toFixed(1)+' '+(H-d.y).toFixed(1)+(i?' l ':' m ')).join('')+' h f\n');
+   const amount=fmt(p.value),font=amount.length>17?6.6:7.6;
+   const textTop=item.key==='income'?Math.max(chartTop+7,p.y-12):Math.min(base+12,p.y+16);
+   text(amount,p.x-amount.length*font*.27,textTop,font,true,item.color);
   });
  }
  trend.forEach((month,i)=>{
@@ -487,7 +488,7 @@ function archivePointContent(info){
  '<div class="archive-point-modal-body">'+
  '<div class="archive-point-metrics"><div><span>Total '+kind+'</span><strong class="'+(income?'is-income':'is-expense')+'">'+fmt(info.claimed)+'</strong></div><div><span>Jumlah Transaksi Rinci</span><strong>'+info.rows.length+' transaksi</strong></div></div>'+
  warning+reconcile+
- '<div class="archive-point-section-title"><h4>🍩 Komposisi per Kelompok</h4><small>Nominal dan kontribusi pengeluaran/pemasukan</small></div>'+
+ '<div class="archive-point-section-title"><h4>🍩 Komposisi per Kelompok</h4><small>Proporsi terhadap total '+kind.toLowerCase()+'</small></div>'+
  compositionMarkup+
  '<div class="archive-point-section-title"><h4>📋 Daftar Transaksi per Tanggal</h4><small>'+info.rows.length+' transaksi · '+dates.size+' tanggal</small></div>'+
  (items||'<div class="archive-point-empty">Tidak ada transaksi rinci yang tersedia untuk periode ini.</div>')+
@@ -529,10 +530,7 @@ function archiveSelectPoint(target){
  const matched=[...chart.querySelectorAll('[data-archive-trend-point]')].filter(el=>el.dataset.archiveTrendPoint===month);
  const income=matched.find(el=>el.dataset.archiveTrendType==='income');
  const expense=matched.find(el=>el.dataset.archiveTrendType==='expense');
- const area=chart.querySelector('.archive-trend-selected');
- if(!area)return;
  chart.querySelectorAll('[data-archive-trend-point]').forEach(el=>el.classList.toggle('is-picked',el.dataset.archiveTrendPoint===month));
- area.innerHTML='<span>📊 '+esc(monthText(month))+'</span><strong>Masuk '+fmt(income?.dataset.archiveTrendValue)+' · Keluar '+fmt(expense?.dataset.archiveTrendValue)+'</strong>';
  archiveOpenPointDialog(target);
 }
 document.addEventListener('click',e=>{

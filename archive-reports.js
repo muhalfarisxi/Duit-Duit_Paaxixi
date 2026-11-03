@@ -161,6 +161,23 @@ function debtPreview(r){
  const note=legacy?'Arsip lama belum menyimpan rincian cicilan atau nominal awal. Perbarui arsip bulan ini untuk melengkapi data.':'Daftar memuat utang/piutang bersaldo atau memiliki aktivitas selama bulan ini. Rincian cicilan juga disertakan dalam PDF.';
  return '<section class="archive-panel archive-debt-panel"><div class="archive-debt-heading"><h3>🤝 Utang & Piutang Bulanan</h3><span class="archive-mini-tag">Posisi akhir bulan</span></div>'+cards+rows+'<small class="archive-preview-foot">'+note+'</small></section>';
 }
+function archiveHistoryStrip(months,sel){
+ const cards=(months||[]).map(item=>{
+  const active=item.month===sel;
+  return '<article class="archive-quick-item'+(active?' is-active':'')+'" '+(active?'aria-current="true"':'')+'>'+
+   '<div class="archive-quick-info"><span class="archive-quick-month">'+esc(monthText(item.month))+'</span>'+
+   '<span class="archive-quick-spent">Keluar <strong>'+fmt(item.expense)+'</strong></span></div>'+
+   '<div class="archive-quick-actions"><button type="button" class="archive-quick-open" data-open-report="'+esc(item.month)+'" aria-label="Buka arsip '+esc(monthText(item.month))+'">'+(active?'✓ Terbuka':'Buka')+'</button>'+
+   '<button type="button" class="archive-quick-delete" data-delete-report="'+esc(item.month)+'" title="Hapus arsip '+esc(monthText(item.month))+'" aria-label="Hapus arsip '+esc(monthText(item.month))+'">×</button></div></article>';
+ }).join('');
+ return '<section class="archive-quick-section" aria-labelledby="archive-quick-heading">'+
+  '<div class="archive-quick-head"><div class="archive-quick-title"><span aria-hidden="true">📚</span><div><h3 id="archive-quick-heading">Arsip Bulanan <small>'+months.length+' tersimpan</small></h3><p>Snapshot tersimpan · pilih bulan untuk membuka laporannya.</p></div></div>'+
+  (months.length>2?'<div class="archive-quick-nav" role="group" aria-label="Geser daftar arsip"><button type="button" data-archive-quick-scroll="-1" aria-label="Geser ke kiri">‹</button><button type="button" data-archive-quick-scroll="1" aria-label="Geser ke kanan">›</button></div>':'')+
+  '</div>'+
+  (months.length?'<div class="archive-quick-list" role="list" aria-label="Arsip bulanan tersimpan">'+cards+'</div>':
+   '<div class="archive-quick-empty"><span aria-hidden="true">✦</span> Belum ada arsip tersimpan. Pilih bulan lalu klik <strong>Simpan Arsip</strong>.</div>')+
+  '</section>';
+}
 function renderPage(data){
  archiveClosePointDialog(false);
  archiveActiveReport=data.report;
@@ -171,6 +188,7 @@ function renderPage(data){
  return '<div class="archive-v2">'
   +'<div class="archive-intro"><div><span class="archive-kicker">✦ LAPORAN KEUANGAN BULANAN</span><h2>Rapor Keuangan <span>✦</span></h2><p>Ringkasan, grafik, dan analisis dalam satu laporan. Rincian transaksi ada di lampiran.</p></div><span class="archive-intro-ornament" aria-hidden="true">📊</span></div>'
   +'<div class="archive-toolbar"><div class="archive-picker"><span>🗓️</span><label><small>Periode Laporan</small><input id="report-month" type="month" aria-label="Pilih bulan laporan" value="'+esc(sel)+'"></label></div><div class="archive-status '+(saved?'is-saved':'')+'"><span>'+(saved?'✓':'◌')+'</span><div><small>Status Bulan</small><strong>'+(saved?'Arsip tersimpan':'Pratinjau belum disimpan')+'</strong></div></div><div class="archive-toolbar-actions"><button class="btn teal archive-save-btn" data-action="save-report">'+(saved?'↻ Perbarui Arsip':'✦ Simpan Arsip')+'</button><button class="btn archive-pdf-btn" data-action="print-report" '+(saved?'':'disabled title="Simpan arsip dahulu untuk mengunduh PDF"')+'>⬇ Unduh PDF Berwarna</button></div></div>'
+  +archiveHistoryStrip(months,sel)
   +'<div class="archive-summary-grid">'
   +card('💚','Pemasukan',r.income,'green','Uang masuk pada bulan ini')
   +card('🧡','Pengeluaran',r.expense,'coral','Uang keluar untuk belanja')
@@ -181,8 +199,7 @@ function renderPage(data){
   +'<div class="archive-panels"><section class="archive-panel"><h3>🍩 Komposisi Pengeluaran</h3>'+chartDonut(r)+'</section><section class="archive-panel"><h3>📈 Tren Pemasukan & Pengeluaran</h3>'+chartTrend(r)+'</section></div>'
   +'<section class="archive-ai-panel">'+insightMarkup(r)+'</section>'
   +debtPreview(r)
-  +'<div class="archive-lower"><section class="archive-panel archive-attachment"><div><h3>📋 Lampiran Transaksi</h3><span class="archive-mini-tag">Per tanggal · '+(r.transactions||[]).length+' transaksi</span></div>'+transactionsPreview(r)+'</section>'
-  +'<section class="archive-panel archive-history"><h3>📚 Arsip Bulanan</h3><div class="archive-history-list">'+(months.length?months.map(item=>'<div class="archive-history-row '+(item.month===sel?'is-active':'')+'"><div><strong>'+esc(monthText(item.month))+'</strong><small>Keluar '+fmt(item.expense)+'</small></div><div class="archive-history-actions"><button class="btn sm" data-open-report="'+esc(item.month)+'">Buka</button><button class="btn sm danger" data-delete-report="'+esc(item.month)+'" title="Hapus arsip bulan ini">×</button></div></div>').join(''):'<p class="archive-no-history">Belum ada arsip tersimpan.</p>')+'</div><small class="archive-history-note">Arsip merupakan snapshot; perubahan transaksi tidak mengubah arsip tanpa diperbarui.</small></section></div>'
+  +'<section class="archive-panel archive-attachment"><div><h3>📋 Lampiran Transaksi</h3><span class="archive-mini-tag">Per tanggal · '+(r.transactions||[]).length+' transaksi</span></div>'+transactionsPreview(r)+'</section>'
   +'<div class="archive-report-foot">✨ PDF berwarna memuat ringkasan keuangan, akun dan investasi, grafik, analisis AI (bila tersedia), utang-piutang beserta cicilan, dan semua transaksi sebagai lampiran per tanggal. '+(!saved?'Simpan arsip untuk membekukan angka laporan.':'')+'</div></div>';
 }
 /* Portable PDF 1.4 renderer (A4, warna vektor); PDF tetap dapat diunduh tanpa CDN. */
@@ -541,6 +558,14 @@ document.addEventListener('keydown',e=>{
  if(!['Enter',' '].includes(e.key))return;
  const point=e.target.closest?.('[data-archive-trend-point]');
  if(point){e.preventDefault();archiveSelectPoint(point);}
+});
+document.addEventListener('click',event=>{
+ const btn=event.target.closest?.('[data-archive-quick-scroll]');
+ if(!btn)return;
+ const track=btn.closest('.archive-quick-section')?.querySelector('.archive-quick-list');
+ if(!track)return;
+ event.preventDefault();
+ track.scrollBy({left:Number(btn.dataset.archiveQuickScroll)*Math.max(270,track.clientWidth*.7),behavior:'smooth'});
 });
 window.PAAX_ARCHIVE={renderPage,exportPdf,localInsight};
 })();

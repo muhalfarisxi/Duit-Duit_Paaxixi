@@ -6903,6 +6903,145 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
  .pax-cal-nav,.pax-cal-days button,.pax-date-trigger{transition:none!important}
 }
 
+
+/* #146 Rekening ringkas: kartu pastel, saldo fokus, koreksi auditabel. */
+.accounts-redesign{display:grid;gap:17px}
+.accounts-hero{position:relative;overflow:hidden;display:flex;align-items:center;flex-wrap:wrap;
+ gap:18px;padding:25px 28px;border:1px solid #93b8ed;border-radius:24px;
+ background:linear-gradient(115deg,#194478,#2e72ba 70%,#7378d1);color:#fff;
+ box-shadow:0 13px 30px #24559b29;animation:accountReveal .45s ease both}
+.accounts-hero::before{content:"";position:absolute;right:-77px;top:-75px;width:280px;height:280px;
+ border:2px solid #ffffff2b;border-radius:50%;box-shadow:0 0 0 40px #ffffff0a}
+.accounts-hero-copy{z-index:1;flex:1;min-width:190px}
+.accounts-hero-copy small{font:900 11px Nunito,sans-serif;letter-spacing:1px;color:#d7ebff}
+.accounts-hero-copy strong{display:block;margin:8px 0 5px;max-width:100%;
+ color:#fff;font:600 clamp(28px,3.1vw,47px)/1.2 Fredoka,Nunito,sans-serif;overflow-wrap:anywhere}
+.accounts-hero-copy p{margin:0;color:#d7e9ff;font:800 12px Nunito,sans-serif}
+.accounts-hero-mascot{font-size:44px;animation:accountFloat 3s ease-in-out infinite}
+.accounts-transfer{z-index:1;background:#fff!important;border:1px solid #dceaff!important;
+ border-radius:13px!important;color:#285f9e!important;white-space:nowrap}
+.accounts-main-layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(270px,.76fr);gap:16px;align-items:start}
+.accounts-list-section,.accounts-new-section{min-width:0}
+.accounts-list-section .card-head,.accounts-new-section .card-head{align-items:center;margin-bottom:14px}
+.accounts-count{padding:6px 11px;border:1px solid #cce0f8;border-radius:100px;
+ background:#edf5ff;color:#4075ab;font:900 11px Nunito,sans-serif}
+.accounts-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.account-money-card{--account-tint:#eaf3ff;--account-accent:#3776bc;--account-stroke:#c9ddfa;
+ position:relative;min-width:0;overflow:hidden;display:grid;padding:16px;
+ border:1.5px solid var(--account-stroke);border-radius:18px;
+ background:linear-gradient(128deg,var(--account-tint),#fff 97%);
+ box-shadow:0 6px 18px #24578b0f;
+ animation:accountReveal .45s calc(var(--account-order)*60ms) ease both;
+ transition:transform .2s,box-shadow .2s,border-color .2s}
+.account-money-card:hover{transform:translateY(-4px);border-color:var(--account-accent);
+ box-shadow:0 10px 25px #225b9524}
+.account-palette-0{--account-tint:#e8f8f0;--account-accent:#1e9273;--account-stroke:#bfe9d9}
+.account-palette-1{--account-tint:#fff6e6;--account-accent:#b98737;--account-stroke:#efd9b4}
+.account-palette-2{--account-tint:#f3edff;--account-accent:#8560c3;--account-stroke:#decdf8}
+.account-palette-3{--account-tint:#e9f3ff;--account-accent:#427fc8;--account-stroke:#c8dffa}
+.account-palette-4{--account-tint:#fff0f6;--account-accent:#c77390;--account-stroke:#f2ccdd}
+.account-palette-5{--account-tint:#e8f8fa;--account-accent:#238f9b;--account-stroke:#bce7ed}
+.account-money-head{display:flex;align-items:center;gap:9px;min-width:0}
+.account-money-avatar{display:grid;place-items:center;flex:none;width:42px;height:42px;
+ border-radius:13px;background:#ffffffc9;font-size:21px}
+.account-money-head>div{display:grid;gap:3px;flex:1;min-width:0}
+.account-money-head strong{color:#214f80;font:900 15px Fredoka,Nunito,sans-serif;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.account-money-head small{color:#718baa;font:800 10px Nunito,sans-serif}
+.account-money-sparkle{font-size:20px;color:var(--account-accent);animation:accountSparkle 3s ease-in-out infinite}
+.account-money-label{color:#7690a6;font:850 10px Nunito,sans-serif;margin-top:14px}
+.account-money-value{color:var(--account-accent);font:600 clamp(19px,2vw,28px)/1.15 Fredoka,Nunito,sans-serif;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:4px 0 13px}
+.account-money-track{height:8px;border-radius:99px;background:#ffffffda;overflow:hidden}
+.account-money-track>span{display:block;height:100%;border-radius:inherit;
+ background:linear-gradient(90deg,var(--account-accent),#90bef4);transform-origin:left;
+ animation:accountFill .8s ease both}
+.account-money-meta{display:flex;flex-wrap:wrap;justify-content:space-between;
+ gap:5px;margin-top:8px;color:#7892ad;font:750 10px Nunito,sans-serif}
+.account-money-actions{display:flex;gap:7px;margin-top:15px}
+.account-money-actions button{flex:none;min-height:35px;min-width:35px;
+ border:1px solid var(--account-stroke);border-radius:10px;background:#ffffffda;
+ color:var(--account-accent);font:900 15px Nunito,sans-serif;transition:transform .18s}
+.account-money-actions button:hover{transform:translateY(-2px)}
+.account-money-actions .account-btn-adjust{flex:1;font-size:11px}
+.accounts-new-section .form-grid{grid-template-columns:1fr}
+.accounts-new-section .field{min-height:46px}
+.account-new-emoji{font-size:25px;animation:accountFloat 3s ease infinite}
+.account-form-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:17px}
+.account-form-actions>.btn:first-child{flex:1}
+.account-form-hint,.account-adjust-note{color:#728aa4;font:750 11px/1.5 Nunito,sans-serif}
+.account-history .card-head{margin-bottom:12px}
+.account-history-list{display:grid;gap:8px;max-height:310px;overflow-y:auto;scrollbar-width:thin}
+.account-history-row{display:flex;align-items:center;gap:9px;min-width:0;
+ padding:11px;background:#f6faff;border:1px solid #dce8f7;border-radius:11px}
+.account-history-icon{display:grid;place-items:center;flex:none;width:32px;height:32px;
+ border-radius:10px;background:#e0f6ea;color:#178564;font-size:21px}
+.account-history-icon.decrease{background:#ffe8ed;color:#c35267}
+.account-history-info{display:grid;gap:3px;flex:1;min-width:0}
+.account-history-info strong{color:#2b5787;font-size:12px}
+.account-history-info small{color:#7690ab;font-size:10px;overflow-wrap:anywhere}
+.account-history-row>b{white-space:nowrap;color:#16836d;font-size:12px}
+.account-history-row>b.decrease{color:#b95267}
+.account-history-row>button{width:29px;height:29px;border:0;border-radius:9px;background:#fff;color:#be6279}
+.account-tools{border:1px solid #d7e6f8;background:#fafdff;border-radius:17px;overflow:hidden}
+.account-tools>summary{display:flex;align-items:center;gap:10px;min-height:71px;
+ padding:15px 18px;list-style:none;cursor:pointer}
+.account-tools>summary::-webkit-details-marker{display:none}
+.account-tools-emoji{font-size:24px}
+.account-tools-titles{display:grid;flex:1;gap:3px;min-width:0}
+.account-tools-titles strong{color:#2b5686;font:900 14px Fredoka,Nunito,sans-serif}
+.account-tools-titles small,.account-tools-status{font:750 11px Nunito,sans-serif;color:#7b92af}
+.account-tools-body{padding:15px 18px;border-top:1px solid #dbe8f8;display:grid;gap:16px}
+.account-tools-body h4{margin:0;color:#2b5e90}
+.account-tools-body p{font:750 11px/1.5 Nunito,sans-serif;color:#7289a4}
+.account-tools-buttons{display:flex;flex-wrap:wrap;gap:8px}
+.account-tools-error{color:#ba435c!important}
+.account-adjust-backdrop{position:fixed;inset:0;z-index:6000;
+ display:grid;place-items:center;padding:14px;background:#10274796;backdrop-filter:blur(7px)}
+.account-adjust-dialog{width:min(540px,100%);max-height:90dvh;display:flex;flex-direction:column;
+ overflow:hidden;background:#fff;border:1px solid #bcdafa;border-radius:24px;
+ box-shadow:0 24px 80px #0a284b70;animation:accountReveal .3s ease both}
+.account-adjust-head{display:flex;align-items:center;gap:10px;padding:17px 20px;
+ background:linear-gradient(120deg,#e7f2ff,#f7fbff);border-bottom:1px solid #dbe8f9}
+.account-adjust-head>span{font-size:23px}
+.account-adjust-head>div{display:grid;gap:3px;flex:1}
+.account-adjust-head strong{font:600 21px Fredoka,Nunito,sans-serif;color:#234f83}
+.account-adjust-head small{font:800 11px Nunito,sans-serif;color:#7390ac}
+.account-adjust-head button{width:35px;height:35px;border:1px solid #cce0f8;border-radius:11px;
+ background:#eef6ff;color:#3671b3}
+.account-adjust-content{overflow-y:auto;padding:19px 20px}
+.account-adjust-current{display:flex;justify-content:space-between;align-items:center;gap:9px;
+ padding:13px;background:#ecf5ff;border-radius:14px;margin-bottom:16px}
+.account-adjust-current small{font:900 11px Nunito,sans-serif;color:#5780ac}
+.account-adjust-current strong{font:600 22px Fredoka,Nunito,sans-serif;color:#235991}
+.account-adjust-modes{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:15px}
+.account-adjust-mode{display:flex;align-items:center;justify-content:center;gap:8px;position:relative;
+ min-height:47px;border:1.5px solid #bde8d4;border-radius:12px;background:#ebf9f1;
+ color:#21866b;font:900 13px Nunito,sans-serif}
+.account-adjust-mode.minus{background:#fff0f4;border-color:#efc6d1;color:#b95469}
+.account-adjust-mode input{position:absolute;opacity:0;width:1px;height:1px}
+.account-adjust-mode:has(input:checked){box-shadow:0 0 0 3px #57be8f26;border-color:#36a77e}
+.account-adjust-mode.minus:has(input:checked){box-shadow:0 0 0 3px #e07d9828;border-color:#cb607a}
+.account-adjust-mode span{font-size:24px}
+.account-adjust-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}
+.account-adjust-actions>.btn:first-child{flex:1}
+@keyframes accountReveal{from{opacity:0;transform:translateY(15px) scale(.98)}
+ to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes accountFloat{0%,100%{transform:translateY(0) rotate(-5deg)}
+ 50%{transform:translateY(-8px) rotate(5deg)}}
+@keyframes accountSparkle{0%,100%{transform:scale(.85)}50%{transform:scale(1.2)}}
+@keyframes accountFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@media(max-width:1130px){.accounts-main-layout{grid-template-columns:1fr}}
+@media(max-width:660px){.accounts-hero{padding:18px;gap:9px}.accounts-hero-mascot{display:none}
+ .accounts-transfer{width:100%}.accounts-card-grid{grid-template-columns:1fr}
+ .accounts-list-section,.accounts-new-section{padding:16px}
+ .account-tools-status{font-size:10px;max-width:100px;text-align:right}
+ .account-adjust-head{padding:14px}.account-adjust-content{padding:13px}
+ .account-adjust-current strong{font-size:18px}}
+@media(prefers-reduced-motion:reduce){
+ .accounts-hero,.account-money-card,.account-adjust-dialog,.account-new-emoji,
+ .accounts-hero-mascot,.account-money-sparkle,.account-money-track>span{animation:none!important}}
+
 /* #127 Anggaran: dua menu, kelompok bertingkat dan status penetapan per bulan. */
 #content .budget-work-tabs-two{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}
 #content .budget-work-tabs-two button{min-width:0;white-space:normal;min-height:48px}
@@ -11728,16 +11867,141 @@ function dismissRepayPopup(){
  const button=[...document.querySelectorAll('[data-repay]')].find(x=>x.dataset.repay===id);
  (button||document.querySelector('[data-debt-list-filter].active'))?.focus({preventScroll:true});
 }
-function renderAccounts(){let bal=balances(),total=Object.values(bal).reduce((s,n)=>s+n,0),aEdit=db.accounts.find(a=>a.id===ui.accountEditId),cEdit=db.categories.find(c=>c.id===ui.categoryEditId);
-return `<section class="card" style="margin-bottom:16px"><div class="card-head"><div><h3>Sinkronisasi Cloud • HP & Laptop</h3><p>Masuk dengan akun yang sama di HP dan laptop; periksa status tersinkron sebelum berganti perangkat.</p></div><span class="card-icon">☁</span></div>
-<div class="callout"><span>ⓘ</span><div>${cloud.signedIn?(cloud.pendingDecision?'Cloud belum berisi data. Browser ini memiliki catatan lokal. Pilih Unggah data lokal atau Mulai cloud baru (kosong).':cloud.ready?'Login: <strong>'+h(cloud.email)+'</strong> • Sinkronisasi otomatis aktif.': 'Sedang membaca data cloud. Tunggu sebelum melakukan perubahan.'):cloud.configured?'Konfigurasi Firebase terpasang. Silakan login untuk mengaktifkan sinkronisasi.':'Sinkronisasi BELUM aktif karena konfigurasi Firebase belum diisi. Data sekarang hanya tersimpan di browser.'}</div></div>
-${cloud.error?`<div class="callout" style="margin-top:12px;border:1px solid #e8b8b8;background:#fff4f3;color:#933"><span>⚠</span><div><strong>Detail kesalahan Firebase:</strong><br>${h(cloud.error)}</div></div>`:''}
- ${cloud.signedIn?`<div class="form-actions"><button class="btn" data-action="cloud-logout">Keluar dari akun</button><button class="btn danger" data-action="cloud-upload">Unggah data lokal ke cloud (timpa)</button>${cloud.pendingDecision?'<button class="btn teal" data-action="cloud-empty">Mulai cloud baru (kosong)</button>':''}</div><div class="tiny" style="margin-top:12px">Tombol unggah digunakan hanya untuk migrasi atau pemulihan. Jika cloud sudah berisi data, unggahan menimpanya. Gunakan ekspor cadangan terlebih dahulu.</div>`:`<form id="cloud-login-form"><p class="tiny" style="margin-bottom:13px">Masuk menggunakan akun Google yang kamu aktifkan pada Firebase Authentication. Tidak memerlukan password khusus aplikasi.</p><div class="form-actions"><button type="submit" class="btn primary" ${!cloud.configured?'disabled':''}>G Masuk dengan Google</button></div></form>`}
-</section>
-<div class="grid layout-2"><section class="card"><div class="card-head"><div><h3>Saldo Per Rekening</h3><p>Cocokkan saldo dengan rekening asli; periksa jika ada transaksi yang belum dicatat.</p></div><span class="card-icon">▤</span></div><div style="background:#edf4ff;border-radius:14px;padding:17px;margin-bottom:10px"><div class="metric-label">Total Seluruh Rekening</div><div class="metric">${money(total)}</div></div>${db.accounts.map(a=>`<div class="account-row"><span class="account-avatar">${a.type==='Bank'?'▤':a.type==='E-Wallet'?'◉':'▣'}</span><div class="account-info"><strong>${h(a.name)}</strong><small>${h(a.type)} • Saldo awal ${money(a.opening)}</small></div><div style="text-align:right"><div class="account-balance ${bal[a.id]<0?'red':''}">${money(bal[a.id])}</div><div class="action-buttons"><button class="btn sm" data-edit-account="${h(a.id)}">Edit</button><button class="btn sm danger" data-delete-account="${h(a.id)}">Hapus</button></div></div></div>`).join('')}<div class="form-actions"><button class="btn sm full" data-action="new-transfer">⇄ Transfer antar rekening</button></div></section>
-<section class="card"><div class="card-head"><div><h3>${aEdit?'Edit Rekening':'Tambah Rekening / Dompet'}</h3><p>Contoh BRI, BCA, SeaBank, GoPay, DANA, Tunai</p></div></div><form id="account-form"><input name="editId" type="hidden" value="${h(aEdit?.id||'')}"><div class="form-grid"><div class="form-field full"><label class="field-label">Nama Rekening</label><input class="field" maxlength="60" name="name" value="${h(aEdit?.name||'')}" required placeholder="Misalnya BRI Gaji"></div><div class="form-field"><label class="field-label">Jenis</label><select class="field" name="type">${['Bank','E-Wallet','Tunai'].map(x=>`<option ${aEdit?.type===x?'selected':''}>${x}</option>`).join('')}</select></div><div class="form-field"><label class="field-label">Saldo Awal (Rp)</label><input class="field" name="opening" type="text" inputmode="decimal" data-rupiah="1" value="${fmtAmount(aEdit?.opening||0)}" required></div></div><div class="form-actions"><button type="submit" class="btn teal">${aEdit?'✓ Simpan perubahan':'＋ Tambah rekening'}</button>${aEdit?'<button type="button" class="btn" data-action="cancel-account-edit">Batal</button>':''}</div></form><div class="tip" style="margin-top:17px">Saldo awal adalah saldo saat pertama menggunakan aplikasi, tidak dihitung sebagai pemasukan baru.</div></section></div>
-<div class="grid layout-equal"><section class="card"><div class="card-head"><div><h3>Pengaturan Kategori</h3><p>Pilih kategori dan kelompok yang sesuai agar rekap transaksi dan anggaran akurat.</p></div><button class="btn sm" type="button" data-nav="budgets">⚙ Kelola Kelompok</button></div><form id="category-form"><input type="hidden" name="editId" value="${h(cEdit?.id||'')}"><div class="form-grid"><div class="form-field"><label class="field-label">Jenis Kategori</label><select class="field" name="kind" id="new-cat-kind" ${cEdit?'disabled':''}><option value="expense" ${cEdit?.kind==='expense'?'selected':''}>Pengeluaran</option><option value="income" ${cEdit?.kind==='income'?'selected':''}>Pemasukan</option></select></div><div class="form-field"><label class="field-label">Kelompok</label><select class="field" name="group" id="new-cat-group">${(cEdit?.kind==='income'?['BPS','Fastlink','Lainnya']:cEdit?.kind==='expense'?expenseGroups().map(g=>g.name):expenseGroups().map(g=>g.name)).map(g=>`<option value="${h(g)}" ${cEdit?.group===g?'selected':''}>${pickSymbol(g,g)} ${h(g)}</option>`).join('')}</select></div><div class="form-field full"><label class="field-label">Nama Kategori</label><input class="field" required maxlength="70" name="label" value="${h(cEdit?.label||'')}" placeholder="Contoh: Pendidikan"></div></div><div class="form-actions"><button class="btn primary" type="submit">${cEdit?'Simpan kategori':'＋ Tambah kategori'}</button>${cEdit?'<button class="btn" type="button" data-action="cancel-category-edit">Batal</button>':''}</div></form><div class="linebreak"></div><div class="inline-cards">${db.categories.map(c=>`<div class="inline-line"><div class="symbol-line">${symbolBadge(c.label,c.group,true)}<div class="symbol-text"><strong>${h(c.label)}</strong><small>${h(c.group)} · ${c.kind==='income'?'Pemasukan':'Pengeluaran'}</small></div></div><div class="action-buttons"><button class="btn sm" data-edit-category="${h(c.id)}">Edit</button><button class="btn sm danger" data-delete-category="${h(c.id)}">Hapus</button></div></div>`).join('')}</div></section>
-<section class="card"><div class="card-head"><div><h3>Cadangkan & Pulihkan</h3><p>Unduh cadangan sebelum mengimpor data atau melakukan perubahan besar pada akun.</p></div><span class="card-icon">⇩</span></div><div class="callout"><span>ⓘ</span><div>Saat login, data cloud akan menjadi sumber utama. Ekspor JSON berkala sangat disarankan sebelum penghapusan atau pemulihan massal.</div></div><button data-action="export" class="btn teal full">↓ Ekspor semua data (JSON)</button>${localStorage.getItem('arus-cadangan-sebelum-cloud')?'<button class="btn full" data-action="export-precloud" style="margin-top:9px">↓ Unduh cadangan sebelum login cloud</button>':''}<button data-action="import" class="btn full" style="margin-top:9px">↑ Impor / pulihkan data (JSON)</button>${localStorage.getItem('arus-cadangan-sebelum-demo')?'<button data-action="export-pre-demo" class="btn full" style="margin-top:9px">↓ Unduh cadangan sebelum simulasi</button>':''}<div class="linebreak"></div><button data-action="demo" class="btn sm" ${cloud.signedIn?'disabled title="Keluar akun cloud dulu"':''}>Isi contoh 24 bulan (lokal)</button> <button data-action="reset" class="btn sm danger">Hapus semua data</button><div class="tip" style="margin-top:15px">Jika tersinkron, reset akan menghapus data di seluruh perangkat yang login pada akun ini. Buat cadangan dahulu.</div><button class="btn full" data-nav="reports" style="margin-top:15px">▣ Buka arsip laporan bulanan →</button><button class="btn full" data-nav="debts" style="margin-top:9px">◈ Buka utang & piutang →</button></section></div>`}
+
+function renderAccountAdjustPopup(){
+ const a=acc(ui.accountAdjustId);if(!a)return '';
+ return `<div class="account-adjust-backdrop" id="account-adjust-backdrop">
+  <section class="account-adjust-dialog" role="dialog" aria-modal="true" aria-labelledby="account-adjust-title">
+   <header class="account-adjust-head"><span aria-hidden="true">✨</span>
+    <div><strong id="account-adjust-title">Sesuaikan Saldo</strong><small>${h(a.name)}</small></div>
+    <button type="button" data-account-adjust-close aria-label="Tutup">✕</button></header>
+   <div class="account-adjust-content">
+    <div class="account-adjust-current"><small>Saldo saat ini</small><strong>${money(balances()[a.id]||0)}</strong></div>
+    <form id="account-adjust-form"><input type="hidden" name="accountId" value="${h(a.id)}">
+     <div class="account-adjust-modes">
+      <label class="account-adjust-mode plus"><input type="radio" name="type" value="increase" checked><span>＋</span> Tambah</label>
+      <label class="account-adjust-mode minus"><input type="radio" name="type" value="decrease"><span>−</span> Kurangi</label></div>
+     <div class="form-grid">
+      <div class="form-field"><label class="field-label">Tanggal</label>
+       <input class="field" type="date" name="date" max="${analysisToday()}" value="${analysisToday()}" required></div>
+      <div class="form-field"><label class="field-label">Nominal (Rp)</label>
+       <input class="field" name="amount" type="text" inputmode="decimal" data-rupiah="1" placeholder="100.000" required></div>
+      <div class="form-field full"><label class="field-label">Alasan penyesuaian</label>
+       <input class="field" name="note" maxlength="160" placeholder="Contoh: Selisih setelah mencocokkan saldo bank" required></div>
+     </div>
+     <p class="account-adjust-note">Koreksi saldo tidak dihitung sebagai pemasukan atau pengeluaran. Untuk arus uang sebenarnya, gunakan Catat Transaksi.</p>
+     <div class="account-adjust-actions"><button class="btn primary" type="submit">✓ Simpan Penyesuaian</button>
+      <button class="btn" type="button" data-account-adjust-close>Batal</button></div>
+    </form>
+   </div>
+  </section>
+ </div>`;
+}
+function renderAccountTools(){
+ const c=cloud,notice=c.error?'⚠ Sinkronisasi bermasalah':c.pendingDecision?'⚠ Perlu keputusan':
+  c.signedIn&&c.ready?'✓ Tersinkron':c.configured?'◯ Belum login':'◯ Mode lokal';
+ return `<details class="account-tools" ${c.error||c.pendingDecision?'open':''}>
+  <summary><span class="account-tools-emoji">☁️</span><span class="account-tools-titles">
+    <strong>Sinkronisasi & Cadangan Data</strong><small>Pengaturan dan keamanan data</small></span>
+    <span class="account-tools-status">${notice}</span></summary>
+  <div class="account-tools-body">
+   <section><h4>Sinkronisasi Cloud</h4>
+    <p>${c.signedIn?c.pendingDecision?'Cloud kosong; tentukan sumber data.':
+       c.ready?'Akun '+h(c.email)+' · sinkronisasi otomatis aktif.':'Menghubungkan Cloud.':
+       c.configured?'Masuk Google untuk menyinkronkan perangkat.':'Data disimpan di browser ini.'}</p>
+    ${c.error?`<p class="account-tools-error">⚠ ${h(c.error)}</p>`:''}
+    ${c.signedIn?`<div class="account-tools-buttons">
+     <button class="btn sm" type="button" data-action="cloud-logout">Keluar</button>
+     <button class="btn sm danger" type="button" data-action="cloud-upload">Unggah Lokal (Timpa Cloud)</button>
+     ${c.pendingDecision?'<button class="btn sm teal" data-action="cloud-empty">Mulai Cloud Kosong</button>':''}
+     </div>`:
+     `<form id="cloud-login-form"><button class="btn primary" type="submit" ${c.configured?'':'disabled'}>Masuk dengan Google</button></form>`}
+   </section>
+   <section><h4>Cadangan & Pemulihan</h4>
+    <div class="account-tools-buttons">
+     <button class="btn sm" data-action="export">↓ Ekspor JSON</button>
+     <button class="btn sm" data-action="import">↑ Impor JSON</button>
+     ${localStorage.getItem('arus-cadangan-sebelum-cloud')?'<button class="btn sm" data-action="export-precloud">↓ Cadangan Pra-cloud</button>':''}
+     ${localStorage.getItem('arus-cadangan-sebelum-demo')?'<button class="btn sm" data-action="export-pre-demo">↓ Cadangan Pra-simulasi</button>':''}
+     <button class="btn sm" data-action="demo" ${c.signedIn?'disabled':''}>Data Simulasi</button>
+     <button class="btn sm danger" data-action="reset">Hapus Semua Data</button>
+    </div><p>Ekspor cadangan sebelum impor, reset, atau menimpa Cloud.</p>
+   </section>
+  </div>
+ </details>`;
+}
+function renderAccounts(){
+ const bal=balances(),total=db.accounts.reduce((n,a)=>n+num(bal[a.id]),0);
+ const pool=db.accounts.reduce((n,a)=>n+Math.max(0,num(bal[a.id])),0);
+ const editing=db.accounts.find(a=>a.id===ui.accountEditId);
+ const history=(db.accountCorrections||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+ const types={'Bank':'🏦','E-Wallet':'📱','Tunai':'💵'};
+ const cards=db.accounts.map((a,i)=>{
+  const balance=num(bal[a.id]),part=pool>0?Math.max(0,balance)/pool*100:0;
+  const palette=Array.from(String(a.id)).reduce((n,c)=>n+c.charCodeAt(0),0)%6;
+  return `<article class="account-money-card account-palette-${palette}" style="--account-order:${Math.min(i,9)}">
+   <div class="account-money-head"><span class="account-money-avatar" aria-hidden="true">${types[a.type]||'💳'}</span>
+    <div><strong title="${h(a.name)}">${h(a.name)}</strong><small>${h(a.type)}</small></div>
+    <span class="account-money-sparkle" aria-hidden="true">✦</span></div>
+   <small class="account-money-label">Saldo Tersedia</small>
+   <strong class="account-money-value" title="${money(balance)}">${money(balance)}</strong>
+   <div class="account-money-track"><span style="width:${part.toFixed(2)}%"></span></div>
+   <div class="account-money-meta"><span>${pool>0?Math.round(part)+'% dari saldo positif':'Belum ada dana'}</span>
+    <span>Awal ${money(a.opening)}</span></div>
+   <div class="account-money-actions">
+    <button type="button" class="account-btn-adjust" data-account-adjust="${h(a.id)}">＋/− Sesuaikan</button>
+    <button type="button" data-edit-account="${h(a.id)}" aria-label="Edit ${h(a.name)}">✎</button>
+    <button type="button" data-delete-account="${h(a.id)}" aria-label="Hapus ${h(a.name)}">×</button></div>
+  </article>`;
+ }).join('');
+ return `<div class="accounts-redesign">
+  <section class="accounts-hero">
+   <div class="accounts-hero-copy"><small>💰 DANA TERSEDIA</small>
+    <strong>${money(total)}</strong><p>${db.accounts.length} rekening dan dompet</p></div>
+   <div class="accounts-hero-mascot" aria-hidden="true">🪙✨</div>
+   <button type="button" class="btn accounts-transfer" data-action="new-transfer">⇄ Transfer Rekening</button>
+  </section>
+  <div class="accounts-main-layout">
+   <section class="card accounts-list-section">
+    <div class="card-head"><div><h3>Rekening & Dompet</h3></div><span class="accounts-count">${db.accounts.length} aktif</span></div>
+    <div class="accounts-card-grid">${cards}</div>
+   </section>
+   <section class="card accounts-new-section">
+    <div class="card-head"><div><h3>${editing?'Edit Rekening':'Tambah Rekening'}</h3></div>
+     <span class="account-new-emoji" aria-hidden="true">${editing?'✏️':'🌱'}</span></div>
+    <form id="account-form"><input name="editId" type="hidden" value="${h(editing?.id||'')}">
+     <div class="form-grid">
+      <div class="form-field full"><label class="field-label">Nama Rekening</label>
+       <input class="field" name="name" maxlength="60" placeholder="Misalnya BRI Gaji"
+        value="${h(editing?.name||'')}" required></div>
+      <div class="form-field full"><label class="field-label">Jenis</label>
+       <select class="field" name="type">${['Bank','E-Wallet','Tunai'].map(type=>
+        `<option ${editing?.type===type?'selected':''}>${type}</option>`).join('')}</select></div>
+      <div class="form-field full"><label class="field-label">Saldo Awal (Rp)</label>
+       <input class="field" name="opening" type="text" inputmode="decimal" data-rupiah="1"
+        value="${fmtAmount(editing?.opening||0)}" ${editing?'readonly':''} required></div>
+     </div>
+     ${editing?'<p class="account-form-hint">Untuk mengoreksi saldo saat ini gunakan tombol Sesuaikan, bukan mengubah saldo awal.</p>':''}
+     <div class="account-form-actions"><button type="submit" class="btn teal">${editing?'✓ Simpan':'＋ Tambah Rekening'}</button>
+      ${editing?'<button type="button" class="btn" data-action="cancel-account-edit">Batal</button>':''}</div>
+    </form>
+   </section>
+  </div>
+  ${history.length?`<section class="card account-history">
+    <div class="card-head"><div><h3>Riwayat Penyesuaian</h3></div><span class="accounts-count">${history.length} catatan</span></div>
+    <div class="account-history-list">${history.slice(0,30).map(c=>
+     `<div class="account-history-row">
+      <span class="account-history-icon ${c.type}">${c.type==='increase'?'＋':'−'}</span>
+      <span class="account-history-info"><strong>${h(acc(c.accountId)?.name||'Rekening dihapus')}</strong>
+       <small>${dateFmt(c.date)} · ${h(c.note||'Koreksi')}</small></span>
+      <b class="${c.type}">${c.type==='increase'?'+':'−'}${money(c.amount)}</b>
+      <button type="button" data-delete-account-correction="${h(c.id)}" aria-label="Hapus koreksi">×</button>
+     </div>`).join('')}</div>
+   </section>`:''}
+  ${renderAccountTools()}
+  ${renderAccountAdjustPopup()}
+ </div>`;
+}
 function buildReport(month){let tx=db.transactions.filter(t=>t.date.slice(0,7)===month).map(t=>({...t,categoryLabel:cat(t.categoryId)?.label||'',group:cat(t.categoryId)?.group||'',accountLabel:acc(t.accountId)?.name||'',toAccountLabel:acc(t.toAccountId)?.name||''})).sort((a,b)=>a.date.localeCompare(b.date)),sum=kind=>tx.filter(t=>t.type===kind).reduce((n,t)=>n+num(t.amount),0);
 let expenseBreakdown=expenses().map(c=>({label:c.label,group:c.group,budget:num(db.budgets[month+'|'+c.id])+budgetAdjustmentNet(c.id,month)+budgetTransferNet(c.id,month),spent:tx.filter(t=>t.type==='expense'&&t.categoryId===c.id).reduce((v,t)=>v+num(t.amount),0)}));
 let incomeBreakdown=incomes().map(c=>({label:c.label,group:c.group,received:tx.filter(t=>t.type==='income'&&t.categoryId===c.id).reduce((v,t)=>v+num(t.amount),0)}));

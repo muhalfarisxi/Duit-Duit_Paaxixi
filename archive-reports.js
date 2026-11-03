@@ -11,8 +11,15 @@ const shortMoney=v=>{const n=num(v);return Math.abs(n)>=1e9?(n/1e9).toLocaleStri
 const sum=(a,key)=>a.reduce((n,v)=>n+num(v[key]),0);
 function groupExpenses(r){
  const list=new Map();
- (r.expenseBreakdown||[]).forEach(x=>{if(num(x.spent)<=0)return;const k=x.group||'Lainnya';list.set(k,(list.get(k)||0)+num(x.spent));});
- return [...list].map(([name,value])=>({name,value})).sort((a,b)=>b.value-a.value);
+ (r.expenseBreakdown||[]).forEach(x=>{
+  if(num(x.spent)<=0)return;
+  const k=x.group||'Lainnya';list.set(k,(list.get(k)||0)+num(x.spent));
+ });
+ const fallback={'LIVING FIX':'#2563eb','PLAYING':'#38a8ed','LIVING LAIN':'#7c73df'};
+ return [...list].map(([name,value],i)=>{
+  const candidate=r.groupColors?.[name]||fallback[name]||COLORS[i%COLORS.length];
+  return {name,value,color:/^#[\da-f]{6}$/i.test(candidate)?candidate:COLORS[i%COLORS.length]};
+ }).sort((a,b)=>b.value-a.value);
 }
 function months6(r){
  if(Array.isArray(r.trends)&&r.trends.length)return r.trends.slice(-6);
@@ -27,23 +34,92 @@ function localInsight(r){
 function chartGroups(r){
  const all=groupExpenses(r);
  if(all.length<=7)return all;
- return [...all.slice(0,6),{name:'Lainnya',value:sum(all.slice(6),'value')}];
+ return [...all.slice(0,6),{name:'Lainnya',value:sum(all.slice(6),'value'),color:'#7088aa'}];
+}
+function archivePolar(angle,r,cx,cy){
+ const theta=(angle-90)*Math.PI/180;
+ return {x:cx+Math.cos(theta)*r,y:cy+Math.sin(theta)*r};
+}
+function archiveArc(from,to,r,cx,cy){
+ const a=archivePolar(from,r,cx,cy),b=archivePolar(to>=360?359.99:to,r,cx,cy);
+ return 'M '+a.x.toFixed(2)+' '+a.y.toFixed(2)+' A '+r+' '+r+' 0 '+(to-from>180?'1':'0')+' 1 '+b.x.toFixed(2)+' '+b.y.toFixed(2);
 }
 function chartDonut(r){
  const groups=chartGroups(r),total=sum(groups,'value');
  if(!total)return '<div class="archive-blank">Belum ada data pengeluaran untuk grafik.</div>';
- let cursor=0;
- const slices=groups.map((x,i)=>{
-  const next=cursor+x.value/total*100;
-  const segment=COLORS[i%COLORS.length]+' '+cursor.toFixed(2)+'% '+next.toFixed(2)+'%';
-  cursor=next;return segment;
- }).join(',');
- const money=fmt(r.expense),size=money.length>16?'11px':money.length>13?'12px':'14px';
- return '<div class="archive-donut-layout"><div class="archive-donut" style="background:conic-gradient('+slices+')" role="img" aria-label="Komposisi pengeluaran dengan total '+esc(money)+'"><div><small>Total Pengeluaran</small><strong style="font-size:'+size+'" title="'+esc(money)+'">'+esc(money)+'</strong></div></div><div class="archive-donut-legend">'+groups.map((x,i)=>'<div><span class="archive-legend-name"><i style="background:'+COLORS[i%COLORS.length]+'"></i>'+esc(x.name)+'</span><span class="archive-legend-values"><strong>'+esc(fmt(x.value))+'</strong><small>'+((x.value/total)*100).toFixed(1).replace('.',',')+'%</small></span></div>').join('')+'</div></div>';
+ const full=fmt(r.expense),size=full.length>17?13:full.length>14?15:18;
+ let running=0;
+ const entries=groups.map((g,i)=>{
+  const start=running,span=g.value/total*360;running+=span;
+  return {...g,i,start,end:running,mid:start+span/2,pct:(g.value/total*100).toFixed(1).replace('.',',')};
+ });
+ const left=entries.filter(e=>Math.sin(e.mid*Math.PI/180)<0).sort((a,b)=>Math.cos(a.mid*Math.PI/180)-Math.cos(b.mid*Math.PI/180));
+ const right=entries.filter(e=>Math.sin(e.mid*Math.PI/180)>=0).sort((a,b)=>Math.cos(a.mid*Math.PI/180)-Math.cos(b.mid*Math.PI/180));
+ const H=Math.max(324,Math.max(left.length,right.length)*60+42),cx=320,cy=H/2,radius=87;
+ const arcs=entries.map(e=>{
+  const d=archiveArc(e.start,e.end,radius,cx,cy);
+  return '<path d="'+d+'" stroke="'+e.color+'" class="archive-donut-arc" stroke-width="31" fill="none" stroke-linecap="butt" style="--archive-delay:'+(e.i*80)+'ms"><title>'+esc(e.name+' · '+fmt(e.value)+' · '+e.pct+'%')+'</title></path>';
+ }).join('');
+ const callouts=side=>side.flatMap((e,i)=>{
+  const x=side===left?8:470,yy=Math.max(35,Math.min(H-35,(i+1)*H/(side.length+1))),sign=e.i%2?1:-1;
+  const p=archivePolar(e.mid,105,cx,cy),edge=x===8?169:470;
+  const path='M '+p.x.toFixed(1)+' '+p.y.toFixed(1)+' L '+(x===8?182:458)+' '+yy.toFixed(1)+' L '+edge+' '+yy.toFixed(1);
+  const amount=fmt(e.value),textSize=amount.length>15?8.2:9.2;
+  return '<g class="archive-donut-callout" style="--archive-color:'+e.color+'" tabindex="0" role="group" aria-label="'+esc(e.name+' '+amount+' '+e.pct+' persen')+'">'+
+   '<path d="'+path+'" stroke="'+e.color+'" class="archive-donut-link" fill="none"/>'+
+   '<rect x="'+x+'" y="'+(yy-26)+'" width="162" height="52" rx="12" fill="#f9fbff" stroke="'+e.color+'" stroke-opacity=".65"/>'+
+   '<circle cx="'+(x+11)+'" cy="'+(yy-12)+'" r="4" fill="'+e.color+'"/>'+
+   '<text x="'+(x+21)+'" y="'+(yy-9)+'" fill="#2b507c" font-size="11" font-weight="800">'+esc(e.name.length>21?e.name.slice(0,19)+'…':e.name)+'</text>'+
+   '<text x="'+(x+9)+'" y="'+(yy+13)+'" fill="'+e.color+'" font-size="'+textSize+'" font-weight="850">'+esc(amount+' · '+e.pct+'%')+'</text></g>';
+ }).join('');
+ const svg='<div class="archive-recap-desktop"><svg class="archive-recap-svg" viewBox="0 0 640 '+H+'" role="img" aria-label="Komposisi pengeluaran, warna kelompok sama dengan Dashboard">'+
+  '<circle cx="'+cx+'" cy="'+cy+'" r="'+radius+'" stroke="#e8effa" stroke-width="32" fill="none"/>'+
+  '<g class="archive-donut-ring">'+arcs+'</g>'+
+  '<circle class="archive-donut-sheen" cx="'+cx+'" cy="'+cy+'" r="'+radius+'" fill="none" stroke="#fff" stroke-width="24" stroke-opacity=".48" stroke-dasharray="31 520" pointer-events="none"/>'+
+  callouts(left)+callouts(right)+
+  '<text x="'+cx+'" y="'+(cy-17)+'" text-anchor="middle" fill="#7691b0" font-size="12" font-weight="850">Total Pengeluaran</text>'+
+  '<text x="'+cx+'" y="'+(cy+12)+'" text-anchor="middle" fill="#245080" font-size="'+size+'" font-weight="900">'+esc(full)+'</text></svg></div>';
+ const pieces=entries.map(e=>e.color+' '+(100*e.start/360).toFixed(2)+'% '+(100*e.end/360).toFixed(2)+'%').join(',');
+ const small='<div class="archive-recap-mobile"><div class="archive-donut-layout"><div class="archive-donut" style="background:conic-gradient('+pieces+')"><div><small>Total Pengeluaran</small><strong title="'+esc(full)+'" style="font-size:'+(size-3)+'px">'+esc(full)+'</strong></div></div>'+
+  '<div class="archive-donut-legend">'+entries.map(e=>'<div><span class="archive-legend-name"><i style="background:'+e.color+'"></i>'+esc(e.name)+'</span><span class="archive-legend-values"><strong>'+fmt(e.value)+'</strong><small>'+e.pct+'%</small></span></div>').join('')+'</div></div></div>';
+ return '<div class="archive-dashboard-donut">'+svg+small+'</div>';
 }
 function chartTrend(r){
- const rows=months6(r),highest=Math.max(1,...rows.map(x=>Math.max(num(x.income),num(x.expense))));
- return '<div class="archive-trend"><div class="archive-trend-legend"><span><i class="is-income"></i>Pemasukan</span><span><i class="is-expense"></i>Pengeluaran</span></div><div class="archive-trend-plot">'+rows.map((v,i)=>{const a=Math.max(2,num(v.income)/highest*100),b=Math.max(2,num(v.expense)/highest*100);return '<div class="archive-trend-slot" title="'+esc(monthText(v.month)+' · Masuk '+fmt(v.income)+' · Keluar '+fmt(v.expense))+'"><div class="archive-trend-bars"><span class="archive-bar is-income" style="height:'+a+'%;animation-delay:'+(i*70)+'ms"></span><span class="archive-bar is-expense" style="height:'+b+'%;animation-delay:'+(i*70+65)+'ms"></span></div><small>'+esc((v.month||'').slice(5))+'/'+esc((v.month||'').slice(2,4))+'</small></div>';}).join('')+'</div></div>';
+ const rows=months6(r),n=rows.length;
+ if(!n)return '<div class="archive-blank">Belum tersedia periode tren.</div>';
+ const width=720,height=300,left=74,right=36,top=36,bottom=51;
+ const plotW=width-left-right,plotH=height-top-bottom;
+ const highest=Math.max(1,...rows.flatMap(x=>[num(x.income),num(x.expense)]));
+ const max=highest*1.12;
+ const X=i=>left+(n===1?plotW/2:i*plotW/(n-1)),Y=v=>top+plotH-num(v)/max*plotH;
+ const grid=[0,.25,.5,.75,1].map(k=>'<line x1="'+left+'" y1="'+Y(max*k).toFixed(1)+'" x2="'+(width-right)+'" y2="'+Y(max*k).toFixed(1)+'" stroke="#e2ebf7" stroke-dasharray="4 6"/>'+
+  '<text x="'+(left-9)+'" y="'+(Y(max*k)+4).toFixed(1)+'" text-anchor="end" fill="#7990ac" font-size="10">'+esc(shortMoney(max*k))+'</text>').join('');
+ const labels=rows.map((v,i)=>'<text x="'+X(i).toFixed(1)+'" y="'+(height-19)+'" text-anchor="middle" fill="#6886a9" font-size="11" font-weight="700">'+esc((v.month||'').slice(5)+'/'+(v.month||'').slice(2,4))+'</text>').join('');
+ const series=[{key:'income',name:'Pemasukan',color:'#15966b',className:'is-income'},
+  {key:'expense',name:'Pengeluaran',color:'#d95770',className:'is-expense'}];
+ const charts=series.map((a,idx)=>{
+  const coords=rows.map((v,i)=>({x:X(i),y:Y(v[a.key]),value:num(v[a.key]),month:v.month}));
+  const path=coords.map((p,i)=>{
+   if(i===0)return 'M '+p.x.toFixed(2)+' '+p.y.toFixed(2);
+   const prev=coords[i-1],mid=(prev.x+p.x)/2;
+   return ' C '+mid.toFixed(2)+' '+prev.y.toFixed(2)+' '+mid.toFixed(2)+' '+p.y.toFixed(2)+' '+p.x.toFixed(2)+' '+p.y.toFixed(2);
+  }).join('');
+  const area=path+' L '+coords[n-1].x.toFixed(2)+' '+(top+plotH)+' L '+coords[0].x.toFixed(2)+' '+(top+plotH)+' Z';
+  const points=coords.map((p,i)=>'<g class="archive-line-point" tabindex="0" role="button" data-archive-trend-point="'+esc(p.month)+'" data-archive-trend-type="'+a.key+'" data-archive-trend-value="'+p.value+'" style="--archive-point-color:'+a.color+';--archive-point-delay:'+(i*75+idx*55)+'ms" aria-label="'+esc(a.name+', '+monthText(p.month)+', '+fmt(p.value))+'">'+
+   '<title>'+esc(a.name+' · '+monthText(p.month)+' · '+fmt(p.value))+'</title>'+
+   '<circle cx="'+p.x.toFixed(2)+'" cy="'+p.y.toFixed(2)+'" r="10" fill="'+a.color+'" fill-opacity=".12"/>'+
+   '<circle cx="'+p.x.toFixed(2)+'" cy="'+p.y.toFixed(2)+'" r="5" fill="'+a.color+'" stroke="#fff" stroke-width="2"/></g>').join('');
+  return '<path d="'+area+'" fill="url(#archive-area-'+a.key+')" class="archive-line-area"/>'+
+   '<path d="'+path+'" fill="none" stroke="'+a.color+'" stroke-width="3.8" stroke-linejoin="round" stroke-linecap="round" class="archive-line-path" pathLength="1" style="--archive-line-delay:'+(idx*0.2)+'s"/>'+points;
+ }).join('');
+ const last=rows[n-1];
+ return '<div class="archive-trend archive-dashboard-trend"><div class="archive-trend-legend"><span><i class="is-income"></i>Pemasukan</span><span><i class="is-expense"></i>Pengeluaran</span></div>'+
+  '<div class="archive-line-canvas"><svg class="archive-line-svg" viewBox="0 0 '+width+' '+height+'" role="group" aria-label="Grafik tren garis pemasukan dan pengeluaran enam bulan, pilih titik untuk melihat nominal">'+
+  '<defs><linearGradient id="archive-area-income" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#15966b" stop-opacity=".2"/><stop offset="1" stop-color="#15966b" stop-opacity=".01"/></linearGradient>'+
+  '<linearGradient id="archive-area-expense" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#d95770" stop-opacity=".14"/><stop offset="1" stop-color="#d95770" stop-opacity=".01"/></linearGradient></defs>'+
+  grid+charts+labels+'</svg></div>'+
+  '<div class="archive-trend-selected" role="status" aria-live="polite"><span>📊 '+esc(monthText(last.month))+'</span><strong>Masuk '+fmt(last.income)+' · Keluar '+fmt(last.expense)+'</strong></div>'+
+  '<small class="archive-trend-hint">✨ Pilih titik grafik untuk melihat nominal pada periode tersebut.</small></div>';
 }
 function insightMarkup(r){
  const ai=r.aiInsight||localInsight(r),real=ai.source==='gemini';

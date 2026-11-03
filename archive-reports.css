@@ -51,13 +51,15 @@
 #content .archive-donut{position:relative;display:grid;place-items:center;flex:none;width:184px;height:184px;border-radius:50%;box-shadow:0 10px 20px #2855b122;animation:archive-donut-in .9s cubic-bezier(.15,.85,.25,1) both;transition:transform .32s}
 #content .archive-donut:hover{transform:rotate(8deg) scale(1.05)}
 #content .archive-donut>div{width:62%;height:62%;border-radius:50%;background:#fff;box-shadow:inset 0 3px 13px #184a7815;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-#content .archive-donut small{font-size:10px;font-weight:850;color:#7590ad}
-#content .archive-donut strong{font:900 16px Fredoka,Nunito,sans-serif;color:#244b80}
-#content .archive-donut-legend{display:grid;gap:12px;flex:1;min-width:110px}
-#content .archive-donut-legend>div{display:flex;gap:10px;align-items:center;justify-content:space-between;font-size:11px;min-width:0}
+#content .archive-donut small{font-size:9px;font-weight:850;color:#7590ad}
+#content .archive-donut strong{display:block;max-width:99%;font:900 14px Fredoka,Nunito,sans-serif;color:#244b80;letter-spacing:-.3px;white-space:nowrap;text-align:center}
+#content .archive-donut-legend{display:grid;gap:9px;flex:1;min-width:160px}
+#content .archive-donut-legend>div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;font-size:11px;min-width:0;padding-bottom:5px;border-bottom:1px solid #ecf2f9}
 #content .archive-legend-name{display:flex;align-items:center;gap:6px;font-weight:800;color:#415e7f;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #content .archive-legend-name i{flex:none;width:10px;height:10px;border-radius:50%}
-#content .archive-donut-legend strong{font-weight:900;color:#31527a}
+#content .archive-legend-values{display:flex;align-items:flex-end;flex-direction:column;gap:1px}
+#content .archive-donut-legend .archive-legend-values strong{font-weight:900;color:#31527a;white-space:nowrap;font-size:11px}
+#content .archive-donut-legend .archive-legend-values small{font-size:10px;font-weight:850;color:#6489b7}
 #content .archive-trend{min-height:205px;display:flex;flex-direction:column}
 #content .archive-trend-legend{display:flex;justify-content:flex-end;gap:14px;font-size:11px;font-weight:850;color:#5b7291;margin-bottom:9px}
 #content .archive-trend-legend span{display:flex;align-items:center;gap:5px}
@@ -115,7 +117,22 @@
 @keyframes archive-donut-in{from{opacity:.3;transform:rotate(-70deg) scale(.8)}to{opacity:1;transform:rotate(0) scale(1)}}
 @keyframes archive-bars-in{from{transform:scaleY(.04);opacity:.4}to{transform:scaleY(1);opacity:1}}
 @keyframes archive-pop{from{transform:scale(.5)}to{transform:scale(1)}}
+#content .archive-debt-panel{border-color:#d7e4f8;background:linear-gradient(128deg,#fff,#f9fbff)}
+#content .archive-debt-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:15px}
+#content .archive-debt-heading h3{margin:0}
+#content .archive-debt-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}
+#content .archive-debt-stat{display:flex;flex-direction:column;gap:5px;padding:14px;border:1px solid #dce5f6;background:#f6f9ff;border-radius:16px;min-width:0;transition:transform .2s,box-shadow .2s;animation:archive-rise .5s ease both}
+#content .archive-debt-stat:hover{transform:translateY(-3px);box-shadow:0 9px 15px #2355a013}
+#content .archive-debt-stat small{font:850 11px/1.3 Nunito,sans-serif;color:#627d9c}
+#content .archive-debt-stat strong{font:900 clamp(12px,1.55vw,19px)/1.25 Fredoka,Nunito,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#385b85}
+#content .archive-debt-stat span{font:730 10px/1.4 Nunito,sans-serif;color:#8195ad}
+#content .archive-debt-stat.archive-debt-owed{background:linear-gradient(125deg,#fff,#fff0f3);border-color:#f8d8e1}
+#content .archive-debt-stat.archive-debt-owed strong{color:#bc4861}
+#content .archive-debt-stat.archive-debt-receivable{background:linear-gradient(125deg,#fff,#e8f8f1);border-color:#ccecdf}
+#content .archive-debt-stat.archive-debt-receivable strong{color:#1b8a67}
+@media(max-width:950px){#content .archive-debt-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:530px){#content .archive-debt-metrics{gap:8px}#content .archive-debt-stat{padding:11px}#content .archive-debt-stat strong{font-size:14px}}
 @media(max-width:1200px){#content .archive-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#content .archive-lower{grid-template-columns:1fr}}
 @media(max-width:740px){#content .archive-panels{grid-template-columns:1fr}#content .archive-ai-points{grid-template-columns:1fr}#content .archive-toolbar-actions{width:100%}#content .archive-toolbar-actions .btn{flex:1}#content .archive-kpi{min-height:112px}}
-@media(max-width:480px){#content .archive-intro{padding:16px}#content .archive-intro-ornament{display:none}#content .archive-summary-grid{gap:8px}#content .archive-kpi{flex-direction:column;min-height:136px;padding:13px 11px}#content .archive-kpi strong{font-size:15px}#content .archive-panel{padding:15px}#content .archive-donut-layout{gap:12px}#content .archive-donut{width:145px;height:145px}#content .archive-donut strong{font-size:13px}#content .archive-donut-legend{gap:8px}#content .archive-toolbar-actions .btn{font-size:11px;padding:11px 9px}#content .archive-net-strip>small{flex:auto}}
+@media(max-width:480px){#content .archive-intro{padding:16px}#content .archive-intro-ornament{display:none}#content .archive-summary-grid{gap:8px}#content .archive-kpi{flex-direction:column;min-height:136px;padding:13px 11px}#content .archive-kpi strong{font-size:15px}#content .archive-panel{padding:15px}#content .archive-donut-layout{gap:12px}#content .archive-donut{width:145px;height:145px}#content .archive-donut strong{font-size:13px}#content .archive-donut-legend{gap:7px;min-width:125px}#content .archive-donut-legend .archive-legend-values strong{font-size:10px}#content .archive-toolbar-actions .btn{font-size:11px;padding:11px 9px}#content .archive-net-strip>small{flex:auto}}
 @media(prefers-reduced-motion:reduce){#content .archive-v2 *,#content .archive-v2 *:before,#content .archive-v2 *:after{animation:none!important;transition:none!important}}

@@ -236,7 +236,7 @@ function pdfReport(r){
   let start=-Math.PI/2;
   groups.forEach((g,i)=>{
    const finish=start+(g.value/total)*2*Math.PI;
-   annular(cx,cy,101,62,start,finish,COLORS[i%COLORS.length]);
+   annular(cx,cy,101,62,start,finish,g.color);
    start=finish;
   });
   text('Total Pengeluaran',cx-36,cy-13,8,false,'#69809d');
@@ -244,11 +244,11 @@ function pdfReport(r){
   text(full,cx-full.length*size*.27,cy+9,size,true,'#1e497b');
   groups.forEach((g,i)=>{
    const yy=y+17+i*29;
-   rect(283,yy-10,10,10,COLORS[i%COLORS.length]);
+   rect(283,yy-10,10,10,g.color);
    text(g.name.slice(0,22),302,yy-2,8,true,'#324d6d');
    const amount=fmt(g.value),fs=amount.length>15?7:8;
    text(amount,432,yy-2,fs,true,'#29527e');
-   text((100*g.value/total).toFixed(1).replace('.',',')+'%',523,yy-2,8,true,COLORS[i%COLORS.length]);
+   text((100*g.value/total).toFixed(1).replace('.',',')+'%',523,yy-2,8,true,g.color);
    line(282,yy+7,555,yy+7,'#e5edf7');
   });
  }
@@ -257,11 +257,36 @@ function pdfReport(r){
  multi('Nilai investasi tidak termasuk biaya konsumsi. Transfer antarrekening tidak memengaruhi total pemasukan atau pengeluaran.',49,y+25,95,8,'#815e30',12);
  newPage('GRAFIK DAN ANALISIS');
  heading('TREN KEUANGAN - ENAM BULAN');
- const trend=months6(r),mx=Math.max(1,...trend.map(x=>Math.max(num(x.income),num(x.expense))));
- rect(38,y,520,205,'#f3f7ff');const top=y+20,base=y+175,step=480/trend.length;
- for(let n=0;n<=4;n++){const yy=base-(155*n/4);line(56,yy,543,yy,'#dce7f6');text(shortMoney(mx*n/4),43,yy-4,7,false,'#68819b');}
- trend.forEach((m,i)=>{const center=60+(i+.5)*step,bw=Math.min(25,step*.29);const a=155*num(m.income)/mx,b=155*num(m.expense)/mx;rect(center-bw-2,base-a,bw,a,'#21b68b');rect(center+2,base-b,bw,b,'#ef7b8a');text((m.month||'').slice(5),center-8,base+15,8,false,'#516987');});
- text('Hijau: pemasukan   |   Merah: pengeluaran',60,top+5,8,false,'#4e6d91');y+=225;
+ const trend=months6(r),mx=Math.max(1,...trend.flatMap(v=>[num(v.income),num(v.expense)]))*1.1;
+ rect(38,y,520,217,'#f3f7ff');
+ const chartTop=y+28,base=y+179,left=65,right=536,dx=trend.length>1?(right-left)/(trend.length-1):0;
+ const xx=i=>trend.length===1?(left+right)/2:left+i*dx,yy=v=>base-num(v)/mx*(base-chartTop);
+ for(let n=0;n<=4;n++){
+  const pointY=yy(mx*n/4);
+  line(56,pointY,543,pointY,'#e1eaf8');
+  text(shortMoney(mx*n/4),42,pointY+3.5,7,false,'#7387a6');
+ }
+ const lineSeries=[{key:'income',color:'#15966b'},{key:'expense',color:'#d95770'}];
+ for(const item of lineSeries){
+  const points=trend.map((month,i)=>({x:xx(i),y:yy(month[item.key]),value:num(month[item.key])}));
+  if(points.length>1){
+   commands.push(rgb(item.color)+' RG 3.1 w 1 J 1 j '+points.map((p,i)=>p.x.toFixed(1)+' '+(H-p.y).toFixed(1)+(i?' l ':' m ')).join('')+' S\n');
+  }
+  points.forEach(p=>{
+   // Circle points as filled small polygons, consistent with Dashboard markers.
+   const dots=Array.from({length:14},(_,j)=>{
+    const angle=2*Math.PI*j/14;
+    return {x:p.x+4*Math.cos(angle),y:p.y+4*Math.sin(angle)};
+   });
+   commands.push(rgb(item.color)+' rg '+dots.map((d,i)=>d.x.toFixed(1)+' '+(H-d.y).toFixed(1)+(i?' l ':' m ')).join('')+' h f\n');
+  });
+ }
+ trend.forEach((month,i)=>{
+  text((month.month||'').slice(5)+'/'+(month.month||'').slice(2,4),xx(i)-12,base+18,8,false,'#536e91');
+ });
+ rect(63,y+207,9,9,'#15966b');text('Pemasukan',78,y+215,8,true,'#456a80');
+ rect(169,y+207,9,9,'#d95770');text('Pengeluaran',184,y+215,8,true,'#456a80');
+ y+=241;
  heading('ANALISIS DAN TINDAK LANJUT');
  const insight=r.aiInsight||localInsight(r);
  rect(38,y,519,34,insight.source==='gemini'?'#efe8ff':'#eaf2fb');
@@ -379,5 +404,27 @@ function exportPdf(r){
  const data=pdfReport(r),blob=new Blob([data],{type:'application/pdf'}),url=URL.createObjectURL(blob),a=document.createElement('a');
  a.href=url;a.download='Duit-Duit-Paaxixi-Laporan-'+r.month+'.pdf';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1200);
 }
+/* Titik tren mengikuti interaksi Dashboard tanpa mengubah isi arsip. */
+function archiveSelectPoint(target){
+ const chart=target?.closest('.archive-dashboard-trend');
+ const month=target?.dataset.archiveTrendPoint;
+ if(!chart||!/^\d{4}-\d{2}$/.test(String(month||'')))return;
+ const matched=[...chart.querySelectorAll('[data-archive-trend-point]')].filter(el=>el.dataset.archiveTrendPoint===month);
+ const income=matched.find(el=>el.dataset.archiveTrendType==='income');
+ const expense=matched.find(el=>el.dataset.archiveTrendType==='expense');
+ const area=chart.querySelector('.archive-trend-selected');
+ if(!area)return;
+ chart.querySelectorAll('[data-archive-trend-point]').forEach(el=>el.classList.toggle('is-picked',el.dataset.archiveTrendPoint===month));
+ area.innerHTML='<span>📊 '+esc(monthText(month))+'</span><strong>Masuk '+fmt(income?.dataset.archiveTrendValue)+' · Keluar '+fmt(expense?.dataset.archiveTrendValue)+'</strong>';
+}
+document.addEventListener('click',e=>{
+ const point=e.target.closest?.('[data-archive-trend-point]');
+ if(point)archiveSelectPoint(point);
+});
+document.addEventListener('keydown',e=>{
+ if(!['Enter',' '].includes(e.key))return;
+ const point=e.target.closest?.('[data-archive-trend-point]');
+ if(point){e.preventDefault();archiveSelectPoint(point);}
+});
 window.PAAX_ARCHIVE={renderPage,exportPdf,localInsight};
 })();

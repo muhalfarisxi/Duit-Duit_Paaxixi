@@ -7344,7 +7344,7 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 
 </style>
 <link rel="stylesheet" href="./budget-ux.css?v=14">
-<link rel="stylesheet" href="./archive-reports.css?v=6">
+<link rel="stylesheet" href="./archive-reports.css?v=7">
 <link rel="stylesheet" href="./month-picker.css?v=1">
 </head>
 <body>
@@ -7409,7 +7409,7 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <input id="import-file" type="file" accept=".json,application/json" style="display:none">
-<script src="./archive-reports.js?v=6"></script>
+<script src="./archive-reports.js?v=7"></script>
 <script src="./month-picker.js?v=1"></script>
 <script>
 (()=>{'use strict';
@@ -12606,7 +12606,7 @@ function buildReport(month){
  return {month,createdAt:new Date().toISOString(),income:sum('income'),expense:sum('expense'),net:sum('income')-sum('expense'),expenseBreakdown,incomeBreakdown,
   balances:db.accounts.map(a=>({name:a.name,type:a.type,balance:b[a.id]||0})),
   transactions:tx,debts:debtAll.map(d=>({person:d.person,type:d.type,remaining:d.remaining})),debtLedger,debtSummary,
-  investment,trends};
+  investment,trends,groupColors:Object.fromEntries(expenseGroups().map(g=>[g.name,g.color]))};
 }
 function reportAiPayload(r){
  const purchases=r.transactions.filter(t=>t.type==='expense'),daily=new Map();

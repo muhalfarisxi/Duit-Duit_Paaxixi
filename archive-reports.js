@@ -2,6 +2,7 @@
 (function(){
 'use strict';
 const COLORS=['#2a71e6','#16a378','#ef7182','#8b69da','#f1af3c','#27a7bb','#ed9564','#8093b6'];
+let archiveActiveReport=null,archiveLegacyTrendRows=null,archivePointDialog=null,archivePointOrigin=null;
 const num=v=>Number(v)||0;
 const fmt=v=>'Rp '+Math.round(num(v)).toLocaleString('id-ID');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -87,7 +88,7 @@ function chartDonut(r){
 function chartTrend(r){
  const rows=months6(r),n=rows.length;
  if(!n)return '<div class="archive-blank">Belum tersedia periode tren.</div>';
- const width=720,height=300,left=74,right=36,top=36,bottom=51;
+ const width=720,height=320,left=79,right=48,top=55,bottom=52;
  const plotW=width-left-right,plotH=height-top-bottom;
  const highest=Math.max(1,...rows.flatMap(x=>[num(x.income),num(x.expense)]));
  const max=highest*1.12;
@@ -105,21 +106,28 @@ function chartTrend(r){
    return ' C '+mid.toFixed(2)+' '+prev.y.toFixed(2)+' '+mid.toFixed(2)+' '+p.y.toFixed(2)+' '+p.x.toFixed(2)+' '+p.y.toFixed(2);
   }).join('');
   const area=path+' L '+coords[n-1].x.toFixed(2)+' '+(top+plotH)+' L '+coords[0].x.toFixed(2)+' '+(top+plotH)+' Z';
-  const points=coords.map((p,i)=>'<g class="archive-line-point" tabindex="0" role="button" data-archive-trend-point="'+esc(p.month)+'" data-archive-trend-type="'+a.key+'" data-archive-trend-value="'+p.value+'" style="--archive-point-color:'+a.color+';--archive-point-delay:'+(i*75+idx*55)+'ms" aria-label="'+esc(a.name+', '+monthText(p.month)+', '+fmt(p.value))+'">'+
-   '<title>'+esc(a.name+' · '+monthText(p.month)+' · '+fmt(p.value))+'</title>'+
-   '<circle cx="'+p.x.toFixed(2)+'" cy="'+p.y.toFixed(2)+'" r="10" fill="'+a.color+'" fill-opacity=".12"/>'+
-   '<circle cx="'+p.x.toFixed(2)+'" cy="'+p.y.toFixed(2)+'" r="5" fill="'+a.color+'" stroke="#fff" stroke-width="2"/></g>').join('');
+  const points=coords.map((p,i)=>{
+   const amount=fmt(p.value),nearBottom=p.y>height-bottom-30;
+   const position=idx===0||nearBottom?p.y-19:p.y+25;
+   const labelY=Math.max(15,Math.min(height-25,position));
+   return '<g class="archive-line-point" tabindex="0" role="button" data-archive-trend-point="'+esc(p.month)+'" data-archive-trend-type="'+a.key+'" data-archive-trend-value="'+p.value+'" style="--archive-point-color:'+a.color+';--archive-point-delay:'+(i*75+idx*55)+'ms" aria-label="'+esc(a.name+', '+monthText(p.month)+', '+amount+'. Buka rincian transaksi')+'">'+
+    '<title>'+esc(a.name+' · '+monthText(p.month)+' · '+amount+' · klik untuk rincian')+'</title>'+
+    '<circle cx="'+p.x.toFixed(2)+'" cy="'+p.y.toFixed(2)+'" r="16" fill="transparent" class="archive-line-hit"/>'+
+    '<circle cx="'+p.x.toFixed(2)+'" cy="'+p.y.toFixed(2)+'" r="10" fill="'+a.color+'" fill-opacity=".12"/>'+
+    '<circle cx="'+p.x.toFixed(2)+'" cy="'+p.y.toFixed(2)+'" r="5" fill="'+a.color+'" stroke="#fff" stroke-width="2"/>'+
+    '<text class="archive-trend-point-value" x="'+p.x.toFixed(2)+'" y="'+labelY.toFixed(2)+'" text-anchor="middle" fill="'+a.color+'" font-size="'+(amount.length>16?'8.6':'10')+'" font-weight="850" paint-order="stroke fill" stroke="#fff" stroke-width="3.5" stroke-linejoin="round">'+esc(amount)+'</text></g>';
+  }).join('');
   return '<path d="'+area+'" fill="url(#archive-area-'+a.key+')" class="archive-line-area"/>'+
    '<path d="'+path+'" fill="none" stroke="'+a.color+'" stroke-width="3.8" stroke-linejoin="round" stroke-linecap="round" class="archive-line-path" pathLength="1" style="--archive-line-delay:'+(idx*0.2)+'s"/>'+points;
  }).join('');
  const last=rows[n-1];
  return '<div class="archive-trend archive-dashboard-trend"><div class="archive-trend-legend"><span><i class="is-income"></i>Pemasukan</span><span><i class="is-expense"></i>Pengeluaran</span></div>'+
-  '<div class="archive-line-canvas"><svg class="archive-line-svg" viewBox="0 0 '+width+' '+height+'" role="group" aria-label="Grafik tren garis pemasukan dan pengeluaran enam bulan, pilih titik untuk melihat nominal">'+
+  '<div class="archive-line-canvas"><svg class="archive-line-svg" viewBox="0 0 '+width+' '+height+'" role="group" aria-label="Grafik tren pemasukan dan pengeluaran enam bulan, setiap titik berlabel rupiah dan dapat dibuka untuk melihat rincian transaksi">'+
   '<defs><linearGradient id="archive-area-income" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#15966b" stop-opacity=".2"/><stop offset="1" stop-color="#15966b" stop-opacity=".01"/></linearGradient>'+
   '<linearGradient id="archive-area-expense" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#d95770" stop-opacity=".14"/><stop offset="1" stop-color="#d95770" stop-opacity=".01"/></linearGradient></defs>'+
   grid+charts+labels+'</svg></div>'+
   '<div class="archive-trend-selected" role="status" aria-live="polite"><span>📊 '+esc(monthText(last.month))+'</span><strong>Masuk '+fmt(last.income)+' · Keluar '+fmt(last.expense)+'</strong></div>'+
-  '<small class="archive-trend-hint">✨ Pilih titik grafik untuk melihat nominal pada periode tersebut.</small></div>';
+  '<small class="archive-trend-hint">✨ Klik titik atau angka untuk membuka rincian transaksi pemasukan atau pengeluaran bulan tersebut.</small></div>';
 }
 function insightMarkup(r){
  const ai=r.aiInsight||localInsight(r),real=ai.source==='gemini';
@@ -156,6 +164,9 @@ function debtPreview(r){
  return '<section class="archive-panel archive-debt-panel"><div class="archive-debt-heading"><h3>🤝 Utang & Piutang Bulanan</h3><span class="archive-mini-tag">Posisi akhir bulan</span></div>'+cards+rows+'<small class="archive-preview-foot">'+note+'</small></section>';
 }
 function renderPage(data){
+ archiveClosePointDialog(false);
+ archiveActiveReport=data.report;
+ archiveLegacyTrendRows=Array.isArray(data.legacyTrendRows)?data.legacyTrendRows:null;
  const r=data.report,months=data.history||[],saved=!!data.saved,sel=data.month||r.month;
  const totalBank=sum(r.balances||[],'balance'),invest=r.investment||{unavailable:true},investValue=invest.unavailable?null:num(invest.market);
  const investSubtitle=invest.unavailable?'Arsip lama · nilai tidak direkam':(invest.assets||[]).length+' jenis aset tercatat';

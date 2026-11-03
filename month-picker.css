@@ -1,0 +1,83 @@
+/* Pemilih periode bulanan Paaxixi – menggantikan popup bawaan Chrome. */
+.pax-month-shell{position:relative;display:inline-flex;align-items:stretch;min-width:0;width:100%;max-width:260px;vertical-align:middle}
+.pax-month-shell>.pax-month-native{position:absolute!important;opacity:0!important;width:1px!important;height:1px!important;overflow:hidden!important;pointer-events:none!important;clip-path:inset(50%)!important;border:0!important;padding:0!important;left:0;top:0;z-index:-1}
+.pax-month-trigger{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;flex:1;min-height:41px;width:100%;padding:9px 13px;text-align:left;border:1px solid #bed6fa;border-radius:13px;background:linear-gradient(112deg,#fff,#f3f8ff);color:#24538a;box-shadow:0 3px 10px #3265b20e;cursor:pointer;font:900 14px/1.25 Fredoka,Nunito,system-ui,sans-serif;transition:border-color .17s,box-shadow .17s,transform .17s}
+.pax-month-trigger:hover{border-color:#7daeff;background:linear-gradient(115deg,#fff,#e7f1ff);box-shadow:0 5px 17px #246bce20;transform:translateY(-1px)}
+.pax-month-trigger:focus-visible{outline:3px solid #82b5fb;outline-offset:2px}
+.pax-month-trigger .pax-month-value{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pax-month-trigger[data-empty=true] .pax-month-value{font-weight:750;color:#8199b6}
+.pax-month-trigger svg{width:21px;height:21px;fill:none;stroke:#2a69ba;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none;transition:transform .2s}
+.pax-month-trigger:hover svg{transform:rotate(-8deg) scale(1.12)}
+.month-pill .pax-month-shell{max-width:none;flex:1}
+.month-pill .pax-month-trigger{border:0;box-shadow:none;background:transparent;min-height:38px;padding:4px 2px;white-space:nowrap}
+.month-pill .pax-month-trigger:hover{transform:none;background:transparent}
+.archive-v2 .archive-picker .pax-month-shell{max-width:260px}
+.archive-v2 .archive-picker .pax-month-trigger{font:900 17px/1.3 Fredoka,Nunito,sans-serif;min-height:40px}
+.income-filter-range .pax-month-shell,.income-linked-filters .pax-month-shell{max-width:210px}
+.pax-month-dialog{position:fixed;margin:auto;padding:0;border:1px solid #cfe1ff;border-radius:25px;overflow:hidden;width:min(95vw,478px);max-height:min(90dvh,820px);background:#fff;color:#234b80;box-shadow:0 28px 75px #0d315569;font-family:Nunito,system-ui,sans-serif;animation:pax-month-enter .35s cubic-bezier(.18,.9,.25,1) both}
+.pax-month-dialog::backdrop{background:#0b224c91;backdrop-filter:blur(5px);animation:pax-month-shade .24s ease both}
+.pax-month-dialog .pax-month-hero{padding:21px 23px 19px;background:linear-gradient(120deg,#dcedff 0%,#f3eaff 58%,#fff6e7 100%);border-bottom:1px solid #dce8fb;position:relative;overflow:hidden}
+.pax-month-dialog .pax-month-hero::before{content:"✦";position:absolute;right:20px;bottom:5px;color:#b0a6ee;font-size:36px;opacity:.5;animation:pax-month-twinkle 3s ease-in-out infinite}
+.pax-month-dialog .pax-month-hero-heading{display:flex;align-items:center;gap:11px;position:relative;z-index:1}
+.pax-month-dialog .pax-month-hero-icon{display:grid;place-items:center;flex:none;width:51px;height:51px;border:1px solid #b7d5fe;border-radius:17px;background:#fff9;font-size:27px;box-shadow:0 7px 12px #3879cd25;animation:pax-month-float 3s ease-in-out infinite}
+.pax-month-dialog .pax-month-hero-heading>div{flex:1;min-width:0}
+.pax-month-dialog .pax-month-overline{color:#6f82c8;font:900 10px/1.2 Nunito,sans-serif;letter-spacing:1.4px}
+.pax-month-dialog h3{margin:4px 0 3px;font:900 23px/1.2 Fredoka,Nunito,sans-serif;color:#1b467e}
+.pax-month-dialog .pax-month-hero-heading p{margin:0;font-size:11px;font-weight:800;color:#768bab}
+.pax-month-dialog .pax-month-close{display:grid;place-items:center;width:35px;height:35px;flex:none;border:1px solid #b7ccea;border-radius:12px;color:#496b9a;background:#fffafc;font:900 24px/1 Arial,sans-serif;cursor:pointer;transition:transform .18s,background .18s}
+.pax-month-dialog .pax-month-close:hover{background:#ffe7e7;color:#b84e5a;transform:rotate(90deg)}
+.pax-month-dialog .pax-month-selected{display:flex;align-items:center;gap:10px;margin-top:18px;padding:11px 14px;border-radius:14px;background:#ffffffbf;border:1px solid #d2e5ff;box-shadow:0 3px 12px #3862a50b;position:relative;z-index:1}
+.pax-month-dialog .pax-month-selected>span:first-child{color:#6f8bab;font:800 11px Nunito,sans-serif;flex:1}
+.pax-month-dialog .pax-month-selected>strong{color:#215492;font:900 16px Fredoka,Nunito,sans-serif}
+.pax-month-dialog .pax-month-selected>span:last-child{font-size:18px;animation:pax-month-twinkle 2s infinite}
+.pax-month-dialog .pax-month-content{padding:18px 23px 23px;overflow-y:auto;max-height:calc(90dvh - 191px)}
+.pax-month-dialog .pax-month-yearline{display:flex;align-items:center;justify-content:center;gap:17px;margin-bottom:18px}
+.pax-month-dialog .pax-month-yearline>button{flex:none;width:39px;height:39px;border:1px solid #cee0f8;border-radius:12px;background:linear-gradient(140deg,#fff,#eaf3ff);color:#2862ad;font:900 26px Arial,sans-serif;cursor:pointer;transition:transform .18s,box-shadow .18s}
+.pax-month-dialog .pax-month-yearline>button:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 7px 12px #4684d322}
+.pax-month-dialog .pax-month-yearline>button:disabled{opacity:.35;cursor:not-allowed}
+.pax-month-dialog .pax-month-yearline>label{display:flex;align-items:center;gap:10px;font:900 12px Nunito,sans-serif;color:#6c84a5}
+.pax-month-dialog .pax-month-yearline select{padding:9px 13px;border:1px solid #cfe0f6;border-radius:11px;background:#f1f7ff;color:#225493;min-width:102px;font:900 17px Fredoka,Nunito,sans-serif;cursor:pointer}
+.pax-month-dialog .pax-month-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.pax-month-dialog .pax-month-option{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0;min-height:80px;padding:11px 13px;border:1px solid #dce8fa;border-radius:15px;background:linear-gradient(135deg,#fff,#f7faff);color:#2a5383;text-align:left;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s,background .2s;animation:pax-month-option-in .4s both}
+.pax-month-dialog .pax-month-option:nth-child(3n+2){animation-delay:40ms}.pax-month-dialog .pax-month-option:nth-child(3n+3){animation-delay:80ms}
+.pax-month-dialog .pax-month-option:hover:not(:disabled){transform:translateY(-3px) rotate(-1deg);box-shadow:0 9px 16px #305ba91f;border-color:#91b8f0;background:#edf6ff}
+.pax-month-dialog .pax-month-option>span{font:800 10px Nunito,sans-serif;letter-spacing:.6px;color:#7d9cbd}
+.pax-month-dialog .pax-month-option strong{font:900 13px Fredoka,Nunito,sans-serif;white-space:nowrap}
+.pax-month-dialog .pax-month-option small{font-size:9px;line-height:1.2;font-weight:820;color:#b5a0d2}
+.pax-month-dialog .pax-month-option.is-current:not(.is-picked){background:linear-gradient(120deg,#fff9e9,#fff);border-color:#ebcf86}
+.pax-month-dialog .pax-month-option.is-current small{color:#ad7725}
+.pax-month-dialog .pax-month-option.is-picked{background:linear-gradient(125deg,#3a88e8,#2764cf);border-color:#2266d7;box-shadow:0 9px 18px #2b72cf36;color:#fff;transform:translateY(-2px)}
+.pax-month-dialog .pax-month-option.is-picked span,.pax-month-dialog .pax-month-option.is-picked small{color:#eaf5ff}
+.pax-month-dialog .pax-month-option:disabled{opacity:.28;cursor:not-allowed;filter:grayscale(.5)}
+.pax-month-dialog .pax-month-shortcuts{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:15px 0 9px;flex-wrap:wrap}
+.pax-month-dialog .pax-month-shortcuts>button{border:1px solid #bbd9f9;border-radius:999px;padding:8px 12px;background:#e8f5ff;color:#216a9d;font:900 11px Nunito,sans-serif;cursor:pointer}
+.pax-month-dialog .pax-month-shortcuts>button:disabled{opacity:.4;cursor:not-allowed}
+.pax-month-dialog .pax-month-shortcuts>span{font:760 10px Nunito,sans-serif;color:#7b94b2}
+.pax-month-dialog .pax-month-manual{border:1px solid #e1e9f8;background:linear-gradient(110deg,#f8fbff,#fff);border-radius:15px;padding:12px 13px}
+.pax-month-dialog .pax-month-manual>label{display:block;margin-bottom:8px;color:#41688e;font:900 11px Nunito,sans-serif}
+.pax-month-dialog .pax-month-manual>div{display:flex;gap:8px}
+.pax-month-dialog .pax-month-manual input{flex:1;min-width:0;border:1px solid #d4e3f7;border-radius:10px;padding:11px;color:#1f5185;font:850 12px Nunito,sans-serif;background:#fff;outline:0}
+.pax-month-dialog .pax-month-manual input:focus{border-color:#5894e3;box-shadow:0 0 0 3px #a9cfff63}
+.pax-month-dialog .pax-month-manual button{border:0;border-radius:10px;padding:9px 14px;color:#fff;background:#2569db;font:900 12px Nunito,sans-serif;cursor:pointer}
+.pax-month-dialog .pax-month-manual>p{font:800 10px/1.4 Nunito,sans-serif;color:#cf4a61;margin:7px 0 0}
+.pax-month-dialog .pax-month-manual small{display:block;margin-top:7px;font:700 10px/1.4 Nunito,sans-serif;color:#7991af}
+.pax-month-dialog button:focus-visible,.pax-month-dialog select:focus-visible{outline:3px solid #99bcf4;outline-offset:2px}
+@keyframes pax-month-enter{from{opacity:0;transform:translateY(25px) scale(.92)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes pax-month-shade{from{opacity:0}to{opacity:1}}
+@keyframes pax-month-float{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-5px) rotate(0)}}
+@keyframes pax-month-twinkle{0%,100%{opacity:.4;transform:scale(.8)}50%{opacity:1;transform:scale(1.14)}}
+@keyframes pax-month-option-in{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:480px){
+ .pax-month-dialog{border-radius:21px;width:min(96vw,420px)}
+ .pax-month-dialog .pax-month-hero{padding:16px 17px}
+ .pax-month-dialog h3{font-size:21px}
+ .pax-month-dialog .pax-month-content{padding:15px 16px;max-height:calc(90dvh - 175px)}
+ .pax-month-dialog .pax-month-grid{gap:7px}
+ .pax-month-dialog .pax-month-option{padding:10px;min-height:72px}
+ .pax-month-dialog .pax-month-option strong{font-size:12px}
+ .pax-month-dialog .pax-month-manual{padding:10px}
+ .pax-month-dialog .pax-month-manual input{font-size:11px}
+ .pax-month-trigger{font-size:12px}
+ .archive-v2 .archive-picker .pax-month-trigger{font-size:14px}
+}
+@media(prefers-reduced-motion:reduce){.pax-month-dialog,.pax-month-dialog *, .pax-month-dialog *:before,.pax-month-dialog *:after{animation:none!important;transition:none!important}.pax-month-trigger{transition:none!important}}

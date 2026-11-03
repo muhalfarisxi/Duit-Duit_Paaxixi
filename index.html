@@ -7343,7 +7343,7 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 
 </style>
 <link rel="stylesheet" href="./budget-ux.css?v=14">
-<link rel="stylesheet" href="./archive-reports.css?v=4">
+<link rel="stylesheet" href="./archive-reports.css?v=5">
 </head>
 <body>
 <div class="app">
@@ -12615,7 +12615,10 @@ function reportAiPayload(r){
   trenTerpilih:{mode:'month',dari:r.trends[0]?.month,sampai:r.month,rentangDibatasi:false,
    periodik:r.trends.map(t=>({periode:t.month,total:t.expense}))},
   ringkasanTambahan:{arusKasBersih:r.net,saldoTotalRekening:r.balances.reduce((v,a)=>v+num(a.balance),0),
-   nilaiPortofolio:r.investment.market,jumlahJenisAset:r.investment.assets.length}
+   nilaiPortofolio:r.investment.market,jumlahJenisAset:r.investment.assets.length,
+   utangBelumLunas:r.debtSummary?.payable||0,piutangBelumKembali:r.debtSummary?.receivable||0,
+   utangBaruBulanIni:r.debtSummary?.payableNew||0,piutangBaruBulanIni:r.debtSummary?.receivableNew||0,
+   cicilanUtangBulanIni:r.debtSummary?.payablePaid||0,piutangKembaliBulanIni:r.debtSummary?.receivablePaid||0}
  };
 }
 function reportTable(rows,headers,render){return `<div class="table-scroll"><table class="report-table"><thead><tr>${headers.map(x=>`<th>${h(x)}</th>`).join('')}</tr></thead><tbody>${rows.map(render).join('')}</tbody></table></div>`}
@@ -14406,7 +14409,7 @@ document.addEventListener('visibilitychange',()=>{
  else init();
 })();
 </script>
-<script src="./archive-reports.js?v=4"></script>
+<script src="./archive-reports.js?v=5"></script>
 <script src="./composition-pos-popup.js?v=3" defer></script>
 <script type="module" src="./ai-insight.js?v=5"></script>
 <script src="firebase-config.js"></script>

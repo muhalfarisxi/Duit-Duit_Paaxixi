@@ -12296,6 +12296,27 @@ function investAllocationChart(items,total){
 }
 
 
+
+function investUpdatePreview(form){
+ if(!form||form.id!=='invest-trade-form')return;
+ const target=form.querySelector('[data-invest-preview]');
+ if(!target)return;
+ const kind=form.elements.type?.value;
+ if(kind==='payout'){
+  const paid=positive(form.elements.amount?.value);
+  target.textContent=paid?'Saldo rekening bertambah '+money(paid):'Isi dividen/kupon bersih yang diterima.';
+  return;
+ }
+ const units=investQty(form.elements.units?.value),price=positive(form.elements.unitPrice?.value),
+  fee=integer(form.elements.fee?.value||'0');
+ if(!Number.isFinite(units)||!price||!Number.isFinite(fee)||fee<0){
+  target.textContent='Isi unit, harga per unit, dan biaya untuk menghitung total.';return;
+ }
+ const amount=Math.round((units*price+(kind==='buy'?fee:-fee))*100)/100;
+ target.textContent=!Number.isFinite(amount)||amount<=0?'Jumlah atau biaya tidak valid.':
+  (kind==='buy'?'Saldo rekening berkurang ':'Saldo rekening bertambah ')+money(amount);
+}
+
 function renderInvestmentModal(){
  const m=ui.investmentModal;if(!m)return '';
  const asset=(db.investmentAssets||[]).find(a=>a.id===m.assetId);
@@ -12415,7 +12436,7 @@ function renderInvestments(){
    </div>
    ${sorted.length?`<div class="invest-asset-grid">${sorted.map(({asset,quantity,cost,market,unrealized,realized,payout},i)=>{
      const info=INVEST_TYPES[asset.type]||INVEST_TYPES.other,live=quantity>0;
-     return `<article class="invest-asset-card invest-type-${asset.type}" style="--invest-delay:${Math.min(i,10)*55}ms;--invest-accent:${info.color}">
+     return `<article class="invest-asset-card invest-type-${INVEST_TYPES[asset.type]?asset.type:'other'}" style="--invest-delay:${Math.min(i,10)*55}ms;--invest-accent:${info.color}">
       <div class="invest-asset-top"><span class="invest-asset-emoji" aria-hidden="true">${info.emoji}</span>
        <div class="invest-asset-heading"><strong>${h(asset.name)}</strong><small>${h(asset.symbol||info.name)} · ${info.name}</small></div>
        <span class="invest-asset-status ${live?'':'is-closed'}">${live?'Aktif':'Tidak ada unit'}</span></div>
@@ -12454,6 +12475,7 @@ function renderInvestments(){
      <button type="button" data-invest-delete-trade="${h(t.id)}" aria-label="Hapus catatan investasi" title="Hapus catatan terakhir aset">×</button>
     </div>`;
    }).join(''):'<p class="invest-history-empty">Transaksi beli, jual, dan hasil investasi akan tercatat di sini.</p>'}</div>
+   ${(db.investmentTrades||[]).length>recent.length?`<button class="btn invest-load-more" type="button" data-invest-load-more>↓ Tampilkan 40 Riwayat Berikutnya</button>`:''}
   </section>
   ${renderInvestmentModal()}
  </div>`;
@@ -12708,6 +12730,7 @@ function rupiahInputHandler(e){
  el.setSelectionRange(cursor,cursor);
 }
 document.addEventListener('input',rupiahInputHandler);
+document.addEventListener('input',e=>{const f=e.target.closest?.('#invest-trade-form');if(f)investUpdatePreview(f);});
 document.addEventListener('input',event=>{
  if(event.target.id==='tx-search-input'){
   ui.txSearchQuery=event.target.value;

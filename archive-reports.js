@@ -164,8 +164,8 @@ function pdfReport(r){
   groupLines.forEach((v,i)=>text(v,43,y+11+i*13,8,false,'#39506b'));
   posLines.forEach((v,i)=>text(v,153,y+11+i*13,8,false,'#39506b'));
   nameLines.forEach((v,i)=>text(v,249,y+11+i*13,8,true,'#263b56'));
-  text(t.type==='expense'?shortMoney(t.amount):'-',394,y+11,8,true,'#ca4960');
-  text(t.type==='income'?shortMoney(t.amount):'-',474,y+11,8,true,'#168565');
+  text(t.type==='expense'?Math.round(num(t.amount)).toLocaleString('id-ID'):'-',394,y+11,8,true,'#ca4960');
+  text(t.type==='income'?Math.round(num(t.amount)).toLocaleString('id-ID'):'-',474,y+11,8,true,'#168565');
   if(detail)text(detail.slice(0,91),43,y+11+lines*13,7,false,'#6b809c');
   y+=height;row++;
  }

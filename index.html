@@ -7537,7 +7537,7 @@ function normalizeExpenseGroups(value){
  budgetAdjustments:Array.isArray(value?.budgetAdjustments)?value.budgetAdjustments.filter(a=>a&&typeof a.id==='string'&&typeof a.month==='string'&&typeof a.categoryId==='string'&&['increase','decrease'].includes(a.type)&&Number.isFinite(Number(a.amount))&&Number(a.amount)>0):[],
  budgetBaseHistory:Array.isArray(value?.budgetBaseHistory)?value.budgetBaseHistory.filter(a=>a&&typeof a.categoryId==='string'&&typeof a.month==='string'):[],
  accountCorrections:Array.isArray(value?.accountCorrections)?value.accountCorrections.filter(a=>a&&typeof a.id==='string'&&typeof a.accountId==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(a.date)&&['increase','decrease'].includes(a.type)&&Number.isFinite(Number(a.amount))&&Number(a.amount)>0):[],
- investmentAssets:Array.isArray(value?.investmentAssets)?value.investmentAssets.filter(a=>a&&typeof a.id==='string'&&typeof a.name==='string'&&typeof a.type==='string'):[],
+ investmentAssets:Array.isArray(value?.investmentAssets)?value.investmentAssets.filter(a=>a&&typeof a.id==='string'&&typeof a.name==='string'&&['stock','crypto','gold','bond','fund','other'].includes(a.type)):[],
  investmentTrades:Array.isArray(value?.investmentTrades)?value.investmentTrades.filter(t=>t&&typeof t.id==='string'&&typeof t.assetId==='string'&&['buy','sell','payout'].includes(t.type)&&typeof t.date==='string'&&Number.isFinite(Number(t.amount))):[],
  investmentSnapshots:Array.isArray(value?.investmentSnapshots)?value.investmentSnapshots.filter(p=>p&&/^\d{4}-\d{2}-\d{2}$/.test(p.date)&&Number.isFinite(Number(p.value))):[],
  budgetInitialStates:(()=>{
@@ -12435,7 +12435,7 @@ function renderInvestments(){
      `<button type="button" data-invest-filter="${k}" class="${filt===k?'active':''}" aria-pressed="${filt===k?'true':'false'}">${emoji} ${text}</button>`).join('')}
    </div>
    ${sorted.length?`<div class="invest-asset-grid">${sorted.map(({asset,quantity,cost,market,unrealized,realized,payout},i)=>{
-     const info=INVEST_TYPES[asset.type]||INVEST_TYPES.other,live=quantity>0;
+     const info=INVEST_TYPES[asset.type]||INVEST_TYPES.other,live=quantity>0,roi=cost>0?unrealized/cost*100:0;
      return `<article class="invest-asset-card invest-type-${INVEST_TYPES[asset.type]?asset.type:'other'}" style="--invest-delay:${Math.min(i,10)*55}ms;--invest-accent:${info.color}">
       <div class="invest-asset-top"><span class="invest-asset-emoji" aria-hidden="true">${info.emoji}</span>
        <div class="invest-asset-heading"><strong>${h(asset.name)}</strong><small>${h(asset.symbol||info.name)} · ${info.name}</small></div>
@@ -12444,7 +12444,7 @@ function renderInvestments(){
        <div class="invest-asset-units">${investQtyFmt(quantity)} ${info.unit} · ${asset.price?money(asset.price)+' / '+info.unit:'Harga belum diisi'}</div></div>
       <div class="invest-asset-stats">
        <div><small>Modal tersisa</small><strong>${money(cost)}</strong></div>
-       <div><small>Untung/rugi berjalan</small>${val(unrealized)}</div>
+       <div><small>Untung/rugi berjalan</small>${val(unrealized)}<small>${cost>0?(roi<0?'−':'+')+Math.abs(roi).toFixed(1).replace('.',',')+'% dari modal':'Belum ada modal aktif'}</small></div>
       </div>
       <div class="invest-asset-price-note">Harga: ${asset.priceDate?dateFmt(asset.priceDate):'Belum diperbarui'}
        ${realized+payout?`<span> · Hasil terealisasi ${money(realized+payout)}</span>`:''}</div>
@@ -12974,6 +12974,7 @@ if(id==='invest-trade-form'){
  const note=String(f.get('note')||'').trim().slice(0,160);
  let amount=0,units=0,unitPrice=0,fee=0;
  if(type==='payout'){
+  if(!db.investmentTrades.some(t=>t.assetId===asset.id&&t.type==='buy'))return toast('Catat pembelian aset terlebih dahulu sebelum menerima hasil investasinya.',true);
   amount=positive(f.get('amount'));
   if(!amount)return toast('Isi dividen atau kupon bersih yang diterima.',true);
  }else{
@@ -12987,7 +12988,7 @@ if(id==='invest-trade-form'){
    return toast('Nominal investasi tidak valid atau biaya jual terlalu besar.',true);
   if(type==='sell'){
    const owned=investState(asset,date).quantity;
-   if(units>owned+1e-8)return toast('Penjualan melebihi kepemilikan '+investQtyFmt(owned)+' unit.',true);
+   if(owned<=0||units>owned+1e-10)return toast('Penjualan melebihi kepemilikan '+investQtyFmt(owned)+' unit.',true);
   }
   if(type==='buy'&&amount>num(balances()[accountId])+0.005)
    return toast('Saldo rekening tidak mencukupi pembelian '+money(amount)+'.',true);
@@ -13224,7 +13225,7 @@ function asCSV(items){let fields=['Tanggal','Jenis','Nama Pengeluaran / Pemasuka
 function saveReport(){let m=ui.month;if(!db.transactions.some(t=>t.date.slice(0,7)===m)&&!expenses().some(c=>num(db.budgets[m+'|'+c.id])>0)&&!budgetAdjustmentsForMonth(m).length)return toast('Belum ada transaksi/anggaran bulan itu untuk diarsipkan.',true);if(db.reports[m]&&!confirm('Timpa arsip '+monthFmt(m)+' dengan keadaan transaksi sekarang?'))return;db.reports[m]=buildReport(m);ui.reportMonth=m;save();setView('reports');toast('Arsip laporan '+monthFmt(m)+' telah disimpan.');}
 
 function exportJSON(){let blob=new Blob([JSON.stringify({...db,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});let url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='duit-duit-paaxixi-cadangan-'+today()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),500);toast('File cadangan berhasil disiapkan.')}
-function validDb(o){return o&&Array.isArray(o.accounts)&&Array.isArray(o.transactions)&&Array.isArray(o.debts)&&Array.isArray(o.categories)&&Array.isArray(o.budgetMoves)&&o.budgets&&typeof o.budgets==='object'&&o.accounts.every(a=>a.id&&a.name&&Number.isFinite(Number(a.opening)))&&(!('accountCorrections' in o)||Array.isArray(o.accountCorrections)&&o.accountCorrections.every(a=>a&&typeof a.id==='string'&&typeof a.accountId==='string'&&typeof a.date==='string'&&['increase','decrease'].includes(a.type)&&Number(a.amount)>0))&&(!('investmentAssets' in o)||Array.isArray(o.investmentAssets)&&o.investmentAssets.every(a=>a&&typeof a.id==='string'&&typeof a.name==='string'&&typeof a.type==='string'))&&(!('investmentTrades' in o)||Array.isArray(o.investmentTrades)&&o.investmentTrades.every(t=>t&&typeof t.id==='string'&&typeof t.assetId==='string'&&['buy','sell','payout'].includes(t.type)&&typeof t.date==='string'&&Number.isFinite(Number(t.amount))))&&(!('investmentSnapshots' in o)||Array.isArray(o.investmentSnapshots)&&o.investmentSnapshots.every(p=>p&&typeof p.date==='string'&&Number.isFinite(Number(p.value))))&&o.transactions.every(t=>t.id&&t.type&&t.date&&Number.isFinite(Number(t.amount)))&&o.debts.every(d=>d.id&&d.type&&d.person&&Number.isFinite(Number(d.amount))&&Array.isArray(d.settlements))&&(!('expenseGroups' in o)||Array.isArray(o.expenseGroups)&&o.expenseGroups.every(g=>g&&typeof g.id==='string'&&typeof g.name==='string'&&typeof g.color==='string'))}
+function validDb(o){return o&&Array.isArray(o.accounts)&&Array.isArray(o.transactions)&&Array.isArray(o.debts)&&Array.isArray(o.categories)&&Array.isArray(o.budgetMoves)&&o.budgets&&typeof o.budgets==='object'&&o.accounts.every(a=>a.id&&a.name&&Number.isFinite(Number(a.opening)))&&(!('accountCorrections' in o)||Array.isArray(o.accountCorrections)&&o.accountCorrections.every(a=>a&&typeof a.id==='string'&&typeof a.accountId==='string'&&typeof a.date==='string'&&['increase','decrease'].includes(a.type)&&Number(a.amount)>0))&&(!('investmentAssets' in o)||Array.isArray(o.investmentAssets)&&o.investmentAssets.every(a=>a&&typeof a.id==='string'&&typeof a.name==='string'&&['stock','crypto','gold','bond','fund','other'].includes(a.type)))&&(!('investmentTrades' in o)||Array.isArray(o.investmentTrades)&&o.investmentTrades.every(t=>t&&typeof t.id==='string'&&typeof t.assetId==='string'&&['buy','sell','payout'].includes(t.type)&&typeof t.date==='string'&&Number.isFinite(Number(t.amount))))&&(!('investmentSnapshots' in o)||Array.isArray(o.investmentSnapshots)&&o.investmentSnapshots.every(p=>p&&typeof p.date==='string'&&Number.isFinite(Number(p.value))))&&o.transactions.every(t=>t.id&&t.type&&t.date&&Number.isFinite(Number(t.amount)))&&o.debts.every(d=>d.id&&d.type&&d.person&&Number.isFinite(Number(d.amount))&&Array.isArray(d.settlements))&&(!('expenseGroups' in o)||Array.isArray(o.expenseGroups)&&o.expenseGroups.every(g=>g&&typeof g.id==='string'&&typeof g.name==='string'&&typeof g.color==='string'))}
 async function importJSON(file){if(!file)return;try{if(file.size>3*1024*1024)throw Error('File terlalu besar.');let obj=JSON.parse(await file.text());if(!validDb(obj))throw Error('Format cadangan tidak cocok.');if(!confirm('Impor akan MENGGANTI semua data keuangan dalam browser ini. Lanjutkan?'))return;db=normalizeExpenseGroups({version:2,accounts:obj.accounts,categories:obj.categories,expenseGroups:obj.expenseGroups,transactions:obj.transactions,budgets:obj.budgets,budgetMoves:obj.budgetMoves,debts:obj.debts,reports:obj.reports||{},budgetAdjustments:obj.budgetAdjustments,budgetBaseHistory:obj.budgetBaseHistory,budgetInitialStates:obj.budgetInitialStates,accountCorrections:obj.accountCorrections,investmentAssets:obj.investmentAssets,investmentTrades:obj.investmentTrades,investmentSnapshots:obj.investmentSnapshots});save();setView('dashboard');toast('Data berhasil dipulihkan.')}catch(e){toast('Gagal mengimpor: '+e.message,true)}finally{document.getElementById('import-file').value=''}}
 document.addEventListener('submit',e=>{if(e.target.closest('form')){e.preventDefault();handleForm(e.target)}});
 function goEditTx(id){openTxModal('expense',id)}

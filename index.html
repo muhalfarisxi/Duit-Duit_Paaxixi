@@ -12695,6 +12695,76 @@ if(id==='debt-form'){
  toast(old?'Catatan pinjaman diperbarui.':'Catatan pinjaman disimpan, pengingat jatuh tempo aktif.');return;
 }
 if(id==='repay-form'){let d=db.debts.find(d=>d.id===f.get('debtId')),editId=f.get('editId'),old=d?.settlements?.find(s=>s.id===editId),amount=positive(f.get('amount')),accountId=f.get('accountId'),date=f.get('date');if(!d||!amount||amount>debtBalance(d)+(old?.amount||0)||!acc(accountId)||!/^(?:\d{4})-\d{2}-\d{2}$/.test(date))return toast('Jumlah cicilan melebihi sisa atau data tidak valid.',true);if(old)Object.assign(old,{date,amount,accountId});else d.settlements.push({id:uid(),date,amount,accountId});ui.debtSelected=null;ui.repayEditId=null;save();render();restoreRepayPopupOrigin(d.id,editId);toast('Pembayaran disimpan.');return}
+/* Investasi tidak dimasukkan ke db.transactions; arus kasnya dihitung dari investmentTrades. */
+if(id==='invest-asset-form'){
+ const editId=String(f.get('editId')||''),old=db.investmentAssets.find(a=>a.id===editId);
+ const name=String(f.get('name')||'').trim().slice(0,85),
+  symbol=String(f.get('symbol')||'').trim().toUpperCase().slice(0,28),
+  type=String(f.get('type')||''),note=String(f.get('note')||'').trim().slice(0,180);
+ if(!name||!INVEST_TYPES[type])return toast('Nama dan jenis instrumen harus diisi.',true);
+ if(editId&&!old)return toast('Aset yang diedit tidak ditemukan.',true);
+ if(old&&(db.investmentTrades||[]).some(t=>t.assetId===old.id)&&old.type!==type)
+  return toast('Jenis aset yang sudah memiliki transaksi tidak dapat diubah karena satuannya berbeda.',true);
+ if(db.investmentAssets.some(a=>a.id!==editId&&a.name.toLowerCase()===name.toLowerCase()&&a.symbol===symbol))
+  return toast('Instrumen yang sama sudah tercatat.',true);
+ if(old)Object.assign(old,{name,symbol,type,note});
+ else db.investmentAssets.push({id:uid(),name,symbol,type,note,price:0,priceDate:'',createdAt:new Date().toISOString()});
+ investRememberValue();if(!save())return;
+ if(old){ui.investmentModal=null;render();toast('Instrumen investasi diperbarui.');}
+ else{const added=db.investmentAssets[db.investmentAssets.length-1];ui.investmentModal={kind:'trade',assetId:added.id,tradeType:'buy'};
+  render();toast('Aset ditambahkan. Catat pembelian pertamanya.');}
+ return;
+}
+if(id==='invest-price-form'){
+ const asset=db.investmentAssets.find(a=>a.id===f.get('assetId'));
+ const price=positive(f.get('price'));
+ if(!asset||!price)return toast('Isi harga pasar dalam rupiah dengan benar.',true);
+ asset.price=price;asset.priceDate=analysisToday();
+ investRememberValue();if(!save())return;
+ ui.investmentModal=null;render();toast('Harga pasar diperbarui; nilai portofolio dihitung ulang.');return;
+}
+if(id==='invest-trade-form'){
+ const asset=db.investmentAssets.find(a=>a.id===f.get('assetId'));
+ const type=String(f.get('type')||''),date=String(f.get('date')||''),accountId=String(f.get('accountId')||'');
+ if(!asset||!acc(accountId)||!['buy','sell','payout'].includes(type))
+  return toast('Pilih aset, jenis transaksi, dan rekening yang valid.',true);
+ if(!paxCalValid(date)||date>analysisToday())
+  return toast('Tanggal investasi tidak valid atau melebihi hari ini.',true);
+ const previous=(db.investmentTrades||[]).filter(t=>t.assetId===asset.id).slice().sort((a,b)=>b.date.localeCompare(a.date))[0];
+ if(previous&&date<previous.date)
+  return toast('Catat investasi secara kronologis. Tanggal tidak boleh sebelum transaksi terakhir aset ini.',true);
+ const note=String(f.get('note')||'').trim().slice(0,160);
+ let amount=0,units=0,unitPrice=0,fee=0;
+ if(type==='payout'){
+  amount=positive(f.get('amount'));
+  if(!amount)return toast('Isi dividen atau kupon bersih yang diterima.',true);
+ }else{
+  units=investQty(f.get('units'));unitPrice=positive(f.get('unitPrice'));
+  fee=integer(f.get('fee')||'0');
+  if(!Number.isFinite(units)||!unitPrice||!Number.isFinite(fee)||fee<0)
+   return toast('Periksa unit, harga, dan biaya investasi. Unit desimal gunakan koma.',true);
+  const gross=Math.round(units*unitPrice*100)/100;
+  amount=Math.round((gross+(type==='buy'?fee:-fee))*100)/100;
+  if(!Number.isFinite(amount)||amount<=0||amount>Number.MAX_SAFE_INTEGER/100)
+   return toast('Nominal investasi tidak valid atau biaya jual terlalu besar.',true);
+  if(type==='sell'){
+   const owned=investState(asset,date).quantity;
+   if(units>owned+1e-8)return toast('Penjualan melebihi kepemilikan '+investQtyFmt(owned)+' unit.',true);
+  }
+  if(type==='buy'&&amount>num(balances()[accountId])+0.005)
+   return toast('Saldo rekening tidak mencukupi pembelian '+money(amount)+'.',true);
+ }
+ const record={id:uid(),assetId:asset.id,type,units,unitPrice,fee,amount,date,accountId,note,
+  createdAt:new Date().toISOString()};
+ db.investmentTrades.push(record);
+ if(type==='buy'&&!num(asset.price)){asset.price=unitPrice;asset.priceDate=analysisToday();}
+ investRememberValue();
+ if(!save())return;
+ ui.investmentModal=null;render();
+ toast(type==='buy'?'Pembelian tersimpan dan saldo rekening berkurang.':
+  type==='sell'?'Penjualan tersimpan dan saldo rekening bertambah.':'Hasil investasi masuk saldo rekening.');
+ return;
+}
 if(id==='account-adjust-form'){
  const accountId=String(f.get('accountId')||''),a=acc(accountId),mode=String(f.get('type')||''),amount=integer(f.get('amount'));
  const date=String(f.get('date')||''),note=String(f.get('note')||'').trim().slice(0,160);

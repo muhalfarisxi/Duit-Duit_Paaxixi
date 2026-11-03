@@ -416,6 +416,112 @@ function exportPdf(r){
  a.href=url;a.download='Duit-Duit-Paaxixi-Laporan-'+r.month+'.pdf';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1200);
 }
 /* Titik tren mengikuti interaksi Dashboard tanpa mengubah isi arsip. */
+
+/* Rincian titik tren mengacu pada snapshot: bulan laporan sendiri tersimpan
+   di transactions, lima bulan pembanding pada trendTransactions (arsip baru).
+   Arsip lama boleh memakai transaksi terkini tetapi diberi penanda eksplisit. */
+function archivePointDetails(month,type){
+ const r=archiveActiveReport;
+ if(!r||!/^\d{4}-\d{2}$/.test(month)||!['income','expense'].includes(type)||
+  !months6(r).some(x=>x.month===month))return null;
+ const monthly=months6(r).find(x=>x.month===month),claimed=num(monthly?.[type]);
+ let rows=[],origin='snapshot';
+ if(month===r.month)rows=r.transactions||[];
+ else if(Array.isArray(r.trendTransactions)){
+  const other=r.trendTransactions.find(x=>x.month===month);
+  rows=other?.transactions||[];
+ }else{
+  rows=archiveLegacyTrendRows||[];
+  origin='live';
+ }
+ rows=rows.filter(tx=>tx.type===type&&String(tx.date||'').slice(0,7)===month)
+  .slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||
+   String(a.title||'').localeCompare(String(b.title||''),'id'));
+ const recorded=rows.reduce((n,tx)=>n+num(tx.amount),0);
+ return {month,type,claimed,recorded,rows,origin};
+}
+function archivePointColors(group,type,index,r){
+ if(type==='income')return ['#15966b','#33b58c','#6cbfaa','#1d9e9f','#75ac75','#98c8b5'][index%6];
+ const candidate=r.groupColors?.[group];
+ return /^#[0-9a-f]{6}$/i.test(candidate||'')?candidate:COLORS[index%COLORS.length];
+}
+function archivePointContent(info){
+ const r=archiveActiveReport,kind=info.type==='income'?'Pemasukan':'Pengeluaran',income=info.type==='income';
+ const breakdown=new Map();
+ info.rows.forEach(tx=>{
+  const group=String(tx.group||'Lainnya');
+  breakdown.set(group,(breakdown.get(group)||0)+num(tx.amount));
+ });
+ const composition=[...breakdown].sort((a,b)=>b[1]-a[1]);
+ const categories=composition.map(([name,value],i)=>({name,value,color:archivePointColors(name,info.type,i,r)}));
+ let cursor=0;
+ const gradient=categories.map((x,i)=>{
+  const to=i===categories.length-1?100:cursor+100*x.value/Math.max(1,info.recorded);
+  const part=x.color+' '+cursor.toFixed(2)+'% '+to.toFixed(2)+'%';
+  cursor=to;return part;
+ }).join(',');
+ const compositionMarkup=categories.length?'<div class="archive-point-composition"><div class="archive-point-donut" style="background:conic-gradient('+gradient+')" role="img" aria-label="Komposisi '+kind.toLowerCase()+'"><div><small>Total '+kind+'</small><strong>'+fmt(info.recorded)+'</strong></div></div>'+
+  '<div class="archive-point-categories">'+categories.map(x=>'<div class="archive-point-category"><span><i style="background:'+x.color+'"></i>'+esc(x.name)+'</span><strong>'+fmt(x.value)+'</strong><small>'+((100*x.value/Math.max(1,info.recorded)).toFixed(1).replace('.',','))+'%</small></div>').join('')+'</div></div>':
+  '<div class="archive-point-empty">Belum tersedia transaksi rinci untuk kategori ini.</div>';
+ const dates=new Map();
+ info.rows.forEach(tx=>{
+  const day=String(tx.date||'');
+  if(!dates.has(day))dates.set(day,[]);
+  dates.get(day).push(tx);
+ });
+ const items=[...dates].map(([date,txs])=>{
+  const total=txs.reduce((n,t)=>n+num(t.amount),0);
+  return '<section class="archive-point-day"><div class="archive-point-day-heading"><div><span>📅</span><strong>'+esc(dateText(date))+'</strong><small>'+txs.length+' transaksi</small></div><b>'+fmt(total)+'</b></div>'+
+   txs.map(t=>{
+    const group=t.group||'Lainnya',pos=t.categoryLabel||'Tanpa pos',name=t.title||'Tanpa keterangan';
+    return '<div class="archive-point-tx"><div><strong>'+esc(name)+'</strong><small>'+esc(group)+' · '+esc(pos)+'</small>'+
+     (t.note?'<p>'+esc(t.note)+'</p>':'')+'</div><b class="'+(income?'is-income':'is-expense')+'">'+(income?'+':'−')+fmt(t.amount)+'</b></div>';
+   }).join('')+'</section>';
+ }).join('');
+ const mismatch=Math.abs(info.claimed-info.recorded)>1;
+ const warning=info.origin==='live'?
+  '<div class="archive-point-warning">ℹ️ Arsip lama belum menyimpan rincian bulan pembanding. Daftar ini memakai transaksi yang tercatat saat ini, bukan salinan historis saat arsip dibuat.</div>':
+  '';
+ const reconcile=mismatch?'<div class="archive-point-warning">⚠️ Angka pada grafik arsip adalah '+fmt(info.claimed)+', sedangkan transaksi rinci yang tersedia berjumlah '+fmt(info.recorded)+'. Angka tersebut berbeda; periksa perubahan data atau perbarui arsip.</div>':'';
+ return '<div class="archive-point-modal-head"><div class="archive-point-heading"><span class="archive-point-head-icon">'+(income?'💚':'🧡')+'</span><div><small>RINCIAN TREN BULANAN ✦</small><h3 id="archive-point-heading">'+kind+' · '+esc(monthText(info.month))+'</h3><p>'+ (info.origin==='snapshot'?'Data transaksi yang tercatat pada laporan arsip':'Pratinjau berdasarkan transaksi terkini')+'</p></div></div><button type="button" class="archive-point-close" data-archive-point-close aria-label="Tutup rincian">×</button></div>'+
+ '<div class="archive-point-modal-body">'+
+ '<div class="archive-point-metrics"><div><span>Total '+kind+'</span><strong class="'+(income?'is-income':'is-expense')+'">'+fmt(info.claimed)+'</strong></div><div><span>Jumlah Transaksi Rinci</span><strong>'+info.rows.length+' transaksi</strong></div></div>'+
+ warning+reconcile+
+ '<div class="archive-point-section-title"><h4>🍩 Komposisi per Kelompok</h4><small>Nominal dan kontribusi pengeluaran/pemasukan</small></div>'+
+ compositionMarkup+
+ '<div class="archive-point-section-title"><h4>📋 Daftar Transaksi per Tanggal</h4><small>'+info.rows.length+' transaksi · '+dates.size+' tanggal</small></div>'+
+ (items||'<div class="archive-point-empty">Tidak ada transaksi rinci yang tersedia untuk periode ini.</div>')+
+ '</div>';
+}
+function archiveClosePointDialog(restoreFocus=true){
+ if(!archivePointDialog)return;
+ const dlg=archivePointDialog,origin=archivePointOrigin;
+ archivePointDialog=null;archivePointOrigin=null;
+ if(dlg.open)dlg.close();
+ dlg.remove();
+ if(restoreFocus&&origin?.isConnected)origin.focus({preventScroll:true});
+}
+function archiveOpenPointDialog(point){
+ const month=point?.dataset.archiveTrendPoint,type=point?.dataset.archiveTrendType;
+ const data=archivePointDetails(month,type);
+ if(!data)return;
+ archiveClosePointDialog(false);
+ archivePointOrigin=point;
+ const dlg=document.createElement('dialog');
+ dlg.className='archive-point-dialog';dlg.setAttribute('aria-labelledby','archive-point-heading');
+ dlg.innerHTML=archivePointContent(data);
+ archivePointDialog=dlg;
+ document.body.append(dlg);
+ dlg.addEventListener('click',event=>{
+  event.stopPropagation();
+  if(event.target===dlg||event.target.closest('[data-archive-point-close]'))archiveClosePointDialog();
+ });
+ dlg.addEventListener('cancel',event=>{event.preventDefault();archiveClosePointDialog()});
+ dlg.addEventListener('keydown',event=>{event.stopPropagation();});
+ if(typeof dlg.showModal==='function')dlg.showModal();
+ else dlg.setAttribute('open','');
+ dlg.querySelector('[data-archive-point-close]')?.focus({preventScroll:true});
+}
 function archiveSelectPoint(target){
  const chart=target?.closest('.archive-dashboard-trend');
  const month=target?.dataset.archiveTrendPoint;
@@ -427,10 +533,11 @@ function archiveSelectPoint(target){
  if(!area)return;
  chart.querySelectorAll('[data-archive-trend-point]').forEach(el=>el.classList.toggle('is-picked',el.dataset.archiveTrendPoint===month));
  area.innerHTML='<span>📊 '+esc(monthText(month))+'</span><strong>Masuk '+fmt(income?.dataset.archiveTrendValue)+' · Keluar '+fmt(expense?.dataset.archiveTrendValue)+'</strong>';
+ archiveOpenPointDialog(target);
 }
 document.addEventListener('click',e=>{
  const point=e.target.closest?.('[data-archive-trend-point]');
- if(point)archiveSelectPoint(point);
+ if(point){e.preventDefault();archiveSelectPoint(point);}
 });
 document.addEventListener('keydown',e=>{
  if(!['Enter',' '].includes(e.key))return;

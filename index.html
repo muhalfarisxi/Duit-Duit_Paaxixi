@@ -12068,6 +12068,170 @@ function investAllocationChart(items,total){
  </div>`;
 }
 
+
+function renderInvestmentModal(){
+ const m=ui.investmentModal;if(!m)return '';
+ const asset=(db.investmentAssets||[]).find(a=>a.id===m.assetId);
+ if(m.kind!=='asset'&&!asset)return '';
+ const editing=m.kind==='asset'&&asset;
+ let heading='',intro='',form='';
+ if(m.kind==='asset'){
+  heading=editing?'Edit Instrumen Investasi':'Tambah Instrumen Investasi';
+  intro='Identitas aset disimpan terlebih dahulu. Setelah itu catat pembeliannya.';
+  form=`<form id="invest-asset-form">
+   <input type="hidden" name="editId" value="${h(asset?.id||'')}">
+   <div class="form-grid">
+    <div class="form-field"><label class="field-label">Jenis Investasi</label>
+     <select class="field" name="type">${Object.entries(INVEST_TYPES).map(([k,v])=>`<option value="${k}" ${asset?.type===k?'selected':''}>${v.emoji} ${v.name}</option>`).join('')}</select></div>
+    <div class="form-field"><label class="field-label">Kode / Simbol (Opsional)</label>
+     <input class="field" name="symbol" maxlength="28" value="${h(asset?.symbol||'')}" placeholder="Contoh: BBCA, BTC, SBR013"></div>
+    <div class="form-field full"><label class="field-label">Nama Instrumen</label>
+     <input class="field" name="name" maxlength="85" value="${h(asset?.name||'')}" placeholder="Contoh: Bank Central Asia" required></div>
+    <div class="form-field full"><label class="field-label">Catatan (Opsional)</label>
+     <input class="field" name="note" maxlength="180" value="${h(asset?.note||'')}" placeholder="Platform atau informasi instrumen"></div>
+   </div><button type="submit" class="btn primary invest-form-submit">${editing?'✓ Simpan Perubahan':'＋ Tambah Aset'}</button></form>`;
+ }else if(m.kind==='trade'){
+  const kind=['buy','sell','payout'].includes(m.tradeType)?m.tradeType:'buy',info=INVEST_TYPES[asset.type]||INVEST_TYPES.other;
+  const holdings=investState(asset);
+  heading=kind==='buy'?'Catat Pembelian':kind==='sell'?'Catat Penjualan':'Catat Dividen / Kupon';
+  intro=asset.name+' · '+(asset.symbol||info.name);
+  form=`<div class="invest-trade-tabs" role="group" aria-label="Jenis transaksi investasi">
+    ${[['buy','↘ Beli'],['sell','↗ Jual'],['payout','✦ Hasil']].map(([k,text])=>`<button type="button" data-invest-trade-kind="${k}" aria-pressed="${kind===k?'true':'false'}" class="${kind===k?'active '+k:''}">${text}</button>`).join('')}</div>
+   <form id="invest-trade-form">
+    <input type="hidden" name="assetId" value="${h(asset.id)}"><input type="hidden" name="type" value="${kind}">
+    <div class="form-grid">
+     <div class="form-field"><label class="field-label">Tanggal</label>
+      <input type="date" class="field" name="date" value="${analysisToday()}" max="${analysisToday()}" required></div>
+     <div class="form-field"><label class="field-label">Rekening ${kind==='buy'?'Pembayaran':'Penerimaan'}</label>
+      ${selectAcc('accountId')}</div>
+     ${kind==='payout'?`<div class="form-field full"><label class="field-label">Dividen / Kupon Bersih (Rp)</label>
+       <input class="field" type="text" data-rupiah="1" inputmode="decimal" name="amount" placeholder="50.000" required></div>`:
+      `<div class="form-field"><label class="field-label">Jumlah (${info.unit})</label>
+       <input class="field" type="text" inputmode="decimal" name="units" placeholder="1 atau 0,125" required>
+       <small class="invest-field-help">Gunakan koma untuk desimal, tanpa pemisah ribuan.</small></div>
+       <div class="form-field"><label class="field-label">Harga per ${info.unit} (Rp)</label>
+       <input class="field" type="text" inputmode="decimal" data-rupiah="1" name="unitPrice" value="${asset.price?fmtAmount(asset.price):''}" placeholder="100.000" required></div>
+       <div class="form-field full"><label class="field-label">Biaya Transaksi (Rp)</label>
+       <input class="field" type="text" data-rupiah="1" inputmode="decimal" name="fee" value="0"></div>`}
+     <div class="form-field full"><label class="field-label">Catatan (Opsional)</label>
+      <input class="field" name="note" maxlength="160" placeholder="Platform, broker atau keterangan"></div>
+    </div>
+    ${kind==='sell'?`<p class="invest-trade-holding">Dimiliki: <strong>${investQtyFmt(holdings.quantity)} ${info.unit}</strong></p>`:''}
+    <div class="invest-trade-preview" data-invest-preview>${kind==='payout'?'Hasil akan menambah saldo rekening.':'Isi jumlah dan harga untuk melihat totalnya.'}</div>
+    <button type="submit" class="btn primary invest-form-submit">${kind==='buy'?'✓ Simpan Pembelian':kind==='sell'?'✓ Simpan Penjualan':'✓ Simpan Hasil Investasi'}</button>
+   </form>`;
+ }else if(m.kind==='price'){
+  heading='Perbarui Harga Pasar';
+  intro=asset.name+' · Harga manual dalam rupiah';
+  form=`<form id="invest-price-form">
+   <input type="hidden" name="assetId" value="${h(asset.id)}">
+   <div class="invest-price-current">Harga sebelumnya <strong>${asset.price?money(asset.price):'Belum diisi'}</strong></div>
+   <div class="form-grid"><div class="form-field full">
+    <label class="field-label">Harga Terkini per ${(INVEST_TYPES[asset.type]||INVEST_TYPES.other).unit} (Rp)</label>
+    <input class="field" type="text" data-rupiah="1" inputmode="decimal" name="price"
+     value="${asset.price?fmtAmount(asset.price):''}" placeholder="Contoh: 150.000" required></div></div>
+   <p class="invest-field-help">Tidak mengambil harga otomatis dari bursa. Nilai pasar portofolio dihitung ulang dari harga ini.</p>
+   <button type="submit" class="btn primary invest-form-submit">✓ Simpan Harga</button>
+  </form>`;
+ }
+ return `<div class="invest-modal-backdrop" id="invest-modal-backdrop">
+  <section class="invest-dialog" role="dialog" aria-modal="true" aria-labelledby="invest-dialog-heading">
+   <header class="invest-dialog-head"><span aria-hidden="true">${m.kind==='asset'?'🌟':m.kind==='price'?'📈':'💸'}</span>
+    <div><strong id="invest-dialog-heading">${heading}</strong><small>${h(intro)}</small></div>
+    <button type="button" data-invest-close aria-label="Tutup formulir">✕</button></header>
+   <div class="invest-dialog-body">${form}</div>
+  </section>
+ </div>`;
+}
+function renderInvestments(){
+ const p=investSummary(),cash=Object.values(balances()).reduce((n,x)=>n+num(x),0);
+ const debts=totalsDebt(),wealth=cash+p.market+debts.receivable-debts.payable;
+ const filt=ui.investmentFilter||'all';
+ const all=p.items,items=all.filter(x=>filt==='all'||x.asset.type===filt);
+ const active=items.filter(x=>x.quantity>0),closed=items.filter(x=>x.quantity<=0);
+ const sorted=[...active.sort((a,b)=>b.market-a.market),...closed];
+ const realized=p.realized+p.payout;
+ const recent=(db.investmentTrades||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)||
+  String(b.createdAt||'').localeCompare(String(a.createdAt||''))).slice(0,40);
+ const val=(value)=>`<strong class="${value<0?'is-loss':'is-profit'}">${value<0?'−':'+'}${money(Math.abs(value))}</strong>`;
+ return `<div class="invest-dashboard">
+  <section class="invest-hero">
+   <div class="invest-hero-copy"><small>✦ PORTOFOLIO PAAXIXI</small><h2>Investasi Bertumbuh 🌱</h2>
+    <p>Pantau nilai aset dan keuntungan berdasarkan harga yang kamu masukkan.</p></div>
+   <div class="invest-hero-buttons">
+    <button type="button" class="invest-primary-action" data-invest-open="asset">＋ Tambah Aset</button>
+   </div><span class="invest-hero-art" aria-hidden="true">📈✨</span>
+  </section>
+  <div class="invest-kpis">
+   <article class="invest-kpi invest-kpi-market"><span>Nilai Portofolio</span><strong>${money(p.market)}</strong><small>${p.active} aset dengan kepemilikan</small></article>
+   <article class="invest-kpi invest-kpi-cost"><span>Modal Aset Aktif</span><strong>${money(p.cost)}</strong><small>Modal setelah penjualan</small></article>
+   <article class="invest-kpi invest-kpi-gain"><span>Total Untung / Rugi</span><strong class="${p.gain<0?'is-loss':'is-profit'}">${p.gain<0?'−':'+'}${money(Math.abs(p.gain))}</strong>
+    <small>${p.unrealized<0?'−':'+'}${money(Math.abs(p.unrealized))} belum direalisasi</small></article>
+   <article class="invest-kpi invest-kpi-wealth"><span>Estimasi Kekayaan Bersih</span><strong>${money(wealth)}</strong>
+    <small>Rekening + investasi + piutang − utang</small></article>
+  </div>
+  <div class="invest-charts">
+   <section class="card invest-trend-card"><div class="card-head"><div><h3>Perkembangan Nilai Portofolio</h3></div>
+    <span class="invest-chart-symbol" aria-hidden="true">📊</span></div>
+    ${investVisualSeries()}
+    <p class="invest-caption">Nilai tercatat pada hari pengisian; tidak menggunakan harga historis otomatis.</p></section>
+   <section class="card invest-pie-card"><div class="card-head"><div><h3>Alokasi Aset</h3></div>
+    <span class="invest-chart-symbol" aria-hidden="true">🧩</span></div>
+    ${investAllocationChart(all,p.market)}</section>
+  </div>
+  <section class="card invest-holdings">
+   <div class="invest-section-head"><div><h3>Daftar Investasi</h3><small>${all.length} instrumen · Harga diperbarui manual</small></div>
+    <button class="btn sm" type="button" data-invest-open="asset">＋ Tambah Aset</button></div>
+   <div class="invest-filter-strip" role="group" aria-label="Filter jenis investasi">
+    ${[['all','✦','Semua'],...Object.entries(INVEST_TYPES).map(([k,v])=>[k,v.emoji,v.name])].map(([k,emoji,text])=>
+     `<button type="button" data-invest-filter="${k}" class="${filt===k?'active':''}" aria-pressed="${filt===k?'true':'false'}">${emoji} ${text}</button>`).join('')}
+   </div>
+   ${sorted.length?`<div class="invest-asset-grid">${sorted.map(({asset,quantity,cost,market,unrealized,realized,payout},i)=>{
+     const info=INVEST_TYPES[asset.type]||INVEST_TYPES.other,live=quantity>0;
+     return `<article class="invest-asset-card invest-type-${asset.type}" style="--invest-delay:${Math.min(i,10)*55}ms;--invest-accent:${info.color}">
+      <div class="invest-asset-top"><span class="invest-asset-emoji" aria-hidden="true">${info.emoji}</span>
+       <div class="invest-asset-heading"><strong>${h(asset.name)}</strong><small>${h(asset.symbol||info.name)} · ${info.name}</small></div>
+       <span class="invest-asset-status ${live?'':'is-closed'}">${live?'Aktif':'Tidak ada unit'}</span></div>
+      <div class="invest-asset-main"><small>Nilai Saat Ini</small><strong>${money(market)}</strong>
+       <div class="invest-asset-units">${investQtyFmt(quantity)} ${info.unit} · ${asset.price?money(asset.price)+' / '+info.unit:'Harga belum diisi'}</div></div>
+      <div class="invest-asset-stats">
+       <div><small>Modal tersisa</small><strong>${money(cost)}</strong></div>
+       <div><small>Untung/rugi berjalan</small>${val(unrealized)}</div>
+      </div>
+      <div class="invest-asset-price-note">Harga: ${asset.priceDate?dateFmt(asset.priceDate):'Belum diperbarui'}
+       ${realized+payout?`<span> · Hasil terealisasi ${money(realized+payout)}</span>`:''}</div>
+      <div class="invest-asset-buttons">
+       <button type="button" data-invest-trade="buy:${h(asset.id)}">＋ Beli</button>
+       <button type="button" data-invest-trade="sell:${h(asset.id)}" ${live?'':'disabled'}>↗ Jual</button>
+       <button type="button" data-invest-trade="payout:${h(asset.id)}">✦ Hasil</button>
+       <button type="button" data-invest-price="${h(asset.id)}">📈 Harga</button>
+       <button type="button" data-invest-edit="${h(asset.id)}">✎ Edit</button>
+       <button type="button" class="invest-remove" data-invest-delete="${h(asset.id)}">× Hapus</button>
+      </div>
+     </article>`;
+    }).join('')}</div>`:
+    `<div class="invest-empty"><span>🌿</span><strong>Belum Ada Investasi</strong>
+      <p>Tambahkan instrumen untuk mulai memantau portofolio.</p>
+      <button type="button" class="btn primary" data-invest-open="asset">＋ Tambah Instrumen</button></div>`}
+  </section>
+  <section class="card invest-history"><div class="invest-section-head"><div><h3>Riwayat Investasi</h3>
+   <small>Aliran dana investasi tidak dicampur dengan belanja rutin.</small></div>
+   <span class="invest-history-count">${(db.investmentTrades||[]).length} catatan</span></div>
+   <div class="invest-history-list">${recent.length?recent.map(t=>{
+    const asset=db.investmentAssets.find(a=>a.id===t.assetId),info=INVEST_TYPES[asset?.type]||INVEST_TYPES.other;
+    return `<div class="invest-history-row">
+     <span class="invest-history-icon ${t.type}">${t.type==='buy'?'↘':t.type==='sell'?'↗':'✦'}</span>
+     <div><strong>${h(asset?.name||'Aset dihapus')}</strong><small>${dateFmt(t.date)} · ${t.type==='buy'?'Pembelian':t.type==='sell'?'Penjualan':'Dividen/Kupon'}
+      ${t.type!=='payout'?' · '+investQtyFmt(t.units)+' '+info.unit:''} · ${h(acc(t.accountId)?.name||'Rekening dihapus')}</small></div>
+     <b class="${t.type}">${t.type==='buy'?'−':'+'}${money(t.amount)}</b>
+     <button type="button" data-invest-delete-trade="${h(t.id)}" aria-label="Hapus catatan investasi" title="Hapus catatan terakhir aset">×</button>
+    </div>`;
+   }).join(''):'<p class="invest-history-empty">Transaksi beli, jual, dan hasil investasi akan tercatat di sini.</p>'}</div>
+  </section>
+  ${renderInvestmentModal()}
+ </div>`;
+}
+
 function renderAccounts(){
  const bal=balances(),total=db.accounts.reduce((n,a)=>n+num(bal[a.id]),0);
  const pool=db.accounts.reduce((n,a)=>n+Math.max(0,num(bal[a.id])),0);

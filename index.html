@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#102a4e">
-<meta name="paax-build" content="20261103-calendar-month-v1">
+<meta name="paax-build" content="20261103-archive-dashboard-charts-v8">
 <title>Duit-Duit Paaxixi | Catatan Keuangan Pribadi</title>
 <link rel="icon" type="image/png" sizes="64x64" href="./favicon-paaxixi.png?v=2">
 <link rel="apple-touch-icon" href="./profil-paaxixi.png?v=2">
@@ -7344,7 +7344,7 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 
 </style>
 <link rel="stylesheet" href="./budget-ux.css?v=14">
-<link rel="stylesheet" href="./archive-reports.css?v=7">
+<link rel="stylesheet" href="./archive-reports.css?v=8">
 <link rel="stylesheet" href="./month-picker.css?v=1">
 </head>
 <body>
@@ -7409,7 +7409,7 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <input id="import-file" type="file" accept=".json,application/json" style="display:none">
-<script src="./archive-reports.js?v=7"></script>
+<script src="./archive-reports.js?v=8"></script>
 <script src="./month-picker.js?v=1"></script>
 <script>
 (()=>{'use strict';
@@ -12631,7 +12631,8 @@ function reportAiPayload(r){
 }
 function reportTable(rows,headers,render){return `<div class="table-scroll"><table class="report-table"><thead><tr>${headers.map(x=>`<th>${h(x)}</th>`).join('')}</tr></thead><tbody>${rows.map(render).join('')}</tbody></table></div>`}
 function renderReports(){
- const month=ui.reportMonth||ui.month,saved=db.reports[month],report=saved||buildReport(month);
+ const month=ui.reportMonth||ui.month,saved=db.reports[month],liveGroupColors=Object.fromEntries(expenseGroups().map(g=>[g.name,g.color]));
+ const report=saved?{...saved,groupColors:saved.groupColors||liveGroupColors}:buildReport(month);
  if(!window.PAAX_ARCHIVE)return '<section class="card">Modul Arsip Laporan belum termuat. Segarkan halaman untuk memuat versi baru.</section>';
  return window.PAAX_ARCHIVE.renderPage({
   month,report,saved:!!saved,
@@ -14068,7 +14069,7 @@ if(a==='cancel-expense-group'||a==='cancel-budget-category'){closeFinanceEditor(
 if(a==='reset'&&await confirmDelete('HAPUS seluruh transaksi, investasi, anggaran, pinjaman, arsip laporan, dan rekening'+(cloud.signedIn?' pada SEMUA PERANGKAT tersinkron':' di browser ini')+'? Tindakan ini tidak dapat dibatalkan tanpa file cadangan.')){db=fresh();save();ui.debtSelected=null;ui.txEditId=null;setView('dashboard');toast('Data dibersihkan.')}
 if(a==='new-transfer'){openTxModal('transfer');return}
 if(a==='close-repay'){dismissRepayPopup();return}
-if(a==='save-report'){void saveReport();return;}if(a==='print-report'){const r=db.reports[ui.reportMonth||ui.month];if(!r)return toast('Simpan arsip bulan ini sebelum mengunduh PDF.',true);try{window.PAAX_ARCHIVE.exportPdf(r);toast('PDF berwarna '+monthFmt(r.month)+' berhasil diunduh.');}catch(err){toast('Gagal membuat PDF: '+(err?.message||err),true);}return;}
+if(a==='save-report'){void saveReport();return;}if(a==='print-report'){const r=db.reports[ui.reportMonth||ui.month];if(!r)return toast('Simpan arsip bulan ini sebelum mengunduh PDF.',true);try{const colors=r.groupColors||Object.fromEntries(expenseGroups().map(g=>[g.name,g.color]));window.PAAX_ARCHIVE.exportPdf({...r,groupColors:colors});toast('PDF berwarna '+monthFmt(r.month)+' berhasil diunduh.');}catch(err){toast('Gagal membuat PDF: '+(err?.message||err),true);}return;}
 if(a==='csv-report'){let r=db.reports[ui.reportMonth];if(r)downloadFile('Duit-Duit-Paaxixi-laporan-'+ui.reportMonth+'.csv',asCSV(r.transactions),'text/csv;charset=utf-8')}
 if(a==='csv-review'){let tx=monthly().filter(t=>t.type===ui.reviewType);downloadFile('Duit-Duit-Paaxixi-'+(ui.reviewType==='income'?'pemasukan':'pengeluaran')+'-'+ui.month+'.csv',asCSV(tx),'text/csv;charset=utf-8')}
 if(a==='cloud-logout'){if(window.ARUS_CLOUD)try{await window.ARUS_CLOUD.logout();cloud.signedIn=false;cloud.ready=false;cloud.pendingDecision=false;db=fresh();localStorage.removeItem(KEY);syncBadge();setView('dashboard');toast('Berhasil keluar. Cache keuangan lokal dari sesi cloud dibersihkan.')}catch(e){showError(e)}}

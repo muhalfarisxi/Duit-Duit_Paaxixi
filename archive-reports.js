@@ -135,16 +135,50 @@ function pdfReport(r){
  function kpi(x,top,title,value,c){
   rect(x,top,250,86,'#f0f6ff');rect(x,top,6,86,c);text(title,x+17,top+24,10,true,'#577293');text(value===null?'Belum direkam':fmt(value),x+17,top+56,value===null?12:17,true,c);
  }
+ function annular(cx,cy,outer,inner,start,end,color){
+  const path=[],count=Math.max(3,Math.ceil((end-start)/(Math.PI/30)));
+  for(let i=0;i<=count;i++){
+   const theta=start+(end-start)*i/count;
+   path.push([cx+outer*Math.cos(theta),cy+outer*Math.sin(theta)]);
+  }
+  for(let i=count;i>=0;i--){
+   const theta=start+(end-start)*i/count;
+   path.push([cx+inner*Math.cos(theta),cy+inner*Math.sin(theta)]);
+  }
+  commands.push(rgb(color)+' rg '+path.map(([px,py],i)=>px.toFixed(2)+' '+(H-py).toFixed(2)+(i?' l ':' m ')).join('')+' h f\n');
+ }
  newPage('RINGKASAN KEUANGAN');
  text('Periode '+monthText(r.month),38,138,11,true,'#345578');
  kpi(37,156,'TOTAL PEMASUKAN',r.income,'#168b68');kpi(308,156,'TOTAL PENGELUARAN',r.expense,'#df596d');
  kpi(37,255,'NILAI INVESTASI',r.investment?num(r.investment.market):null,'#7857ce');kpi(308,255,'SALDO REKENING',sum(r.balances||[],'balance'),'#2672bf');
  y=369;rect(37,y,521,54,num(r.net)>=0?'#e5f6f0':'#fff0f2');text('ARUS KAS BERSIH',52,y+23,10,true,'#27415d');text(fmt(r.net),304,y+28,18,true,num(r.net)>=0?'#137b59':'#ce465c');y+=78;
  heading('KOMPOSISI PENGELUARAN');
- let groups=groupExpenses(r),max=Math.max(1,...groups.map(x=>x.value));
- if(!groups.length){text('Belum ada pengeluaran tercatat.',40,y+14,10,false,'#71849d');y+=30;}
- else groups.slice(0,7).forEach((g,i)=>{need(37);text(g.name.slice(0,37),40,y+7,9,true,'#314c6c');text(fmt(g.value),427,y+7,9,true,COLORS[i%COLORS.length]);rect(40,y+17,505,8,'#edf2fa');rect(40,y+17,505*g.value/max,8,COLORS[i%COLORS.length]);y+=39;});
- need(70);rect(37,y+12,521,48,'#edf4fd');multi('Rekening tidak termasuk nilai investasi. Nilai investasi menggunakan harga aset yang tercatat saat arsip dibuat, bukan harga historis otomatis.',49,y+29,94,8,'#3c587a',12);
+ const groups=chartGroups(r),total=sum(groups,'value'),cy=y+108,cx=145;
+ if(!groups.length){
+  text('Belum ada pengeluaran tercatat untuk komposisi.',40,y+22,10,false,'#71849d');
+ }else{
+  let start=-Math.PI/2;
+  groups.forEach((g,i)=>{
+   const finish=start+(g.value/total)*2*Math.PI;
+   annular(cx,cy,101,62,start,finish,COLORS[i%COLORS.length]);
+   start=finish;
+  });
+  text('Total Pengeluaran',cx-36,cy-13,8,false,'#69809d');
+  const full=fmt(r.expense),size=full.length>16?9.5:full.length>13?11:12;
+  text(full,cx-full.length*size*.27,cy+9,size,true,'#1e497b');
+  groups.forEach((g,i)=>{
+   const yy=y+17+i*29;
+   rect(283,yy-10,10,10,COLORS[i%COLORS.length]);
+   text(g.name.slice(0,22),302,yy-2,8,true,'#324d6d');
+   const amount=fmt(g.value),fs=amount.length>15?7:8;
+   text(amount,432,yy-2,fs,true,'#29527e');
+   text((100*g.value/total).toFixed(1).replace('.',',')+'%',523,yy-2,8,true,COLORS[i%COLORS.length]);
+   line(282,yy+7,555,yy+7,'#e5edf7');
+  });
+ }
+ y+=229;
+ need(65);rect(37,y+6,521,44,'#fff5e4');
+ multi('Nilai investasi tidak termasuk biaya konsumsi. Transfer antarrekening tidak memengaruhi total pemasukan atau pengeluaran.',49,y+25,95,8,'#815e30',12);
  newPage('GRAFIK DAN ANALISIS');
  heading('TREN KEUANGAN - ENAM BULAN');
  const trend=months6(r),mx=Math.max(1,...trend.map(x=>Math.max(num(x.income),num(x.expense))));
@@ -172,12 +206,55 @@ function pdfReport(r){
   (r.investment?.assets||[]).forEach((a,i)=>tableRow([a.name,a.type,fmt(a.market)],[220,100,192],{index:i,size:9,height:29}));
   if(!(r.investment?.assets||[]).length){text('Belum ada aset investasi.',43,y+10,9);y+=28;}
  }
- y+=17;heading('UTANG / PIUTANG BELUM LUNAS');
- const dues=(r.debts||[]).filter(x=>num(x.remaining)>0);
- dues.forEach((d,i)=>tableRow([d.type==='receivable'?'Piutang':'Utang',d.person,fmt(d.remaining)],[100,240,170],{index:i,size:9,height:28}));
- if(!dues.length){text('Tidak ada utang atau piutang tertunggak yang tercatat.',43,y+10,9);y+=26;}
- y+=17;heading('ANGGARAN DAN REALISASI PENGELUARAN');
- (r.expenseBreakdown||[]).filter(x=>num(x.spent)>0||num(x.budget)>0).forEach((x,i)=>tableRow([x.group+' / '+x.label,fmt(x.budget),fmt(x.spent)],[261,126,126],{index:i,size:8,height:27}));
+ newPage('UTANG DAN PIUTANG BULANAN');
+ const debt=debtInfo(r),totals=debt.totals,ledger=debt.ledger;
+ rect(37,147,250,78,'#fff0f3');rect(37,147,5,78,'#e46579');
+ text('TOTAL UTANG BELUM LUNAS',52,171,10,true,'#93506a');
+ text(fmt(totals.payable),52,201,17,true,'#b83d57');
+ rect(308,147,250,78,'#eaf8f4');rect(308,147,5,78,'#22a07e');
+ text('TOTAL PIUTANG BELUM KEMBALI',323,171,10,true,'#28775e');
+ text(fmt(totals.receivable),323,201,17,true,'#168469');
+ y=243;
+ if(!debt.legacy){
+  heading('PERGERAKAN UTANG DAN PIUTANG BULAN INI');
+  tableRow(['Utang baru',fmt(totals.payableNew),'Utang dibayar',fmt(totals.payablePaid)],[121,128,129,135],{size:9,height:34,index:0});
+  tableRow(['Piutang baru',fmt(totals.receivableNew),'Piutang kembali',fmt(totals.receivablePaid)],[121,128,129,135],{size:9,height:34,index:1});
+ }
+ y+=18;heading('DAFTAR UTANG DAN PIUTANG YANG RELEVAN');
+ multi('Daftar termasuk saldo akhir bulan dan pinjaman yang dibuat atau dibayar pada bulan tersebut.',40,y,93,8,'#637995',12);y+=35;
+ if(ledger.length){
+  rect(37,y,521,25,'#e7effb');
+  [['Jenis / Pihak',43],['Tanggal / Jatuh Tempo',171],['Pokok',309],['Cicilan',393],['Sisa',485]].forEach(([name,x])=>text(name,x,y+16,8,true,'#315984'));
+  y+=30;
+  ledger.forEach((d,i)=>{
+   const hgt=47;need(hgt+4);rect(37,y-4,521,hgt,i%2?'#fff':'#f2f6fd');
+   const tp=d.type==='payable'?'Utang':'Piutang';
+   text(tp,43,y+12,8,true,d.type==='payable'?'#bf4366':'#198569');
+   const personRows=wrap(d.person||'',25);personRows.slice(0,2).forEach((t,j)=>text(t,43,y+25+j*10,8,j===0,'#274562'));
+   text(d.date?dateText(d.date):'Tgl belum ada',171,y+14,8,false,'#334d6e');
+   text(d.dueDate?'Tempo: '+dateText(d.dueDate):'Tempo: -',171,y+29,7,false,'#7288a2');
+   text(d.original===undefined?'-':fmt(d.original),309,y+19,8,true,'#304d72');
+   text(d.paidInMonth===undefined?'-':fmt(d.paidInMonth),393,y+19,8,false,'#315f9b');
+   text(fmt(d.remaining),485,y+19,8,true,d.type==='payable'?'#b9495e':'#18836b');y+=hgt;
+  });
+ }else{
+  text('Tidak ada utang atau piutang yang aktif maupun berubah pada bulan ini.',40,y+12,9,false,'#637995');y+=37;
+ }
+ if(debt.legacy){
+  need(49);rect(37,y+6,521,43,'#fff6e4');
+  multi('Arsip lama hanya menyimpan sisa pinjaman. Pokok awal, cicilan bulanan, dan jatuh tempo belum tersedia dalam snapshot ini.',49,y+22,94,8,'#765c37',12);
+  y+=50;
+ }else{
+  y+=16;heading('RIWAYAT CICILAN / PELUNASAN BULAN INI');
+  const pays=ledger.flatMap(d=>(d.payments||[]).map(p=>({...p,type:d.type,person:d.person}))).sort((a,b)=>a.date.localeCompare(b.date));
+  if(!pays.length){text('Tidak ada pembayaran atau pelunasan yang dicatat pada bulan ini.',40,y+13,9,false,'#71869e');y+=34;}
+  else pays.forEach((p,i)=>tableRow([dateText(p.date),p.type==='payable'?'Bayar utang':'Terima piutang',p.person,fmt(p.amount)],[95,129,164,125],{index:i,size:9,height:29}));
+ }
+ newPage('RINCIAN ANGGARAN');
+ heading('ANGGARAN DAN REALISASI PENGELUARAN');
+ const budgetLines=(r.expenseBreakdown||[]).filter(x=>num(x.spent)>0||num(x.budget)>0);
+ if(!budgetLines.length){text('Belum ada anggaran atau pengeluaran tercatat.',43,y+10,9);y+=26;}
+ else budgetLines.forEach((x,i)=>tableRow([x.group+' / '+x.label,fmt(x.budget),fmt(x.spent)],[261,126,126],{index:i,size:8,height:27}));
  newPage('LAMPIRAN TRANSAKSI PER TANGGAL');
  const entries=(r.transactions||[]).slice().sort((a,b)=>a.date.localeCompare(b.date)||String(a.title||'').localeCompare(String(b.title||'')));
  text('Seluruh transaksi pada periode ini: '+entries.length+' catatan.',38,138,10,true,'#526d90');y=158;

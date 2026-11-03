@@ -12575,9 +12575,29 @@ function buildReport(month){
   const entries=db.transactions.filter(t=>t.date.slice(0,7)===m);
   return {month:m,income:entries.filter(t=>t.type==='income').reduce((v,t)=>v+num(t.amount),0),expense:entries.filter(t=>t.type==='expense').reduce((v,t)=>v+num(t.amount),0)};
  });
+ const monthStart=month+'-01',monthEnd=month+'-31';
+ const debtAll=db.debts.filter(d=>d.date<=monthEnd).map(d=>{
+  const payments=(d.settlements||[]).filter(p=>p.date<=monthEnd).slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const paidToEnd=payments.reduce((n,p)=>n+num(p.amount),0);
+  const paidThisMonth=payments.filter(p=>p.date>=monthStart);
+  return {
+   id:d.id,type:d.type,person:d.person,date:d.date,dueDate:d.dueDate||'',note:d.note||'',
+   original:num(d.amount),paidToEnd,paidInMonth:paidThisMonth.reduce((n,p)=>n+num(p.amount),0),
+   remaining:Math.max(0,num(d.amount)-paidToEnd),
+   payments:paidThisMonth.map(p=>({date:p.date,amount:num(p.amount)}))
+  };
+ });
+ const debtLedger=debtAll.filter(d=>d.remaining>0||d.date>=monthStart||d.paidInMonth>0);
+ const debtSummary=debtAll.reduce((tot,d)=>{
+  const type=d.type==='payable'?'payable':'receivable';
+  tot[type]+=d.remaining;
+  if(d.date>=monthStart)tot[type+'New']+=d.original;
+  tot[type+'Paid']+=d.paidInMonth;
+  return tot;
+ },{payable:0,receivable:0,payableNew:0,receivableNew:0,payablePaid:0,receivablePaid:0});
  return {month,createdAt:new Date().toISOString(),income:sum('income'),expense:sum('expense'),net:sum('income')-sum('expense'),expenseBreakdown,incomeBreakdown,
   balances:db.accounts.map(a=>({name:a.name,type:a.type,balance:b[a.id]||0})),
-  transactions:tx,debts:db.debts.filter(d=>d.date<=month+'-31').map(d=>({person:d.person,type:d.type,remaining:Math.max(0,num(d.amount)-(d.settlements||[]).filter(x=>x.date<=month+'-31').reduce((n,x)=>n+num(x.amount),0))})),
+  transactions:tx,debts:debtAll.map(d=>({person:d.person,type:d.type,remaining:d.remaining})),debtLedger,debtSummary,
   investment,trends};
 }
 function reportAiPayload(r){
@@ -13272,7 +13292,8 @@ async function saveReport(){
  const hasData=db.transactions.some(t=>t.date.slice(0,7)===month)
   ||expenses().some(c=>num(db.budgets[month+'|'+c.id])>0)
   ||budgetAdjustmentsForMonth(month).length
-  ||(db.investmentTrades||[]).some(t=>t.date.slice(0,7)===month);
+  ||(db.investmentTrades||[]).some(t=>t.date.slice(0,7)===month)
+  ||db.debts.some(d=>d.date<=month+'-31');
  if(!hasData)return toast('Belum ada data pada bulan ini untuk diarsipkan.',true);
  if(db.reports[month]&&!confirm('Perbarui arsip '+monthFmt(month)+'? Salinan lama akan diganti dengan kondisi terbaru.'))return;
  const button=document.querySelector('.archive-save-btn');

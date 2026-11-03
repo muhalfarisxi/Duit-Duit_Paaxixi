@@ -7042,6 +7042,19 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
  .accounts-hero,.account-money-card,.account-adjust-dialog,.account-new-emoji,
  .accounts-hero-mascot,.account-money-sparkle,.account-money-track>span{animation:none!important}}
 
+/* Kategori pemasukan dikelola pada Anggaran; tidak memenuhi halaman Rekening. */
+.budget-income-manager{border:1px solid #cbdff9;border-radius:17px;background:#fafdff;margin:17px 0;overflow:hidden}
+.budget-income-manager>summary{display:flex;align-items:center;gap:12px;min-height:65px;padding:15px 18px;list-style:none;cursor:pointer}
+.budget-income-manager>summary::-webkit-details-marker{display:none}
+.budget-income-manager>summary>span:first-child{font-size:24px}
+.budget-income-manager>summary>span:nth-child(2){display:grid;gap:3px;flex:1}
+.budget-income-manager strong{font:900 14px Fredoka,Nunito,sans-serif;color:#28568b}
+.budget-income-manager small{font:800 10px Nunito,sans-serif;color:#778fa9}
+.budget-income-manager-body{display:grid;gap:15px;padding:16px;border-top:1px solid #dce8f8}
+.budget-income-items{display:grid;gap:7px;max-height:290px;overflow-y:auto}
+.budget-income-items>div{display:flex;align-items:center;gap:8px;border:1px solid #e0ebf8;border-radius:11px;background:#fff;padding:10px}
+.budget-income-items>div>span{flex:1;min-width:0;display:grid;gap:3px}
+
 /* #127 Anggaran: dua menu, kelompok bertingkat dan status penetapan per bulan. */
 #content .budget-work-tabs-two{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}
 #content .budget-work-tabs-two button{min-width:0;white-space:normal;min-height:48px}
@@ -11400,6 +11413,29 @@ function renderBudgetAdjustmentSection(){
  ${budgetHistoryRows('adjustment')}
  </section>`;
 }
+function renderIncomeCategoryManager(){
+ const selected=db.categories.find(c=>c.id===ui.categoryEditId&&c.kind==='income');
+ const items=incomes();
+ return `<details class="budget-income-manager" ${selected?'open':''}>
+  <summary><span aria-hidden="true">💸</span><span><strong>Pos Pemasukan</strong><small>${items.length} kategori</small></span></summary>
+  <div class="budget-income-manager-body">
+   <form id="category-form">
+    <input type="hidden" name="kind" value="income"><input type="hidden" name="editId" value="${h(selected?.id||'')}">
+    <div class="form-grid">
+     <div class="form-field"><label class="field-label">Kelompok</label><select name="group" class="field">
+      ${['BPS','Fastlink','Lainnya'].map(g=>`<option value="${g}" ${selected?.group===g?'selected':''}>${g}</option>`).join('')}</select></div>
+     <div class="form-field"><label class="field-label">Nama Pos Pemasukan</label>
+      <input name="label" class="field" maxlength="70" value="${h(selected?.label||'')}" placeholder="Contoh: Bonus" required></div>
+    </div>
+    <div class="form-actions"><button type="submit" class="btn teal">${selected?'✓ Simpan Pos':'＋ Tambah Pos Pemasukan'}</button>
+     ${selected?'<button type="button" class="btn" data-action="cancel-category-edit">Batal</button>':''}</div>
+   </form>
+   <div class="budget-income-items">${items.map(c=>`<div><span><strong>${h(c.label)}</strong><small>${h(c.group)}</small></span>
+      <button class="btn sm" type="button" data-edit-category="${h(c.id)}">Edit</button>
+      <button class="btn sm danger" type="button" data-delete-category="${h(c.id)}">Hapus</button></div>`).join('')}</div>
+  </div>
+ </details>`;
+}
 function renderBudgets(){
  const t=budgetMonthTotals(),used=budgetUsed();
  const section=['monthly','edit'].includes(ui.budgetSection)?'edit':'detail';
@@ -11419,7 +11455,7 @@ function renderBudgets(){
    ${tabs.map(([key,label])=>`<button type="button" role="tab" data-budget-section="${key}" aria-selected="${section===key}" tabindex="${section===key?'0':'-1'}">${label}</button>`).join('')}
   </nav>
   ${section==='edit'?renderBudgetMonthlySection():renderBudgetDetailsSection()}
- </div>`;
+ </div>${renderIncomeCategoryManager()}`;
 }
 /* Popup mengedit anggaran awal dalam kelompok, alih anggaran, atau tambah/kurangi. */
 function budgetFlowDialogMarkup(kind,id=null,preselect=null){
@@ -12628,7 +12664,7 @@ document.addEventListener('pointerdown',event=>{
  if(ui.incomeMonthMenuOpen&&!event.target.closest('.income-month-picker')&&!event.target.closest('#income-month-menu'))dismissIncomeMonthMenu();
 });
 document.addEventListener('keydown',event=>{
-
+ if(ui.accountAdjustId&&event.key==='Escape'&&!document.querySelector('.pax-calendar-dialog')){event.preventDefault();ui.accountAdjustId=null;render();return;}
  const dialog=document.querySelector('#finance-editor-backdrop .finance-editor-dialog');
  if(dialog){
   if(event.key==='Escape'){event.preventDefault();closeFinanceEditor();return;}
@@ -12776,6 +12812,7 @@ document.addEventListener('toggle',event=>{
  ui.budgetEditExpandedGroups=el.open?[...new Set([...old,id])]:old.filter(x=>x!==id);
 },true);
 document.addEventListener('click',async e=>{
+ if(e.target.id==='account-adjust-backdrop'){ui.accountAdjustId=null;render();return;}
  const establish=e.target.closest?.('[data-budget-establish]');
  if(establish){
   if(budgetIsEstablished())return toast('Anggaran awal bulan ini sudah ditetapkan.');

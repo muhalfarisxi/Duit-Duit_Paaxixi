@@ -7065,6 +7065,221 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
  .bottom-nav [data-nav="investments"] .nav-icon{font-size:21px}
 }
 
+
+/* #147 Portofolio Investasi: dashboard ringan, aset pastel, grafik dan dialog. */
+.invest-dashboard{display:grid;gap:18px;min-width:0}
+.invest-hero{position:relative;display:flex;align-items:center;gap:18px;overflow:hidden;
+ padding:24px 28px;border:1.5px solid #9fb9ed;border-radius:24px;
+ background:linear-gradient(120deg,#142e57,#2a5897 57%,#7266c4);
+ box-shadow:0 14px 30px #153f7733;color:#fff;animation:investEnter .4s ease both}
+.invest-hero::before{content:"";position:absolute;right:-55px;top:-120px;width:310px;height:310px;
+ border:2px solid #ffffff25;border-radius:50%;box-shadow:0 0 0 34px #ffffff0b;pointer-events:none}
+.invest-hero-copy{flex:1;min-width:0;position:relative;z-index:1}
+.invest-hero-copy small{font:900 10px Nunito,sans-serif;letter-spacing:1.6px;color:#c5dcff}
+.invest-hero-copy h2{font:650 clamp(22px,2.5vw,32px)/1.12 Fredoka,Nunito,sans-serif;
+ color:#fff;margin:7px 0 8px}
+.invest-hero-copy p{color:#dae8fa;margin:0;max-width:470px;font:750 12px/1.45 Nunito,sans-serif}
+.invest-primary-action{position:relative;z-index:1;white-space:nowrap;min-height:46px;
+ padding:11px 18px;border:1px solid #dfebff;border-radius:14px;
+ color:#245491;background:linear-gradient(120deg,#fff,#e5f1ff);
+ font:900 12px Nunito,sans-serif;box-shadow:0 6px 18px #0c2c583a;
+ transition:transform .2s,box-shadow .2s}
+.invest-primary-action:hover{transform:translateY(-3px);box-shadow:0 10px 22px #15355b54}
+.invest-hero-art{font-size:41px;animation:investFloat 3.3s ease-in-out infinite}
+.invest-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.invest-kpi{display:flex;flex-direction:column;gap:9px;min-width:0;overflow:hidden;position:relative;
+ padding:18px 17px;border:1.5px solid #d8e7fa;border-radius:19px;
+ background:linear-gradient(128deg,#eff6ff,#fff);
+ box-shadow:0 6px 17px #2b5f9610;animation:investEnter .45s ease both}
+.invest-kpi::after{content:"✦";position:absolute;right:13px;top:9px;font-size:19px;opacity:.35}
+.invest-kpi>span{font:900 11px Nunito,sans-serif;color:#617ea2}
+.invest-kpi>strong{font:650 clamp(17px,1.7vw,25px)/1.17 Fredoka,Nunito,sans-serif;
+ color:#265589;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.invest-kpi>small{color:#7c90ad;font:800 10px/1.35 Nunito,sans-serif}
+.invest-kpi-market{background:linear-gradient(130deg,#e8f4ff,#fff);border-color:#cbe0fa}
+.invest-kpi-cost{background:linear-gradient(130deg,#fff5e9,#fff);border-color:#f1dcc1}
+.invest-kpi-gain{background:linear-gradient(130deg,#e9faf4,#fff);border-color:#c2e9db}
+.invest-kpi-wealth{background:linear-gradient(130deg,#f3edff,#fff);border-color:#dfcef8}
+.invest-kpi .is-profit,.invest-asset-stats .is-profit{color:#188569!important}
+.invest-kpi .is-loss,.invest-asset-stats .is-loss{color:#c35065!important}
+.invest-charts{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(290px,.75fr);
+ gap:15px;align-items:stretch}
+.invest-charts .card-head{align-items:center;margin-bottom:9px}
+.invest-charts .card-head h3,.invest-section-head h3{font:650 18px Fredoka,Nunito,sans-serif;color:#22507d}
+.invest-chart-symbol{display:grid;place-items:center;width:36px;height:36px;
+ border-radius:12px;background:#eff6ff;font-size:20px}
+.invest-line-plot{width:100%;min-height:200px;overflow:hidden;border-radius:13px;
+ background:linear-gradient(160deg,#f4f9ff,#fff 70%)}
+.invest-line-plot svg{display:block;width:100%;height:auto;min-height:188px}
+.invest-plot-line{stroke-dasharray:1200;stroke-dashoffset:1200;
+ animation:investLineDraw 1.25s .15s ease forwards}
+.invest-caption{color:#8799af;font:750 10px/1.45 Nunito,sans-serif;margin:9px 0 0}
+.invest-empty-chart{min-height:185px;display:grid;place-items:center;
+ text-align:center;padding:20px;color:#8598ae;font:800 12px/1.55 Nunito,sans-serif}
+.invest-allocation-body{display:flex;align-items:center;justify-content:center;
+ gap:16px;min-height:202px;min-width:0}
+.invest-allocation-ring{width:170px;height:170px;flex:none;display:grid;place-items:center;
+ border-radius:50%;box-shadow:0 5px 19px #275b8f19;
+ animation:investCircleReveal .75s ease both}
+.invest-allocation-ring>div{width:118px;height:118px;display:flex;flex-direction:column;
+ align-items:center;justify-content:center;border-radius:50%;background:#fff;gap:4px;
+ box-shadow:inset 0 3px 10px #326ea214}
+.invest-allocation-ring small{font:850 9px Nunito,sans-serif;color:#7b94ab}
+.invest-allocation-ring strong{font:650 17px Fredoka,Nunito,sans-serif;color:#285985}
+.invest-allocation-legend{display:grid;flex:1;gap:9px;min-width:0}
+.invest-allocation-legend>div{display:flex;justify-content:space-between;gap:8px;
+ font:850 11px Nunito,sans-serif;color:#4f7398}
+.invest-allocation-legend>div>span{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.invest-allocation-legend i{width:10px;height:10px;border-radius:4px;flex:none}
+.invest-allocation-legend b{color:#25547e;white-space:nowrap}
+.invest-allocation-empty{display:grid;min-height:195px;place-items:center;color:#8da0b4;
+ font:800 12px Nunito,sans-serif}
+.invest-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;
+ flex-wrap:wrap;margin-bottom:15px}
+.invest-section-head h3{margin:0 0 3px}
+.invest-section-head small{color:#8196ad;font:750 11px Nunito,sans-serif}
+.invest-filter-strip{display:flex;align-items:center;gap:8px;overflow-x:auto;max-width:100%;
+ scrollbar-width:thin;overscroll-behavior-x:contain;padding:4px 2px 13px}
+.invest-filter-strip>button{flex:none;display:flex;gap:6px;align-items:center;justify-content:center;
+ min-height:37px;padding:8px 11px;white-space:nowrap;cursor:pointer;
+ border:1px solid #d3e3f9;border-radius:12px;background:#f7faff;
+ color:#5e7e9f;font:900 11px Nunito,sans-serif;
+ transition:transform .18s,box-shadow .18s,background .18s}
+.invest-filter-strip>button:hover{transform:translateY(-2px);box-shadow:0 6px 14px #2d6daf16}
+.invest-filter-strip>button.active{background:linear-gradient(125deg,#245c9f,#417fce);
+ color:#fff;border-color:#2e70bd;box-shadow:0 5px 15px #2b69ac37}
+.invest-asset-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.invest-asset-card{position:relative;display:grid;align-content:start;min-width:0;padding:16px;
+ border:1.5px solid color-mix(in srgb,var(--invest-accent) 35%,#d7e2f5);
+ border-radius:19px;background:linear-gradient(135deg,color-mix(in srgb,var(--invest-accent) 11%,white),#fff 93%);
+ box-shadow:0 6px 18px #275b8910;
+ animation:investEnter .44s var(--invest-delay) ease both;
+ transition:transform .2s,border-color .2s,box-shadow .2s}
+.invest-asset-card:hover{transform:translateY(-4px);border-color:var(--invest-accent);
+ box-shadow:0 12px 26px #1f538727}
+.invest-asset-top{display:flex;align-items:flex-start;gap:8px;min-width:0}
+.invest-asset-emoji{display:grid;place-items:center;flex:none;width:43px;height:43px;border-radius:13px;
+ background:#ffffffc9;font-size:22px;box-shadow:0 3px 11px #1d4a7219}
+.invest-asset-heading{display:grid;gap:4px;min-width:0;flex:1}
+.invest-asset-heading strong{color:#234c76;font:900 15px/1.2 Fredoka,Nunito,sans-serif;
+ overflow-wrap:anywhere}
+.invest-asset-heading small{color:#718aa6;font:750 10px Nunito,sans-serif}
+.invest-asset-status{flex:none;padding:5px 7px;border-radius:10px;background:#e0f4e9;
+ color:#23846c;font:900 9px Nunito,sans-serif}
+.invest-asset-status.is-closed{background:#edf1f6;color:#8290a2}
+.invest-asset-main{display:grid;gap:5px;margin-top:16px}
+.invest-asset-main>small{font:850 10px Nunito,sans-serif;color:#748fa8}
+.invest-asset-main>strong{font:650 clamp(19px,2vw,25px)/1.2 Fredoka,Nunito,sans-serif;
+ color:var(--invest-accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.invest-asset-units{color:#7089a3;font:800 10px/1.4 Nunito,sans-serif}
+.invest-asset-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:15px}
+.invest-asset-stats>div{display:grid;gap:4px;padding:11px 10px;border:1px solid #e3ebf7;
+ border-radius:11px;background:#ffffffb8;min-width:0}
+.invest-asset-stats small{color:#7c91ab;font:800 10px Nunito,sans-serif}
+.invest-asset-stats strong{color:#315b84;font:900 12px Nunito,sans-serif;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.invest-asset-price-note{min-height:20px;margin-top:10px;color:#8196ae;font:750 10px/1.5 Nunito,sans-serif}
+.invest-asset-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:14px}
+.invest-asset-buttons>button{display:flex;align-items:center;justify-content:center;
+ min-height:36px;padding:7px 5px;border:1px solid #cbdff6;border-radius:10px;
+ background:#fff;color:#34618b;cursor:pointer;
+ font:900 11px Nunito,sans-serif;transition:transform .15s,background .15s,box-shadow .15s}
+.invest-asset-buttons>button:hover:not(:disabled){transform:translateY(-2px);
+ background:#eff6ff;box-shadow:0 5px 11px #245c9325}
+.invest-asset-buttons>button:first-child{color:#fff;border-color:#2d71bb;
+ background:linear-gradient(115deg,#317dc8,#3a63c3)}
+.invest-asset-buttons>button.invest-remove{color:#bb6373;border-color:#f0d4dd}
+.invest-empty{text-align:center;display:flex;flex-direction:column;align-items:center;
+ gap:9px;padding:35px 18px;border:1px dashed #cddff6;border-radius:17px;
+ background:#f9fcff}
+.invest-empty>span{font-size:43px;animation:investFloat 3s ease infinite}
+.invest-empty>strong{color:#22517c;font:650 18px Fredoka,Nunito,sans-serif}
+.invest-empty>p{color:#8499af;margin:0 0 8px}
+.invest-history-count{padding:6px 10px;border-radius:99px;background:#edf5ff;
+ color:#3674ac;font:900 11px Nunito,sans-serif}
+.invest-history-list{display:grid;gap:8px;max-height:400px;overflow-y:auto;scrollbar-width:thin}
+.invest-history-row{display:flex;align-items:center;gap:10px;padding:11px;
+ border:1px solid #dce7f8;border-radius:12px;background:#f9fcff;min-width:0}
+.invest-history-icon{display:grid;place-items:center;flex:none;width:34px;height:34px;
+ background:#fbe9ee;border-radius:11px;color:#bc5163;font-size:21px}
+.invest-history-icon.sell,.invest-history-icon.payout{color:#188368;background:#e5f7ef}
+.invest-history-row>div{display:grid;gap:3px;flex:1;min-width:0}
+.invest-history-row>div strong{color:#2a5684;font:900 11px Nunito,sans-serif}
+.invest-history-row>div small{color:#8193a7;font:750 10px/1.5 Nunito,sans-serif;overflow-wrap:anywhere}
+.invest-history-row>b{white-space:nowrap;color:#be5872;font:900 12px Nunito,sans-serif}
+.invest-history-row>b.sell,.invest-history-row>b.payout{color:#218b6c}
+.invest-history-row>button{width:30px;height:30px;flex:none;border:1px solid #f0d7df;
+ background:#fff;color:#c25c72;border-radius:9px;font-size:19px}
+.invest-history-empty{padding:15px;color:#8296b0;font-size:12px}
+.invest-modal-backdrop{position:fixed;z-index:6900;inset:0;display:grid;place-items:center;
+ padding:15px;background:#0d284e9c;backdrop-filter:blur(8px);
+ animation:investBackdrop .22s ease both}
+.invest-dialog{display:flex;flex-direction:column;width:min(590px,100%);max-height:min(90dvh,810px);
+ overflow:hidden;border:1px solid #b9d5f8;border-radius:24px;background:#fff;
+ box-shadow:0 25px 90px #0a2c5d6d;animation:investEnter .27s cubic-bezier(.15,.9,.23,1.15) both}
+.invest-dialog-head{display:flex;gap:12px;align-items:center;padding:19px 21px;
+ background:linear-gradient(125deg,#e9f3ff,#f5f1ff);
+ border-bottom:1px solid #dbe8f9}
+.invest-dialog-head>span{display:grid;place-items:center;width:45px;height:45px;flex:none;
+ background:#dfeeff;border-radius:13px;font-size:23px}
+.invest-dialog-head>div{display:grid;gap:4px;flex:1;min-width:0}
+.invest-dialog-head>div strong{font:650 20px Fredoka,Nunito,sans-serif;color:#215385}
+.invest-dialog-head>div small{color:#738bab;font:750 11px/1.4 Nunito,sans-serif}
+.invest-dialog-head>button{display:grid;place-items:center;flex:none;width:38px;height:38px;
+ border:1px solid #c8dcf8;border-radius:11px;background:#eff6ff;color:#326cab}
+.invest-dialog-body{padding:19px 22px 23px;overflow-y:auto;scrollbar-width:thin}
+.invest-dialog-body .form-grid{gap:12px}
+.invest-dialog-body .field{min-height:46px}
+.invest-trade-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:8px;margin:0 0 17px;padding:7px;border:1px solid #d5e5fa;
+ border-radius:15px;background:#f3f8ff}
+.invest-trade-tabs button{min-height:43px;border:1px solid #d3e2f7;border-radius:11px;
+ background:#fff;color:#4d729d;font:900 12px Nunito,sans-serif}
+.invest-trade-tabs button.active{background:linear-gradient(120deg,#3178c9,#486dbe);
+ border-color:#346db9;color:#fff;box-shadow:0 5px 13px #3475ba2c}
+.invest-trade-tabs button.active.sell,.invest-trade-tabs button.active.payout{
+ background:linear-gradient(120deg,#299278,#278f9a);border-color:#24937c}
+.invest-form-submit{display:flex;width:100%;min-height:45px;margin-top:18px;
+ border-radius:13px;font:900 12px Nunito,sans-serif}
+.invest-field-help{display:block;color:#8194ae;font:750 10px/1.5 Nunito,sans-serif;margin-top:6px}
+.invest-trade-preview{margin-top:15px;border:1px solid #c9def8;border-radius:13px;
+ padding:12px 14px;background:#eff7ff;color:#315f91;font:900 12px Nunito,sans-serif}
+.invest-trade-holding{margin:13px 0 0;color:#6884a4;font:750 12px Nunito,sans-serif}
+.invest-trade-holding strong{color:#295a8c}
+.invest-price-current{display:flex;align-items:center;justify-content:space-between;gap:12px;
+ padding:12px 14px;background:#eef6ff;border-radius:13px;margin-bottom:15px;
+ color:#7191af;font:850 11px Nunito,sans-serif}
+.invest-price-current strong{color:#2963a1;font:900 13px Nunito,sans-serif}
+@keyframes investEnter{from{opacity:0;transform:translateY(14px) scale(.976)}
+ to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes investFloat{0%,100%{transform:translateY(0) rotate(-4deg)}
+ 50%{transform:translateY(-8px) rotate(4deg)}}
+@keyframes investCircleReveal{from{transform:rotate(-55deg) scale(.85);opacity:.25}
+ to{transform:rotate(0) scale(1);opacity:1}}
+@keyframes investLineDraw{to{stroke-dashoffset:0}}
+@keyframes investBackdrop{from{opacity:0}to{opacity:1}}
+@media(max-width:1200px){.invest-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .invest-charts{grid-template-columns:1fr}}
+@media(max-width:920px){.invest-asset-grid{grid-template-columns:1fr}}
+@media(max-width:630px){
+ .invest-dashboard{gap:12px}.invest-hero{padding:19px 15px;gap:10px}
+ .invest-hero-art{display:none}.invest-hero-copy{flex:1 0 100%}
+ .invest-hero-copy h2{font-size:24px}.invest-primary-action{width:100%}
+ .invest-kpis{gap:8px}.invest-kpi{padding:13px 11px;gap:7px;border-radius:15px}
+ .invest-kpi>strong{font-size:clamp(15px,4vw,21px)}.invest-kpi>small{font-size:9px}
+ .invest-kpi>span{font-size:10px}.invest-allocation-body{flex-wrap:wrap;gap:13px}
+ .invest-allocation-ring{width:155px;height:155px}.invest-allocation-ring>div{width:107px;height:107px}
+ .invest-section-head{align-items:flex-start}.invest-section-head h3{font-size:16px}
+ .invest-asset-grid{gap:10px}.invest-asset-card{padding:13px}
+ .invest-asset-buttons{gap:5px}.invest-asset-buttons button{font-size:10px;min-height:34px}
+ .invest-dialog{border-radius:20px}.invest-dialog-head{padding:14px}
+ .invest-dialog-head>div strong{font-size:18px}.invest-dialog-body{padding:14px}
+ .invest-history-row{gap:6px;padding:8px}.invest-history-row>b{font-size:10px}
+ .invest-history-row>div small{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){.invest-dashboard *{animation:none!important;
+ transition:none!important}}
+
 /* #127 Anggaran: dua menu, kelompok bertingkat dan status penetapan per bulan. */
 #content .budget-work-tabs-two{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}
 #content .budget-work-tabs-two button{min-width:0;white-space:normal;min-height:48px}

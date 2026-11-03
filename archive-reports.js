@@ -41,7 +41,7 @@ function insightMarkup(r){
  return '<div class="archive-insight-head"><div><span class="archive-kicker">✦ RANGKUMAN CERDAS</span><h3>'+(real?'🤖 Insight AI Bulanan':'💡 Analisis Otomatis')+'</h3></div><span class="archive-source">'+(real?'Gemini · saat arsip dibuat':'Analisis berdasarkan angka')+'</span></div><strong class="archive-ai-headline">'+esc(ai.headline||'Belum ada analisis')+'</strong><p>'+esc(ai.summary||'')+'</p><div class="archive-ai-points">'+notes.map((x,i)=>'<div><span>'+(i===notes.length-1?'→':'✓')+'</span><div><strong>'+esc(x.label)+'</strong><small>'+esc(x.text)+'</small></div></div>').join('')+'</div>';
 }
 function card(icon,label,value,accent,sub){
- return '<article class="archive-kpi archive-kpi-'+accent+'"><span class="archive-kpi-icon">'+icon+'</span><div><small>'+label+'</small><strong title="'+esc(fmt(value))+'">'+fmt(value)+'</strong><span>'+sub+'</span></div></article>';
+ return '<article class="archive-kpi archive-kpi-'+accent+'"><span class="archive-kpi-icon">'+icon+'</span><div><small>'+label+'</small><strong title="'+esc(value===null?'Tidak direkam dalam arsip lama':fmt(value))+'">'+(value===null?'Belum direkam':fmt(value))+'</strong><span>'+sub+'</span></div></article>';
 }
 function transactionsPreview(r){
  const all=(r.transactions||[]).slice().sort((a,b)=>a.date.localeCompare(b.date)),count=all.length;
@@ -51,7 +51,7 @@ function transactionsPreview(r){
 }
 function renderPage(data){
  const r=data.report,months=data.history||[],saved=!!data.saved,sel=data.month||r.month;
- const totalBank=sum(r.balances||[],'balance'),invest=r.investment||{},investValue=Number.isFinite(Number(invest.market))?num(invest.market):0;
+ const totalBank=sum(r.balances||[],'balance'),invest=r.investment||{unavailable:true},investValue=invest.unavailable?null:num(invest.market);
  const investSubtitle=invest.unavailable?'Arsip lama · nilai tidak direkam':(invest.assets||[]).length+' jenis aset tercatat';
  return '<div class="archive-v2">'
   +'<div class="archive-intro"><div><span class="archive-kicker">✦ LAPORAN KEUANGAN BULANAN</span><h2>Rapor Keuangan <span>✦</span></h2><p>Ringkasan, grafik, dan analisis dalam satu laporan. Rincian transaksi ada di lampiran.</p></div><span class="archive-intro-ornament" aria-hidden="true">📊</span></div>'
@@ -102,12 +102,12 @@ function pdfReport(r){
   y+=height;
  }
  function kpi(x,top,title,value,c){
-  rect(x,top,250,86,'#f0f6ff');rect(x,top,6,86,c);text(title,x+17,top+24,10,true,'#577293');text(fmt(value),x+17,top+56,17,true,c);
+  rect(x,top,250,86,'#f0f6ff');rect(x,top,6,86,c);text(title,x+17,top+24,10,true,'#577293');text(value===null?'Belum direkam':fmt(value),x+17,top+56,value===null?12:17,true,c);
  }
  newPage('RINGKASAN KEUANGAN');
  text('Periode '+monthText(r.month),38,138,11,true,'#345578');
  kpi(37,156,'TOTAL PEMASUKAN',r.income,'#168b68');kpi(308,156,'TOTAL PENGELUARAN',r.expense,'#df596d');
- kpi(37,255,'NILAI INVESTASI',r.investment?.market||0,'#7857ce');kpi(308,255,'SALDO REKENING',sum(r.balances||[],'balance'),'#2672bf');
+ kpi(37,255,'NILAI INVESTASI',r.investment?num(r.investment.market):null,'#7857ce');kpi(308,255,'SALDO REKENING',sum(r.balances||[],'balance'),'#2672bf');
  y=369;rect(37,y,521,54,num(r.net)>=0?'#e5f6f0':'#fff0f2');text('ARUS KAS BERSIH',52,y+23,10,true,'#27415d');text(fmt(r.net),304,y+28,18,true,num(r.net)>=0?'#137b59':'#ce465c');y+=78;
  heading('KOMPOSISI PENGELUARAN');
  let groups=groupExpenses(r),max=Math.max(1,...groups.map(x=>x.value));
@@ -152,17 +152,21 @@ function pdfReport(r){
  text('Seluruh transaksi pada periode ini: '+entries.length+' catatan.',38,138,10,true,'#526d90');y=158;
  let last='',row=0;
  for(const t of entries){
+  const group=t.type==='transfer'?'Mutasi':t.group||'Lainnya',pos=t.type==='transfer'?'Antarrekening':t.categoryLabel||'--';
+  const name=t.title||'Tanpa keterangan',detail=t.note?'Catatan: '+t.note:'';
+  const groupLines=wrap(group,19),posLines=wrap(pos,18),nameLines=wrap(name,25);
+  const lines=Math.max(groupLines.length,posLines.length,nameLines.length),height=14+lines*13+(detail?14:0);
+  if(y+height+83>793){newPage('LAMPIRAN TRANSAKSI (LANJUTAN)');last='';}
   if(t.date!==last){need(58);last=t.date;rect(37,y,521,28,'#e4eefc');text('TANGGAL  '+dateText(last),45,y+18,10,true,'#184276');y+=38;
-   rect(37,y,521,22,'#eef5fd');let pos=[43,153,249,394,474];['Kelompok','Pos','Komoditas','Keluar','Masuk'].forEach((v,i)=>text(v,pos[i],y+14,8,true,'#3c5678'));y+=28;row=0;}
-  const name=t.title||'Tanpa keterangan',detail=t.note?'Catatan: '+t.note:'',height=detail?39:29;
+   rect(37,y,521,22,'#eef5fd');const positions=[43,153,249,394,474];['Kelompok','Pos','Komoditas','Keluar','Masuk'].forEach((v,i)=>text(v,positions[i],y+14,8,true,'#3c5678'));y+=28;row=0;}
   need(height+12);
   rect(37,y-4,521,height,row%2?'#ffffff':'#f6f9ff');
-  const group=t.type==='transfer'?'Mutasi':t.group||'Lainnya',pos=t.type==='transfer'?'Antarrekening':t.categoryLabel||'--';
-  text(group.slice(0,19),43,y+11,8,false,'#39506b');text(pos.slice(0,18),153,y+11,8,false,'#39506b');
-  text(name.slice(0,25),249,y+11,8,true,'#263b56');
+  groupLines.forEach((v,i)=>text(v,43,y+11+i*13,8,false,'#39506b'));
+  posLines.forEach((v,i)=>text(v,153,y+11+i*13,8,false,'#39506b'));
+  nameLines.forEach((v,i)=>text(v,249,y+11+i*13,8,true,'#263b56'));
   text(t.type==='expense'?shortMoney(t.amount):'-',394,y+11,8,true,'#ca4960');
   text(t.type==='income'?shortMoney(t.amount):'-',474,y+11,8,true,'#168565');
-  if(detail)text(detail.slice(0,91),43,y+27,7,false,'#6b809c');
+  if(detail)text(detail.slice(0,91),43,y+11+lines*13,7,false,'#6b809c');
   y+=height;row++;
  }
  if(!entries.length)text('Tidak ada transaksi tercatat.',43,y+15,10);

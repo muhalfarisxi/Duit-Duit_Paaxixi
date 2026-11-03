@@ -24,12 +24,22 @@ function localInsight(r){
  const summary=total===0?'Belum ada pemasukan yang tercatat. Laporan hanya mencerminkan data yang sudah diinput.':'Selisih pemasukan dan pengeluaran adalah '+fmt(net)+'. '+(lead?'Pengeluaran terbesar tercatat pada kelompok '+lead.name+' ('+shortMoney(lead.value)+').':'Belum ada pengeluaran tercatat.');
  return {source:'local',headline,summary,findings:lead?[{label:'Kelompok terbesar',text:lead.name+' mencakup '+(out?Math.round(lead.value/out*100):0)+'% dari pengeluaran tercatat.'}]:[],checks:[],actions:[{label:'Tindak lanjut',text:'Periksa transaksi yang belum dicatat, kemudian evaluasi pos dengan pengeluaran terbesar.'}]};
 }
+function chartGroups(r){
+ const all=groupExpenses(r);
+ if(all.length<=7)return all;
+ return [...all.slice(0,6),{name:'Lainnya',value:sum(all.slice(6),'value')}];
+}
 function chartDonut(r){
- const groups=groupExpenses(r).slice(0,6),total=sum(groups,'value');
+ const groups=chartGroups(r),total=sum(groups,'value');
  if(!total)return '<div class="archive-blank">Belum ada data pengeluaran untuk grafik.</div>';
  let cursor=0;
- const slices=groups.map((x,i)=>{const next=cursor+x.value/total*100;const segment=COLORS[i%COLORS.length]+' '+cursor.toFixed(2)+'% '+next.toFixed(2)+'%';cursor=next;return segment;}).join(',');
- return '<div class="archive-donut-layout"><div class="archive-donut" style="background:conic-gradient('+slices+')" role="img" aria-label="Komposisi pengeluaran"><div><small>Total Keluar</small><strong>'+esc(shortMoney(r.expense))+'</strong></div></div><div class="archive-donut-legend">'+groups.map((x,i)=>'<div><span class="archive-legend-name"><i style="background:'+COLORS[i%COLORS.length]+'"></i>'+esc(x.name)+'</span><strong>'+((x.value/total)*100).toFixed(1).replace('.',',')+'%</strong></div>').join('')+'</div></div>';
+ const slices=groups.map((x,i)=>{
+  const next=cursor+x.value/total*100;
+  const segment=COLORS[i%COLORS.length]+' '+cursor.toFixed(2)+'% '+next.toFixed(2)+'%';
+  cursor=next;return segment;
+ }).join(',');
+ const money=fmt(r.expense),size=money.length>16?'11px':money.length>13?'12px':'14px';
+ return '<div class="archive-donut-layout"><div class="archive-donut" style="background:conic-gradient('+slices+')" role="img" aria-label="Komposisi pengeluaran dengan total '+esc(money)+'"><div><small>Total Pengeluaran</small><strong style="font-size:'+size+'" title="'+esc(money)+'">'+esc(money)+'</strong></div></div><div class="archive-donut-legend">'+groups.map((x,i)=>'<div><span class="archive-legend-name"><i style="background:'+COLORS[i%COLORS.length]+'"></i>'+esc(x.name)+'</span><span class="archive-legend-values"><strong>'+esc(fmt(x.value))+'</strong><small>'+((x.value/total)*100).toFixed(1).replace('.',',')+'%</small></span></div>').join('')+'</div></div>';
 }
 function chartTrend(r){
  const rows=months6(r),highest=Math.max(1,...rows.map(x=>Math.max(num(x.income),num(x.expense))));
@@ -49,6 +59,26 @@ function transactionsPreview(r){
  if(!sample.length)return '<div class="archive-blank">Belum ada transaksi pada periode ini.</div>';
  return '<div class="archive-table-scroll"><table class="archive-table"><thead><tr><th>Tanggal</th><th>Kelompok</th><th>Pos</th><th>Komoditas / Transaksi</th><th>Keluar</th><th>Masuk</th></tr></thead><tbody>'+sample.map(t=>'<tr><td>'+esc(dateText(t.date))+'</td><td>'+esc(t.type==='transfer'?'Mutasi':t.group||'Lainnya')+'</td><td>'+esc(t.type==='transfer'?'Antarrekening':t.categoryLabel||'—')+'</td><td><strong>'+esc(t.title||'Tanpa keterangan')+'</strong></td><td class="archive-amount-out">'+(t.type==='expense'?fmt(t.amount):'—')+'</td><td class="archive-amount-in">'+(t.type==='income'?fmt(t.amount):'—')+'</td></tr>').join('')+'</tbody></table></div><small class="archive-preview-foot">Menampilkan '+sample.length+' dari '+count+' transaksi. Rincian lengkap per tanggal tersedia di lampiran PDF'+(count>sample.length?' (termasuk '+(count-sample.length)+' lainnya).':'.')+'</small>';
 }
+function debtInfo(r){
+ const ledger=Array.isArray(r.debtLedger)?r.debtLedger:(r.debts||[]).filter(x=>num(x.remaining)>0).map(x=>({type:x.type,person:x.person,remaining:num(x.remaining),legacy:true}));
+ const totals=r.debtSummary||{
+  payable:ledger.filter(x=>x.type==='payable').reduce((n,x)=>n+num(x.remaining),0),
+  receivable:ledger.filter(x=>x.type==='receivable').reduce((n,x)=>n+num(x.remaining),0),
+  payableNew:0,receivableNew:0,payablePaid:0,receivablePaid:0
+ };
+ return {ledger,totals,legacy:!r.debtSummary};
+}
+function debtPreview(r){
+ const {ledger,totals,legacy}=debtInfo(r);
+ const cards='<div class="archive-debt-metrics">'
+  +'<div class="archive-debt-stat archive-debt-owed"><small>↙ Sisa Utang Saya</small><strong>'+fmt(totals.payable)+'</strong><span>Masih harus dibayar</span></div>'
+  +'<div class="archive-debt-stat archive-debt-receivable"><small>↗ Sisa Piutang Saya</small><strong>'+fmt(totals.receivable)+'</strong><span>Masih harus diterima</span></div>'
+  +'<div class="archive-debt-stat"><small>✓ Cicilan Utang Bulan Ini</small><strong>'+(legacy?'Belum direkam':fmt(totals.payablePaid))+'</strong><span>Yang sudah saya bayar</span></div>'
+  +'<div class="archive-debt-stat"><small>✧ Piutang Kembali Bulan Ini</small><strong>'+(legacy?'Belum direkam':fmt(totals.receivablePaid))+'</strong><span>Yang sudah dikembalikan</span></div></div>';
+ const rows=ledger.length?'<div class="archive-table-scroll"><table class="archive-table"><thead><tr><th>Jenis / Pihak</th><th>Mulai</th><th>Pokok Awal</th><th>Cicilan Bulan Ini</th><th>Sisa Akhir Bulan</th></tr></thead><tbody>'+ledger.map(d=>'<tr><td><strong>'+esc(d.type==='payable'?'Utang':'Piutang')+' · '+esc(d.person)+'</strong></td><td>'+esc(d.date?dateText(d.date):'—')+'</td><td>'+esc(d.original===undefined?'—':fmt(d.original))+'</td><td>'+esc(d.paidInMonth===undefined?'—':fmt(d.paidInMonth))+'</td><td><strong>'+esc(fmt(d.remaining))+'</strong></td></tr>').join('')+'</tbody></table></div>':'<div class="archive-blank">Tidak ada utang atau piutang yang aktif maupun berubah pada bulan tersebut.</div>';
+ const note=legacy?'Arsip lama belum menyimpan rincian cicilan atau nominal awal. Perbarui arsip bulan ini untuk melengkapi data.':'Daftar memuat utang/piutang bersaldo atau memiliki aktivitas selama bulan ini. Rincian cicilan juga disertakan dalam PDF.';
+ return '<section class="archive-panel archive-debt-panel"><div class="archive-debt-heading"><h3>🤝 Utang & Piutang Bulanan</h3><span class="archive-mini-tag">Posisi akhir bulan</span></div>'+cards+rows+'<small class="archive-preview-foot">'+note+'</small></section>';
+}
 function renderPage(data){
  const r=data.report,months=data.history||[],saved=!!data.saved,sel=data.month||r.month;
  const totalBank=sum(r.balances||[],'balance'),invest=r.investment||{unavailable:true},investValue=invest.unavailable?null:num(invest.market);
@@ -65,9 +95,10 @@ function renderPage(data){
   +'<div class="archive-net-strip"><span>✦ Arus Kas Bersih</span><strong class="'+(num(r.net)>=0?'is-positive':'is-negative')+'">'+fmt(r.net)+'</strong><small>Selisih pemasukan dan pengeluaran, tidak termasuk mutasi rekening dan pembelian aset</small></div>'
   +'<div class="archive-panels"><section class="archive-panel"><h3>🍩 Komposisi Pengeluaran</h3>'+chartDonut(r)+'</section><section class="archive-panel"><h3>📈 Tren Pemasukan & Pengeluaran</h3>'+chartTrend(r)+'</section></div>'
   +'<section class="archive-ai-panel">'+insightMarkup(r)+'</section>'
+  +debtPreview(r)
   +'<div class="archive-lower"><section class="archive-panel archive-attachment"><div><h3>📋 Lampiran Transaksi</h3><span class="archive-mini-tag">Per tanggal · '+(r.transactions||[]).length+' transaksi</span></div>'+transactionsPreview(r)+'</section>'
   +'<section class="archive-panel archive-history"><h3>📚 Arsip Bulanan</h3><div class="archive-history-list">'+(months.length?months.map(item=>'<div class="archive-history-row '+(item.month===sel?'is-active':'')+'"><div><strong>'+esc(monthText(item.month))+'</strong><small>Keluar '+fmt(item.expense)+'</small></div><div class="archive-history-actions"><button class="btn sm" data-open-report="'+esc(item.month)+'">Buka</button><button class="btn sm danger" data-delete-report="'+esc(item.month)+'" title="Hapus arsip bulan ini">×</button></div></div>').join(''):'<p class="archive-no-history">Belum ada arsip tersimpan.</p>')+'</div><small class="archive-history-note">Arsip merupakan snapshot; perubahan transaksi tidak mengubah arsip tanpa diperbarui.</small></section></div>'
-  +'<div class="archive-report-foot">✨ PDF berwarna memuat ringkasan keuangan, akun dan investasi, grafik, analisis AI (bila tersedia), dan semua transaksi sebagai lampiran per tanggal. '+(!saved?'Simpan arsip untuk membekukan angka laporan.':'')+'</div></div>';
+  +'<div class="archive-report-foot">✨ PDF berwarna memuat ringkasan keuangan, akun dan investasi, grafik, analisis AI (bila tersedia), utang-piutang beserta cicilan, dan semua transaksi sebagai lampiran per tanggal. '+(!saved?'Simpan arsip untuk membekukan angka laporan.':'')+'</div></div>';
 }
 /* Portable PDF 1.4 renderer (A4, warna vektor); PDF tetap dapat diunduh tanpa CDN. */
 function pdfReport(r){

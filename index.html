@@ -11969,6 +11969,105 @@ function renderAccountTools(){
   </div>
  </details>`;
 }
+
+/* #147 Investasi: harga IDR manual; transaksi aset terpisah dari konsumsi. */
+const INVEST_TYPES={
+ stock:{name:'Saham',emoji:'📈',unit:'lembar',color:'#397bdd'},
+ crypto:{name:'Crypto',emoji:'🪙',unit:'koin',color:'#9a6bdd'},
+ gold:{name:'Emas',emoji:'🥇',unit:'gram',color:'#c99841'},
+ bond:{name:'SBN / Obligasi',emoji:'🏛️',unit:'unit',color:'#368fa0'},
+ fund:{name:'Reksa Dana',emoji:'🌱',unit:'unit',color:'#269c79'},
+ other:{name:'Aset Lain',emoji:'💎',unit:'unit',color:'#cb709d'}
+};
+function investQty(raw){
+ const str=String(raw??'').trim();
+ if(!/^(?:\d+)(?:[,.]\d{1,8})?$/.test(str))return NaN;
+ const x=Number(str.replace(',','.'));return Number.isFinite(x)&&x>0&&x<=1e12?x:NaN;
+}
+function investQtyFmt(q){
+ return num(q).toLocaleString('id-ID',{maximumFractionDigits:8});
+}
+function investState(asset,cutoff=analysisToday(),trades=db.investmentTrades){
+ const history=(trades||[]).filter(t=>t.assetId===asset.id&&t.date<=cutoff)
+  .slice().sort((a,b)=>a.date.localeCompare(b.date)||String(a.createdAt||a.id).localeCompare(String(b.createdAt||b.id)));
+ let quantity=0,cost=0,realized=0,payout=0,buyTotal=0,sellTotal=0;
+ for(const t of history){
+  if(t.type==='buy'){
+   quantity+=num(t.units);cost+=num(t.amount);buyTotal+=num(t.amount);
+  }else if(t.type==='sell'){
+   const q=Math.max(0,num(t.units)),avg=quantity>0?cost/quantity:0;
+   const consumed=avg*Math.min(q,quantity);
+   quantity=Math.max(0,quantity-q);cost=Math.max(0,cost-consumed);
+   if(quantity<1e-9){quantity=0;cost=0}
+   realized+=num(t.amount)-consumed;sellTotal+=num(t.amount);
+  }else if(t.type==='payout'){payout+=num(t.amount)}
+ }
+ const market=quantity*num(asset.price||0);
+ return {quantity,cost,market,realized,payout,buyTotal,sellTotal,
+  unrealized:market-cost,totalGain:market-cost+realized+payout,history};
+}
+function investSummary(){
+ const items=(db.investmentAssets||[]).map(asset=>({asset,...investState(asset)}));
+ const market=items.reduce((n,x)=>n+x.market,0),
+  cost=items.reduce((n,x)=>n+x.cost,0),
+  realized=items.reduce((n,x)=>n+x.realized,0),
+  payout=items.reduce((n,x)=>n+x.payout,0);
+ return {items,market,cost,unrealized:market-cost,realized,payout,
+  gain:market-cost+realized+payout,active:items.filter(x=>x.quantity>0).length};
+}
+function investRememberValue(){
+ const s=investSummary(),date=analysisToday();
+ db.investmentSnapshots=db.investmentSnapshots||[];
+ const snapshot={date,value:Math.round(s.market*100)/100,cost:Math.round(s.cost*100)/100,
+  createdAt:new Date().toISOString()};
+ const found=db.investmentSnapshots.findIndex(x=>x.date===date);
+ if(found>=0)db.investmentSnapshots[found]=snapshot;else db.investmentSnapshots.push(snapshot);
+ db.investmentSnapshots=db.investmentSnapshots.slice().sort((a,b)=>a.date.localeCompare(b.date)).slice(-730);
+}
+function investVisualSeries(){
+ const data=(db.investmentSnapshots||[]).slice().sort((a,b)=>a.date.localeCompare(b.date)).slice(-36);
+ if(!data.length)return '<div class="invest-empty-chart">Grafik akan muncul setelah aset atau harga investasi dicatat.</div>';
+ const w=640,h=193,top=15,bottom=164,left=14,right=626;
+ const max=Math.max(1,...data.map(p=>num(p.value)));
+ const min=Math.min(0,...data.map(p=>num(p.value)));
+ const span=max-min||1;
+ const xy=data.map((p,i)=>({
+  x:data.length===1?(left+right)/2:left+i*(right-left)/(data.length-1),
+  y:bottom-(num(p.value)-min)/span*(bottom-top),...p
+ }));
+ const pts=xy.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+ const area='M '+xy[0].x.toFixed(1)+' '+bottom+' L '+xy.map(p=>p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' L ')+
+  ' L '+xy[xy.length-1].x.toFixed(1)+' '+bottom+' Z';
+ const labels=xy.filter((p,i)=>i===0||i===xy.length-1||xy.length<5);
+ return `<div class="invest-line-plot" role="img" aria-label="Grafik ${data.length} catatan nilai portofolio">
+  <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
+   <defs><linearGradient id="invest-area-glow" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#467fdb" stop-opacity=".29"/>
+    <stop offset="100%" stop-color="#467fdb" stop-opacity="0"/></linearGradient></defs>
+   ${[0,.25,.5,.75,1].map(n=>`<line x1="${left}" y1="${(top+(bottom-top)*n).toFixed(1)}" x2="${right}" y2="${(top+(bottom-top)*n).toFixed(1)}" stroke="#dfebfa" stroke-dasharray="4 6"/>`).join('')}
+   <path d="${area}" fill="url(#invest-area-glow)"/>
+   <polyline points="${pts}" fill="none" stroke="#397bd4" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" class="invest-plot-line"/>
+   ${xy.map(p=>`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="#fff" stroke="#3b7bd2" stroke-width="2" vector-effect="non-scaling-stroke"><title>${dateFmt(p.date)}: ${money(p.value)}</title></circle>`).join('')}
+   ${labels.map(p=>`<text x="${p.x.toFixed(1)}" y="189" text-anchor="${p.x===xy[0].x?'start':p.x===xy[xy.length-1].x?'end':'middle'}" fill="#7890ac" font-size="11" font-family="Nunito,sans-serif">${p.date.slice(5)}</text>`).join('')}
+  </svg>
+ </div>`;
+}
+function investAllocationChart(items,total){
+ const groups=Object.keys(INVEST_TYPES).map(type=>({
+  type,value:items.filter(x=>x.asset.type===type).reduce((n,x)=>n+x.market,0)
+ })).filter(x=>x.value>0);
+ if(!groups.length)return '<div class="invest-allocation-empty">Belum ada aset aktif</div>';
+ let prev=0;
+ const conic=groups.map(g=>{const from=prev;prev+=g.value/total*100;
+  return INVEST_TYPES[g.type].color+' '+from.toFixed(3)+'% '+prev.toFixed(3)+'%';}).join(',');
+ return `<div class="invest-allocation-body">
+  <div class="invest-allocation-ring" style="background:conic-gradient(${conic})">
+   <div><small>Nilai Pasar</small><strong>${shortMoney(total)}</strong></div></div>
+  <div class="invest-allocation-legend">${groups.map(g=>`<div><span><i style="background:${INVEST_TYPES[g.type].color}"></i>${INVEST_TYPES[g.type].name}</span>
+   <b>${(g.value/total*100).toFixed(1).replace('.',',')}%</b></div>`).join('')}</div>
+ </div>`;
+}
+
 function renderAccounts(){
  const bal=balances(),total=db.accounts.reduce((n,a)=>n+num(bal[a.id]),0);
  const pool=db.accounts.reduce((n,a)=>n+Math.max(0,num(bal[a.id])),0);

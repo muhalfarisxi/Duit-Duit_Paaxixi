@@ -7343,7 +7343,7 @@ const expenseGroups=()=>db.expenseGroups;
 const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],budgetAdjustments:[],budgetBaseHistory:[],budgetInitialStates:{},debts:[],accountCorrections:[],investmentAssets:[],investmentTrades:[],investmentSnapshots:[],reports:{}});
 function load(){try{let v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.accounts)&&Array.isArray(v.categories)&&Array.isArray(v.transactions)&&Array.isArray(v.debts)&&v.budgets&&Array.isArray(v.budgetMoves))return normalizeExpenseGroups(v);}catch(e){}return fresh()}
 let db=load();db.reports=db.reports||{};
-let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,accountAdjustId:null,investmentModal:null,investmentFilter:'all',debtEditId:null,debtEditorOpen:false,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,budgetExpandedGroups:null,budgetDetailExpandedGroups:[],budgetEditExpandedGroups:[],budgetSection:'detail',comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,trendRangePopup:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupType:'receivable',debtPopupFilter:'open',incomeTrendMode:'month',incomeTrendFrom:'',incomeTrendTo:'',incomeTrendRangeOpen:false,incomePieMonth:null,incomeMonthMenuOpen:false,incomeFilter:{preset:'month',from:'',to:'',group:null},incomeTrendVisible:null,reportMonth:currentMonth()};
+let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,accountAdjustId:null,investmentModal:null,investmentFilter:'all',investmentHistoryCount:40,debtEditId:null,debtEditorOpen:false,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,budgetExpandedGroups:null,budgetDetailExpandedGroups:[],budgetEditExpandedGroups:[],budgetSection:'detail',comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,trendRangePopup:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupType:'receivable',debtPopupFilter:'open',incomeTrendMode:'month',incomeTrendFrom:'',incomeTrendTo:'',incomeTrendRangeOpen:false,incomePieMonth:null,incomeMonthMenuOpen:false,incomeFilter:{preset:'month',from:'',to:'',group:null},incomeTrendVisible:null,reportMonth:currentMonth()};
 let cloud={configured:false,signedIn:false,ready:false,email:'',busy:false,error:'',empty:false,pendingDecision:false};
 function syncBadge(){let b=document.getElementById('cloud-status');if(!b)return;
  b.className='cloud-state'+(cloud.signedIn&&cloud.ready&&!cloud.pendingDecision?' online':cloud.busy?' wait':'');
@@ -12164,7 +12164,7 @@ function renderInvestments(){
  const sorted=[...active.sort((a,b)=>b.market-a.market),...closed];
  const realized=p.realized+p.payout;
  const recent=(db.investmentTrades||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)||
-  String(b.createdAt||'').localeCompare(String(a.createdAt||''))).slice(0,40);
+  String(b.createdAt||'').localeCompare(String(a.createdAt||'') )).slice(0,ui.investmentHistoryCount||40);
  const val=(value)=>`<strong class="${value<0?'is-loss':'is-profit'}">${value<0?'−':'+'}${money(Math.abs(value))}</strong>`;
  return `<div class="invest-dashboard">
   <section class="invest-hero">
@@ -13012,6 +13012,7 @@ document.addEventListener('pointerdown',event=>{
  if(ui.incomeMonthMenuOpen&&!event.target.closest('.income-month-picker')&&!event.target.closest('#income-month-menu'))dismissIncomeMonthMenu();
 });
 document.addEventListener('keydown',event=>{
+ if(ui.investmentModal&&event.key==='Escape'&&!document.querySelector('.pax-calendar-dialog')){event.preventDefault();ui.investmentModal=null;render();return;}
  if(ui.accountAdjustId&&event.key==='Escape'&&!document.querySelector('.pax-calendar-dialog')){event.preventDefault();ui.accountAdjustId=null;render();return;}
  const dialog=document.querySelector('#finance-editor-backdrop .finance-editor-dialog');
  if(dialog){
@@ -13160,6 +13161,68 @@ document.addEventListener('toggle',event=>{
  ui.budgetEditExpandedGroups=el.open?[...new Set([...old,id])]:old.filter(x=>x!==id);
 },true);
 document.addEventListener('click',async e=>{
+ const investAction=e.target.closest?.('[data-invest-open],[data-invest-trade],[data-invest-price],[data-invest-edit],[data-invest-filter],[data-invest-trade-kind],[data-invest-close],[data-invest-delete],[data-invest-delete-trade],[data-invest-load-more]');
+ if(investAction||e.target.id==='invest-modal-backdrop'){
+  e.preventDefault();
+  if(!investAction||investAction.hasAttribute('data-invest-close')){ui.investmentModal=null;render();return;}
+  if(investAction.dataset.investFilter!==undefined){
+   const filter=investAction.dataset.investFilter;
+   if(filter!=='all'&&!INVEST_TYPES[filter])return;
+   ui.investmentFilter=filter;render();document.querySelector('[data-invest-filter="'+filter+'"]')?.focus({preventScroll:true});return;
+  }
+  if(investAction.dataset.investOpen!==undefined){
+   ui.investmentModal={kind:'asset',assetId:null};render();
+   document.querySelector('#invest-asset-form [name="name"]')?.focus({preventScroll:true});return;
+  }
+  if(investAction.dataset.investTrade!==undefined){
+   const [kind,id]=investAction.dataset.investTrade.split(':');
+   if(!['buy','sell','payout'].includes(kind)||!db.investmentAssets.some(a=>a.id===id))return;
+   ui.investmentModal={kind:'trade',assetId:id,tradeType:kind};render();
+   document.querySelector('#invest-trade-form input[name="units"],#invest-trade-form input[name="amount"]')?.focus({preventScroll:true});return;
+  }
+  if(investAction.dataset.investTradeKind!==undefined){
+   const kind=investAction.dataset.investTradeKind;
+   if(!ui.investmentModal||!['buy','sell','payout'].includes(kind))return;
+   ui.investmentModal={...ui.investmentModal,tradeType:kind};render();return;
+  }
+  if(investAction.dataset.investPrice!==undefined){
+   const id=investAction.dataset.investPrice;
+   if(!db.investmentAssets.some(a=>a.id===id))return;
+   ui.investmentModal={kind:'price',assetId:id};render();
+   document.querySelector('#invest-price-form input[name="price"]')?.focus({preventScroll:true});return;
+  }
+  if(investAction.dataset.investEdit!==undefined){
+   const id=investAction.dataset.investEdit;
+   if(!db.investmentAssets.some(a=>a.id===id))return;
+   ui.investmentModal={kind:'asset',assetId:id};render();
+   document.querySelector('#invest-asset-form input[name="name"]')?.focus({preventScroll:true});return;
+  }
+  if(investAction.dataset.investDelete!==undefined){
+   const id=investAction.dataset.investDelete,asset=db.investmentAssets.find(a=>a.id===id);
+   if(!asset)return;
+   if(db.investmentTrades.some(t=>t.assetId===id))return toast('Aset memiliki riwayat investasi. Hapus transaksi terakhirnya terlebih dahulu.',true);
+   if(await confirmDelete('Hapus instrumen '+asset.name+'?')){
+    db.investmentAssets=db.investmentAssets.filter(a=>a.id!==id);investRememberValue();save();render();toast('Instrumen dihapus.');
+   }return;
+  }
+  if(investAction.dataset.investDeleteTrade!==undefined){
+   const id=investAction.dataset.investDeleteTrade,record=db.investmentTrades.find(t=>t.id===id);
+   if(!record)return;
+   const rows=db.investmentTrades.filter(t=>t.assetId===record.assetId)
+     .slice().sort((a,b)=>b.date.localeCompare(a.date)||String(b.createdAt||b.id).localeCompare(String(a.createdAt||a.id)));
+   if(rows[0]?.id!==id)return toast('Hapus transaksi yang paling baru pada aset ini terlebih dahulu agar modal tetap akurat.',true);
+   const asset=db.investmentAssets.find(a=>a.id===record.assetId);
+   if(await confirmDelete('Hapus '+(record.type==='buy'?'pembelian':record.type==='sell'?'penjualan':'hasil investasi')+
+     ' '+(asset?.name||'aset')+' sebesar '+money(record.amount)+'? Saldo rekening akan dihitung ulang.')){
+    db.investmentTrades=db.investmentTrades.filter(t=>t.id!==id);
+    investRememberValue();save();render();toast('Catatan investasi dihapus. Saldo dihitung ulang.');
+   }return;
+  }
+  if(investAction.hasAttribute('data-invest-load-more')){
+   ui.investmentHistoryCount=Math.min(10000,(ui.investmentHistoryCount||40)+40);render();return;
+  }
+  return;
+ }
  if(e.target.id==='account-adjust-backdrop'){ui.accountAdjustId=null;render();return;}
  const establish=e.target.closest?.('[data-budget-establish]');
  if(establish){

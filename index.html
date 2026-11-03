@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#102a4e">
+<meta name="paax-build" content="20261103-arsip-r6">
 <title>Duit-Duit Paaxixi | Catatan Keuangan Pribadi</title>
 <link rel="icon" type="image/png" sizes="64x64" href="./favicon-paaxixi.png?v=2">
 <link rel="apple-touch-icon" href="./profil-paaxixi.png?v=2">
@@ -7343,7 +7344,7 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 
 </style>
 <link rel="stylesheet" href="./budget-ux.css?v=14">
-<link rel="stylesheet" href="./archive-reports.css?v=5">
+<link rel="stylesheet" href="./archive-reports.css?v=6">
 </head>
 <body>
 <div class="app">
@@ -7407,6 +7408,7 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <input id="import-file" type="file" accept=".json,application/json" style="display:none">
+<script src="./archive-reports.js?v=6"></script>
 <script>
 (()=>{'use strict';
 const KEY='arus-prototype-v1';
@@ -14409,7 +14411,38 @@ document.addEventListener('visibilitychange',()=>{
  else init();
 })();
 </script>
-<script src="./archive-reports.js?v=5"></script>
+<script>
+/* Pemberitahuan saat tab lama melihat deployment website yang baru; tidak me-reload formulir tanpa izin. */
+(()=>{
+ const current=document.querySelector('meta[name="paax-build"]')?.content||'';
+ let lastChecked=0,notified=false;
+ async function checkBuild(){
+  if(notified||Date.now()-lastChecked<120000)return;
+  lastChecked=Date.now();
+  try{
+   const url=new URL(location.pathname,location.origin);
+   url.searchParams.set('_paax_check',String(Date.now()));
+   const response=await fetch(url.toString(),{cache:'no-store'});
+   if(!response.ok)return;
+   const html=await response.text();
+   const version=html.match(/<meta\s+name="paax-build"\s+content="([a-zA-Z0-9_-]+)"/)?.[1];
+   if(!version||version===current)return;
+   notified=true;
+   const bar=document.createElement('div');
+   bar.setAttribute('role','status');
+   Object.assign(bar.style,{position:'fixed',zIndex:'99999',bottom:'19px',left:'50%',transform:'translateX(-50%)',width:'min(94vw,440px)',display:'flex',gap:'12px',alignItems:'center',justifyContent:'space-between',padding:'13px 15px',border:'1px solid #b9d6fc',borderRadius:'17px',boxShadow:'0 15px 40px #0b255a38',background:'#f8fbff',color:'#183e73',font:'800 12px Nunito,system-ui,sans-serif'});
+   const label=document.createElement('span');
+   label.textContent='✨ Ada pembaruan website. Muat ulang untuk melihat tampilan terbaru.';
+   const button=document.createElement('button');button.type='button';button.textContent='↻ Perbarui';
+   Object.assign(button.style,{border:'0',borderRadius:'10px',padding:'10px 12px',whiteSpace:'nowrap',background:'#2666de',color:'#fff',font:'900 12px Nunito,system-ui,sans-serif',cursor:'pointer'});
+   button.onclick=()=>{const next=new URL(location.href);next.searchParams.set('paax-v',version);location.assign(next.href);};
+   bar.append(label,button);document.body.appendChild(bar);
+  }catch(err){/* Offline: aplikasi tetap dapat digunakan. */}
+ }
+ window.addEventListener('focus',checkBuild);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)void checkBuild();});
+})();
+</script>
 <script src="./composition-pos-popup.js?v=3" defer></script>
 <script type="module" src="./ai-insight.js?v=5"></script>
 <script src="firebase-config.js"></script>

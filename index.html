@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#102a4e">
-<meta name="paax-build" content="20261104-financial-analyst-ai-v24">
+<meta name="paax-build" content="20261104-financial-analyst-ai-v25">
 <title>Duit-Duit Paaxixi | Catatan Keuangan Pribadi</title>
 <link rel="icon" type="image/png" sizes="64x64" href="./favicon-paaxixi.png?v=2">
 <link rel="apple-touch-icon" href="./profil-paaxixi.png?v=2">
@@ -7535,7 +7535,7 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 <script src="./archive-print.js?v=2"></script>
 <script src="./month-picker.js?v=1"></script>
 <script src="./investment-market.js?v=6"></script>
-<script src="./investment-goals.js?v=1"></script>
+<script src="./investment-goals.js?v=2"></script>
 <script>
 (()=>{'use strict';
 const KEY='arus-prototype-v1';
@@ -9588,11 +9588,21 @@ function paaxAiCacheGet(signature){
 function paaxAiStopScheduled(){
  if(paaxAiAuto.timer!==null){clearTimeout(paaxAiAuto.timer);paaxAiAuto.timer=null;}
 }
+function paaxAiHasRelevantData(payload){
+ if(!payload)return false;
+ return !!(payload.pengeluaran?.jumlahTransaksi||
+  payload.kesehatanKeuangan?.cashFlow?.monthly?.some(row=>row.count>0)||
+  payload.portofolioInvestasi?.summary?.heldPositions>0||
+  payload.kesehatanKeuangan?.liabilities?.payable>0||
+  payload.kesehatanKeuangan?.liabilities?.receivable>0||
+  payload.kesehatanKeuangan?.liquidity?.balance>0||
+  payload.kesehatanKeuangan?.goals?.length);
+}
 function paaxAiSchedule(urgent=false){
  paaxAiStopScheduled();
  if(ui.view!=='dashboard'||!window.ARUS_AI_APP_CHECK_SITE_KEY)return;
  const current=paaxAiCurrent();
- if(!current||current.payload.pengeluaran.jumlahTransaksi===0)return;
+ if(!current||!paaxAiHasRelevantData(current.payload))return;
  if(paaxAiCacheGet(current.signature)||paaxAiAuto.inFlight)return;
  if(paaxAiAuto.autoCalls>=paaxAiAuto.maxAutoCalls)return;
  const elapsed=Date.now()-paaxAiAuto.lastStarted;
@@ -9703,10 +9713,11 @@ function paaxAiStripState(current=paaxAiCurrent(),local=buildPaaxixiFinanceInsig
  const waiting=!!signature&&paaxAiUi.waitingFor===signature;
  const loading=!ready&&(waiting||paaxAiAuto.inFlight?.signature===signature);
  const available=!!String(window.ARUS_AI_APP_CHECK_SITE_KEY||'').trim();
- const hasExpense=!!current?.payload?.pengeluaran?.jumlahTransaksi;
- const localOnly=!available||!hasExpense;
+ const hasData=paaxAiHasRelevantData(current?.payload);
+ const localOnly=!available||!hasData;
  const failed=!!saved?.error&&!loading&&!ready;
- const status=paaxAiFinancialHint(local);
+ const status=!local.count&&current?.payload?.portofolioInvestasi?.summary?.heldPositions>0?
+  '📈 Portofolio investasi siap dianalisis bersama kondisi keuangan.':paaxAiFinancialHint(local);
  const label=ready?'✨ Lihat Hasil AI':
   waiting?'Menunggu Hasil AI…':
   loading?'Menyiapkan AI…':
@@ -15146,7 +15157,7 @@ document.addEventListener('visibilitychange',()=>{
 })();
 </script>
 <script src="./composition-pos-popup.js?v=3" defer></script>
-<script type="module" src="./ai-insight.js?v=7"></script>
+<script type="module" src="./ai-insight.js?v=8"></script>
 <script src="firebase-config.js"></script>
 <script type="module" src="cloud.js"></script>
 <script src="./budget-ux.js?v=13" defer></script>

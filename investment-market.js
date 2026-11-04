@@ -4,9 +4,32 @@
    Yahoo chart endpoint is unofficial and quotes can be delayed/unavailable. */
 (function(){
  'use strict';
- const ROOT='https://proxy.cors.dev/https://query1.finance.yahoo.com/v8/finance/chart/';
  const IDX_TYPES=new Set(['stock','warrant','etf','dire','dinfra','eba']);
- const LISTED_TYPE_MAP={EQUITY:'stock',ETF:'etf',MUTUALFUND:'fund',CRYPTOCURRENCY:'crypto'};
+ function positive(value){
+  const number=Number(value);
+  return Number.isFinite(number)&&number>0;
+ }
+ // Normalize public market symbols while keeping prices in rupiah.
+ // IDX instruments trade per share; crypto assets use the IDR trading pair.
+ function ticker(asset){
+  if(!asset||asset.autoPrice===false)return null;
+  const kind=String(asset.type||'').toLowerCase();
+  let symbol=String(asset.symbol||'').trim().toUpperCase().replace(/\\s+/g,'');
+  if(!symbol)return null;
+  if(IDX_TYPES.has(kind)){
+   if(symbol.endsWith('.JK'))symbol=symbol.slice(0,-3);
+   // Restrict lookup to Indonesian exchange symbols, not arbitrary Yahoo tickers.
+   if(!/^[A-Z0-9]{3,12}(?:-W[0-9]{0,2})?$/.test(symbol))return null;
+   return symbol+'.JK';
+  }
+  if(kind==='crypto'){
+   if(symbol.endsWith('-IDR'))symbol=symbol.slice(0,-4);
+   if(!/^[A-Z0-9]{2,16}$/.test(symbol))return null;
+   return symbol+'-IDR';
+  }
+  return null;
+ }
+
  const queryUrl=q=>'https://query1.finance.yahoo.com/v1/finance/search?q='+encodeURIComponent(q)+
   '&quotesCount=25&newsCount=0&listsCount=0';
  function listedItem(item){

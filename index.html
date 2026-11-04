@@ -12365,7 +12365,7 @@ function investUpdatePreview(form){
  const kind=form.elements.type?.value;
  if(kind==='payout'){
   const paid=positive(form.elements.amount?.value);
-  target.textContent=paid?'Saldo rekening bertambah '+money(paid):'Isi dividen/kupon bersih yang diterima.';
+  target.textContent=paid?'Saldo rekening bertambah '+money(paid):'Isi hasil investasi bersih yang diterima.';
   return;
  }
  const units=investQty(form.elements.units?.value),price=positive(form.elements.unitPrice?.value),
@@ -12386,12 +12386,17 @@ function renderInvestmentModal(){
  let heading='',intro='',form='';
  if(m.kind==='asset'){
   heading=editing?'Edit Instrumen Investasi':'Tambah Instrumen Investasi';
-  intro='Identitas aset disimpan terlebih dahulu. Setelah itu catat pembeliannya.';
+  intro='Pilih jenis investasi, lalu catat instrumen dan transaksi pembeliannya.';
   form=`<form id="invest-asset-form">
    <input type="hidden" name="editId" value="${h(asset?.id||'')}">
    <div class="form-grid">
     <div class="form-field"><label class="field-label">Jenis Investasi</label>
-     <select class="field" name="type">${Object.entries(INVEST_TYPES).map(([k,v])=>`<option value="${k}" ${asset?.type===k?'selected':''}>${v.emoji} ${v.name}</option>`).join('')}</select></div>
+     <select class="field" name="type">${investTypeOptions(asset?.type||'stock')}</select>
+     <small class="invest-field-help">Pilih kategori sesuai produknya. Nama instrumen dapat diisi lebih spesifik.</small></div>
+    <div class="form-field full" data-invest-custom-type ${asset?.type==='other'?'':'hidden'}>
+     <label class="field-label">Jenis Investasi Khusus</label>
+     <input class="field" name="customType" maxlength="60" value="${h(asset?.customType||'')}" placeholder="Contoh: Koleksi seni atau instrumen lainnya" ${asset?.type==='other'?'required':''}>
+     <small class="invest-field-help">Bebas diisi jika instrumen belum terdaftar di atas.</small></div>
     <div class="form-field"><label class="field-label">Kode / Simbol (Opsional)</label>
      <input class="field" name="symbol" maxlength="28" value="${h(asset?.symbol||'')}" placeholder="Contoh: BBCA, BTC, SBR013"></div>
     <div class="form-field full"><label class="field-label">Nama Instrumen</label>
@@ -12402,7 +12407,7 @@ function renderInvestmentModal(){
  }else if(m.kind==='trade'){
   const kind=['buy','sell','payout'].includes(m.tradeType)?m.tradeType:'buy',info=INVEST_TYPES[asset.type]||INVEST_TYPES.other;
   const holdings=investState(asset);
-  heading=kind==='buy'?'Catat Pembelian':kind==='sell'?'Catat Penjualan':'Catat Dividen / Kupon';
+  heading=kind==='buy'?'Catat Pembelian':kind==='sell'?'Catat Penjualan':'Catat Hasil Investasi';
   intro=asset.name+' · '+(asset.symbol||info.name);
   form=`<div class="invest-trade-tabs" role="group" aria-label="Jenis transaksi investasi">
     ${[['buy','↘ Beli'],['sell','↗ Jual'],['payout','✦ Hasil']].map(([k,text])=>`<button type="button" data-invest-trade-kind="${k}" aria-pressed="${kind===k?'true':'false'}" class="${kind===k?'active '+k:''}">${text}</button>`).join('')}</div>
@@ -12413,7 +12418,7 @@ function renderInvestmentModal(){
       <input type="date" class="field" name="date" value="${analysisToday()}" max="${analysisToday()}" required></div>
      <div class="form-field"><label class="field-label">Rekening ${kind==='buy'?'Pembayaran':'Penerimaan'}</label>
       ${selectAcc('accountId')}</div>
-     ${kind==='payout'?`<div class="form-field full"><label class="field-label">Dividen / Kupon Bersih (Rp)</label>
+     ${kind==='payout'?`<div class="form-field full"><label class="field-label">Hasil Investasi Bersih (Rp)</label>
        <input class="field" type="text" data-rupiah="1" inputmode="decimal" name="amount" placeholder="50.000" required></div>`:
       `<div class="form-field"><label class="field-label">Jumlah (${info.unit})</label>
        <input class="field" type="text" inputmode="decimal" name="units" placeholder="1 atau 0,125" required>
@@ -12539,7 +12544,7 @@ function renderInvestments(){
     const asset=db.investmentAssets.find(a=>a.id===t.assetId),info=INVEST_TYPES[asset?.type]||INVEST_TYPES.other;
     return `<div class="invest-history-row">
      <span class="invest-history-icon ${t.type}">${t.type==='buy'?'↘':t.type==='sell'?'↗':'✦'}</span>
-     <div><strong>${h(asset?.name||'Aset dihapus')}</strong><small>${dateFmt(t.date)} · ${t.type==='buy'?'Pembelian':t.type==='sell'?'Penjualan':'Dividen/Kupon'}
+     <div><strong>${h(asset?.name||'Aset dihapus')}</strong><small>${dateFmt(t.date)} · ${t.type==='buy'?'Pembelian':t.type==='sell'?'Penjualan':'Hasil Investasi'}
       ${t.type!=='payout'?' · '+investQtyFmt(t.units)+' '+info.unit:''} · ${h(acc(t.accountId)?.name||'Rekening dihapus')}</small></div>
      <b class="${t.type}">${t.type==='buy'?'−':'+'}${money(t.amount)}</b>
      <button type="button" data-invest-delete-trade="${h(t.id)}" aria-label="Hapus catatan investasi" title="Hapus catatan terakhir aset">×</button>
@@ -13094,15 +13099,17 @@ if(id==='invest-asset-form'){
  const editId=String(f.get('editId')||''),old=db.investmentAssets.find(a=>a.id===editId);
  const name=String(f.get('name')||'').trim().slice(0,85),
   symbol=String(f.get('symbol')||'').trim().toUpperCase().slice(0,28),
-  type=String(f.get('type')||''),note=String(f.get('note')||'').trim().slice(0,180);
+  type=String(f.get('type')||''),customType=type==='other'?String(f.get('customType')||'').trim().slice(0,60):'',
+  note=String(f.get('note')||'').trim().slice(0,180);
+ if(type==='other'&&!customType)return toast('Isi nama jenis investasi khusus terlebih dahulu.',true);
  if(!name||!INVEST_TYPES[type])return toast('Nama dan jenis instrumen harus diisi.',true);
  if(editId&&!old)return toast('Aset yang diedit tidak ditemukan.',true);
  if(old&&(db.investmentTrades||[]).some(t=>t.assetId===old.id)&&old.type!==type)
   return toast('Jenis aset yang sudah memiliki transaksi tidak dapat diubah karena satuannya berbeda.',true);
  if(db.investmentAssets.some(a=>a.id!==editId&&a.name.toLowerCase()===name.toLowerCase()&&a.symbol===symbol))
   return toast('Instrumen yang sama sudah tercatat.',true);
- if(old)Object.assign(old,{name,symbol,type,note});
- else db.investmentAssets.push({id:uid(),name,symbol,type,note,price:0,priceDate:'',createdAt:new Date().toISOString()});
+ if(old)Object.assign(old,{name,symbol,type,customType,note});
+ else db.investmentAssets.push({id:uid(),name,symbol,type,customType,note,price:0,priceDate:'',createdAt:new Date().toISOString()});
  investRememberValue();if(!save())return;
  if(old){ui.investmentModal=null;render();toast('Instrumen investasi diperbarui.');}
  else{const added=db.investmentAssets[db.investmentAssets.length-1];ui.investmentModal={kind:'trade',assetId:added.id,tradeType:'buy'};
@@ -13132,7 +13139,7 @@ if(id==='invest-trade-form'){
  if(type==='payout'){
   if(!db.investmentTrades.some(t=>t.assetId===asset.id&&t.type==='buy'))return toast('Catat pembelian aset terlebih dahulu sebelum menerima hasil investasinya.',true);
   amount=positive(f.get('amount'));
-  if(!amount)return toast('Isi dividen atau kupon bersih yang diterima.',true);
+  if(!amount)return toast('Isi hasil investasi bersih yang diterima.',true);
  }else{
   units=investQty(f.get('units'));unitPrice=positive(f.get('unitPrice'));
   fee=integer(f.get('fee')||'0');

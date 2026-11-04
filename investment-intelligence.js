@@ -192,6 +192,22 @@ function upgradeMarket(){
 }
 const insightReady=addScript('investment-index-insight.js?v=1',upgradeMarket);
 const catalogReady=addScript('investment-catalog.js?v=1');
+const quoteAdapterReady=addScript('investment-market.js?v=7',()=>{
+ const panel=document.querySelector('#invest-market-intelligence');
+ const btn=panel?.querySelector('[data-market-intel-refresh]');
+ if(btn&&!btn.disabled&&!(lastRenderedState?.data?.index?.series?.length>1))btn.click();
+});
+document.addEventListener('click',event=>{
+ if(!event.target.closest?.('[data-nav="investments"]'))return;
+ indexOverride=null;indexPeriod='month';
+ // The host owns view changes. Refresh after navigation, but never overlap its
+ // built-in request (disabled buttons indicate that data retrieval is active).
+ setTimeout(()=>{
+  const btn=document.querySelector('#invest-market-intelligence [data-market-intel-refresh]');
+  if(btn&&!btn.disabled)btn.click();
+ },450);
+},true);
+
 function watched(){
  try{
   const db=JSON.parse(localStorage.getItem('arus-prototype-v1')||'null');

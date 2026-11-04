@@ -12506,7 +12506,7 @@ function investSelectMarketItem(button){
   toast('Jenis instrumen yang sudah memiliki transaksi tidak dapat diganti. Tambahkan aset baru untuk jenis lain.',true);return;
  }
  investLookupToken++;clearTimeout(investLookupTimer);
- const symbol=item.symbol.replace(/\\.JK$/,'').replace(/-IDR$/,'');
+ const symbol=item.symbol.replace(/\.JK$/,'').replace(/-IDR$/,'');
  form.elements.type.value=item.type;
  form.elements.symbol.value=symbol;
  form.elements.name.value=item.name;

@@ -54,11 +54,11 @@ async function fetchUrl(address,ms=12000){
   if(!r.ok)throw Error('Sumber merespons '+r.status);return r;}
  finally{clearTimeout(t);}
 }
-async function getFundamentals(symbols){
+async function getFundamentals(symbols,force=false){
  const clean=[...new Set((symbols||[]).map(searchStock).filter(x=>VALID.test(x)))].slice(0,8);
  if(!clean.length){scores.records=[];scores.requestKey='';scores.loading=false;return;}
  const key=clean.slice().sort().join(',');
- if(scores.loading||scores.requestKey===key&&Date.now()-Date.parse(scores.checkedAt||0)<20*60000)return;
+ if(scores.loading||(!force&&scores.requestKey===key&&Date.now()-Date.parse(scores.checkedAt||0)<20*60000))return;
  scores.loading=true;scores.requestKey=key;scores.error='';
  const next=new Map();
  try{

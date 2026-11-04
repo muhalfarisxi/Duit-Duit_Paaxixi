@@ -50,8 +50,9 @@
   if(!positive(price))throw Error('Harga rupiah belum tersedia untuk '+symbol);
   const seconds=Number(data.meta.regularMarketTime)||Number(data.timestamp?.at(-1))||0;
   return {symbol,price,asOf:toLocalDate(seconds)||'',timestamp:seconds?new Date(seconds*1000).toISOString():'',
-   previousClose:positive(data.meta.chartPreviousClose)?Number(data.meta.chartPreviousClose):
-      (positive(data.meta.previousClose)?Number(data.meta.previousClose):null),
+   previousClose:positive(data.meta.previousClose)?Number(data.meta.previousClose):
+      (rows.filter(positive).length>1?Number(rows.filter(positive).at(-2)):
+       (positive(data.meta.chartPreviousClose)?Number(data.meta.chartPreviousClose):null)),
    provider:'Yahoo Finance (via proxy publik)'};
  }
  async function monthly(asset){

@@ -123,17 +123,31 @@
 
  /* IHSG context for the goal planner. Delayed public quote; not a trade signal.
     No individual investment holdings are sent to this endpoint. */
- async function benchmark(){
-  const data=await chart('^JKSE','5d','1d');
-  const rows=(data.indicators?.quote?.[0]?.close||[]).filter(positive);
+ const INDEX_PERIODS={month:['1mo','1d'],quarter:['3mo','1d'],year:['1y','1wk'],fiveyear:['5y','1mo']};
+ async function benchmark(period='month'){
+  const chosen=Object.prototype.hasOwnProperty.call(INDEX_PERIODS,period)?period:'month';
+  const [range,interval]=INDEX_PERIODS[chosen];
+  const data=await chart('^JKSE',range,interval);
+  const timestamps=Array.isArray(data.timestamp)?data.timestamp:[];
+  const closes=data.indicators?.quote?.[0]?.close||[];
+  const points=timestamps.map((secs,i)=>({time:Number(secs)*1000,price:Number(closes[i])}))
+   .filter(p=>Number.isFinite(p.time)&&p.time>0&&positive(p.price)).slice(-260);
   let price=Number(data.meta.regularMarketPrice);
-  if(!positive(price))price=Number(rows.at(-1));
-  if(!positive(price))throw Error('Data IHSG belum tersedia.');
+  if(!positive(price))price=Number(points.at(-1)?.price);
+  if(!positive(price))throw Error('Harga IHSG belum tersedia.');
   const previousClose=positive(data.meta.previousClose)?Number(data.meta.previousClose):
    positive(data.meta.chartPreviousClose)?Number(data.meta.chartPreviousClose):
-   (rows.length>1?Number(rows.at(-2)):null);
+   (points.length>1?Number(points.at(-2)?.price):null);
   const seconds=Number(data.meta.regularMarketTime)||Number(data.timestamp?.at(-1))||0;
+  const today=seconds?new Date(seconds*1000).toISOString().slice(0,10):'';
+  // Intraday latest quote can differ from final sampled period. Preserve time order.
+  if(seconds>0&&positive(price)&&(points.length===0||Number(points.at(-1)?.price)!==price)){
+   const last=points.at(-1);
+   if(!last||last.time<seconds*1000){points.push({time:seconds*1000,price});}
+   else if(last&&new Date(last.time).toISOString().slice(0,10)===today){last.price=price;}
+  }
   return {symbol:'^JKSE',label:'IHSG',price,previousClose:positive(previousClose)?previousClose:null,
+   period:chosen,series:points,
    asOf:seconds?new Date(seconds*1000).toLocaleString('id-ID',{timeZone:'Asia/Jakarta',dateStyle:'medium',timeStyle:'short'}):'waktu tidak tersedia',
    timestamp:seconds?new Date(seconds*1000).toISOString():'',provider:'Yahoo Finance / proxy publik'};
  }

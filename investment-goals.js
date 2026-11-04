@@ -198,12 +198,12 @@ if(goalCSS)goalCSS.href='./investment-goals.css?v=2';
       '<div class="invest-goal-stack">'+report.allocation.map(x=>'<span style="width:'+x.percent+'%;background:'+x.color+'" title="'+esc(x.name)+' '+x.percent+'%"></span>').join('')+'</div>'+
       '<div class="invest-goal-allocations">'+report.allocation.map(x=>'<div class="invest-goal-asset"><span class="invest-goal-asset-icon" style="background:'+x.color+'22">'+x.icon+'</span>'+
         '<div><strong>'+esc(x.name)+'</strong><small>'+esc(x.note)+'</small></div><b>'+x.percent+'%<small>'+fmt(x.monthly)+'/bulan</small></b></div>').join('')+'</div>'+
-      '<div class="invest-goal-watch"><div class="invest-goal-watch-icon">📰</div><div><h4>Emiten IPO Mendatang — Hanya yang Terverifikasi</h4>'+
-      '<p>Nama emiten, tahap penawaran, dan jadwal ditampilkan bila e-IPO resmi berhasil dibaca. <strong>Tidak harus membeli.</strong> Jika data tidak tersedia, sistem tidak akan mengarang jadwal atau kandidat IPO.</p>'+
-      (window.PAAX_OPPORTUNITY?.renderIPO()||'<p>Memeriksa e-IPO resmi…</p>')+
+      '<div class="invest-goal-watch invest-goal-watch-multitype"><div class="invest-goal-watch-icon">🔭</div><div><h4>Peluang Investasi Mendatang yang Sesuai Tujuan</h4>'+
+      '<p>Berisi jadwal <strong>SBN / sukuk</strong>, riset <strong>RDPU / reksa dana</strong>, perkembangan <strong>emas</strong> dan <strong>ETF</strong>, serta <strong>IPO saham</strong> bila sudah diumumkan resmi. Peluang disusun menurut tenggat rencana ini; <strong>tidak harus membeli sekarang</strong>.</p>'+
+      (window.PAAX_OPPORTUNITY?.renderOpportunities({name:chosen.name,type:chosen.type,due:chosen.due,months:report.months,target:report.target})||'<p>Menyiapkan kalender peluang investasi…</p>')+
       '</div></div>'+
       '<div class="invest-goal-ai"><div class="invest-goal-ai-intro"><span>🧠</span><div><strong>Analisis AI untuk '+esc(selectedLabel)+'</strong>'+
-      '<small>Gemini mengulas tujuan dan lokasi dalam judul, pembanding harga lokal jika tersedia, arus kas, portofolio, serta penawaran IPO resmi. Persentase dasar tetap dihitung sistem.</small></div>'+
+      '<small>Gemini mengulas tujuan, kebutuhan lokal, kondisi arus kas, portofolio, serta peluang SBN, RDPU, emas, ETF, dan IPO yang terverifikasi. Tidak semua peluang harus dibeli.</small></div>'+
       '<button type="button" data-invest-goal-ai '+(aiState?.busy?'disabled':'')+'>'+(aiState?.busy?'⏳ Menganalisis…':aiState?.result?'↻ Analisis Ulang':'✨ Jelaskan dengan AI')+'</button></div>'+
       (aiState?.error?'<div class="invest-goal-ai-error" role="alert">'+esc(aiState.error)+'</div>':'')+
       (aiState?.result?'<div class="invest-goal-ai-content"><h4>'+esc(aiState.result.headline)+'</h4><p>'+esc(aiState.result.summary)+'</p>'+
@@ -218,7 +218,7 @@ if(goalCSS)goalCSS.href='./investment-goals.css?v=2';
  }
 
 const opportunityScript=document.createElement('script');
-opportunityScript.src='./investment-opportunities.js?v=1';
+opportunityScript.src='./investment-opportunities.js?v=2';
 opportunityScript.onload=()=>{
  if(!goalModalOpen)rerenderGoalOnly();
  void window.PAAX_OPPORTUNITY?.loadIpo();
@@ -231,7 +231,7 @@ document.addEventListener('click',event=>{
  void window.PAAX_OPPORTUNITY?.loadIpo(true);
 },true);
 const opportunityCss=document.createElement('link');
-opportunityCss.rel='stylesheet';opportunityCss.href='./investment-opportunities.css?v=1';
+opportunityCss.rel='stylesheet';opportunityCss.href='./investment-opportunities.css?v=2';
 document.head.appendChild(opportunityCss);
 
  window.PAAX_INVEST_GOALS={KINDS,ASSETS,plan,renderCard,addMonths};

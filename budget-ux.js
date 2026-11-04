@@ -15,6 +15,25 @@ function setupPeriod(){
  const label=document.querySelector('.month-pill.month-pill-highlight');
  const input=document.getElementById('month-input');
  if(!label||!input||label.dataset.budgetUx==='ready')return;
+ // The shared month picker now wraps input#month-input in .pax-month-shell.
+ // Do NOT run this legacy period popup after it is installed: insertBefore
+ // with the nested input as reference used to throw NotFoundError, aborting
+ // initialization of all animated budget/transfer dialogs below.
+ if(window.PAAX_MONTH_PICKER){
+  window.PAAX_MONTH_PICKER.enhance(label);
+  const shell=input.closest('.pax-month-shell');
+  if(shell&&label.contains(shell)){
+   label.dataset.budgetUx='ready';
+   label.classList.add('budget-ux-period-modern');
+   if(!label.querySelector('.budget-ux-period-modern-heading')){
+    const heading=node('div','budget-ux-period-modern-heading');
+    heading.append(node('span','budget-ux-period-top','PERIODE KEUANGAN'));
+    shell.parentElement.insertBefore(heading,shell);
+    heading.append(shell);
+   }
+   return;
+  }
+ }
  label.dataset.budgetUx='ready';
  label.tabIndex=0;
  label.setAttribute('role','button');
@@ -750,8 +769,7 @@ function buildFlowPreview(form){
 function enhanceBudgetDialog(){
  const modal=document.getElementById('budget-flow-backdrop');
  if(!modal){closeAll();return;}
-  if(modal.dataset.budgetUx==='ready')return;
- modal.dataset.budgetUx='ready';
+ if(modal.dataset.budgetUx==='ready')return;
  modal.querySelectorAll('.budget-pos-action-choices > button').forEach(function(button){
   const kind=button.dataset.budgetChoice;
   const icons={base:'📝',move:'🔀'};
@@ -777,6 +795,8 @@ function enhanceBudgetDialog(){
   setupAdjustType(adjust);
   populatePicker(adjust.querySelector('select[name="categoryId"]'));
  }
+ // Mark enhanced only after the controls are successfully mounted.
+ modal.dataset.budgetUx='ready';
 }
 document.addEventListener('click',function(e){
  const path=typeof e.composedPath==='function'?e.composedPath():[];
@@ -801,8 +821,13 @@ document.addEventListener('keydown',function(e){
 },true);
 
 function init(){
- setupPeriod();enhanceBudgetDialog();
- new MutationObserver(function(){enhanceBudgetDialog()}).observe(document.body,{childList:true});
+ // Keep the budget selector independent from calendar/header enhancements.
+ // A period UI failure must never disable the animated transfer experience.
+ try{setupPeriod()}catch(err){console.error('[Paaxixi] Period UI:',err);}
+ try{enhanceBudgetDialog()}catch(err){console.error('[Paaxixi] Budget dialog:',err);}
+ new MutationObserver(function(){
+  try{enhanceBudgetDialog()}catch(err){console.error('[Paaxixi] Budget dialog:',err);}
+ }).observe(document.body,{childList:true});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

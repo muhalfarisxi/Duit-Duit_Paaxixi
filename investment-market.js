@@ -14,7 +14,7 @@
   const quoteType=String(item?.quoteType||'').toUpperCase();
   const isIdx=/\.JK$/.test(symbol),isCrypto=/-IDR$/.test(symbol);
   let type=null;
-  if(isIdx&&quoteType==='EQUITY')type='stock';
+  if(isIdx&&quoteType==='EQUITY')type=/-W(?:[0-9]*)\.JK$/.test(symbol)?'warrant':'stock';
   else if(isIdx&&(quoteType==='ETF'||quoteType==='MUTUALFUND'))type='etf';
   else if(isIdx&&['INDEX','OTHER'].includes(quoteType))type=null;
   else if(isCrypto&&(quoteType==='CRYPTOCURRENCY'||quoteType==='CRYPTO'))type='crypto';
@@ -29,33 +29,25 @@
   const abort=new AbortController();
   const clock=setTimeout(()=>abort.abort(),12000);
   try{
-   const response=await fetch('https://proxy.cors.dev/'+queryUrl(q),{
-    method:'GET',mode:'cors',credentials:'omit',signal:abort.signal,cache:'no-store'});
-   if(!response.ok)throw Error('Pencarian pasar HTTP '+response.status);
-   const data=await response.json();
-   if(!Array.isArray(data?.quotes))throw Error('Sumber pasar tidak mengembalikan daftar instrumen.');
-   const used=new Set();
-   return data.quotes.map(listedItem).filter(item=>{
-    if(!item||used.has(item.symbol))return false;
-    used.add(item.symbol);return true;
+   const fetchQuotes=async term=>{
+    const response=await fetch('https://proxy.cors.dev/'+queryUrl(term),{
+     method:'GET',mode:'cors',credentials:'omit',signal:abort.signal,cache:'no-store'});
+    if(!response.ok)throw Error('Pencarian pasar HTTP '+response.status);
+    const data=await response.json();
+    if(!Array.isArray(data?.quotes))throw Error('Daftar dari sumber pasar belum tersedia.');
+    return data.quotes;
+   };
+   let quotes=await fetchQuotes(q);
+   let items=quotes.map(listedItem).filter(Boolean);
+   // Some crypto symbols appear only when the IDR pair is searched explicitly.
+   if(!items.length&&/^[A-Z0-9]{2,10}$/i.test(q))
+    items=(await fetchQuotes(q.toUpperCase()+'-IDR')).map(listedItem).filter(Boolean);
+   const unique=new Set();
+   return items.filter(item=>{
+    if(unique.has(item.symbol))return false;
+    unique.add(item.symbol);return true;
    }).slice(0,14);
   }finally{clearTimeout(clock)}
- }
-
- const CRYPTO=new Set(['BTC','ETH','SOL','BNB','XRP','ADA','DOGE','AVAX','DOT','LTC','LINK','TRX','SHIB','BCH','UNI']);
- const positive=v=>Number.isFinite(Number(v))&&Number(v)>0&&Number(v)<1e13;
- function ticker(asset){
-  if(!asset||!asset.symbol)return null;
-  const symbol=String(asset.symbol).trim().toUpperCase();
-  if(IDX_TYPES.has(asset.type)){
-   if(!/^[A-Z0-9]{3,10}(?:\.JK)?$/.test(symbol))return null;
-   return symbol.endsWith('.JK')?symbol:symbol+'.JK';
-  }
-  if(asset.type==='crypto'){
-   const base=symbol.replace(/[-/]IDR$/,'');
-   return /^[A-Z0-9]{2,15}$/.test(base)?base+'-IDR':null;
-  }
-  return null;
  }
  async function chart(symbol,range,interval){
   if(!/^[A-Z0-9.^=_-]{3,30}$/.test(symbol))throw Error('Kode bursa tidak valid.');

@@ -24,6 +24,13 @@
 #content .archive-toolbar-actions .btn{padding:13px 15px;min-height:44px;border-radius:14px;font-weight:900;font-size:12px}
 #content .archive-toolbar-actions .archive-save-btn{background:linear-gradient(120deg,#2a6eeb,#2455cd);border-color:#2866db;color:white;box-shadow:0 7px 16px #2160d738}
 #content .archive-toolbar-actions .archive-pdf-btn{background:#fff;border:1px solid #9dbef7;color:#28569b}
+#content .archive-toolbar-actions .archive-quick-pdf-btn{background:linear-gradient(120deg,#f8fafc,#eef4fc);border:1px solid #d2dfef;color:#4e6b8c;box-shadow:none}
+#content .archive-toolbar-actions .archive-quick-pdf-btn:hover:not(:disabled){background:#e5eef9;border-color:#9dbde9;color:#224d80}
+#content .archive-toolbar-actions .archive-pdf-btn{border-color:#ad925d;background:linear-gradient(120deg,#fffdf8,#f8f1e6);color:#755a2b}
+#content .archive-toolbar-actions .archive-pdf-btn:not(:disabled):hover{background:#284e72;border-color:#284e72;color:#fff}
+#content .archive-toolbar-actions .archive-pdf-btn:disabled,
+#content .archive-toolbar-actions .archive-quick-pdf-btn:disabled{opacity:.52;cursor:not-allowed}
+
 #content .archive-toolbar-actions .archive-pdf-btn:not(:disabled):hover{color:#fff;background:#2e6fca}
 #content .archive-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 #content .archive-kpi{position:relative;display:flex;align-items:flex-start;gap:9px;min-width:0;min-height:125px;padding:17px 14px;border-radius:21px;overflow:hidden;border:1px solid #dce8fa;background:#fff;box-shadow:0 10px 22px #355c9c12;transition:transform .25s,box-shadow .25s;animation:archive-rise .46s both}

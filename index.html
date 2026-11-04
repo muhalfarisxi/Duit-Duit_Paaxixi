@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#102a4e">
-<meta name="paax-build" content="20261104-financial-analyst-ai-v25">
+<meta name="paax-build" content="20261104-multisource-market-v26">
 <title>Duit-Duit Paaxixi | Catatan Keuangan Pribadi</title>
 <link rel="icon" type="image/png" sizes="64x64" href="./favicon-paaxixi.png?v=2">
 <link rel="apple-touch-icon" href="./profil-paaxixi.png?v=2">
@@ -14,6 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./investment-goals.css?v=1">
+<link rel="stylesheet" href="./investment-intelligence.css?v=1">
 <style>
 :root{--navy:#102a4e;--navy2:#173d6c;--teal:#2563eb;--mint:#e7f0ff;--bg:#f4f7fc;--white:#fff;--text:#182e50;--muted:#7a8ba6;--line:#e1eaf7;--amber:#b87718;--rose:#c55150;--purple:#7770c2;--shadow:0 12px 38px rgba(22,57,112,.07)}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.48 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}a{color:var(--teal)}
@@ -7536,6 +7537,7 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 <script src="./month-picker.js?v=1"></script>
 <script src="./investment-market.js?v=6"></script>
 <script src="./investment-goals.js?v=2"></script>
+<script src="./investment-intelligence.js?v=1"></script>
 <script>
 (()=>{'use strict';
 const KEY='arus-prototype-v1';
@@ -7672,6 +7674,8 @@ function normalizeExpenseGroups(value){
  investmentSnapshots:Array.isArray(value?.investmentSnapshots)?value.investmentSnapshots.filter(p=>p&&/^\d{4}-\d{2}-\d{2}$/.test(p.date)&&Number.isFinite(Number(p.value))):[],
  investmentPriceHistory:value?.investmentPriceHistory&&typeof value.investmentPriceHistory==='object'&&!Array.isArray(value.investmentPriceHistory)?value.investmentPriceHistory:{},
  investmentGoals:Array.isArray(value?.investmentGoals)?value.investmentGoals.filter(g=>g&&typeof g.id==='string'&&typeof g.name==='string'&&typeof g.due==='string'&&Number.isFinite(Number(g.target))&&Number(g.target)>0).slice(0,12):[],
+ investmentWatchlist:window.PAAX_MARKET_INTEL?.cleanWatchlist(value?.investmentWatchlist)||[],
+ investmentResearch:window.PAAX_MARKET_INTEL?.cleanResearch(value?.investmentResearch)||[],
  budgetInitialStates:(()=>{
   const states={};
   for(const [month,state] of Object.entries(value?.budgetInitialStates||{})){
@@ -7687,7 +7691,7 @@ function normalizeExpenseGroups(value){
  })()};
 }
 const expenseGroups=()=>db.expenseGroups;
-const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],budgetAdjustments:[],budgetBaseHistory:[],budgetInitialStates:{},debts:[],accountCorrections:[],investmentAssets:[],investmentTrades:[],investmentSnapshots:[],investmentPriceHistory:{},investmentGoals:[],reports:{}});
+const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],budgetAdjustments:[],budgetBaseHistory:[],budgetInitialStates:{},debts:[],accountCorrections:[],investmentAssets:[],investmentTrades:[],investmentSnapshots:[],investmentPriceHistory:{},investmentGoals:[],investmentWatchlist:[],investmentResearch:[],reports:{}});
 function load(){try{let v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.accounts)&&Array.isArray(v.categories)&&Array.isArray(v.transactions)&&Array.isArray(v.debts)&&v.budgets&&Array.isArray(v.budgetMoves))return normalizeExpenseGroups(v);}catch(e){}return fresh()}
 let db=load();db.reports=db.reports||{};
 let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,accountEditorOpen:false,accountAdjustId:null,cloudModalOpen:false,investmentModal:null,investmentFilter:'all',investmentGroup:'all',investmentTrendMode:'month',investmentTrendMonth:null,investmentHistoryCount:40,debtEditId:null,debtEditorOpen:false,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,budgetExpandedGroups:null,budgetDetailExpandedGroups:[],budgetEditExpandedGroups:[],budgetSection:'detail',comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,trendRangePopup:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupType:'receivable',debtPopupFilter:'open',incomeTrendMode:'month',incomeTrendFrom:'',incomeTrendTo:'',incomeTrendRangeOpen:false,incomePieMonth:null,incomeMonthMenuOpen:false,incomeFilter:{preset:'month',from:'',to:'',group:null},incomeTrendVisible:null,reportMonth:currentMonth()};
@@ -8545,6 +8549,7 @@ function render(){
  paaxAiSchedule();
  investAutoMaybeFetch();
  investGoalMaybeFetch();
+ marketIntelMaybeFetch();
 }
 const QUOTES_GEN_Z=[
  'Kalau lagu Bernadya bisa di-repeat, pengeluaranmu juga wajib di-review, Alfa. 🎧',
@@ -9560,7 +9565,8 @@ function paaxAiSummaryPayload(){
   anggaranPerPos:budget,
   trenTerpilih:{mode:trend.mode,dari:trend.range.from,sampai:trend.range.to,
    rentangDibatasi:trend.trimmed,periodik:trendTotals},
-  kesehatanKeuangan:paaxFinanceAiContext(),portofolioInvestasi:paaxPortfolioAiContext()
+  kesehatanKeuangan:paaxFinanceAiContext(),portofolioInvestasi:paaxPortfolioAiContext(),
+  dataPasarRiset:marketIntelAiPayload()
  };
 }
 
@@ -12810,6 +12816,79 @@ const investGoalUi={
 };
 function investGoalList(){return Array.isArray(db.investmentGoals)?db.investmentGoals:[];}
 function investGoalSelected(){return investGoalList().find(g=>g.id===investGoalUi.selected)||null;}
+
+/* Transparent market intelligence, sourced public prices plus user-verified
+   Stockbit/Ajaib research snapshots. External APIs receive symbols only. */
+const marketIntelUi={busy:false,lastCheck:0,data:null,error:''};
+function marketIntelRender(){
+ return window.PAAX_MARKET_INTEL?.render(marketIntelUi,db.investmentWatchlist||[],
+   db.investmentResearch||[],h,money)||'<section class="card">Modul riset pasar belum tersedia. Segarkan halaman.</section>';
+}
+function marketIntelAiPayload(){
+ return window.PAAX_MARKET_INTEL?.aiContext(marketIntelUi.data,db.investmentResearch||[])
+  ||{availability:'module-unavailable',note:'Sumber data pasar tidak dapat diakses; jangan berasumsi ada harga live.'};
+}
+function marketIntelSymbols(){
+ const own=(db.investmentAssets||[]).filter(a=>a.type==='stock'&&a.symbol).map(a=>a.symbol);
+ return {watched:db.investmentWatchlist||[],owned:own};
+}
+async function marketIntelRefresh(force=false){
+ if(marketIntelUi.busy||!window.PAAX_MARKET_INTEL)return;
+ if(!force&&Date.now()-marketIntelUi.lastCheck<10*60000)return;
+ marketIntelUi.lastCheck=Date.now();marketIntelUi.busy=true;marketIntelUi.error='';
+ if(ui.view==='investments'&&!document.activeElement?.closest?.('#market-watch-form,#invest-research-form'))render();
+ try{
+  const symbols=marketIntelSymbols();
+  marketIntelUi.data=await window.PAAX_MARKET_INTEL.loadMarket(symbols.watched,symbols.owned);
+  marketIntelUi.error=(marketIntelUi.data.errors||[]).length?
+   'Beberapa sumber harga sedang tidak tersedia; hasil yang berhasil tetap ditampilkan.':'';
+ }catch(err){
+  marketIntelUi.error='Pengambilan data publik gagal: '+String(err?.message||err).slice(0,120);
+ }finally{
+  marketIntelUi.busy=false;
+  if(ui.view==='investments'&&!document.activeElement?.closest?.('#market-watch-form,#invest-research-form'))render();
+ }
+}
+function marketIntelMaybeFetch(){
+ if(ui.view!=='investments'||marketIntelUi.busy||Date.now()-marketIntelUi.lastCheck<10*60000)return;
+ setTimeout(()=>{if(ui.view==='investments')void marketIntelRefresh()},0);
+}
+function marketIntelWatch(form){
+ const symbol=String(new FormData(form).get('symbol')||'').trim().toUpperCase().replace(/\.JK$/,'');
+ if(!/^[A-Z0-9]{3,10}(?:-W[0-9]{0,2})?$/.test(symbol))return toast('Gunakan kode saham BEI yang valid, misalnya BBCA.',true);
+ db.investmentWatchlist=window.PAAX_MARKET_INTEL.cleanWatchlist(db.investmentWatchlist||[]);
+ if(db.investmentWatchlist.includes(symbol))return toast(symbol+' sudah dipantau.');
+ if(db.investmentWatchlist.length>=8)return toast('Maksimal delapan kode pantauan. Hapus salah satu sebelum menambah.',true);
+ db.investmentWatchlist.push(symbol);
+ if(!save())return;
+ render();void marketIntelRefresh(true);
+ toast(symbol+' masuk radar pantauan. Data harga dapat tertunda.');
+}
+function marketIntelResearchSave(form){
+ const f=new FormData(form),symbol=String(f.get('symbol')||'').trim().toUpperCase().replace(/\.JK$/,'');
+ const source=String(f.get('source')||''),date=String(f.get('date')||'');
+ if(!/^[A-Z0-9]{3,10}$/.test(symbol)||!['stockbit','ajaib','idx','other'].includes(source))
+  return toast('Isi kode dan sumber riset yang valid.',true);
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>analysisToday())
+  return toast('Tanggal riset tidak valid atau melebihi hari ini.',true);
+ const fields={per:[-1000,10000],pbv:[-1000,10000],roe:[-1000,1000],yield:[0,100]};const values={};
+ for(const [key,[min,max]] of Object.entries(fields)){
+  const val=String(f.get(key)||'').trim();
+  if(!val){values[key]=null;continue;}
+  const numVal=Number(val);
+  if(!Number.isFinite(numVal)||numVal<min||numVal>max)
+   return toast('Nilai '+key.toUpperCase()+' di luar batas yang valid.',true);
+  values[key]=numVal;
+ }
+ if(Object.values(values).every(v=>v===null))return toast('Isi minimal satu rasio fundamental.',true);
+ (db.investmentResearch||(db.investmentResearch=[])).push({
+  id:uid(),symbol,source,date,...values,createdAt:new Date().toISOString(),verification:'manual-unverified'
+ });
+ db.investmentResearch=db.investmentResearch.slice(-30);
+ if(!save())return;
+ render();toast('Riset '+symbol+' tersimpan sebagai catatan manual, bukan feed Stockbit/Ajaib.');
+}
+
 function renderInvestmentGoalCard(){
  return window.PAAX_INVEST_GOALS?.renderCard(investGoalList(),investGoalUi.selected,
   {busy:investGoalUi.aiBusy&&investGoalUi.aiGoalId===investGoalUi.selected,
@@ -12877,6 +12956,7 @@ async function investGoalAnalyze(){
    monthlyMinimum:plan.required,gap:plan.shortfall,
    allocation:plan.allocation.map(x=>({name:x.name,percent:x.percent,caveat:x.note})),
    financialContext:paaxFinanceAiContext(),portfolioContext:paaxPortfolioAiContext(),
+   marketResearch:marketIntelAiPayload(),
    market:investGoalUi.pulse?{value:investGoalUi.pulse.price,
     previousClose:investGoalUi.pulse.previousClose,asOf:investGoalUi.pulse.asOf}:null
   });
@@ -12927,6 +13007,7 @@ function renderInvestments(){
     <small>Rekening + investasi + piutang − utang</small></article>
   </div>
   ${renderInvestmentGoalCard()}
+  ${marketIntelRender()}
   <div class="invest-charts">
    <section class="card invest-trend-card"><div class="card-head invest-trend-header"><div><h3>Perkembangan Nilai Portofolio</h3></div>
     <div class="invest-trend-modes" role="group" aria-label="Periode tren portofolio">
@@ -13944,9 +14025,9 @@ async function saveReport(){
 }
 
 function exportJSON(){let blob=new Blob([JSON.stringify({...db,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});let url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='duit-duit-paaxixi-cadangan-'+today()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),500);toast('File cadangan berhasil disiapkan.')}
-function validDb(o){return o&&Array.isArray(o.accounts)&&Array.isArray(o.transactions)&&Array.isArray(o.debts)&&Array.isArray(o.categories)&&Array.isArray(o.budgetMoves)&&o.budgets&&typeof o.budgets==='object'&&o.accounts.every(a=>a.id&&a.name&&Number.isFinite(Number(a.opening)))&&(!('accountCorrections' in o)||Array.isArray(o.accountCorrections)&&o.accountCorrections.every(a=>a&&typeof a.id==='string'&&typeof a.accountId==='string'&&typeof a.date==='string'&&['increase','decrease'].includes(a.type)&&Number(a.amount)>0))&&(!('investmentAssets' in o)||Array.isArray(o.investmentAssets)&&o.investmentAssets.every(a=>a&&typeof a.id==='string'&&typeof a.name==='string'&&typeof a.type==='string'&&/^[a-z][a-z_]{0,39}$/.test(a.type)))&&(!('investmentTrades' in o)||Array.isArray(o.investmentTrades)&&o.investmentTrades.every(t=>t&&typeof t.id==='string'&&typeof t.assetId==='string'&&['buy','sell','payout'].includes(t.type)&&typeof t.date==='string'&&Number.isFinite(Number(t.amount))))&&(!('investmentSnapshots' in o)||Array.isArray(o.investmentSnapshots)&&o.investmentSnapshots.every(p=>p&&typeof p.date==='string'&&Number.isFinite(Number(p.value))))&&(!('investmentGoals' in o)||Array.isArray(o.investmentGoals)&&o.investmentGoals.every(g=>g&&typeof g.id==='string'&&typeof g.name==='string'&&typeof g.due==='string'&&Number.isFinite(Number(g.target))&&Number(g.target)>0))&&o.transactions.every(t=>t.id&&t.type&&t.date&&Number.isFinite(Number(t.amount)))&&o.debts.every(d=>d.id&&d.type&&d.person&&Number.isFinite(Number(d.amount))&&Array.isArray(d.settlements))&&(!('expenseGroups' in o)||Array.isArray(o.expenseGroups)&&o.expenseGroups.every(g=>g&&typeof g.id==='string'&&typeof g.name==='string'&&typeof g.color==='string'))}
-async function importJSON(file){if(!file)return;try{if(file.size>3*1024*1024)throw Error('File terlalu besar.');let obj=JSON.parse(await file.text());if(!validDb(obj))throw Error('Format cadangan tidak cocok.');if(!(await paaxConfirm({title:'Impor Cadangan?',message:'Semua data keuangan di browser ini akan diganti dengan file cadangan. Ekspor data terkini terlebih dahulu jika masih diperlukan.',confirmText:'Ya, Impor',icon:'📦',warning:true})))return;db=normalizeExpenseGroups({version:2,accounts:obj.accounts,categories:obj.categories,expenseGroups:obj.expenseGroups,transactions:obj.transactions,budgets:obj.budgets,budgetMoves:obj.budgetMoves,debts:obj.debts,reports:obj.reports||{},budgetAdjustments:obj.budgetAdjustments,budgetBaseHistory:obj.budgetBaseHistory,budgetInitialStates:obj.budgetInitialStates,accountCorrections:obj.accountCorrections,investmentAssets:obj.investmentAssets,investmentTrades:obj.investmentTrades,investmentSnapshots:obj.investmentSnapshots,investmentPriceHistory:obj.investmentPriceHistory||{},investmentGoals:obj.investmentGoals||[]});save();setView('dashboard');toast('Data berhasil dipulihkan.')}catch(e){toast('Gagal mengimpor: '+e.message,true)}finally{document.getElementById('import-file').value=''}}
-document.addEventListener('submit',e=>{if(e.target.closest('form')){e.preventDefault();if(e.target.id==='invest-goal-form')investGoalSave(e.target);else handleForm(e.target)}});
+function validDb(o){return o&&Array.isArray(o.accounts)&&Array.isArray(o.transactions)&&Array.isArray(o.debts)&&Array.isArray(o.categories)&&Array.isArray(o.budgetMoves)&&o.budgets&&typeof o.budgets==='object'&&o.accounts.every(a=>a.id&&a.name&&Number.isFinite(Number(a.opening)))&&(!('accountCorrections' in o)||Array.isArray(o.accountCorrections)&&o.accountCorrections.every(a=>a&&typeof a.id==='string'&&typeof a.accountId==='string'&&typeof a.date==='string'&&['increase','decrease'].includes(a.type)&&Number(a.amount)>0))&&(!('investmentAssets' in o)||Array.isArray(o.investmentAssets)&&o.investmentAssets.every(a=>a&&typeof a.id==='string'&&typeof a.name==='string'&&typeof a.type==='string'&&/^[a-z][a-z_]{0,39}$/.test(a.type)))&&(!('investmentTrades' in o)||Array.isArray(o.investmentTrades)&&o.investmentTrades.every(t=>t&&typeof t.id==='string'&&typeof t.assetId==='string'&&['buy','sell','payout'].includes(t.type)&&typeof t.date==='string'&&Number.isFinite(Number(t.amount))))&&(!('investmentSnapshots' in o)||Array.isArray(o.investmentSnapshots)&&o.investmentSnapshots.every(p=>p&&typeof p.date==='string'&&Number.isFinite(Number(p.value))))&&(!('investmentGoals' in o)||Array.isArray(o.investmentGoals)&&o.investmentGoals.every(g=>g&&typeof g.id==='string'&&typeof g.name==='string'&&typeof g.due==='string'&&Number.isFinite(Number(g.target))&&Number(g.target)>0))&&(!('investmentWatchlist' in o)||Array.isArray(o.investmentWatchlist)&&o.investmentWatchlist.every(v=>typeof v==='string'))&&(!('investmentResearch' in o)||Array.isArray(o.investmentResearch)&&o.investmentResearch.every(v=>v&&typeof v.id==='string'&&typeof v.symbol==='string'&&typeof v.source==='string'))&&o.transactions.every(t=>t.id&&t.type&&t.date&&Number.isFinite(Number(t.amount)))&&o.debts.every(d=>d.id&&d.type&&d.person&&Number.isFinite(Number(d.amount))&&Array.isArray(d.settlements))&&(!('expenseGroups' in o)||Array.isArray(o.expenseGroups)&&o.expenseGroups.every(g=>g&&typeof g.id==='string'&&typeof g.name==='string'&&typeof g.color==='string'))}
+async function importJSON(file){if(!file)return;try{if(file.size>3*1024*1024)throw Error('File terlalu besar.');let obj=JSON.parse(await file.text());if(!validDb(obj))throw Error('Format cadangan tidak cocok.');if(!(await paaxConfirm({title:'Impor Cadangan?',message:'Semua data keuangan di browser ini akan diganti dengan file cadangan. Ekspor data terkini terlebih dahulu jika masih diperlukan.',confirmText:'Ya, Impor',icon:'📦',warning:true})))return;db=normalizeExpenseGroups({version:2,accounts:obj.accounts,categories:obj.categories,expenseGroups:obj.expenseGroups,transactions:obj.transactions,budgets:obj.budgets,budgetMoves:obj.budgetMoves,debts:obj.debts,reports:obj.reports||{},budgetAdjustments:obj.budgetAdjustments,budgetBaseHistory:obj.budgetBaseHistory,budgetInitialStates:obj.budgetInitialStates,accountCorrections:obj.accountCorrections,investmentAssets:obj.investmentAssets,investmentTrades:obj.investmentTrades,investmentSnapshots:obj.investmentSnapshots,investmentPriceHistory:obj.investmentPriceHistory||{},investmentGoals:obj.investmentGoals||[],investmentWatchlist:obj.investmentWatchlist||[],investmentResearch:obj.investmentResearch||[]});save();setView('dashboard');toast('Data berhasil dipulihkan.')}catch(e){toast('Gagal mengimpor: '+e.message,true)}finally{document.getElementById('import-file').value=''}}
+document.addEventListener('submit',e=>{if(e.target.closest('form')){e.preventDefault();if(e.target.id==='invest-goal-form')investGoalSave(e.target);else if(e.target.id==='market-watch-form')marketIntelWatch(e.target);else if(e.target.id==='invest-research-form')marketIntelResearchSave(e.target);else handleForm(e.target)}});
 function goEditTx(id){openTxModal('expense',id)}
 function adjustCompositionPopup(){
  const pop=document.querySelector('.comp-popover');
@@ -14127,6 +14208,23 @@ document.addEventListener('toggle',event=>{
  ui.budgetEditExpandedGroups=el.open?[...new Set([...old,id])]:old.filter(x=>x!==id);
 },true);
 document.addEventListener('click',async e=>{
+ const marketClick=e.target.closest?.('[data-market-intel-refresh],[data-market-watch-remove],[data-market-note-delete]');
+ if(marketClick&&ui.view==='investments'){
+  e.preventDefault();
+  if(marketClick.hasAttribute('data-market-intel-refresh')){void marketIntelRefresh(true);return;}
+  if(marketClick.dataset.marketWatchRemove!==undefined){
+   db.investmentWatchlist=(db.investmentWatchlist||[]).filter(s=>s!==marketClick.dataset.marketWatchRemove);
+   save();render();void marketIntelRefresh(true);return;
+  }
+  if(marketClick.dataset.marketNoteDelete!==undefined){
+   const record=(db.investmentResearch||[]).find(x=>x.id===marketClick.dataset.marketNoteDelete);
+   if(record&&await confirmDelete('Hapus catatan riset '+record.symbol+' ('+record.source+')?')){
+    db.investmentResearch=db.investmentResearch.filter(x=>x.id!==record.id);
+    save();render();toast('Catatan riset telah dihapus.');
+   }
+   return;
+  }
+ }
  const goalAction=e.target.closest?.('[data-invest-goal-select],[data-invest-goal-new],[data-invest-goal-delete],[data-invest-goal-market],[data-invest-goal-ai]');
  if(goalAction&&ui.view==='investments'){
   e.preventDefault();

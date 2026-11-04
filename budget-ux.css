@@ -861,3 +861,17 @@ dialog.budget-viz-portal .budget-viz-portal-pos{cursor:pointer}
  .budget-viz-trigger .budget-viz-chevron,.month-pill .budget-ux-period-caret,
  .budget-viz-portal-group-arrow,.budget-viz-portal-pos-check{transition:none!important}
 }
+
+/* Koeksistensi kalender bulan baru dengan kartu periode pada header.
+   Jangan pasang popup legacy; pilih bulan memakai satu tombol custom. */
+.month-pill.budget-ux-period-modern{cursor:default}
+.month-pill.budget-ux-period-modern .budget-ux-period-modern-heading{position:relative;z-index:1;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:2px;min-width:0;flex:1}
+.month-pill.budget-ux-period-modern .budget-ux-period-top{display:block;padding-left:2px}
+.month-pill.budget-ux-period-modern .pax-month-shell{min-width:160px;max-width:220px;width:100%;flex:1}
+.month-pill.budget-ux-period-modern .pax-month-trigger{min-height:32px;padding:2px 1px;border:0;background:transparent;box-shadow:none;font:900 16px/1.3 Fredoka,Nunito,sans-serif;transform:none;white-space:nowrap}
+.month-pill.budget-ux-period-modern .pax-month-trigger:hover{background:transparent;box-shadow:none;transform:none}
+.month-pill.budget-ux-period-modern .pax-month-trigger svg{width:20px;height:20px}
+@media(max-width:520px){
+ .month-pill.budget-ux-period-modern .pax-month-shell{min-width:120px}
+ .month-pill.budget-ux-period-modern .pax-month-trigger{font-size:13px}
+}

@@ -6,6 +6,42 @@
  'use strict';
  const ROOT='https://proxy.cors.dev/https://query1.finance.yahoo.com/v8/finance/chart/';
  const IDX_TYPES=new Set(['stock','warrant','etf','dire','dinfra','eba']);
+ const LISTED_TYPE_MAP={EQUITY:'stock',ETF:'etf',MUTUALFUND:'fund',CRYPTOCURRENCY:'crypto'};
+ const queryUrl=q=>'https://query1.finance.yahoo.com/v1/finance/search?q='+encodeURIComponent(q)+
+  '&quotesCount=25&newsCount=0&listsCount=0';
+ function listedItem(item){
+  const symbol=String(item?.symbol||'').trim().toUpperCase();
+  const quoteType=String(item?.quoteType||'').toUpperCase();
+  const isIdx=/\.JK$/.test(symbol),isCrypto=/-IDR$/.test(symbol);
+  let type=null;
+  if(isIdx&&quoteType==='EQUITY')type='stock';
+  else if(isIdx&&(quoteType==='ETF'||quoteType==='MUTUALFUND'))type='etf';
+  else if(isIdx&&['INDEX','OTHER'].includes(quoteType))type=null;
+  else if(isCrypto&&(quoteType==='CRYPTOCURRENCY'||quoteType==='CRYPTO'))type='crypto';
+  if(!type)return null;
+  const name=String(item.longname||item.shortname||item.name||'').trim().slice(0,85);
+  if(!name)return null;
+  return {symbol,name,type,quoteType,exchange:String(item.exchange||item.exchDisp||'').slice(0,30)};
+ }
+ async function search(query){
+  const q=String(query||'').trim().slice(0,60);
+  if(q.length<2)return [];
+  const abort=new AbortController();
+  const clock=setTimeout(()=>abort.abort(),12000);
+  try{
+   const response=await fetch('https://proxy.cors.dev/'+queryUrl(q),{
+    method:'GET',mode:'cors',credentials:'omit',signal:abort.signal,cache:'no-store'});
+   if(!response.ok)throw Error('Pencarian pasar HTTP '+response.status);
+   const data=await response.json();
+   if(!Array.isArray(data?.quotes))throw Error('Sumber pasar tidak mengembalikan daftar instrumen.');
+   const used=new Set();
+   return data.quotes.map(listedItem).filter(item=>{
+    if(!item||used.has(item.symbol))return false;
+    used.add(item.symbol);return true;
+   }).slice(0,14);
+  }finally{clearTimeout(clock)}
+ }
+
  const CRYPTO=new Set(['BTC','ETH','SOL','BNB','XRP','ADA','DOGE','AVAX','DOT','LTC','LINK','TRX','SHIB','BCH','UNI']);
  const positive=v=>Number.isFinite(Number(v))&&Number(v)>0&&Number(v)<1e13;
  function ticker(asset){
@@ -17,7 +53,7 @@
   }
   if(asset.type==='crypto'){
    const base=symbol.replace(/[-/]IDR$/,'');
-   return CRYPTO.has(base)?base+'-IDR':null;
+   return /^[A-Z0-9]{2,15}$/.test(base)?base+'-IDR':null;
   }
   return null;
  }
@@ -167,6 +203,6 @@
    '<p class="invest-trend-foot">Titik oranye menandakan harga instrumen belum lengkap; angka parsial tidak dianggap sebagai total portofolio. Periode berjalan menggunakan harga terkini yang tersedia.</p>';
  }
 
- window.PAAX_INVEST_MARKET={ticker,quote,monthly,portfolioMonthly,portfolioPeriods,trendHtml,source:'Yahoo Finance / cors.dev',
+ window.PAAX_INVEST_MARKET={ticker,quote,monthly,search,portfolioMonthly,portfolioPeriods,trendHtml,source:'Yahoo Finance / cors.dev',
   disclaimer:'Harga publik dapat tertunda atau tidak tersedia. Bursa BEI tidak selalu buka; pembaruan bukan streaming per transaksi.'};
 })();

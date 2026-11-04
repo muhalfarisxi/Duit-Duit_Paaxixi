@@ -12243,14 +12243,17 @@ function renderAccountTools(){
 }
 
 /* #147 Investasi: harga IDR manual; transaksi aset terpisah dari konsumsi. */
-const INVEST_TYPES={
- stock:{name:'Saham',emoji:'📈',unit:'lembar',color:'#397bdd'},
- crypto:{name:'Crypto',emoji:'🪙',unit:'koin',color:'#9a6bdd'},
- gold:{name:'Emas',emoji:'🥇',unit:'gram',color:'#c99841'},
- bond:{name:'SBN / Obligasi',emoji:'🏛️',unit:'unit',color:'#368fa0'},
- fund:{name:'Reksa Dana',emoji:'🌱',unit:'unit',color:'#269c79'},
- other:{name:'Aset Lain',emoji:'💎',unit:'unit',color:'#cb709d'}
-};
+const INVEST_GROUPS={"market":{"emoji":"📈","name":"Saham & Bursa"},"fund":{"emoji":"🌱","name":"Reksa Dana & ETF"},"bond":{"emoji":"🏛️","name":"Surat Berharga"},"bank":{"emoji":"🏦","name":"Deposito & Bank"},"real":{"emoji":"🥇","name":"Emas & Aset Riil"},"alternative":{"emoji":"🪙","name":"Digital & Pendanaan"},"other":{"emoji":"🧭","name":"Pensiun & Lainnya"}};
+const INVEST_TYPES={"stock":{"name":"Saham BEI","emoji":"📈","unit":"lembar","color":"#397bdd","group":"market"},"warrant":{"name":"Waran / HMETD","emoji":"📊","unit":"unit","color":"#5578c1","group":"market"},"crypto":{"name":"Aset Kripto","emoji":"🪙","unit":"koin","color":"#9a6bdd","group":"alternative"},"gold":{"name":"Emas / Logam Mulia","emoji":"🥇","unit":"gram","color":"#c99841","group":"real"},"bond":{"name":"SBN / Obligasi (Umum)","emoji":"🏛️","unit":"unit","color":"#368fa0","group":"bond"},"retail_sbn":{"name":"SBN Ritel (ORI / SBR)","emoji":"🇮🇩","unit":"unit","color":"#387eaa","group":"bond"},"state_sukuk":{"name":"Sukuk Negara (SR / ST)","emoji":"🌙","unit":"unit","color":"#4d9b91","group":"bond"},"corporate_bond":{"name":"Obligasi Korporasi","emoji":"📜","unit":"unit","color":"#6374b0","group":"bond"},"corporate_sukuk":{"name":"Sukuk Korporasi","emoji":"🕌","unit":"unit","color":"#6b9c94","group":"bond"},"fund":{"name":"Reksa Dana (Umum)","emoji":"🌱","unit":"unit","color":"#269c79","group":"fund"},"money_market_fund":{"name":"Reksa Dana Pasar Uang","emoji":"💵","unit":"unit","color":"#2fa387","group":"fund"},"fixed_income_fund":{"name":"Reksa Dana Pendapatan Tetap","emoji":"📗","unit":"unit","color":"#4986ac","group":"fund"},"mixed_fund":{"name":"Reksa Dana Campuran","emoji":"🍃","unit":"unit","color":"#719f61","group":"fund"},"equity_fund":{"name":"Reksa Dana Saham","emoji":"📈","unit":"unit","color":"#5091d3","group":"fund"},"index_fund":{"name":"Reksa Dana Indeks","emoji":"📉","unit":"unit","color":"#5688c9","group":"fund"},"etf":{"name":"ETF (Reksa Dana Bursa)","emoji":"🧺","unit":"unit","color":"#2b87b7","group":"fund"},"dire":{"name":"DIRE / REIT","emoji":"🏢","unit":"unit","color":"#7b8caa","group":"fund"},"dinfra":{"name":"Dana Investasi Infrastruktur","emoji":"🌉","unit":"unit","color":"#6b91aa","group":"fund"},"eba":{"name":"Efek Beragun Aset (EBA)","emoji":"🧾","unit":"unit","color":"#8299b7","group":"fund"},"deposit":{"name":"Deposito Berjangka","emoji":"🏦","unit":"unit","color":"#2f9b91","group":"bank"},"sharia_deposit":{"name":"Deposito Syariah","emoji":"🌙","unit":"unit","color":"#409c84","group":"bank"},"certificate_deposit":{"name":"Sertifikat Deposito","emoji":"💳","unit":"unit","color":"#539aa7","group":"bank"},"silver":{"name":"Perak / Logam Mulia Lain","emoji":"🥈","unit":"gram","color":"#8b9bb5","group":"real"},"property":{"name":"Properti / Bangunan","emoji":"🏠","unit":"unit","color":"#a47f66","group":"real"},"land":{"name":"Tanah / Lahan","emoji":"🌾","unit":"m²","color":"#9c9253","group":"real"},"commodity":{"name":"Komoditas Fisik","emoji":"📦","unit":"unit","color":"#b8895b","group":"real"},"p2p":{"name":"Pendanaan P2P (LPBBTI)","emoji":"🤝","unit":"unit","color":"#5897c1","group":"alternative"},"scf":{"name":"Securities Crowdfunding","emoji":"🚀","unit":"unit","color":"#8d72b7","group":"alternative"},"business":{"name":"Penyertaan Modal Usaha","emoji":"🛍️","unit":"unit","color":"#b17d8e","group":"alternative"},"pension":{"name":"Dana Pensiun (DPLK)","emoji":"🌳","unit":"unit","color":"#738f64","group":"other"},"unitlink":{"name":"Asuransi Unit Link (PAYDI)","emoji":"🛡️","unit":"unit","color":"#7584ae","group":"other"},"other":{"name":"Jenis Khusus / Lainnya","emoji":"💎","unit":"unit","color":"#cb709d","group":"other"}};
+function investTypeGroup(type){return INVEST_TYPES[type]?.group||'other';}
+function investTypeName(asset){return asset?.type==='other'&&String(asset.customType||'').trim()?String(asset.customType).trim():(INVEST_TYPES[asset?.type]||INVEST_TYPES.other).name;}
+function investTypeOptions(selected,group='all'){
+ return Object.entries(INVEST_GROUPS).filter(([key])=>group==='all'||key===group).map(([key,groupInfo])=>{
+  const opts=Object.entries(INVEST_TYPES).filter(([,value])=>value.group===key).map(([id,value])=>
+   `<option value="${id}" ${selected===id?'selected':''}>${value.emoji} ${h(value.name)}</option>`).join('');
+  return `<optgroup label="${h(groupInfo.name)}">${opts}</optgroup>`;
+ }).join('');
+}
 function investQty(raw){
  const str=String(raw??'').trim();
  if(!/^(?:\d+)(?:[,.]\d{1,8})?$/.test(str))return NaN;

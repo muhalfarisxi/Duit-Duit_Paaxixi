@@ -33,7 +33,7 @@ const quoteDate=stamp=>{
  return Number.isNaN(date.getTime())?'waktu harga tidak tersedia':
   date.toLocaleString('id-ID',{timeZone:'Asia/Jakarta',dateStyle:'short',timeStyle:'short'})+' WIB';
 };
-const number=v=>Number.isFinite(Number(v))?Number(v):null;
+const number=v=>(v===null||v===undefined||v===''?null:(Number.isFinite(Number(v))?Number(v):null));
 const sym=v=>String(v||'').trim().toUpperCase().replace(/\.(?:JK)$/i,'').replace(/[^A-Z0-9-]/g,'');
 const MONEY=n=>'Rp'+Math.round(Number(n)||0).toLocaleString('id-ID');
 const change=(price,previous)=>number(previous)>0?(Number(price)-Number(previous))/Number(previous)*100:null;

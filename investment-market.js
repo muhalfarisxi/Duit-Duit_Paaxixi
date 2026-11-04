@@ -120,6 +120,23 @@
   return {symbol,prices:values};
  }
 
+
+ /* IHSG context for the goal planner. Delayed public quote; not a trade signal.
+    No individual investment holdings are sent to this endpoint. */
+ async function benchmark(){
+  const data=await chart('^JKSE','5d','1d');
+  const rows=(data.indicators?.quote?.[0]?.close||[]).filter(positive);
+  let price=Number(data.meta.regularMarketPrice);
+  if(!positive(price))price=Number(rows.at(-1));
+  if(!positive(price))throw Error('Data IHSG belum tersedia.');
+  const previousClose=positive(data.meta.previousClose)?Number(data.meta.previousClose):
+   positive(data.meta.chartPreviousClose)?Number(data.meta.chartPreviousClose):
+   (rows.length>1?Number(rows.at(-2)):null);
+  const seconds=Number(data.meta.regularMarketTime)||Number(data.timestamp?.at(-1))||0;
+  return {symbol:'^JKSE',label:'IHSG',price,previousClose:positive(previousClose)?previousClose:null,
+   asOf:seconds?new Date(seconds*1000).toLocaleString('id-ID',{timeZone:'Asia/Jakarta',dateStyle:'medium',timeStyle:'short'}):'waktu tidak tersedia',
+   timestamp:seconds?new Date(seconds*1000).toISOString():'',provider:'Yahoo Finance / proxy publik'};
+ }
  /* Historical month-end market valuation. Never substitute today's price
     for a past month or silently display a partial sum as total portfolio. */
  function monthEnd(month){
@@ -218,6 +235,6 @@
    '<p class="invest-trend-foot">Titik oranye menandakan harga instrumen belum lengkap; angka parsial tidak dianggap sebagai total portofolio. Periode berjalan menggunakan harga terkini yang tersedia.</p>';
  }
 
- window.PAAX_INVEST_MARKET={ticker,quote,monthly,search,portfolioMonthly,portfolioPeriods,trendHtml,source:'Yahoo Finance / cors.dev',
+ window.PAAX_INVEST_MARKET={ticker,quote,monthly,benchmark,search,portfolioMonthly,portfolioPeriods,trendHtml,source:'Yahoo Finance / cors.dev',
   disclaimer:'Harga publik dapat tertunda atau tidak tersedia. Bursa BEI tidak selalu buka; pembaruan bukan streaming per transaksi.'};
 })();

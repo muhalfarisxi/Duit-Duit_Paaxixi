@@ -1,0 +1,60 @@
+
+/* Market intelligence: complementary to the goal planner; all controls are real. */
+.invest-intel{border:1px solid #cce2f6!important;background:linear-gradient(155deg,#fff,#f7fbff 78%)!important;overflow:hidden}
+.invest-intel-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
+.invest-intel-head h3{font:800 clamp(18px,2vw,22px)/1.28 Fredoka,Nunito,sans-serif;color:#234b7a;margin:5px 0 7px}
+.invest-intel-head p{font:650 12px/1.55 Nunito,sans-serif;color:#7388a7;margin:0}
+.invest-intel-eyebrow{font:900 10px Nunito,sans-serif;letter-spacing:1.25px;color:#2983a1}
+.invest-intel-refresh,.invest-intel-watch-form button,.invest-intel-note-editor button[type=submit]{color:#fff;background:linear-gradient(115deg,#158a9d,#3563a9);border:1px solid #4384a9;border-radius:12px;padding:11px 15px;font:900 12px Nunito,sans-serif;white-space:nowrap;transition:transform .16s}
+.invest-intel-refresh:hover,.invest-intel-watch-form button:hover{transform:translateY(-2px)}
+.invest-intel-status{display:flex;align-items:flex-start;gap:10px;background:#ecf6ff;border:1px solid #d5e8fb;border-radius:14px;padding:11px 14px;color:#617d9d;font:750 11px/1.55 Nunito,sans-serif}
+.invest-intel-status strong{color:#33567c}
+.invest-intel-light{flex:none;width:9px;height:9px;background:#aebacc;border-radius:50%;margin-top:4px}
+.invest-intel-light.ready{background:#3c9c85;box-shadow:0 0 0 4px #cdeee4}.invest-intel-light.loading{background:#e5a557;animation:intelPulse .8s ease-in-out infinite}
+.invest-intel-notice{color:#a36b37;font-size:11px;font-weight:750;background:#fffaee;border:1px solid #f1dfb9;border-radius:12px;padding:9px 13px;margin:12px 0}
+.invest-intel-market-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:14px 0}
+.invest-intel-block{padding:16px;border:1px solid #e1ecf7;border-radius:18px;background:#fff;min-width:0;box-shadow:0 6px 18px #1c61910a}
+.invest-intel-blockhead{display:flex;align-items:baseline;gap:7px;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
+.invest-intel-blockhead h4{margin:0;font:900 14px Nunito,sans-serif;color:#255681}
+.invest-intel-blockhead small{color:#849ab2;font:750 10px Nunito,sans-serif}
+.invest-intel-index{display:block;font:900 30px/1.25 Nunito,sans-serif;color:#174e79}
+.invest-intel-delta{display:block;font-weight:800;font-size:12px;color:#2d9d81;margin:6px 0}
+.invest-intel-block>small{font-size:10px;color:#96a7ba}
+.invest-intel-quote-list>div{display:flex;gap:10px;justify-content:space-between;border-top:1px solid #edf2f9;padding:9px 0}
+.invest-intel-quote-list>div:first-child{border-top:none}
+.invest-intel-quote-list>div>div{min-width:0}.invest-intel-quote-list b,.invest-intel-quote-list strong{display:block;color:#304f75;font-weight:900;font-size:12px}
+.invest-intel-quote-list small{display:block;color:#8799ab;font:700 10px/1.5 Nunito,sans-serif}.invest-intel-quote-list>div>div:last-child{text-align:right}
+.invest-intel-quote-list small.up,.invest-intel-stockrow b.up{color:#218c65}.invest-intel-quote-list small.down,.invest-intel-stockrow b.down{color:#c4555f}
+.invest-intel-empty{font-size:12px;line-height:1.6;color:#8799aa;margin:6px 0}
+.invest-intel-stock-block,.invest-intel-research{margin-top:13px;padding:16px;border-radius:18px;border:1px solid #dfebf7;background:#fff}
+.invest-intel-watch-form{display:flex;gap:10px}.invest-intel-watch-form .field{flex:1;min-width:0;max-width:320px;border-color:#d6e8f6}
+.invest-intel-watch-chips{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:11px 0}
+.invest-intel-watch-chips>span{display:flex;align-items:center;gap:8px;border:1px solid #cfe4f7;background:#f0f8ff;color:#37618a;border-radius:100px;padding:5px 6px 5px 11px;font-size:11px}
+.invest-intel-watch-chips button,.invest-intel-notes button{border:0;background:#fff;color:#b05462;border-radius:30px;width:24px;height:24px;display:grid;place-items:center;font-size:15px}
+.invest-intel-watch-chips small{font-size:11px;color:#8b9bb0;line-height:1.5}
+.invest-intel-stocklist{display:grid;gap:0;margin:8px 0 10px}
+.invest-intel-stockrow{display:grid;grid-template-columns:minmax(52px,.5fr) minmax(100px,1fr) minmax(60px,.6fr) minmax(110px,1fr);gap:10px;align-items:center;padding:10px 7px;border-top:1px solid #eaf0fa;font-size:11px;color:#526d88}
+.invest-intel-stockrow strong{color:#245f92;font-size:12px}
+.invest-intel-stockrow b{font-size:12px}.invest-intel-stockrow small{font-size:10px;color:#8c9db2;text-align:right}
+.invest-intel-footnote,.invest-intel-disclaimer{display:block;color:#8d9eb3;font:700 10px/1.6 Nunito,sans-serif}
+.invest-intel-links{display:flex;flex-wrap:wrap;gap:9px}
+.invest-intel-links a{display:inline-flex;gap:6px;align-items:center;text-decoration:none;padding:9px 11px;border-radius:12px;background:#eef6ff;border:1px solid #d7e8f8;font:850 11px Nunito,sans-serif;color:#3e6695;transition:transform .18s ease}
+.invest-intel-links a:hover{transform:translateY(-2px);background:#e2f0fd}
+.invest-intel-note-editor{margin-top:14px;border:1px solid #d9e7f8;border-radius:15px;background:#f8fbff;padding:11px 14px}
+.invest-intel-note-editor>summary{cursor:pointer;list-style:none;font:900 12px Nunito,sans-serif;color:#456798}
+.invest-intel-note-editor>summary::-webkit-details-marker{display:none}
+.invest-intel-note-editor>p{font-size:11px;color:#8296ad;line-height:1.6}
+.invest-intel-note-editor form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.invest-intel-note-editor form label{font:800 11px Nunito,sans-serif;color:#587397;display:flex;flex-direction:column;gap:6px;min-width:0}
+.invest-intel-note-editor form .field{font:700 12px Nunito,sans-serif;min-width:0;border-color:#dae7f7;min-height:42px}
+.invest-intel-note-editor button[type=submit]{grid-column:1/-1;justify-self:start}
+.invest-intel-notes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:13px}
+.invest-intel-notes>div{display:flex;align-items:start;justify-content:space-between;border:1px solid #e0eafa;border-radius:13px;background:#fafcff;padding:12px}
+.invest-intel-notes b{font-size:12px;color:#2d5884}
+.invest-intel-notes small{display:block;color:#8b9ba9;font-size:10px;margin:3px 0}
+.invest-intel-notes p{margin:3px 0;font-size:11px;color:#647d98}
+.invest-intel-disclaimer{margin:13px 2px 0}
+@keyframes intelPulse{0%,100%{opacity:.45}50%{opacity:1}}
+@media(max-width:800px){.invest-intel-market-grid{grid-template-columns:1fr}.invest-intel-head{align-items:flex-start}.invest-intel-stockrow{grid-template-columns:55px minmax(95px,1fr) 65px}.invest-intel-stockrow small{grid-column:2/-1;text-align:right}}
+@media(max-width:550px){.invest-intel-head{flex-direction:column}.invest-intel-refresh{align-self:flex-end}.invest-intel{padding:17px!important}.invest-intel-note-editor form{grid-template-columns:repeat(2,minmax(0,1fr))}.invest-intel-notes{grid-template-columns:1fr}.invest-intel-stock-block,.invest-intel-research{padding:12px}.invest-intel-watch-form button{padding:9px;font-size:11px}}
+@media(prefers-reduced-motion:reduce){.invest-intel-light.loading{animation:none}}

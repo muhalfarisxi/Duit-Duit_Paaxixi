@@ -133,7 +133,7 @@ const PAAX_FINANCIAL_ANALYST_RULES=[
  'Nilai investasi tanpa harga BUKAN nol dan bukan rugi total. Jangan hitung komposisi/ROI portofolio lengkap bila harga belum lengkap. Modal akun tanpa transaksi belum tentu dana darurat.',
  'Saham dicatat dalam LOT = 100 lembar; harga pasar dinyatakan per lembar. Jangan salah menyimpulkan jumlah maupun return.',
  'Utamakan dana darurat, kewajiban jatuh tempo, kesinambungan arus kas dan kecocokan tenor dengan tanggal tujuan sebelum mengejar return.',
- 'TUNGGU/PANTAU adalah rekomendasi sah bila penawaran produk belum tersedia, harga/kupon belum terverifikasi, atau tenor/risiko tak sesuai. Jelaskan indikator pemantauan, jangan menebak kapan kesempatan terbaik tiba.',
+ 'TUNGGU/PANTAU adalah rekomendasi sah untuk SELURUH instrumen (SBN/sukuk, emas, reksa dana pasar uang, ETF, obligasi, saham/IPO) bila penawaran produk belum tersedia, harga/kupon belum terverifikasi, atau tenor/risiko tak sesuai. Jangan fokus IPO saja; jelaskan indikator pemantauan tanpa menebak kesempatan terbaik.',
  'Jangan merekomendasikan ticker, produk, atau persentase alokasi baru tanpa data. Jika perlu, beri kriteria dan sarankan cek kanal resmi OJK, BEI, atau Kemenkeu.',
  'Untuk arsip, nilai portofolio snapshot yang memakai harga tersimpan saat arsip dibuat BUKAN otomatis harga historis pasar pada tanggal akhir periode.',
  'Data pasar berasal dari Yahoo Finance/CoinGecko publik dan mungkin tertunda atau gagal. Stockbit/Ajaib hanya rujukan riset dan input fundamental manual pengguna, bukan API resmi yang tersinkron. Jangan memperlakukan input manual tersebut sebagai data live atau hasil verifikasi independen.',
@@ -287,7 +287,7 @@ window.PAAX_AI_INVEST_GOAL=async function(summary){
    {name:'IHSG',value:n(summary.market.value),asOf:label(summary.market.asOf),
     previousClose:n(summary.market.previousClose),delayed:true}:{available:false},
   financialContext,portfolioContext,marketResearch,
-  goalSpecificMarket:window.PAAX_OPPORTUNITY?.contextForGoal(summary?.goal,summary?.category,summary?.target)||null
+  goalSpecificMarket:window.PAAX_OPPORTUNITY?.contextForGoal(summary?.goal,summary?.category,summary?.target,summary?.due)||null
  };
  const prompt=[
   ...PAAX_FINANCIAL_ANALYST_RULES,
@@ -299,8 +299,14 @@ window.PAAX_AI_INVEST_GOAL=async function(summary){
   'INSTRUKSI KUNCI: BACA KATEGORI DAN NAMA TUJUAN. Rekomendasi tidak boleh hanya mengulang daftar instrumen. Lakukan analisis KEBUTUHAN NYATA dari tujuan tersebut berdasarkan lokasi, harga, biaya, jadwal, dan kemampuan keuangan.',
   'Jika kategori/teks tujuan menunjuk RUMAH: cari wilayah dari goalSpecificMarket.region yang diekstrak dari nama tujuan. Jika tersedia property.benchmark, bandingkan target dana dengan beberapa harga penawaran listing sesuai batas geografis yang ditulis (Kecamatan Sragen berbeda dengan Kabupaten Sragen). Cantumkan sumber dan periode, sebut ini bukan rata-rata transaksi atau prediksi harga rumah pada tahun tujuan. Hitung selisih target terhadap pembanding. Pertimbangkan biaya pajak, notaris, renovasi, kondisi rumah, serta opsi DP/KPR dengan skenario contoh saja, bukan bunga bank yang dibuat-buat. Angka biaya hanya jika data menyediakannya. Jika tak ada sumber harga setempat, jangan mengarang rata-rata rumah.',
   'Jika kategori/teks tujuan menunjuk NIKAH: evaluasi kebutuhan venue, konsumsi, jumlah tamu, busana, dokumentasi, cadangan dana dan pemesanan vendor sesuai tanggal; jangan mengarang biaya lokal yang belum diverifikasi. Jika PENDIDIKAN: evaluasi uang masuk, UKT/SPP, biaya hidup, sewa, transportasi, jadwal semester dan inflasi sebagai risiko tanpa menciptakan persentase. Jika USAHA: pisahkan modal kerja, aset, risiko kas, dan masa balik modal yang belum diketahui. Untuk PENSIUN: horizon, kas darurat, kebutuhan biaya hidup dan risiko penarikan modal.',
-  'goalSpecificMarket.ipo hanya boleh menyebut NAMA emiten sebagai incoming jika statusnya Offering, Book Building, atau Waiting For Offering dan berasal dari e-IPO resmi pada tanggal pemeriksaan. Jangan menyebut canceled/closed atau halaman staging. Bila daftar resmi belum berhasil dibaca, nyatakan tidak ada nama terverifikasi dan bukan berarti tak ada IPO.',
-  'Untuk dana RUMAH yang dipakai dalam sekitar 3 tahun, IPO/saham baru berisiko tinggi walau profil risiko agresif. Jelaskan mengapa IPO harus dipisahkan dari dana tujuan dan jangan menganggap calon listing sebagai peluang pasti untung.',
+  'JANGAN BATASI peluang mendatang hanya pada IPO saham. Gunakan goalSpecificMarket.opportunities untuk mengulas SBN/sukuk, RDPU/reksa dana, emas, ETF, dan IPO. Bedakan peluang yang akan dibuka (jadwal tentatif), instrumen yang sudah tersedia, yang baru tercatat, serta produk yang belum memiliki rilis terverifikasi. Jangan menyebut yang sudah tersedia seolah produk yang akan meluncur.',
+  'Contoh ST017: masa penawaran tentatif 6 November–2 Desember 2026 berasal dari jadwal mitra distribusi. Jangan mengklaim kupon, tenor, fitur pelunasan atau penawaran sudah resmi dibuka sebelum konfirmasi penerbit terbaru. Untuk setiap SBN, evaluasi tenor dan pencairan dibanding tanggal kebutuhan tujuan.',
+  'Untuk RDPU: bila tidak ada produk baru bernama yang terverifikasi, evaluasi reksa dana pasar uang yang sudah tersedia berdasarkan NAB, biaya, portofolio, durasi dan risiko pencairan; jangan mengarang return, produk baru, atau menjamin modal tidak turun.',
+  'Untuk emas: beda emas fisik, emas digital, dan ETF emas; lihat harga jual, buyback/spread, biaya dan risiko fluktuasi. ETF emas yang sudah tercatat tidak boleh disebut upcoming. Harga ANTAM dari tautan resmi harus diverifikasi pada tanggal analisis.',
+  'Untuk calon IPO: goalSpecificMarket.ipo hanya boleh menyebut nama emiten incoming jika berstatus Offering, Book Building, atau Waiting For Offering dan datanya benar-benar berhasil dibaca dari e-IPO resmi saat pemeriksaan. Jangan menyebut rumor, cancelled/closed, atau staging.',
+  'Berikan maks 1-3 peluang PALING RELEVAN untuk tujuan dengan alasan kapan tepatnya mempertimbangkan, syarat menunggu, risiko, dan sumber yang masih perlu dikonfirmasi. Opsi menunggu lebih baik daripada beli segera bila belum ada kesesuaian tenor/produk/data.',
+
+  'Untuk dana RUMAH yang dipakai dalam sekitar 3 tahun, IPO/saham dan emas/ETF emas bisa berisiko tinggi karena nilai berfluktuasi walau profil risiko agresif. Jelaskan bahwa SBN yang terkunci hingga lewat tenggat juga tidak cocok. RDPU/alternatif likuid pun punya risiko dan perlu diverifikasi; jangan menganggap produk baru pasti lebih baik.',
   'Jika marketResearch.automaticFundamentals memberi PER PBV ROE/dividen, nilai perusahaan pantauan dengan alasan berbasis rasio dan kualitas data; jika data tidak cukup, jangan menentukan emiten terbaik.',
 
   'Nilai laba/rugi hanya bila posisi dan harga lengkap. Jika ada instrumen besar yang mendominasi, bahas risiko konsentrasi dengan angka hanya jika valid.',

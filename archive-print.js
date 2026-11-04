@@ -197,7 +197,7 @@
   '@media print{html{background:#fff}body{background:#fff}.formal-document{width:auto;min-height:auto;margin:0;padding:0;box-shadow:none}.formal-screen-toolbar{display:none!important}.formal-break-before{break-before:page;page-break-before:always}.formal-chart-pair,.formal-analysis,.formal-net,.formal-kpi{break-inside:avoid}}'+
   '@media(max-width:700px){.formal-document{width:100%;margin:0 auto;padding:16px}.formal-screen-toolbar{display:block}.formal-screen-toolbar button{margin-top:8px}.formal-chart-pair{gap:8px}.formal-donut{width:145px}.formal-donut-item{grid-template-columns:1fr auto;gap:4px}.formal-donut-item small{grid-column:2}.formal-kpi strong{font-size:11pt}}'+
   '</style></head><body>'+
-  '<div class="formal-screen-toolbar"><div><strong>Preview PDF Formal · Times New Roman</strong><p>Pilih printer "Save as PDF" / "Simpan sebagai PDF". Aktifkan cetak latar belakang untuk warna.</p></div>'+
+  '<div class="formal-screen-toolbar"><div><strong>Pratinjau Laporan PDF · Times New Roman</strong><p>Pilih printer "Save as PDF" / "Simpan sebagai PDF". Aktifkan cetak latar belakang untuk warna.</p></div>'+
   '<button onclick="window.print()">Cetak / Simpan PDF</button></div>'+
   '<main class="formal-document">'+summary(r)+analysis(r)+accounts(r)+budgets(r)+appendix(r)+'</main>'+
   '<footer class="formal-running-footer">Duit-Duit Paaxixi · Diarsipkan: '+E(fullTime(r.createdAt))+' · Dicetak/Diunduh: '+E(fullTime(r.exportTime))+'</footer>'+

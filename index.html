@@ -7437,6 +7437,23 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 
 .invest-asset-buttons button:disabled{opacity:.68;cursor:not-allowed;box-shadow:none!important;transform:none!important}
 .invest-asset-units{line-height:1.6}
+/* #164 Katalog instrumen pasar diambil saat mengetik, bukan daftar emiten statis. */
+.invest-market-search-field{position:relative;z-index:3}
+.invest-market-search-wrap{display:flex;align-items:center;gap:6px;border:1.5px solid #b8d6f5;border-radius:14px;background:linear-gradient(100deg,#f6faff,#fff);padding:4px 12px;transition:border-color .18s,box-shadow .18s}
+.invest-market-search-wrap:focus-within{border-color:#4389cf;box-shadow:0 0 0 3px #5e9fe529}
+.invest-market-search-wrap>span{font-size:18px}
+.invest-market-search-wrap input{border:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;min-width:0;flex:1}
+.invest-market-search-status{margin:7px 1px;color:#6987a6;font:750 11px/1.5 Nunito,sans-serif}
+.invest-market-search-status.error{color:#bd647b}
+.invest-market-search-results{display:grid;max-height:265px;overflow-y:auto;gap:5px;margin-top:8px;padding:7px;border:1px solid #c6dbf4;border-radius:14px;background:#fbfdff;box-shadow:0 7px 22px #2769a914}
+.invest-market-search-results[hidden]{display:none!important}
+.invest-market-search-results button{display:flex;align-items:center;justify-content:space-between;text-align:left;gap:8px;padding:11px 12px;border:1px solid #e1eaf8;border-radius:11px;background:#fff;cursor:pointer;transition:background .16s,transform .16s}
+.invest-market-search-results button:hover,.invest-market-search-results button:focus-visible{background:#eaf5ff;border-color:#acd1f7;transform:translateY(-1px)}
+.invest-market-search-results button>span{display:grid;gap:3px;min-width:0}
+.invest-market-search-results button strong{color:#225a8f;font:900 12px Nunito,sans-serif}
+.invest-market-search-results button small{color:#8298ad;font:750 10px/1.4 Nunito,sans-serif;overflow-wrap:anywhere}
+.invest-market-search-results button b{color:#246daa;font:900 11px Nunito,sans-serif;white-space:nowrap}
+@media(prefers-reduced-motion:reduce){.invest-market-search-results button{transition:none}}
 </style>
 <link rel="stylesheet" href="./budget-ux.css?v=15">
 <link rel="stylesheet" href="./archive-reports.css?v=13">
@@ -12498,6 +12515,18 @@ function renderInvestmentModal(){
   form=`<form id="invest-asset-form">
    <input type="hidden" name="editId" value="${h(asset?.id||'')}">
    <div class="form-grid">
+    <div class="form-field full invest-market-search-field">
+     <label class="field-label">Cari Instrumen dari Pasar (Kode / Nama)</label>
+     <div class="invest-market-search-wrap">
+      <span aria-hidden="true">🔎</span><input class="field" type="search" data-invest-market-search autocomplete="off"
+       placeholder="Contoh: BBCA, Bank Central Asia, Bitcoin, ETF...">
+     </div>
+     <div class="invest-market-search-status" data-invest-market-status aria-live="polite">
+      Ketik minimal 2 karakter. Hasil dicari langsung dari sumber pasar saat digunakan.
+     </div>
+     <div class="invest-market-search-results" data-invest-market-results hidden></div>
+     <small class="invest-field-help">Pilih hasil untuk mengisi kode, nama, dan jenis instrumen secara otomatis. Jika tidak tersedia, tetap bisa isi manual.</small>
+    </div>
     <div class="form-field"><label class="field-label">Jenis Investasi</label>
      <select class="field" name="type">${investTypeOptions(asset?.type||'stock')}</select>
      <small class="invest-field-help">Pilih kategori sesuai produknya. Nama instrumen dapat diisi lebih spesifik.</small></div>
@@ -12516,7 +12545,7 @@ function renderInvestmentModal(){
        ${(asset?.autoPrice!==false&&['stock','warrant','etf','dire','dinfra','eba','crypto'].includes(asset?.type||'stock'))?'checked':''}
        ${['stock','warrant','etf','dire','dinfra','eba','crypto'].includes(asset?.type||'stock')?'':'disabled'}>
        <span>⟳ Perbarui harga otomatis jika tersedia</span></label>
-     <small>Masukkan kode bursa, misalnya BBCA untuk BBCA.JK. Sumber harga publik dapat tertunda atau gagal. Aset nonbursa tetap menggunakan harga manual.</small>
+     <small>Instrumen BEI/ETF/kripto IDR yang berhasil ditemukan dapat menggunakan harga publik otomatis. Produk yang tidak tersedia di sumber harga tetap dicatat secara manual.</small>
     </div>
    </div><button type="submit" class="btn primary invest-form-submit">${editing?'✓ Simpan Perubahan':'＋ Tambah Aset'}</button></form>`;
  }else if(m.kind==='trade'){

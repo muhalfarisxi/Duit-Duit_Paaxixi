@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#102a4e">
-<meta name="paax-build" content="20261104-formal-print-times-v13">
+<meta name="paax-build" content="20261104-account-modal-sync-v14">
 <title>Duit-Duit Paaxixi | Catatan Keuangan Pribadi</title>
 <link rel="icon" type="image/png" sizes="64x64" href="./favicon-paaxixi.png?v=2">
 <link rel="apple-touch-icon" href="./profil-paaxixi.png?v=2">
@@ -7342,6 +7342,38 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 .budget-initial-confirm input{width:17px;height:17px;flex:none;margin:2px 0 0}
 @media(prefers-reduced-motion:reduce){.budget-pos-action-choices>button{transition:none}}
 
+/* #160 Rekening: edit/tambah berupa popup, riwayat tepat di bawah daftar. */
+.accounts-main-layout{grid-template-columns:minmax(0,1fr)}
+.accounts-list-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.accounts-list-section .card-head{gap:12px;flex-wrap:wrap}
+.account-add-btn{white-space:nowrap;border-radius:12px!important;box-shadow:0 6px 17px #245faa25;transition:transform .2s,box-shadow .2s}
+.account-add-btn:hover{transform:translateY(-3px);box-shadow:0 9px 22px #245faa35}
+.account-money-actions button[data-edit-account]{padding:5px 11px;font-size:11px;white-space:nowrap}
+.account-history-empty{margin:0;padding:17px;border:1px dashed #cadcf2;border-radius:14px;color:#6581a1;background:#f7fbff;font:750 12px/1.6 Nunito,sans-serif}
+.account-editor-backdrop,.cloud-dialog-backdrop{position:fixed;inset:0;z-index:6500;display:grid;place-items:center;padding:16px;background:#1027479e;backdrop-filter:blur(8px)}
+.cloud-dialog-backdrop{z-index:6800}
+.account-editor-dialog,.cloud-dialog{width:min(510px,100%);max-height:min(90dvh,880px);display:flex;flex-direction:column;overflow:hidden;background:#fff;border:1px solid #c1dafa;border-radius:24px;box-shadow:0 24px 70px #102c4e62;animation:accountReveal .28s ease both}
+.cloud-dialog{width:min(660px,100%)}
+.account-editor-head,.cloud-dialog-head{display:flex;align-items:center;gap:12px;padding:19px 21px;background:linear-gradient(115deg,#e5f2ff,#faf6ff);border-bottom:1px solid #d9e6fa}
+.account-editor-head>div,.cloud-dialog-head>div{display:grid;gap:4px;flex:1;min-width:0}
+.account-editor-head>span,.cloud-dialog-head>span{font-size:27px;flex:none}
+.account-editor-head strong,.cloud-dialog-head strong{font:600 23px/1.25 Fredoka,Nunito,sans-serif;color:#24598d}
+.account-editor-head small,.cloud-dialog-head small{color:#7791ad;font:750 11px/1.4 Nunito,sans-serif}
+.account-editor-head>button,.cloud-dialog-head>button{display:grid;place-items:center;flex:none;height:37px;width:37px;border:1px solid #cddff8;background:#fff;color:#4778b0;border-radius:12px;font-size:18px;transition:transform .18s}
+.account-editor-head>button:hover,.cloud-dialog-head>button:hover{transform:rotate(10deg)}
+.account-editor-content,.cloud-dialog-content{overflow-y:auto;overscroll-behavior:contain;padding:21px}
+.account-editor-content .form-grid{grid-template-columns:1fr;gap:13px}
+.account-editor-content .field{width:100%;min-height:46px}
+.account-editor-content .form-field{min-width:0}
+.account-editor-content .account-form-actions{margin-top:19px}
+.cloud-dialog-content .account-tools{border:0;background:none;border-radius:0;overflow:visible}
+.cloud-dialog-content .account-tools>summary{padding:0 0 14px;min-height:40px}
+.cloud-dialog-content .account-tools-body{padding:15px 0 0}
+.cloud-dialog-content .account-tools-body section{min-width:0}
+.cloud-dialog-content .account-tools-buttons button{max-width:100%}
+@media(max-width:660px){.accounts-list-section .card-head{align-items:flex-start}.accounts-list-actions{width:100%;justify-content:space-between}.account-add-btn{font-size:12px;padding:9px 11px}.account-editor-backdrop,.cloud-dialog-backdrop{padding:8px}.account-editor-dialog,.cloud-dialog{max-height:calc(100dvh - 16px);border-radius:18px}.account-editor-head,.cloud-dialog-head{padding:14px}.account-editor-head strong,.cloud-dialog-head strong{font-size:20px}.account-editor-content,.cloud-dialog-content{padding:15px}}
+@media(prefers-reduced-motion:reduce){.account-editor-dialog,.cloud-dialog{animation:none!important}.account-add-btn,.account-editor-head>button,.cloud-dialog-head>button{transition:none!important}}
+
 </style>
 <link rel="stylesheet" href="./budget-ux.css?v=15">
 <link rel="stylesheet" href="./archive-reports.css?v=13">
@@ -7409,7 +7441,7 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <input id="import-file" type="file" accept=".json,application/json" style="display:none">
-<script src="./archive-reports.js?v=12"></script>
+<script src="./archive-reports.js?v=14"></script>
 <script src="./archive-print.js?v=1"></script>
 <script src="./month-picker.js?v=1"></script>
 <script>
@@ -7564,13 +7596,13 @@ const expenseGroups=()=>db.expenseGroups;
 const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],budgetAdjustments:[],budgetBaseHistory:[],budgetInitialStates:{},debts:[],accountCorrections:[],investmentAssets:[],investmentTrades:[],investmentSnapshots:[],reports:{}});
 function load(){try{let v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.accounts)&&Array.isArray(v.categories)&&Array.isArray(v.transactions)&&Array.isArray(v.debts)&&v.budgets&&Array.isArray(v.budgetMoves))return normalizeExpenseGroups(v);}catch(e){}return fresh()}
 let db=load();db.reports=db.reports||{};
-let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,accountAdjustId:null,investmentModal:null,investmentFilter:'all',investmentHistoryCount:40,debtEditId:null,debtEditorOpen:false,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,budgetExpandedGroups:null,budgetDetailExpandedGroups:[],budgetEditExpandedGroups:[],budgetSection:'detail',comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,trendRangePopup:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupType:'receivable',debtPopupFilter:'open',incomeTrendMode:'month',incomeTrendFrom:'',incomeTrendTo:'',incomeTrendRangeOpen:false,incomePieMonth:null,incomeMonthMenuOpen:false,incomeFilter:{preset:'month',from:'',to:'',group:null},incomeTrendVisible:null,reportMonth:currentMonth()};
+let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,accountEditorOpen:false,accountAdjustId:null,cloudModalOpen:false,investmentModal:null,investmentFilter:'all',investmentHistoryCount:40,debtEditId:null,debtEditorOpen:false,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,budgetExpandedGroups:null,budgetDetailExpandedGroups:[],budgetEditExpandedGroups:[],budgetSection:'detail',comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,trendRangePopup:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupType:'receivable',debtPopupFilter:'open',incomeTrendMode:'month',incomeTrendFrom:'',incomeTrendTo:'',incomeTrendRangeOpen:false,incomePieMonth:null,incomeMonthMenuOpen:false,incomeFilter:{preset:'month',from:'',to:'',group:null},incomeTrendVisible:null,reportMonth:currentMonth()};
 let cloud={configured:false,signedIn:false,ready:false,email:'',busy:false,error:'',empty:false,pendingDecision:false};
 function syncBadge(){let b=document.getElementById('cloud-status');if(!b)return;
  b.className='cloud-state'+(cloud.signedIn&&cloud.ready&&!cloud.pendingDecision?' online':cloud.busy?' wait':'');
- b.textContent=cloud.signedIn?(cloud.pendingDecision?'◌ Cloud kosong · pilih data':cloud.ready?'● Tersinkron • '+cloud.email:'◌ Menyambung...'):(cloud.configured?'◯ Login untuk sinkron':'◯ Mode lokal');
+ b.textContent=cloud.signedIn?(cloud.pendingDecision?'◌ Cloud kosong · pilih data':cloud.ready?'● Tersinkron • '+cloud.email:'◌ Menyambung...'):(cloud.configured?'☁ Login / Sinkronisasi':'☁ Login / Sinkronisasi');
  if(cloud.error)b.textContent='⚠ Sinkronisasi gagal • lihat detail';
- b.title=cloud.error||b.textContent;
+ b.title=cloud.error||(cloud.configured?'Login, sinkronisasi, dan cadangan data':'Mode lokal. Buka pengaturan login dan cadangan.');
 }
 function normalizeDb(value){if(!validDb(value))throw Error('Data cloud tidak valid');return normalizeExpenseGroups({...fresh(),...value,reports:value.reports&&typeof value.reports==='object'?value.reports:{}})}
 function showError(e){toast('Gagal sinkronisasi: '+(e?.message||String(e)),true)}
@@ -7839,7 +7871,7 @@ function paxAnimateSaved(){
  if(saved.kind==='account'){selector='[data-edit-account]';key='editAccount'}
  if(selector){
   const btn=[...root.querySelectorAll(selector)].find(btn=>btn.dataset[key]===saved.id);
-  el=btn?.closest('.tx-recent-row,.tx-calendar-item,.review-item,.tx-search-result,.inline-line,.account-row,tr');
+  el=btn?.closest('.tx-recent-row,.tx-calendar-item,.review-item,.tx-search-result,.inline-line,.account-row,.account-money-card,tr');
  }
  if(saved.kind==='debt'){
   el=[...root.querySelectorAll('.debt-title')].find(x=>x.textContent.includes(saved.id))?.closest('.debt-row');
@@ -8370,7 +8402,7 @@ function render(){
  const expandedDebtDashIds=[...document.querySelectorAll('[data-debt-card-id]')].filter(card=>card.querySelector('.debt-dash-details[open]')).map(card=>card.dataset.debtCardId);
  labelNav();
  window.PAAX_MONTH_PICKER?.sync(document);
- document.getElementById('content').innerHTML=({dashboard:renderDash,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts,investments:renderInvestments}[ui.view])()+renderTxHistoryPopup()+renderTxSearchPopup()+renderTxModal()+renderTrendRangePopup()+renderIncomeTrendRangePopup()+renderIncomeMonthDialog()+renderDebtEditorPopup()+renderRepayPopup();
+ document.getElementById('content').innerHTML=({dashboard:renderDash,review:renderReview,budgets:renderBudgets,debts:renderDebts,reports:renderReports,accounts:renderAccounts,investments:renderInvestments}[ui.view])()+renderTxHistoryPopup()+renderTxSearchPopup()+renderTxModal()+renderTrendRangePopup()+renderIncomeTrendRangePopup()+renderIncomeMonthDialog()+renderDebtEditorPopup()+renderRepayPopup()+renderCloudDialog();
  if(ui.view==='dashboard'){const debtNotice=renderDebtDashboardReminder();if(debtNotice)document.getElementById('content').insertAdjacentHTML('afterbegin',debtNotice);}
  decoratePaaxixiSectionTitles();
  paaxObserveKpiWidths();
@@ -12173,12 +12205,21 @@ function renderAccountAdjustPopup(){
   </section>
  </div>`;
 }
+function renderCloudDialog(){
+ if(!ui.cloudModalOpen)return '';
+ return `<div class="cloud-dialog-backdrop" id="cloud-dialog-backdrop">
+  <section class="cloud-dialog" role="dialog" aria-modal="true" aria-labelledby="cloud-dialog-title">
+   <header class="cloud-dialog-head"><span aria-hidden="true">☁️</span><div><strong id="cloud-dialog-title">Login & Sinkronisasi</strong><small>Hubungkan perangkat dan kelola keamanan data</small></div><button type="button" data-cloud-dialog-close aria-label="Tutup login dan sinkronisasi">✕</button></header>
+   <div class="cloud-dialog-content">${renderAccountTools()}</div>
+  </section>
+ </div>`;
+}
 function renderAccountTools(){
  const c=cloud,notice=c.error?'⚠ Sinkronisasi bermasalah':c.pendingDecision?'⚠ Perlu keputusan':
   c.signedIn&&c.ready?'✓ Tersinkron':c.configured?'◯ Belum login':'◯ Mode lokal';
- return `<details class="account-tools" ${c.error||c.pendingDecision?'open':''}>
+ return `<details class="account-tools" open>
   <summary><span class="account-tools-emoji">☁️</span><span class="account-tools-titles">
-    <strong>Sinkronisasi & Cadangan Data</strong><small>Pengaturan dan keamanan data</small></span>
+    <strong>Status Cloud & Cadangan</strong><small>Periksa sinkronisasi sebelum mengelola cadangan</small></span>
     <span class="account-tools-status">${notice}</span></summary>
   <div class="account-tools-body">
    <section><h4>Sinkronisasi Cloud</h4>
@@ -12511,7 +12552,7 @@ function renderAccounts(){
     <span>Awal ${money(a.opening)}</span></div>
    <div class="account-money-actions">
     <button type="button" class="account-btn-adjust" data-account-adjust="${h(a.id)}">＋/− Sesuaikan</button>
-    <button type="button" data-edit-account="${h(a.id)}" aria-label="Edit ${h(a.name)}">✎</button>
+    <button type="button" data-edit-account="${h(a.id)}" aria-label="Edit rekening ${h(a.name)}" title="Edit Rekening">✎ Edit</button>
     <button type="button" data-delete-account="${h(a.id)}" aria-label="Hapus ${h(a.name)}">×</button></div>
   </article>`;
  }).join('');
@@ -12524,13 +12565,17 @@ function renderAccounts(){
   </section>
   <div class="accounts-main-layout">
    <section class="card accounts-list-section">
-    <div class="card-head"><div><h3>Rekening & Dompet</h3></div><span class="accounts-count">${db.accounts.length} aktif</span></div>
+    <div class="card-head"><div><h3>Rekening & Dompet</h3></div><div class="accounts-list-actions"><span class="accounts-count">${db.accounts.length} aktif</span><button type="button" class="btn teal account-add-btn" data-account-new>＋ Tambahkan Rekening</button></div></div>
     <div class="accounts-card-grid">${cards}</div>
    </section>
-   <section class="card accounts-new-section">
-    <div class="card-head"><div><h3>${editing?'Edit Rekening':'Tambah Rekening'}</h3></div>
-     <span class="account-new-emoji" aria-hidden="true">${editing?'✏️':'🌱'}</span></div>
-    <form id="account-form"><input name="editId" type="hidden" value="${h(editing?.id||'')}">
+   ${ui.accountEditorOpen?`<div class="account-editor-backdrop" id="account-editor-backdrop">
+    <section class="account-editor-dialog" role="dialog" aria-modal="true" aria-labelledby="account-editor-title">
+     <header class="account-editor-head"><span class="account-new-emoji" aria-hidden="true">${editing?'✏️':'🌱'}</span>
+      <div><strong id="account-editor-title">${editing?'Edit Rekening':'Tambahkan Rekening'}</strong>
+       <small>${editing?'Ubah nama atau jenis rekening. Penyesuaian saldo dicatat terpisah.':'Catat rekening atau dompet baru agar saldonya terpantau.'}</small></div>
+      <button type="button" data-account-editor-close aria-label="Tutup formulir rekening">✕</button></header>
+     <div class="account-editor-content">
+      <form id="account-form"><input name="editId" type="hidden" value="${h(editing?.id||'')}">
      <div class="form-grid">
       <div class="form-field full"><label class="field-label">Nama Rekening</label>
        <input class="field" name="name" maxlength="60" placeholder="Misalnya BRI Gaji"
@@ -12546,10 +12591,12 @@ function renderAccounts(){
      <div class="account-form-actions"><button type="submit" class="btn teal">${editing?'✓ Simpan':'＋ Tambah Rekening'}</button>
       ${editing?'<button type="button" class="btn" data-action="cancel-account-edit">Batal</button>':''}</div>
     </form>
-   </section>
+     </div>
+    </section>
+   </div>`:''}
   </div>
   ${history.length?`<section class="card account-history">
-    <div class="card-head"><div><h3>Riwayat Penyesuaian</h3></div><span class="accounts-count">${history.length} catatan</span></div>
+    <div class="card-head"><div><h3>Riwayat Penyesuaian Rekening</h3></div><span class="accounts-count">${history.length} catatan</span></div>
     <div class="account-history-list">${history.slice(0,30).map(c=>
      `<div class="account-history-row">
       <span class="account-history-icon ${c.type}">${c.type==='increase'?'＋':'−'}</span>
@@ -12558,8 +12605,7 @@ function renderAccounts(){
       <b class="${c.type}">${c.type==='increase'?'+':'−'}${money(c.amount)}</b>
       <button type="button" data-delete-account-correction="${h(c.id)}" aria-label="Hapus koreksi">×</button>
      </div>`).join('')}</div>
-   </section>`:''}
-  ${renderAccountTools()}
+   </section>`:`<section class="card account-history"><div class="card-head"><div><h3>Riwayat Penyesuaian Rekening</h3></div><span class="accounts-count">0 catatan</span></div><p class="account-history-empty">Belum ada penyesuaian saldo. Gunakan tombol Sesuaikan pada rekening untuk mencatat penambahan atau pengurangan beserta alasannya.</p></section>`}
   ${renderAccountAdjustPopup()}
  </div>`;
 }
@@ -12714,7 +12760,7 @@ function saveDeletedTransaction(){
  if(next)next.scrollTop=scroll;
  document.querySelector('#tx-search-backdrop #tx-search-input, #review-modal-backdrop [data-review-close], #tx-history-backdrop [data-close-tx-history]')?.focus({preventScroll:true});
 }
-function setView(view){closeBudgetFlowDialog(false);if(view==='transactions'){openTxHistory();return;}if(ui.view!==view){closeFinanceEditor();ui.reviewPopup=null;reviewPopupHistory=[];}ui.txModalOpen=false;ui.txEditId=null;ui.txHistoryOpen=false;ui.txSearchOpen=false;ui.txSearchQuery='';ui.debtEditorOpen=false;ui.debtEditId=null;ui.debtSelected=null;ui.repayEditId=null;ui.comp.menu=null;if(!['dashboard','review','budgets','debts','reports','accounts','investments'].includes(view))return;ui.investmentModal=null;ui.view=view;render();window.scrollTo({top:0,behavior:'smooth'})}
+function setView(view){closeBudgetFlowDialog(false);if(view==='transactions'){openTxHistory();return;}if(ui.view!==view){closeFinanceEditor();ui.reviewPopup=null;reviewPopupHistory=[];}ui.txModalOpen=false;ui.txEditId=null;ui.txHistoryOpen=false;ui.txSearchOpen=false;ui.txSearchQuery='';ui.debtEditorOpen=false;ui.debtEditId=null;ui.debtSelected=null;ui.repayEditId=null;ui.comp.menu=null;ui.accountEditorOpen=false;ui.accountEditId=null;ui.cloudModalOpen=false;if(!['dashboard','review','budgets','debts','reports','accounts','investments'].includes(view))return;ui.investmentModal=null;ui.view=view;render();window.scrollTo({top:0,behavior:'smooth'})}
 function demo(){
  if(cloud.signedIn){toast('Keluar dari akun cloud sebelum memuat simulasi.',true);return}
  const lastMonth=currentMonth();
@@ -13106,7 +13152,7 @@ if(id==='account-adjust-form'){
  db.accountCorrections.push({id:uid(),accountId,type:mode,amount,date,note});
  ui.accountAdjustId=null;save();render();toast('Penyesuaian saldo tercatat.');return;
 }
-if(id==='account-form'){let name=String(f.get('name')||'').trim(),opening=integer(f.get('opening')),editId=f.get('editId'),old=db.accounts.find(a=>a.id===editId);if(old)opening=num(old.opening);if(!name||!Number.isFinite(opening)||opening<0)return toast('Nama atau saldo awal tidak valid.',true);if(db.accounts.some(a=>a.id!==editId&&a.name.toLowerCase()===name.toLowerCase()))return toast('Nama rekening sudah ada.',true);if(old)Object.assign(old,{name,type:f.get('type'),opening});else db.accounts.push({id:uid(),name,type:f.get('type'),opening});paxMarkSaved('account',old?.id||db.accounts[db.accounts.length-1].id);ui.accountEditId=null;save();render();toast('Rekening berhasil disimpan.');return}
+if(id==='account-form'){let name=String(f.get('name')||'').trim(),opening=integer(f.get('opening')),editId=f.get('editId'),old=db.accounts.find(a=>a.id===editId);if(old)opening=num(old.opening);if(!name||!Number.isFinite(opening)||opening<0)return toast('Nama atau saldo awal tidak valid.',true);if(db.accounts.some(a=>a.id!==editId&&a.name.toLowerCase()===name.toLowerCase()))return toast('Nama rekening sudah ada.',true);if(old)Object.assign(old,{name,type:f.get('type'),opening});else db.accounts.push({id:uid(),name,type:f.get('type'),opening});paxMarkSaved('account',old?.id||db.accounts[db.accounts.length-1].id);ui.accountEditId=null;ui.accountEditorOpen=false;save();render();toast(old?'Rekening berhasil diperbarui.':'Rekening berhasil ditambahkan.');return}
 if(id==='expense-group-form'){
   const editId=String(f.get('editId')||''),old=expenseGroups().find(g=>g.id===editId);
   const name=String(f.get('name')||'').trim().replace(/\s+/g,' ').slice(0,45),color=String(f.get('color')||'');
@@ -13375,6 +13421,11 @@ document.addEventListener('pointerdown',event=>{
  if(ui.incomeMonthMenuOpen&&!event.target.closest('.income-month-picker')&&!event.target.closest('#income-month-menu'))dismissIncomeMonthMenu();
 });
 document.addEventListener('keydown',event=>{
+ if(ui.cloudModalOpen||ui.accountEditorOpen){
+  const cloudActive=ui.cloudModalOpen,dialog=document.querySelector(cloudActive?'.cloud-dialog':'.account-editor-dialog');
+  if(event.key==='Escape'){event.preventDefault();if(cloudActive)ui.cloudModalOpen=false;else{ui.accountEditorOpen=false;ui.accountEditId=null;}render();(cloudActive?document.getElementById('cloud-status'):document.querySelector('[data-account-new]'))?.focus({preventScroll:true});return;}
+  if(event.key==='Tab'&&dialog){const focusable=[...dialog.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),summary')].filter(el=>el.getClientRects().length);if(focusable.length){const first=focusable[0],last=focusable[focusable.length-1];if(event.shiftKey&&(document.activeElement===first||!dialog.contains(document.activeElement))){event.preventDefault();last.focus();}else if(!event.shiftKey&&(document.activeElement===last||!dialog.contains(document.activeElement))){event.preventDefault();first.focus();}}}return;
+ }
  if(ui.investmentModal&&event.key==='Escape'&&!document.querySelector('.pax-calendar-dialog')){event.preventDefault();ui.investmentModal=null;render();return;}
  if(ui.accountAdjustId&&event.key==='Escape'&&!document.querySelector('.pax-calendar-dialog')){event.preventDefault();ui.accountAdjustId=null;render();return;}
  const dialog=document.querySelector('#finance-editor-backdrop .finance-editor-dialog');
@@ -13587,6 +13638,8 @@ document.addEventListener('click',async e=>{
   return;
  }
  if(e.target.id==='account-adjust-backdrop'){ui.accountAdjustId=null;render();return;}
+ if(e.target.closest?.('[data-account-editor-close]')||e.target.id==='account-editor-backdrop'){ui.accountEditorOpen=false;ui.accountEditId=null;render();document.querySelector('[data-account-new]')?.focus({preventScroll:true});return;}
+ if(e.target.closest?.('[data-cloud-dialog-close]')||e.target.id==='cloud-dialog-backdrop'){ui.cloudModalOpen=false;render();document.getElementById('cloud-status')?.focus({preventScroll:true});return;}
  const establish=e.target.closest?.('[data-budget-establish]');
  if(establish){
   if(budgetIsEstablished())return toast('Anggaran awal bulan ini sudah ditetapkan.');
@@ -14010,7 +14063,8 @@ if(x.dataset.reviewSelect){ui.reviewPopup={type:'category',key:x.dataset.reviewS
 if(x.dataset.reviewDay){ui.reviewPopup={type:'tx-date',key:x.dataset.reviewDay};render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});return}
 if(x.hasAttribute('data-review-all')){ui.reviewPopup={type:'tx-all'};render();document.querySelector('[data-review-close]')?.focus({preventScroll:true});return}
 if(x.dataset.editTx){goEditTx(x.dataset.editTx);return}
-if(x.dataset.editAccount){ui.accountEditId=x.dataset.editAccount;render();return}
+if(x.hasAttribute('data-account-new')){ui.accountEditId=null;ui.accountEditorOpen=true;render();document.querySelector('#account-form [name="name"]')?.focus({preventScroll:true});return}
+if(x.dataset.editAccount){if(!acc(x.dataset.editAccount))return toast('Rekening tidak ditemukan.',true);ui.accountEditId=x.dataset.editAccount;ui.accountEditorOpen=true;render();document.querySelector('#account-form [name="name"]')?.focus({preventScroll:true});return}
 if(x.hasAttribute('data-tx-create-debt')){openTxModal('payable');return;}
 if(x.hasAttribute('data-debt-add')){openDebtEditorPopup();return;}
  if(x.dataset.editDebt){openDebtEditorPopup(x.dataset.editDebt);return;}
@@ -14079,7 +14133,7 @@ if(x.dataset.action){let a=x.dataset.action;
 if(cloud.pendingDecision&&!['cloud-upload','cloud-empty','cloud-logout','export','export-precloud'].includes(a))return toast('Cloud kosong. Putuskan dahulu apakah akan mengunggah data lokal atau mulai dari kosong.',true);
 if(a==='demo')demo();if(a==='export-pre-demo'){let old=localStorage.getItem('arus-cadangan-sebelum-demo');if(old)downloadFile('Duit-Duit-Paaxixi-cadangan-sebelum-simulasi.json',old,'application/json');}if(a==='export')exportJSON();if(a==='export-precloud'){let old=localStorage.getItem('arus-cadangan-sebelum-cloud');if(old)downloadFile('Duit-Duit-Paaxixi-cadangan-sebelum-cloud.json',old,'application/json');}if(a==='import')document.getElementById('import-file').click();
 if(a==='cancel-expense-group'||a==='cancel-budget-category'){closeFinanceEditor();return;}
- if(a==='cancel-edit-tx'){dismissTxModal();return}if(a==='cancel-edit-debt'){dismissDebtEditorPopup();return}if(a==='cancel-account-edit'){ui.accountEditId=null;render()}if(a==='cancel-category-edit'){ui.categoryEditId=null;render()}if(a==='cancel-move-edit'){ui.moveEditId=null;render()}
+ if(a==='cancel-edit-tx'){dismissTxModal();return}if(a==='cancel-edit-debt'){dismissDebtEditorPopup();return}if(a==='cancel-account-edit'){ui.accountEditId=null;ui.accountEditorOpen=false;render();document.querySelector('[data-account-new]')?.focus({preventScroll:true});return}if(a==='cancel-category-edit'){ui.categoryEditId=null;render()}if(a==='cancel-move-edit'){ui.moveEditId=null;render()}
 if(a==='reset'&&await confirmDelete('HAPUS seluruh transaksi, investasi, anggaran, pinjaman, arsip laporan, dan rekening'+(cloud.signedIn?' pada SEMUA PERANGKAT tersinkron':' di browser ini')+'? Tindakan ini tidak dapat dibatalkan tanpa file cadangan.')){db=fresh();save();ui.debtSelected=null;ui.txEditId=null;setView('dashboard');toast('Data dibersihkan.')}
 if(a==='new-transfer'){openTxModal('transfer');return}
 if(a==='close-repay'){dismissRepayPopup();return}
@@ -14188,7 +14242,7 @@ if(x.id==='report-month'){const m=x.value||currentMonth();if(!/^\d{4}-(0[1-9]|1[
 
 if(x.id==='tx-group'){let cs=(ui.txType==='expense'?expenses():incomes()).filter(c=>c.group===x.value);let sel=document.getElementById('tx-category');if(sel)sel.innerHTML=cs.map(c=>`<option value="${h(c.id)}">${pickSymbol(c.label,c.group)} ${h(c.label)}</option>`).join('')}
 if(x.id==='new-cat-kind'){let sel=document.getElementById('new-cat-group');sel.innerHTML=(x.value==='income'?['BPS','Fastlink','Lainnya']:expenseGroups().map(g=>g.name)).map(g=>`<option value="${h(g)}">${pickSymbol(g,g)} ${h(g)}</option>`).join('')}});
-document.getElementById('top-add').addEventListener('click',()=>openTxModal(ui.view==='debts'?'payable':'expense'));document.getElementById('cloud-status').addEventListener('click',()=>setView('accounts'));document.getElementById('import-file').addEventListener('change',e=>importJSON(e.target.files?.[0]));render();paxCalSetup();document.querySelector('.welcome-modal-close')?.focus({preventScroll:true});void muatQuoteMingguan();
+document.getElementById('top-add').addEventListener('click',()=>openTxModal(ui.view==='debts'?'payable':'expense'));document.getElementById('cloud-status').addEventListener('click',()=>{ui.cloudModalOpen=true;render();document.querySelector('.cloud-dialog [data-cloud-dialog-close]')?.focus({preventScroll:true});});document.getElementById('import-file').addEventListener('change',e=>importJSON(e.target.files?.[0]));render();paxCalSetup();document.querySelector('.welcome-modal-close')?.focus({preventScroll:true});void muatQuoteMingguan();
 // Perbarui kalender WIB global meski tab tetap terbuka saat berganti hari.
 refreshHeaderWeton();
 setInterval(refreshHeaderWeton,60000);

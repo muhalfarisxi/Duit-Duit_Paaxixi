@@ -7435,6 +7435,8 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 .invest-auto-option label input:disabled{opacity:.5}
 .invest-auto-option small{display:block;margin-top:6px;color:#7893a9;font:750 10px/1.5 Nunito,sans-serif}
 
+.invest-asset-buttons button:disabled{opacity:.68;cursor:not-allowed;box-shadow:none!important;transform:none!important}
+.invest-asset-units{line-height:1.6}
 </style>
 <link rel="stylesheet" href="./budget-ux.css?v=15">
 <link rel="stylesheet" href="./archive-reports.css?v=13">
@@ -12381,7 +12383,7 @@ function renderInvestmentTrendPopup(){
  const record=investTrendRecords().find(r=>r.month===ui.investmentTrendMonth);
  if(!record)return '';
  const rows=record.assets.map(a=>`<div class="invest-period-row">
-  <div><strong>${h(a.name)}</strong><small>${h(a.symbol||investTypeName(a))} · ${investQtyFmt(a.quantity)} ${(INVEST_TYPES[a.type]||INVEST_TYPES.other).unit} · Harga ${a.price===null?'belum tersedia':money(a.price)}</small></div>
+  <div><strong>${h(a.name)}</strong><small>${h(a.symbol||investTypeName(a))} · ${investUiQty({type:a.type},a.quantity)} ${investUiUnit({type:a.type})} · Harga ${a.price===null?'belum tersedia':money(a.price)}</small></div>
   <span class="${a.market===null?'missing':''}">${a.market===null?'Harga belum ada':money(a.market)}</span></div>`).join('');
  return `<div class="invest-period-backdrop" id="invest-period-backdrop">
   <section class="invest-period-dialog" role="dialog" aria-modal="true" aria-labelledby="invest-period-heading">
@@ -12533,17 +12535,21 @@ function renderInvestmentModal(){
       ${selectAcc('accountId')}</div>
      ${kind==='payout'?`<div class="form-field full"><label class="field-label">Hasil Investasi Bersih (Rp)</label>
        <input class="field" type="text" data-rupiah="1" inputmode="decimal" name="amount" placeholder="50.000" required></div>`:
-      `<div class="form-field"><label class="field-label">Jumlah (${info.unit})</label>
-       <input class="field" type="text" inputmode="decimal" name="units" placeholder="1 atau 0,125" required>
-       <small class="invest-field-help">Gunakan koma untuk desimal, tanpa pemisah ribuan.</small></div>
-       <div class="form-field"><label class="field-label">Harga per ${info.unit} (Rp)</label>
-       <input class="field" type="text" inputmode="decimal" data-rupiah="1" name="unitPrice" value="${asset.price?fmtAmount(asset.price):''}" placeholder="100.000" required></div>
+      `<div class="form-field"><label class="field-label">Jumlah (${investUiUnit(asset)})</label>
+       <input class="field" type="text" inputmode="decimal" name="units" placeholder="${investIsStock(asset)?'Contoh: 2 lot':'1 atau 0,125'}" required>
+       <small class="invest-field-help">${investIsStock(asset)?'1 lot = 100 lembar. Jumlah lot disimpan dalam lembar agar riwayat lama tetap benar.':'Gunakan koma untuk desimal, tanpa pemisah ribuan.'}</small></div>
+       ${lockedPrice?`<div class="form-field"><label class="field-label">Nilai Eksekusi Aktual (Rp)</label>
+        <input class="field" type="text" data-rupiah="1" inputmode="decimal" name="gross" placeholder="Nilai transaksi sesuai bukti" required>
+        <small class="invest-field-help">Harga pasar otomatis: ${money(asset.price)} per ${investIsStock(asset)?'lembar':info.unit} (terkunci). Isi total pembelian/penjualan yang benar-benar terjadi.</small></div>`:
+        `<div class="form-field"><label class="field-label">Harga Transaksi per ${investIsStock(asset)?'lembar':info.unit} (Rp)</label>
+        <input class="field" type="text" inputmode="decimal" data-rupiah="1" name="unitPrice" value="${asset.price?fmtAmount(asset.price):''}" placeholder="100.000" required>
+        <small class="invest-field-help">Harga beli/jual aktual, bukan harga pasar untuk valuasi.</small></div>`}
        <div class="form-field full"><label class="field-label">Biaya Transaksi (Rp)</label>
        <input class="field" type="text" data-rupiah="1" inputmode="decimal" name="fee" value="0"></div>`}
      <div class="form-field full"><label class="field-label">Catatan (Opsional)</label>
       <input class="field" name="note" maxlength="160" placeholder="Platform, broker atau keterangan"></div>
     </div>
-    ${kind==='sell'?`<p class="invest-trade-holding">Dimiliki: <strong>${investQtyFmt(holdings.quantity)} ${info.unit}</strong></p>`:''}
+    ${kind==='sell'?`<p class="invest-trade-holding">Dimiliki: <strong>${investUiQty(asset,holdings.quantity)} ${investUiUnit(asset)}${investQtyNote(asset,holdings.quantity)}</strong></p>`:''}
     <div class="invest-trade-preview" data-invest-preview>${kind==='payout'?'Hasil akan menambah saldo rekening.':'Isi jumlah dan harga untuk melihat totalnya.'}</div>
     <button type="submit" class="btn primary invest-form-submit">${kind==='buy'?'✓ Simpan Pembelian':kind==='sell'?'✓ Simpan Penjualan':'✓ Simpan Hasil Investasi'}</button>
    </form>`;
@@ -12644,7 +12650,7 @@ function renderInvestments(){
        <div class="invest-asset-heading"><strong>${h(asset.name)}</strong><small>${h(asset.symbol||investTypeName(asset))} · ${h(investTypeName(asset))}</small></div>
        <span class="invest-asset-status ${live?'':'is-closed'}">${live?'Aktif':'Tidak ada unit'}</span></div>
       <div class="invest-asset-main"><small>Nilai Saat Ini</small><strong>${money(market)}</strong>
-       <div class="invest-asset-units">${investQtyFmt(quantity)} ${info.unit} · ${asset.price?money(asset.price)+' / '+info.unit:'Harga belum diisi'}</div></div>
+       <div class="invest-asset-units">${investUiQty(asset,quantity)} ${investUiUnit(asset)}${investQtyNote(asset,quantity)} · ${asset.price?money(asset.price)+' / '+(investIsStock(asset)?'lembar':info.unit):'Harga belum diisi'}</div></div>
       <div class="invest-asset-stats">
        <div><small>Modal tersisa</small><strong>${money(cost)}</strong></div>
        <div><small>Untung/rugi berjalan</small>${val(unrealized)}<small>${cost>0?(roi<0?'−':'+')+Math.abs(roi).toFixed(1).replace('.',',')+'% dari modal':'Belum ada modal aktif'}</small></div>
@@ -12657,7 +12663,7 @@ function renderInvestments(){
        <button type="button" data-invest-trade="buy:${h(asset.id)}">＋ Beli</button>
        <button type="button" data-invest-trade="sell:${h(asset.id)}" ${live?'':'disabled'}>↗ Jual</button>
        <button type="button" data-invest-trade="payout:${h(asset.id)}">✦ Hasil</button>
-       <button type="button" data-invest-price="${h(asset.id)}">📈 Harga</button>
+       ${investPriceLocked(asset)?`<button type="button" disabled title="Harga pasar diperbarui otomatis dan tidak dapat diedit" aria-label="Harga pasar otomatis terkunci">🔒 Otomatis</button>`:`<button type="button" data-invest-price="${h(asset.id)}">📈 Harga</button>`}
        <button type="button" data-invest-edit="${h(asset.id)}">✎ Edit</button>
        <button type="button" class="invest-remove" data-invest-delete="${h(asset.id)}">× Hapus</button>
       </div>
@@ -12675,7 +12681,7 @@ function renderInvestments(){
     return `<div class="invest-history-row">
      <span class="invest-history-icon ${t.type}">${t.type==='buy'?'↘':t.type==='sell'?'↗':'✦'}</span>
      <div><strong>${h(asset?.name||'Aset dihapus')}</strong><small>${dateFmt(t.date)} · ${t.type==='buy'?'Pembelian':t.type==='sell'?'Penjualan':'Hasil Investasi'}
-      ${t.type!=='payout'?' · '+investQtyFmt(t.units)+' '+info.unit:''} · ${h(acc(t.accountId)?.name||'Rekening dihapus')}</small></div>
+      ${t.type!=='payout'?' · '+investUiQty(asset,t.units)+' '+investUiUnit(asset):''} · ${h(acc(t.accountId)?.name||'Rekening dihapus')}</small></div>
      <b class="${t.type}">${t.type==='buy'?'−':'+'}${money(t.amount)}</b>
      <button type="button" data-invest-delete-trade="${h(t.id)}" aria-label="Hapus catatan investasi" title="Hapus catatan terakhir aset">×</button>
     </div>`;
@@ -13790,7 +13796,9 @@ document.addEventListener('click',async e=>{
   }
   if(investAction.dataset.investPrice!==undefined){
    const id=investAction.dataset.investPrice;
-   if(!db.investmentAssets.some(a=>a.id===id))return;
+   const a=db.investmentAssets.find(a=>a.id===id);
+   if(!a)return;
+   if(investPriceLocked(a))return toast('Harga pasar otomatis terkunci. Gunakan Perbarui Harga.',true);
    ui.investmentModal={kind:'price',assetId:id};render();
    document.querySelector('#invest-price-form input[name="price"]')?.focus({preventScroll:true});return;
   }

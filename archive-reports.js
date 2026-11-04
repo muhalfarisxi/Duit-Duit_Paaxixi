@@ -205,6 +205,16 @@ function renderPage(data){
 /* Portable PDF 1.4 renderer (A4, warna vektor); PDF tetap dapat diunduh tanpa CDN. */
 function pdfReport(r){
  const W=595,H=842,enc=new TextEncoder(),pages=[];
+ // Consistent snapshot and export timestamps; both are rendered in WIB.
+ const exportedAt=new Date();
+ const inWib=value=>{
+  if(!value)return 'Tidak tercatat (arsip lama)';
+  const time=new Date(value);
+  if(!Number.isFinite(time.getTime()))return 'Tidak tercatat (arsip lama)';
+  return new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}).format(time).replace(/\./g,':')+' WIB';
+ };
+ const savedStamp=inWib(r.createdAt),exportStamp=inWib(exportedAt);
+
  let commands=[],y=0,sectionName='';
  const rgb=hex=>{const x=hex.replace('#','');return [0,2,4].map(i=>(parseInt(x.slice(i,i+2),16)/255).toFixed(3)).join(' ');};
  const clean=t=>String(t??'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[–—−]/g,'-').replace(/[✓✔]/g,'v').replace(/[•·]/g,'-').replace(/[→]/g,'>').replace(/[←]/g,'<').replace(/[^\x20-\x7e]/g,'?');
@@ -219,11 +229,16 @@ function pdfReport(r){
  function newPage(title){
   if(commands.length)pages.push(commands.join(''));
   commands=[];y=132;sectionName=title;
-  rect(0,0,W,106,'#112c52');rect(0,103,W,4,'#57b5e5');
-  text('DUIT-DUIT PAAXIXI  |  LAPORAN BULANAN',37,37,12,true,'#ffffff');
-  text(title,37,65,17,true,'#ffffff');
-  text(monthText(r.month),37,91,9,false,'#cae9ff');
-  rect(37,814,521,1,'#d8e4f4');text('Arsip '+dateText((r.createdAt||'').slice(0,10))+'  |  Laporan snapshot',37,827,7,false,'#647994');
+  rect(0,0,W,106,'#fffefe');
+  rect(37,23,521,2.2,'#193b5d');
+  text('DUIT-DUIT PAAXIXI  |  DOKUMEN ARSIP KEUANGAN',37,42,10,true,'#334e69');
+  text(title,37,69,17,true,'#163856');
+  text(monthText(r.month),37,92,11,false,'#856337');
+  rect(37,101,521,1,'#c0ac8a');
+  // Footer repeats the actual archival and export instants on every page.
+  line(37,808,558,808,'#c6d2df');
+  text('Diarsipkan: '+savedStamp,38,821,7,false,'#4d6177');
+  text('Dicetak/Diunduh: '+exportStamp,38,832,7,false,'#4d6177');
  }
  function need(height){if(y+height>793)newPage(sectionName+' (lanjutan)');}
  function heading(label){need(32);text(label,38,y+10,13,true,'#143a72');line(38,y+18,555,y+18,'#dbe8f7');y+=32;}
@@ -250,10 +265,12 @@ function pdfReport(r){
   commands.push(rgb(color)+' rg '+path.map(([px,py],i)=>px.toFixed(2)+' '+(H-py).toFixed(2)+(i?' l ':' m ')).join('')+' h f\n');
  }
  newPage('RINGKASAN KEUANGAN');
- text('Periode '+monthText(r.month),38,138,11,true,'#345578');
- kpi(37,156,'TOTAL PEMASUKAN',r.income,'#168b68');kpi(308,156,'TOTAL PENGELUARAN',r.expense,'#df596d');
- kpi(37,255,'NILAI INVESTASI',r.investment?num(r.investment.market):null,'#7857ce');kpi(308,255,'SALDO REKENING',sum(r.balances||[],'balance'),'#2672bf');
- y=369;rect(37,y,521,54,num(r.net)>=0?'#e5f6f0':'#fff0f2');text('ARUS KAS BERSIH',52,y+23,10,true,'#27415d');text(fmt(r.net),304,y+28,18,true,num(r.net)>=0?'#137b59':'#ce465c');y+=78;
+ text('Periode Laporan: '+monthText(r.month),38,132,11,true,'#274664');
+ text('Tanggal Diarsipkan: '+savedStamp,38,148,9,false,'#4e647d');
+ text('Tanggal Dicetak/Diunduh: '+exportStamp,38,161,9,false,'#4e647d');
+ kpi(37,174,'TOTAL PEMASUKAN',r.income,'#16715a');kpi(308,174,'TOTAL PENGELUARAN',r.expense,'#a7495f');
+ kpi(37,273,'NILAI INVESTASI',r.investment?num(r.investment.market):null,'#4f6d92');kpi(308,273,'SALDO REKENING',sum(r.balances||[],'balance'),'#315e87');
+ y=387;rect(37,y,521,54,num(r.net)>=0?'#e5f6f0':'#fff0f2');text('ARUS KAS BERSIH',52,y+23,10,true,'#27415d');text(fmt(r.net),304,y+28,18,true,num(r.net)>=0?'#137b59':'#ce465c');y+=78;
  heading('KOMPOSISI PENGELUARAN');
  const groups=chartGroups(r),total=sum(groups,'value'),cy=y+108,cx=145;
  if(!groups.length){
@@ -410,11 +427,11 @@ function pdfReport(r){
  if(!entries.length)text('Tidak ada transaksi tercatat.',43,y+15,10);
  if(commands.length)pages.push(commands.join(''));
  const objects=[],add=v=>(objects.push(v),objects.length);
- const regular=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
- const bold=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>');
+ const regular=add('<< /Type /Font /Subtype /Type1 /BaseFont /Times-Roman >>');
+ const bold=add('<< /Type /Font /Subtype /Type1 /BaseFont /Times-Bold >>');
  const pagesId=add(''),children=[];
  pages.forEach((cmd,i)=>{
-  const footer='BT /F1 8 Tf '+rgb('#57718c')+' rg 1 0 0 1 470 20 Tm (Halaman '+(i+1)+' / '+pages.length+') Tj ET\n';
+  const footer='BT /F1 8 Tf '+rgb('#57718c')+' rg 1 0 0 1 480 11 Tm (Halaman '+(i+1)+' / '+pages.length+') Tj ET\n';
   const content=cmd+footer,cid=add('<< /Length '+enc.encode(content).length+' >>\nstream\n'+content+'endstream');
   children.push(add('<< /Type /Page /Parent '+pagesId+' 0 R /MediaBox [0 0 '+W+' '+H+'] /Resources << /Font << /F1 '+regular+' 0 R /F2 '+bold+' 0 R >> >> /Contents '+cid+' 0 R >>'));
  });
@@ -431,7 +448,7 @@ function pdfReport(r){
 function exportPdf(r){
  if(!r||!r.month)throw Error('Arsip tidak ditemukan');
  const data=pdfReport(r),blob=new Blob([data],{type:'application/pdf'}),url=URL.createObjectURL(blob),a=document.createElement('a');
- a.href=url;a.download='Duit-Duit-Paaxixi-Laporan-'+r.month+'.pdf';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1200);
+ a.href=url;a.download='Duit-Duit-Paaxixi-Arsip-'+r.month+'-Unduh-'+new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())+'.pdf';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1200);
 }
 /* Titik tren mengikuti interaksi Dashboard tanpa mengubah isi arsip. */
 

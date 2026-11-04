@@ -7442,7 +7442,7 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <input id="import-file" type="file" accept=".json,application/json" style="display:none">
 <script src="./archive-reports.js?v=14"></script>
-<script src="./archive-print.js?v=1"></script>
+<script src="./archive-print.js?v=2"></script>
 <script src="./month-picker.js?v=1"></script>
 <script>
 (()=>{'use strict';
@@ -7606,14 +7606,14 @@ function syncBadge(){let b=document.getElementById('cloud-status');if(!b)return;
 }
 function normalizeDb(value){if(!validDb(value))throw Error('Data cloud tidak valid');return normalizeExpenseGroups({...fresh(),...value,reports:value.reports&&typeof value.reports==='object'?value.reports:{}})}
 function showError(e){toast('Gagal sinkronisasi: '+(e?.message||String(e)),true)}
-window.addEventListener('arus-cloud-state',e=>{let d=e.detail||{},previousEmail=cloud.email;if((d.email&&d.email!==previousEmail)||d.signedIn===false){cloud.wasLoaded=false;cloud.pendingDecision=false;}cloud={...cloud,...d};syncBadge();if(['accounts','investments'].includes(ui.view))render()});
+window.addEventListener('arus-cloud-state',e=>{let d=e.detail||{},previousEmail=cloud.email;if((d.email&&d.email!==previousEmail)||d.signedIn===false){cloud.wasLoaded=false;cloud.pendingDecision=false;}cloud={...cloud,...d};syncBadge();if(ui.cloudModalOpen||['accounts','investments'].includes(ui.view))render()});
 window.addEventListener('arus-cloud-data',e=>{let d=e.detail||{};cloud.ready=true;cloud.busy=false;cloud.error='';cloud.empty=!d.data;
  if(d.data){try{let next=normalizeDb(d.data);if(!cloud.wasLoaded && (db.transactions.length||db.debts.length||(db.investmentAssets||[]).length||Object.keys(db.reports||{}).length)&&JSON.stringify(next)!==JSON.stringify(db)){
  try{if(!localStorage.getItem('arus-cadangan-sebelum-cloud'))localStorage.setItem('arus-cadangan-sebelum-cloud',JSON.stringify(db));}catch(_){}}
  db=next;localStorage.setItem(KEY,JSON.stringify(db));cloud.pendingDecision=false;cloud.wasLoaded=true;}catch(error){showError(error);return}}
  else if(!cloud.wasLoaded){cloud.pendingDecision=!!(db.transactions.length||db.debts.length||Object.values(db.budgets).some(n=>num(n)>0)||db.accounts.length>1||(db.investmentAssets||[]).length>0||(db.investmentTrades||[]).length>0||Object.keys(db.reports||{}).length);}
- syncBadge();render();if(!d.data&&cloud.pendingDecision)toast('Cloud kosong dan browser memiliki data. Pilih cara memulai cloud pada Rekening & Data.');});
-window.addEventListener('arus-cloud-error',e=>{cloud.busy=false;cloud.error=e.detail?.message||'Gangguan jaringan';showError(cloud.error);syncBadge();if(['accounts','investments'].includes(ui.view))render()});
+ syncBadge();render();if(!d.data&&cloud.pendingDecision)toast('Cloud kosong dan browser memiliki data. Pilih cara memulai cloud melalui Login & Sinkronisasi.');});
+window.addEventListener('arus-cloud-error',e=>{cloud.busy=false;cloud.error=e.detail?.message||'Gangguan jaringan';showError(cloud.error);syncBadge();if(ui.cloudModalOpen||['accounts','investments'].includes(ui.view))render()});
 function save(){try{
  db.version=2;db.reports=db.reports||{};
  localStorage.setItem(KEY,JSON.stringify(db));
@@ -12936,7 +12936,7 @@ document.addEventListener('blur',e=>{
 },true);
 function handleForm(form){let f=new FormData(form),id=form.id;
 if(cloud.signedIn&&!cloud.ready)return toast('Tunggu sampai data cloud selesai dimuat.',true);
-if(cloud.pendingDecision&&id!=='cloud-login-form')return toast('Pilih Unggah data lokal atau Mulai cloud kosong lebih dahulu pada Rekening & Data.',true);
+if(cloud.pendingDecision&&id!=='cloud-login-form')return toast('Pilih Unggah data lokal atau Mulai cloud kosong lebih dahulu melalui Login & Sinkronisasi.',true);
 if(id==='cloud-login-form'){if(!window.ARUS_CLOUD)return toast('Firebase belum dikonfigurasi. Ikuti PANDUAN_SETUP.',true);window.ARUS_CLOUD.login().catch(showError);return}
 if(id==='tx-form'){let type=f.get('type'),amount=positive(f.get('amount')),accountId=f.get('accountId'),toAccountId=f.get('toAccountId'),categoryId=f.get('categoryId'),date=f.get('date'),title=String(f.get('title')||'').trim(),editId=String(f.get('editId')||'');if(!amount||!acc(accountId)||!/^(?:\d{4})-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/.test(date)||!title)return toast('Lengkapi transaksi dengan benar.',true);if(type==='transfer'){if(!acc(toAccountId)||accountId===toAccountId)return toast('Pilih dua rekening berbeda.',true)}else if(!cat(categoryId)||cat(categoryId).kind!==type)return toast('Pilih kategori yang valid.',true);
 let original=db.transactions.find(t=>t.id===editId);if(editId&&!original)return toast('Transaksi tidak ditemukan.',true);

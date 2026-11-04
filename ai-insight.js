@@ -186,7 +186,7 @@ window.PAAX_AI_GENERATE=async function(safeSummary){
    User activates this explicitly; never send account IDs, trades, or holdings. */
 window.PAAX_AI_INVEST_GOAL=async function(summary){
  const models=await getFinanceModel();
- const n=value=>Number.isFinite(Number(value))?Number(value):null;
+ const n=value=>(value===null||value===undefined||value===''?null:(Number.isFinite(Number(value))?Number(value):null));
  const label=value=>String(value??'').replace(/\b[\w.+-]+@[\w.-]+\.[a-z]{2,}\b/gi,'[email]')
   .replace(/(?:\+62|62|0)8\d[\d -]{7,15}/g,'[nomor]')
   .replace(/https?:\/\/\S+/gi,'[tautan]').slice(0,75);

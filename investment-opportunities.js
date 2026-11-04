@@ -85,6 +85,7 @@
    note:snapshot?'Indikasi harga penawaran listing, bukan median transaksi resmi, tidak otomatis relevan untuk seluruh kecamatan atau tipe rumah. Nominal pada tanggal tujuan dapat berubah.':
     'Tidak ada pembanding harga lokal terverifikasi otomatis untuk wilayah ini; jangan mengarang median, gunakan riset listing aktual yang sejenis.'
   },
+  opportunities:verifiedOpportunities({name,type,target}).map(x=>({type:x.kind,name:x.name,status:x.status,estimatedDate:x.eventDate,source:x.source,sourceDate:x.sourceDate,url:x.url,suitability:x.fit,limitations:x.verifiedType})),
   ipo:{status:state.ipoStatus,asOf:state.checkedAt,offerings:state.ipos.map(x=>({
    symbol:x.symbol,name:x.name,status:x.status,
    source:IPO})),source:IPO,
@@ -111,20 +112,124 @@
    ' (sekadar contoh, syarat bank dapat berbeda). Biaya notaris, pajak, renovasi, dan perubahan harga sampai tanggal pembelian perlu disiapkan terpisah.</p>'+
    '<small>Harga tercantum dapat berubah dan tidak selalu merepresentasikan transaksi yang benar-benar terjadi.</small></section>';
  }
- function renderIPO(){
-  const stamp=state.checkedAt?new Date(state.checkedAt).toLocaleString('id-ID',{timeZone:'Asia/Jakarta',dateStyle:'medium',timeStyle:'short'})+' WIB':'belum diperiksa';
-  return '<div class="invest-ipo-live"><div class="invest-ipo-head"><div><strong>📣 Kalender IPO Terverifikasi</strong>'+
-   '<small>Sumber: e-IPO BEI · pemeriksaan '+safe(stamp)+'</small></div>'+
-   '<button type="button" data-paax-ipo-refresh '+(state.ipoStatus==='memeriksa'?'disabled':'')+'>'+
-   (state.ipoStatus==='memeriksa'?'⏳ Memeriksa':'⟳ Cek Terbaru')+'</button></div>'+
-   (state.ipos.length?'<div class="invest-ipo-issuers">'+state.ipos.map(item=>
-    '<div><strong>'+safe(item.symbol)+'</strong><span>'+safe(item.name)+'</span>'+
-    '<small>'+safe(item.status)+' · '+safe(item.details)+'</small></div>').join('')+'</div>':
-    '<p>'+safe(state.ipoStatus==='tidak-ada-terverifikasi'?'Tidak ditemukan IPO bertahap aktif pada halaman resmi yang berhasil dibaca saat pengecekan ini. Itu tidak menjamin tidak ada pengumuman baru.':
-    state.ipoStatus==='gagal-verifikasi'?state.error:
-    'Belum ada emiten baru yang dapat ditampilkan secara terverifikasi; data akan diperiksa dari e-IPO.')+'</p>')+
-   '<a target="_blank" rel="noopener noreferrer" href="'+IPO+'">Buka penawaran dan prospektus e-IPO resmi ↗</a>'+
-   '<small>IPO bukan otomatis investasi aman; prospektus, risiko emiten, harga penawaran, dan jadwal perlu dibaca.</small></div>';
+
+ /* Only publish named upcoming launches when a dated source supports them.
+    Known already-listed funds may be shown as recently available, never pending. */
+ const ISSUANCE=[
+  {category:'sbn',name:'Sukuk Tabungan ST017',series:'ST017',start:'2026-11-06',end:'2026-12-02',
+   source:'BNI — Kalender SBN Ritel 2026 (jadwal tentatif)',
+   url:'https://www.bni.co.id/emerald/produk/bonds/informasi-lainnya',
+   official:'https://www.kemenkeu.go.id/sbn',type:'Sukuk Tabungan Ritel',
+   info:'Jadwal penawaran tentatif. Kupon, tenor, syarat pencairan, serta seri final harus diperiksa melalui dokumen penawaran resmi; ST umumnya tidak diperdagangkan di bursa.'}
+ ];
+ const RECENT_ETF=[
+  {symbol:'XKGS',name:'KIM Gold ETF Sharia',listed:'2026-09-22'},
+  {symbol:'XBGS',name:'Batavia Gold Sharia ETF',listed:'2026-09-16'},
+  {symbol:'XGLD',name:'Premier ETF Gold Sharia Indonesia',listed:'2026-08-10'}
+ ];
+ const escDate=value=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return 'tanggal belum tersedia';
+  return new Date(value+'T12:00:00Z').toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta',day:'numeric',month:'short',year:'numeric'});};
+ const todayJakarta=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ function horizonMonths(due,now=todayJakarta()){
+  if(!/^\d{4}-\d{2}$/.test(due||''))return null;
+  return (Number(due.slice(0,4))-Number(now.slice(0,4)))*12+
+   (Number(due.slice(5,7))-Number(now.slice(5,7)));
  }
- window.PAAX_OPPORTUNITY={loadIpo,contextForGoal,renderIPO,renderProperty,extractRegion,state};
+ const dueMonths=(goal)=>{
+  if(Number.isFinite(Number(goal?.months))&&goal?.months!==null&&goal?.months!==undefined)return Number(goal.months);
+  return horizonMonths(goal?.due);
+ };
+ const stateName={sbn:'SBN / Sukuk',gold:'Emas',rdpu:'RDPU / Reksa Dana',
+  etf:'ETF',ipo:'Saham IPO'};
+ function verifiedOpportunities(goal={}){
+  const today=todayJakarta(),months=dueMonths(goal);
+  const near=months!==null&&months<=36;
+  const cards=[];
+  for(const x of ISSUANCE){
+   if(today>x.end)continue;
+   const upcoming=today<x.start,active=today>=x.start;
+   cards.push({id:'sbn-'+x.series,kind:'sbn',name:x.name,status:upcoming?'Jadwal mendatang — tentatif':'Dalam rentang jadwal — cek penawaran',
+    statusCode:upcoming?'upcoming':'scheduled',eventDate:escDate(x.start)+' – '+escDate(x.end),
+    source:x.source,sourceDate:'jadwal 2026, tentatif',url:x.url,official:x.official,
+    desc:x.info,fit:near?
+    'Untuk tujuan dekat, hanya pertimbangkan jika tenor dan tanggal pencairan benar-benar sebelum dana digunakan.':
+    'Periksa tenor dan fasilitas pencairan terhadap jangka waktu tujuan.',
+    priority:near?1:1,verifiedType:'Jadwal dari mitra distribusi, bukan konfirmasi penawaran sedang aktif'});
+  }
+  cards.push({id:'rdpu-scan',kind:'rdpu',name:'Reksa Dana Pasar Uang — pilihan yang sudah tersedia',
+    status:'Tersedia untuk dibandingkan',statusCode:'available',
+    eventDate:'Peluncuran RDPU baru belum terverifikasi',source:'OJK — data produk reksa dana',
+    sourceDate:'produk/kuotasi dapat berubah',url:'https://reksadana.ojk.go.id',
+    desc:'Belum ada nama RDPU baru dengan tanggal peluncuran yang terkonfirmasi dalam sumber terhubung. Bandingkan produk yang sudah tersedia lewat NAB terbaru, imbal hasil historis, biaya, portofolio, dan waktu pencairan.',
+    fit:near?'Lebih relevan sebagai kandidat likuid untuk dana rumah/nikah yang segera dipakai; nilai tetap dapat berfluktuasi.':
+     'Dapat digunakan untuk porsi kas/penyangga, bukan satu-satunya instrumen tujuan panjang.',
+    priority:near?2:3,verifiedType:'Kategori tersedia; bukan produk yang diklaim segera terbit'});
+  cards.push({id:'gold-watch',kind:'gold',name:'Emas fisik / emas investasi — harga dan spread terbaru',
+    status:'Pantau harga, belum ada rilis terkonfirmasi',statusCode:'watch',
+    eventDate:'Harga diperbarui berkala oleh penjual, bukan jadwal penerbitan',
+    source:'ANTAM Logam Mulia — harga emas harian',
+    sourceDate:'harga wajib dibuka ulang pada sumber',url:'https://www.logammulia.com/id/harga-emas-hari-ini',
+    desc:'Belum ada produk emas fisik baru dengan jadwal rilis terverifikasi dalam sumber ini. Cek harga beli, buyback, selisih harga, pajak, dan likuiditas; jangan memakai harga lama sebagai penawaran sekarang.',
+    fit:near?'Harga bisa turun ketika dana harus dipakai. Jangan menggantungkan DP rumah yang dekat pada kenaikan emas.':
+     'Boleh dipertimbangkan sebagai diversifikasi terbatas jika spread dan fluktuasi dapat ditanggung.',
+    priority:near?4:2,verifiedType:'Sumber harga, bukan pengumuman produk baru'});
+  const recent=RECENT_ETF.filter(x=>x.listed<=today);
+  if(recent.length){
+   cards.push({id:'etf-gold-new',kind:'etf',name:'ETF Emas yang Baru Tercatat — '+recent.slice(0,2).map(x=>x.symbol).join(' / '),
+    status:'Sudah tercatat — bukan upcoming',statusCode:'listed',
+    eventDate:recent.slice(0,2).map(x=>x.symbol+' '+escDate(x.listed)).join(' · '),
+    source:'BEI — Daftar ETF',sourceDate:'tanggal pencatatan BEI',url:'https://www.idx.id/id/data-pasar/data-exchange-traded-fund-etf/daftar-exchange-traded-fund-etf/',
+    desc:'ETF emas '+recent.map(x=>x.symbol).join(', ')+' telah tercatat. Produk baru yang sudah aktif tidak boleh ditampilkan sebagai penawaran mendatang. Cek prospektus, spread bid-ask, volume, dan risiko pergerakan emas.',
+    fit:near?'Tidak cocok sebagai tempat utama dana yang wajib tersedia pada tanggal pasti karena harga serta likuiditas dapat berfluktuasi.':
+     'Dapat diteliti sebagai diversifikasi emas yang diperdagangkan di bursa.',
+    priority:near?5:4,verifiedType:'Tanggal pencatatan historis terkonfirmasi, status perdagangan saat ini perlu dicek'});
+  }
+  for(const x of state.ipos.slice(0,6)){
+   if(!['Offering','Book Building','Waiting For Offering'].includes(x.status))continue;
+   cards.push({id:'ipo-'+x.symbol,kind:'ipo',name:x.name+' ('+x.symbol+')',
+    status:x.status,statusCode:'scheduled',eventDate:'Tanggal rinci cek prospektus di e-IPO',
+    source:'e-IPO resmi',sourceDate:state.checkedAt||'tanggal tidak diketahui',url:IPO,
+    desc:'Tahap '+x.status+' berhasil terbaca pada pemeriksaan terakhir. Ini bukan tanda saham pasti menarik; evaluasi prospektus, penjamin emisi, valuasi, dan risiko bisnis.',
+    fit:near?'IPO sangat berfluktuasi; jangan menggunakan dana DP rumah atau kebutuhan dekat.':
+     'Untuk tujuan panjang pun harus ditimbang dengan kualitas usaha, valuasi, dan konsentrasi portofolio.',
+    priority:near?6:6,verifiedType:'Tahap terbaca dari e-IPO, bukan jaminan IPO aktif saat ini'});
+  }
+  cards.sort((a,b)=>a.priority-b.priority);
+  return cards;
+ }
+ function renderOpportunities(goal={}){
+  const stamp=state.checkedAt?new Date(state.checkedAt).toLocaleString('id-ID',{timeZone:'Asia/Jakarta',
+   day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})+' WIB':'belum diperiksa';
+  const list=verifiedOpportunities(goal);
+  const counts=list.filter(x=>x.statusCode==='upcoming');
+  const visual={sbn:'🇮🇩',rdpu:'🌿',gold:'🥇',etf:'🧺',ipo:'📈'};
+  return '<div class="invest-opportunities"><div class="invest-opportunities-heading">'+
+   '<div><strong>🔭 Peluang Investasi Mendatang & Baru Tersedia</strong>'+
+   '<small>SBN / Sukuk · RDPU / Reksa Dana · Emas · ETF · IPO Saham. Pemeriksaan e-IPO: '+safe(stamp)+'</small></div>'+
+   '<button type="button" data-paax-ipo-refresh '+(state.ipoStatus==='memeriksa'?'disabled':'')+'>'+
+   (state.ipoStatus==='memeriksa'?'⏳ Memeriksa IPO…':'⟳ Perbarui Peluang')+'</button></div>'+
+   '<p class="invest-opportunities-context">'+
+   (counts.length?'Ada '+counts.length+' jadwal penerbitan SBN mendatang yang tercatat sebagai <strong>tentatif</strong>. ':
+    'Belum ada jadwal penerbitan SBN berikutnya yang terverifikasi pada basis data saat ini. ')+
+   'Produk yang sudah terbit dibedakan dari pengumuman mendatang; tiap pilihan disesuaikan dengan tenggat tujuan, bukan perintah membeli.</p>'+
+   '<div class="invest-opportunities-grid">'+list.map(x=>
+    '<article class="invest-opportunity-item invest-opportunity-'+safe(x.statusCode)+'">'+
+    '<div class="invest-opportunity-head"><span>'+visual[x.kind]+'</span><div><small>'+safe(stateName[x.kind])+'</small>'+
+    '<strong>'+safe(x.name)+'</strong></div></div>'+
+    '<div class="invest-opportunity-label">'+safe(x.status)+'</div>'+
+    '<p class="invest-opportunity-date">🗓 '+safe(x.eventDate)+'</p>'+
+    '<p>'+safe(x.desc)+'</p>'+
+    '<p class="invest-opportunity-fit">🎯 '+safe(x.fit)+'</p>'+
+    '<div class="invest-opportunity-footer"><small>'+safe(x.source)+' · '+safe(x.sourceDate)+'</small>'+
+    '<a href="'+safe(x.url)+'" target="_blank" rel="noopener noreferrer">Lihat sumber ↗</a></div></article>'
+   ).join('')+'</div>'+
+   '<p class="invest-opportunities-fineprint">'+
+   (state.ipoStatus==='gagal-verifikasi'?'⚠ Daftar e-IPO belum berhasil dibaca otomatis; tidak ada nama emiten IPO yang ditebak. ':
+    'Status IPO berubah sewaktu-waktu; jadwal prospektus harus diperiksa ulang. ')+
+   'Jadwal SBN tentatif bukan konfirmasi pembukaan atau kupon. Harga dan ketersediaan RDPU/emas tidak otomatis realtime.</p>'+
+   '</div>';
+ }
+ /* Keep older references functional while shifting from IPO-only to multi-asset. */
+ function renderIPO(){return renderOpportunities({});}
+ window.PAAX_OPPORTUNITY={loadIpo,contextForGoal,renderIPO,renderOpportunities,verifiedOpportunities,renderProperty,extractRegion,state};
 })();

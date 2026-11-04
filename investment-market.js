@@ -67,6 +67,105 @@
   });
   return {symbol,prices:values};
  }
- window.PAAX_INVEST_MARKET={ticker,quote,monthly,source:'Yahoo Finance / cors.dev',
+
+ /* Historical month-end market valuation. Never substitute today's price
+    for a past month or silently display a partial sum as total portfolio. */
+ function monthEnd(month){
+  const y=Number(month.slice(0,4)),m=Number(month.slice(5,7));
+  return new Date(Date.UTC(y,m,0)).toISOString().slice(0,10);
+ }
+ function portfolioMonthly(db,today,investmentState){
+  const buys=(db.investmentTrades||[]).filter(t=>t.type==='buy'&&/^\d{4}-\d{2}-\d{2}$/.test(t.date));
+  if(!buys.length)return [];
+  const latest=today.slice(0,7),earliest=buys.map(t=>t.date.slice(0,7)).sort()[0];
+  const maxStart=new Date(Date.UTC(Number(latest.slice(0,4))-5,Number(latest.slice(5,7))-1,1)).toISOString().slice(0,7);
+  const start=earliest>maxStart?earliest:maxStart;
+  const records=[];
+  let year=Number(start.slice(0,4)),month=Number(start.slice(5,7));
+  const endYear=Number(latest.slice(0,4)),endMonth=Number(latest.slice(5,7));
+  for(let limit=0;limit<72&&(year<endYear||year===endYear&&month<=endMonth);limit++){
+   const key=year+'-'+String(month).padStart(2,'0');
+   const cutoff=key===latest?today:monthEnd(key);
+   let value=0,cost=0,missing=0;const assets=[];
+   (db.investmentAssets||[]).forEach(asset=>{
+    const state=investmentState(asset,cutoff);
+    if(!(state.quantity>0))return;
+    const entry=db.investmentPriceHistory?.[asset.id]?.[key]||null;
+    const currentPrice=key===latest&&String(asset.priceDate||'').slice(0,7)===key
+      &&positive(asset.price)?Number(asset.price):null;
+    const price=currentPrice!==null?currentPrice:positive(entry?.price)?Number(entry.price):null;
+    const market=price===null?null:Math.round(price*state.quantity*100)/100;
+    if(market===null)missing++;else value+=market;
+    cost+=state.cost;
+    assets.push({id:asset.id,name:asset.name,symbol:asset.symbol||'',type:asset.type,
+      quantity:state.quantity,cost:state.cost,price,market,
+      priceSource:currentPrice!==null?(asset.priceSource||'manual'):(entry?.source||'belum ada'),
+      priceDate:currentPrice!==null?asset.priceDate:(entry?.asOf||'')});
+   });
+   records.push({month:key,date:cutoff,assets,value:missing?null:Math.round(value*100)/100,
+    partialValue:Math.round(value*100)/100,cost:Math.round(cost*100)/100,missing,
+    current:key===latest,hasAssets:assets.length>0});
+   month++;if(month>12){month=1;year++}
+  }
+  return records;
+ }
+ function portfolioPeriods(records,mode){
+  if(mode!=='year')return records.slice(-24);
+  const byYear=new Map();
+  for(const record of records)byYear.set(record.month.slice(0,4),record);
+  return [...byYear.values()].slice(-6);
+ }
+ /* SVG dots carry period identifiers; existing website event delegation
+    opens the precise historical holdings for each selected point. */
+ function trendHtml(records,mode,moneyFn,escapeFn){
+  const points=portfolioPeriods(records,mode);
+  const usable=points.filter(p=>p.value!==null&&p.hasAssets);
+  if(!points.length)return '<div class="invest-empty-chart">Catat pembelian investasi untuk mulai menyusun tren portofolio.</div>';
+  if(!usable.length)return '<div class="invest-empty-chart">Riwayat harga akhir bulan belum lengkap. Harga saham akan dicoba diambil otomatis; untuk aset lain, catat harga historis melalui tombol Harga.</div>';
+  const W=Math.max(660,points.length*66),H=255,top=32,bottom=204,left=60,right=W-31;
+  const max=Math.max(1,...usable.map(p=>p.value)),min=Math.min(0,...usable.map(p=>p.value));
+  const span=max-min||1;
+  const xy=points.map((p,i)=>({
+   ...p,x:points.length===1?(left+right)/2:left+(right-left)*i/(points.length-1),
+   y:p.value===null?null:bottom-(p.value-min)/span*(bottom-top)}));
+  const segments=[];let current=[];
+  for(const p of xy){
+   if(p.y===null){if(current.length)segments.push(current);current=[];}
+   else current.push(p);
+  }
+  if(current.length)segments.push(current);
+  const svgLine=segments.map(segment=>{
+   if(segment.length===1)return '';
+   return '<polyline points="'+segment.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ')+
+    '" fill="none" stroke="#2b86cb" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>';
+  }).join('');
+  const showLabels=new Set([0,xy.length-1]);
+  if(xy.length<=10)xy.forEach((p,i)=>showLabels.add(i));
+  else for(let i=0;i<xy.length;i+=Math.max(1,Math.round(xy.length/7)))showLabels.add(i);
+  const dots=xy.map((p,i)=>{
+   const x=p.x.toFixed(1),label=mode==='year'?p.month.slice(0,4):p.month.slice(5).replace('-','/');
+   const tooltip=escapeFn((mode==='year'?p.month.slice(0,4):p.month)+' · '+
+    (p.value===null?'Harga belum lengkap':moneyFn(p.value)));
+   const dot=p.y===null
+    ?'<circle cx="'+x+'" cy="'+(bottom+8)+'" r="4" fill="#f6bd6b" stroke="#fff" stroke-width="2"/>'
+    :'<circle cx="'+x+'" cy="'+p.y.toFixed(1)+'" r="6" fill="#fff" stroke="#267dc2" stroke-width="3"/>';
+   const point='<g data-invest-period="'+p.month+'" class="invest-history-point" tabindex="0" role="button" aria-label="'+tooltip+'; lihat rincian investasi" style="cursor:pointer"><title>'+tooltip+'</title>'+
+     '<circle cx="'+x+'" cy="'+(p.y===null?bottom+8:p.y)+'" r="18" fill="transparent"/>'+dot+'</g>';
+   return point+(showLabels.has(i)?'<text x="'+x+'" y="234" text-anchor="middle" fill="#7791a9" font-size="11">'+label+'</text>':'');
+  }).join('');
+  const ticks=[0,.25,.5,.75,1].map(v=>{
+   const y=(bottom-(bottom-top)*v).toFixed(1);
+   return '<line x1="'+left+'" y1="'+y+'" x2="'+right+'" y2="'+y+'" stroke="#e0eaf6" stroke-dasharray="4 6"/>';
+  }).join('');
+  const label=points.at(-1)?.value!==null?moneyFn(points.at(-1).value):'Nilai terakhir belum lengkap';
+  const important=escapeFn(label);
+  return '<div class="invest-chart-status"><strong>'+important+'</strong><small>'+usable.length+
+   ' periode lengkap · klik titik untuk nilai dan instrumen pada akhir periode</small></div>'+
+   '<div class="invest-trend-scroll" role="region" aria-label="Tren nilai investasi dapat digeser horizontal" tabindex="0">'+
+   '<svg viewBox="0 0 '+W+' '+H+'" style="width:'+W+'px;max-width:none;height:255px" role="img" aria-label="Grafik tren portofolio '+(mode==='year'?'tahunan':'bulanan')+'">'+ticks+svgLine+dots+'</svg></div>'+
+   '<p class="invest-trend-foot">Titik oranye menandakan harga instrumen belum lengkap; angka parsial tidak dianggap sebagai total portofolio. Periode berjalan menggunakan harga terkini yang tersedia.</p>';
+ }
+
+ window.PAAX_INVEST_MARKET={ticker,quote,monthly,portfolioMonthly,portfolioPeriods,trendHtml,source:'Yahoo Finance / cors.dev',
   disclaimer:'Harga publik dapat tertunda atau tidak tersedia. Bursa BEI tidak selalu buka; pembaruan bukan streaming per transaksi.'};
 })();

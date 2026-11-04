@@ -1,0 +1,29 @@
+/* Automatic fundamental insights for monitored issuers */
+.invest-auto-fundamentals{padding:17px;margin-top:15px;border:1px solid #d5e5f8;border-radius:17px;background:linear-gradient(140deg,#f7fbff,#edf8ff)}
+.invest-fundamental-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.invest-fundamental-head small{font:900 10px Nunito,sans-serif;color:#4a95a7;letter-spacing:1.2px}
+.invest-fundamental-head h4{font:900 17px Fredoka,Nunito,sans-serif;color:#26547e;margin:5px 0}
+.invest-fundamental-head p{font:700 11px/1.6 Nunito,sans-serif;color:#7992ab;margin:0}
+.invest-fundamental-head button{border-radius:12px;padding:10px 13px;white-space:nowrap;background:#e0f1ff;color:#2779a4;border:1px solid #c3e2f6;font:900 11px Nunito,sans-serif}
+.invest-fundamental-warning{color:#af6c37;background:#fff6e7;border:1px solid #f0dbbd;border-radius:11px;font:750 11px/1.55 Nunito,sans-serif;padding:10px}
+.invest-fundamental-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:15px 0}
+.invest-fundamental-stock{min-width:0;background:#fff;border:1px solid #e0ebf8;padding:14px;border-radius:15px;box-shadow:0 5px 16px #386b9611}
+.invest-fundamental-stock-head{display:flex;align-items:start;justify-content:space-between;gap:8px}
+.invest-fundamental-stock-head strong{display:block;font:900 15px Nunito,sans-serif;color:#285d88}
+.invest-fundamental-stock-head span{font:700 10px Nunito,sans-serif;color:#8ba1b6}
+.invest-grade{white-space:nowrap;flex:none;background:#f2f5fa;color:#7387a0;border-radius:100px;font:900 10px Nunito,sans-serif;padding:6px 9px}
+.invest-grade.positive{background:#e4f7ec;color:#238761}
+.invest-grade.danger{background:#fff0f0;color:#b65363}
+.invest-ratio-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:13px 0}
+.invest-ratio-grid>div{border-radius:10px;background:#f1f7fc;padding:9px 7px;text-align:center}
+.invest-ratio-grid small{display:block;color:#87a0b9;font:800 10px Nunito,sans-serif}
+.invest-ratio-grid strong{display:block;margin-top:4px;color:#2d5e8a;font:900 14px Nunito,sans-serif}
+.invest-fundamental-why{font:700 11px/1.65 Nunito,sans-serif;color:#667e95;margin:8px 0}
+.invest-fundamental-source{font:700 10px/1.5 Nunito,sans-serif;color:#91a3b4}
+.invest-fundamental-disclaimer{font:700 10px/1.6 Nunito,sans-serif;color:#899db0;margin:10px 0 0}
+.invest-intel-references{margin-top:14px;border-radius:13px;border:1px solid #dfebf7;background:#f8fbff;padding:12px}
+.invest-intel-references summary{font:900 12px Nunito,sans-serif;color:#386e9a;cursor:pointer}
+.invest-intel-references .invest-intel-links{margin-top:14px}
+.invest-intel-references>p{font:700 11px/1.6 Nunito,sans-serif;color:#8092a8}
+@media(max-width:750px){.invest-fundamental-list{grid-template-columns:1fr}}
+@media(max-width:480px){.invest-fundamental-head{align-items:start;flex-wrap:wrap}.invest-fundamental-head button{margin-left:auto}.invest-ratio-grid strong{font-size:12px}}

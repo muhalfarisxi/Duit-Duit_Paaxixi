@@ -133,7 +133,7 @@
       'Jika produk belum terbit, kupon/biayanya belum diketahui, atau jatuh temponya tidak sesuai, <strong>pantau dulu</strong> dan simpan dana sementara di pilihan likuid yang telah diperiksa risikonya. Tidak ada prediksi kapan peluang terbaik muncul.</p>'+
       '<div class="invest-goal-watch-links">'+report.watch.map(x=>'<a href="'+x.url+'" target="_blank" rel="noopener noreferrer" title="'+esc(x.detail)+'">'+esc(x.title)+' ↗</a>').join('')+'</div></div></div>'+
       '<div class="invest-goal-ai"><div class="invest-goal-ai-intro"><span>🧠</span><div><strong>Penjelasan AI untuk Tujuan Ini</strong>'+
-      '<small>Gemini mengulas alokasi, risiko, prioritas, dan kapan lebih baik menunggu. Angka alokasi dihitung oleh sistem, bukan diubah AI.</small></div>'+
+      '<small>Gemini menimbang rencana ini bersama kondisi arus kas, saldo, utang-piutang, aset yang telah dimiliki, dan peluang pasar yang tersedia. Persentase alokasi dasar tetap dihitung oleh sistem.</small></div>'+
       '<button type="button" data-invest-goal-ai '+(aiState?.busy?'disabled':'')+'>'+(aiState?.busy?'⏳ Menganalisis…':aiState?.result?'↻ Analisis Ulang':'✨ Jelaskan dengan AI')+'</button></div>'+
       (aiState?.error?'<div class="invest-goal-ai-error" role="alert">'+esc(aiState.error)+'</div>':'')+
       (aiState?.result?'<div class="invest-goal-ai-content"><h4>'+esc(aiState.result.headline)+'</h4><p>'+esc(aiState.result.summary)+'</p>'+
@@ -142,7 +142,7 @@
        '<small>Model '+esc(aiState.result.modelName||'Gemini')+' · penjelasan AI dapat keliru, periksa sumber resmi.</small></div>':'')+
       (!aiState?.result?'<p class="invest-goal-ai-local">💡 '+esc(report.months<=36?'Fokus pada likuiditas dan kepastian waktu penggunaan dana.':
         'Mulai dari produk yang mudah dipahami. Untuk bagian yang belum ada produk cocok, menunggu lebih baik daripada terburu-buru.')+'</p>':'')+
-      '<p class="invest-goal-ai-privacy">AI hanya menerima ringkasan tujuan, nominal, jangka waktu, komposisi, dan konteks pasar yang tersedia—tidak membaca transaksi atau saldo rekening. Butuh Firebase AI Logic yang aktif.</p></div>'+
+      '<p class="invest-goal-ai-privacy">AI membaca ringkasan agregat saldo, arus kas, utang-piutang, serta posisi investasi (termasuk kode instrumen publik) untuk memberi analisis tujuan. Nama rekening, identitas peminjam, dan transaksi mentah tidak dikirim. Butuh Firebase AI Logic aktif; hasil dapat keliru.</p></div>'+
       '<p class="invest-goal-disclaimer">*Hitungan setoran tanpa asumsi keuntungan, tidak memasukkan pajak, biaya, atau inflasi. Target diisi sebagai kebutuhan nominal saat jatuh tempo. Reksa dana, obligasi, emas, dan saham tetap memiliki risiko. Siapkan dana darurat terpisah.</p></div>':'')+
       '</section>';
  }

@@ -71,12 +71,75 @@
     'Pertumbuhan jangka panjang dapat dipertimbangkan, tetapi porsi berisiko harus dikurangi saat tanggal tujuan mendekat.',
    disclaimer:'Alokasi adalah simulasi pendidikan, bukan pilihan produk terbaik yang dijamin. Proyeksi setoran tidak menggunakan asumsi keuntungan agar tidak memberi kepastian palsu.'};
  }
+
+/* Goal popup remains inside the existing rendering lifecycle. */
+let goalModalOpen=false,goalModalMode='new',goalLastArgs=null;
+const rp=value=>'Rp '+Math.max(0,Math.round(Number(value)||0)).toLocaleString('id-ID');
+function rerenderGoalOnly(){
+ const el=document.getElementById('invest-goal-planner');
+ if(el&&goalLastArgs)el.outerHTML=renderCard(...goalLastArgs);
+}
+function dismissGoalPopup(){if(!goalModalOpen)return;goalModalOpen=false;rerenderGoalOnly();}
+document.addEventListener('click',event=>{
+ const openNew=event.target.closest?.('[data-invest-goal-new]');
+ const openEdit=event.target.closest?.('[data-invest-goal-edit]');
+ const cancel=event.target.closest?.('[data-invest-goal-modal-close]');
+ if(cancel||event.target?.id==='invest-goal-modal-backdrop'){
+  if(!goalModalOpen)return;
+  event.preventDefault();event.stopImmediatePropagation();dismissGoalPopup();return;
+ }
+ if(openNew||openEdit){
+  event.preventDefault();event.stopImmediatePropagation();
+  goalModalMode=openEdit?'edit':'new';goalModalOpen=true;rerenderGoalOnly();
+  document.querySelector('#invest-goal-form [name="name"]')?.focus({preventScroll:true});
+  return;
+ }
+ if(event.target.closest?.('[data-invest-goal-select],[data-nav]'))goalModalOpen=false;
+},true);
+document.addEventListener('input',event=>{
+ const el=event.target;
+ if(!goalModalOpen||!el.matches?.('#invest-goal-form [data-goal-rupiah]'))return;
+ const digits=el.value.replace(/[^0-9]/g,'').slice(0,16);
+ el.value=digits?'Rp '+Number(digits).toLocaleString('id-ID'):'';
+},true);
+document.addEventListener('change',event=>{
+ const el=event.target;
+ if(el.matches?.('#invest-goal-form [name="risk"]'))el.closest('.invest-goal-risk')?.setAttribute('data-risk',el.value);
+},true);
+document.addEventListener('submit',event=>{
+ const form=event.target;if(form?.id!=='invest-goal-form'||!goalModalOpen)return;
+ const values={};
+ for(const key of ['target','initial','monthly']){
+  const field=form.elements[key];
+  const raw=String(field?.value||'').replace(/[^0-9]/g,'');
+  values[key]=Number(raw||0);
+ }
+ try{
+  plan({...values,due:form.elements.due.value,risk:form.elements.risk.value},isoNow());
+ }catch(err){
+  event.preventDefault();event.stopImmediatePropagation();
+  const warning=form.querySelector('.invest-goal-modal-error');
+  if(warning)warning.textContent=String(err?.message||'Nominal tidak valid.');
+  return;
+ }
+ for(const key of Object.keys(values))form.elements[key].value=String(values[key]);
+ goalModalOpen=false; // Host handles the actual save and rerender in its submit listener.
+},true);
+document.addEventListener('keydown',event=>{
+ if(!goalModalOpen||event.key!=='Escape')return;
+ event.preventDefault();event.stopImmediatePropagation();dismissGoalPopup();
+},true);
+const goalCSS=document.querySelector('link[href*="investment-goals.css"]');
+if(goalCSS)goalCSS.href='./investment-goals.css?v=2';
+
  function renderCard(goals,currentId,aiState,quoteState,formatMoney,escapeText,asOf=isoNow()){
+  goalLastArgs=[goals,currentId,aiState,quoteState,formatMoney,escapeText,asOf];
   const fmt=typeof formatMoney==='function'?formatMoney:money;
   const esc=typeof escapeText==='function'?escapeText:(s=>String(s));
   const all=Array.isArray(goals)?goals:[],chosen=all.find(x=>x.id===currentId)||null;
   const defaults={type:'house',name:'',due:addMonths(asOf.slice(0,7),36),target:0,initial:0,monthly:0,risk:'medium'};
-  const form=chosen||defaults;
+  const editing=goalModalOpen&&goalModalMode==='edit'&&!!chosen;
+  const form=goalModalOpen&&goalModalMode==='new'?defaults:(chosen||defaults);
   let report=null,error='';
   if(chosen)try{report=plan(chosen,asOf)}catch(err){error=err.message;}
   const market=quoteState?.value;
@@ -102,19 +165,26 @@
     '<div class="invest-goal-tabs" role="group" aria-label="Pilih tujuan investasi">'+
     all.map(g=>'<button type="button" data-invest-goal-select="'+esc(g.id)+'" aria-pressed="'+(g.id===currentId)+'" class="'+(g.id===currentId?'active':'')+'">'+
        esc((KINDS[g.type]||KINDS.other).split(' ')[0])+' '+esc(g.name||'Rencana')+'</button>').join('')+
-    '<button type="button" class="invest-goal-new" data-invest-goal-new>＋ Rencana Baru</button></div>'+
-    '<form id="invest-goal-form" class="invest-goal-form"><input name="editId" type="hidden" value="'+esc(chosen?.id||'')+'">'+
-    '<label>Tujuan Penggunaan<select class="field" name="type">'+kindOptions+'</select></label>'+
-    '<label>Nama Tujuan<input class="field" name="name" maxlength="70" value="'+esc(form.name||'')+'" placeholder="Contoh: DP Rumah Pertama" required></label>'+
-    '<label>Bulan Target<input class="field" type="month" name="due" min="'+esc(addMonths(asOf.slice(0,7),1))+'" max="'+esc(addMonths(asOf.slice(0,7),600))+'" value="'+esc(form.due)+'" required></label>'+
-    '<label>Target Dana (Rp)<input class="field" type="number" name="target" min="1" max="1000000000000000" step="1000" value="'+(form.target||'')+'" placeholder="Contoh: 200000000" required></label>'+
-    '<label>Dana Awal Khusus Tujuan Ini (Rp)<input class="field" type="number" name="initial" min="0" max="1000000000000000" step="1000" value="'+(form.initial||0)+'" required></label>'+
-    '<label>Rencana Setoran Tiap Bulan (Rp)<input class="field" type="number" name="monthly" min="0" max="1000000000000000" step="1000" value="'+(form.monthly||0)+'" required></label>'+
-    '<label class="invest-goal-risk">Toleransi Risiko<select class="field" name="risk">'+riskOptions+'</select></label>'+
-    '<div class="invest-goal-form-actions"><button class="invest-goal-save" type="submit">'+(chosen?'✓ Perbarui Rencana':'✦ Simpan & Hitung Rekomendasi')+'</button>'+
-    (chosen?'<button type="button" class="invest-goal-remove" data-invest-goal-delete="'+esc(chosen.id)+'">Hapus Rencana</button>':'')+'</div>'+
-    '</form>'+
-    (!all.length?'<div class="invest-goal-placeholder"><span>🌱</span><p>Isi target dan jangka waktu untuk mendapatkan komposisi investasi beserta opsi menunggu peluang berikutnya.</p></div>':'')+
+    '<button type="button" class="invest-goal-new" data-invest-goal-new>＋ Rencana Baru</button>'+ 
+    (chosen?'<button type="button" class="invest-goal-edit" data-invest-goal-edit>✎ Edit Rencana</button>':'')+'</div>'+
+    (goalModalOpen?'<div class="invest-goal-modal-backdrop" id="invest-goal-modal-backdrop"><section class="invest-goal-modal" role="dialog" aria-modal="true" aria-labelledby="invest-goal-modal-title">'+
+     '<div class="invest-goal-modal-head"><span class="invest-goal-modal-emoji">🌱</span><div><small>✦ WUJUDKAN IMPIANMU</small>'+
+     '<h3 id="invest-goal-modal-title">'+(editing?'Edit Rencana Investasi':'Tambah Rencana Investasi Baru')+'</h3>'+
+     '<p>Atur kebutuhan dana dan jangka waktu; Paaxixi akan menghitung komposisi investasimu.</p></div>'+
+     '<button type="button" data-invest-goal-modal-close aria-label="Tutup formulir">✕</button></div>'+
+    '<form id="invest-goal-form" class="invest-goal-form invest-goal-modal-form"><p class="invest-goal-modal-error" role="alert"></p><input name="editId" type="hidden" value="'+esc(editing?chosen.id:'')+'">'+
+    '<label class="invest-goal-field invest-goal-field-use">Tujuan Penggunaan<select class="field" name="type">'+kindOptions+'</select></label>'+
+    '<label class="invest-goal-field invest-goal-field-name">Nama Tujuan<input class="field" name="name" maxlength="70" value="'+esc(form.name||'')+'" placeholder="Contoh: DP Rumah Pertama" required></label>'+
+    '<label class="invest-goal-field invest-goal-field-date">Bulan Target<input class="field" type="month" name="due" min="'+esc(addMonths(asOf.slice(0,7),1))+'" max="'+esc(addMonths(asOf.slice(0,7),600))+'" value="'+esc(form.due)+'" required></label>'+
+    '<label class="invest-goal-field invest-goal-field-target">🎯 Target Dana<input class="field" data-goal-rupiah="1" type="text" inputmode="numeric" name="target" value="'+(form.target?rp(form.target):'')+'" placeholder="Rp 200.000.000" required></label>'+
+    '<label class="invest-goal-field invest-goal-field-initial">🌿 Dana Awal Tujuan Ini<input class="field" data-goal-rupiah="1" type="text" inputmode="numeric" name="initial" value="'+rp(form.initial)+'" required></label>'+
+    '<label class="invest-goal-field invest-goal-field-monthly">💝 Rencana Setoran Bulanan<input class="field" data-goal-rupiah="1" type="text" inputmode="numeric" name="monthly" value="'+rp(form.monthly)+'" required></label>'+
+    '<label class="invest-goal-risk invest-goal-field" data-risk="'+esc(form.risk)+'">⚖️ Toleransi Risiko<select class="field" name="risk">'+riskOptions+'</select></label>'+
+    '<div class="invest-goal-form-actions"><button class="invest-goal-save" type="submit">'+(editing?'✓ Perbarui Rencana':'✦ Simpan & Hitung Rekomendasi')+'</button>'+
+    '<button type="button" class="invest-goal-cancel" data-invest-goal-modal-close>Batal</button>'+'</div>'+
+    '</form>'+    '<p class="invest-goal-modal-footnote">✨ Data tersimpan sebagai angka rupiah; pemisah ribuan hanya untuk memudahkan pengetikan. Risiko investasi dapat berubah.</p>'+
+    '</section></div>':'')+
+    (!all.length?'<div class="invest-goal-placeholder"><span>🌱</span><p>Mulai dengan tombol Rencana Baru untuk menghitung alokasi dan memantau peluang investasi berikutnya.</p></div>':'')+
     (error?'<p class="invest-goal-error" role="alert">'+esc(error)+'</p>':'')+
     (report?'<div class="invest-goal-outcome"><div class="invest-goal-outcome-head"><div><small>🧭 REKOMENDASI UNTUK '+esc(selectedLabel)+'</small>'+
       '<h4>Alokasi Berdasarkan '+esc(report.monthsLabel)+' · Profil '+esc(report.risk==='low'?'Konservatif':report.risk==='high'?'Agresif':'Moderat')+'</h4>'+

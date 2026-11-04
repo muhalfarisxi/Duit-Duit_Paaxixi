@@ -79,3 +79,38 @@
 @media(max-width:1080px){.invest-goal-form{grid-template-columns:repeat(2,minmax(0,1fr))}.invest-goal-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.invest-goal-planner{padding:17px!important}.invest-goal-head{align-items:flex-start}.invest-goal-flag{display:none}.invest-goal-heading>span{width:42px;height:42px;font-size:23px}.invest-goal-market{align-items:flex-start;flex-direction:column}.invest-goal-market button{align-self:flex-end}.invest-goal-form{grid-template-columns:1fr;padding:13px}.invest-goal-form-actions{grid-column:1;flex-wrap:wrap}.invest-goal-form-actions button{flex:1}.invest-goal-allocations{grid-template-columns:1fr}.invest-goal-metrics strong{font-size:clamp(13px,4.1vw,17px)}.invest-goal-ai-intro{flex-wrap:wrap}.invest-goal-ai-intro button{width:100%}.invest-goal-outcome-head>span{display:none}.invest-goal-watch{padding:13px}.invest-goal-watch-icon{width:35px;height:35px}.invest-goal-stack{height:11px}}
 @media(prefers-reduced-motion:reduce){.invest-goal-heading>span,.invest-goal-outcome,.invest-goal-ai-content{animation:none!important}}
+
+/* Interactive pastel goal modal. */
+.invest-goal-planner:has(.invest-goal-modal-backdrop){overflow:visible!important}
+.invest-goal-edit{color:#6856a8;background:#edeaff;border:1px solid #d9d3ef;border-radius:12px;padding:10px;font:900 11px Nunito,sans-serif}
+.invest-goal-modal-backdrop{position:fixed;inset:0;z-index:2147481800;padding:15px;display:grid;place-items:center;background:#0c2242a6;backdrop-filter:blur(7px);animation:goalModalAppear .2s ease}
+.invest-goal-modal{width:min(100%,790px);max-height:91vh;overflow-y:auto;border-radius:24px;border:1px solid #d5e7f9;background:linear-gradient(140deg,#fff,#f2f9ff);box-shadow:0 32px 85px #152e4f75;animation:goalModalPop .26s ease}
+.invest-goal-modal-head{display:flex;align-items:flex-start;gap:12px;padding:21px 23px;background:linear-gradient(110deg,#f3faff,#e6f1ff);border-bottom:1px solid #dce9fa}
+.invest-goal-modal-emoji{display:grid;place-items:center;width:51px;height:51px;flex:none;border-radius:16px;background:linear-gradient(130deg,#ffe7f1,#dff8e6);font-size:27px;animation:goalFloat 3s ease-in-out infinite}
+.invest-goal-modal-head>div{min-width:0;flex:1}.invest-goal-modal-head small{font:900 10px Nunito,sans-serif;color:#469aaa;letter-spacing:1px}
+.invest-goal-modal-head h3{font:800 22px Fredoka,Nunito,sans-serif;margin:5px 0;color:#1c557e}
+.invest-goal-modal-head p{font:700 12px/1.6 Nunito,sans-serif;color:#849ab2;margin:0}
+.invest-goal-modal-head button{border:1px solid #d6e6f4;background:white;color:#6283a1;border-radius:10px;padding:7px 11px;font-size:17px;font-weight:900}
+.invest-goal-modal-form{padding:20px!important;background:transparent!important;border:0!important;box-shadow:none!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+.invest-goal-modal-form .invest-goal-field{display:flex;flex-direction:column;gap:8px;min-width:0;padding:12px;border-radius:14px;border:1px solid #e1eafb;box-shadow:0 5px 14px #30507012;font:900 11px Nunito,sans-serif;transition:transform .15s}
+.invest-goal-modal-form .invest-goal-field:hover{transform:translateY(-2px)}
+.invest-goal-modal-form .invest-goal-field .field{min-height:42px!important;border:1px solid #d4e4f3!important;border-radius:10px!important;background:#ffffffdf!important;color:#295782!important;font:850 12px Nunito,sans-serif}
+.invest-goal-field-use{background:#e9fbf1}.invest-goal-field-name{background:#eaf5ff}
+.invest-goal-field-date{background:#f2edff}.invest-goal-field-target{background:#fff5dc}
+.invest-goal-field-initial{background:#e8faec}.invest-goal-field-monthly{background:#fff0f3}
+.invest-goal-risk[data-risk=low]{background:#e5faec;border-color:#bee6ce!important;color:#29815e}
+.invest-goal-risk[data-risk=medium]{background:#fff3d3;border-color:#ead49f!important;color:#a47c31}
+.invest-goal-risk[data-risk=high]{background:#ffe4eb;border-color:#f0becb!important;color:#ba4965}
+.invest-goal-risk[data-risk=low] select{color:#23835b!important}
+.invest-goal-risk[data-risk=medium] select{color:#a47c31!important}
+.invest-goal-risk[data-risk=high] select{color:#bc4560!important}
+.invest-goal-modal-form .invest-goal-form-actions{grid-column:span 2;gap:8px}
+.invest-goal-cancel{padding:12px;border:1px solid #d3e0f0;border-radius:11px;background:white;color:#64829c;font:900 12px Nunito,sans-serif}
+.invest-goal-modal-error{grid-column:1/-1;margin:0;padding:10px;color:#b74d61;background:#fff0f2;border-radius:11px;font-size:12px;font-weight:850}
+.invest-goal-modal-error:empty{display:none}
+.invest-goal-modal-footnote{padding:0 22px 20px;color:#889ab1;font:700 10px/1.6 Nunito,sans-serif;margin:0}
+@keyframes goalModalAppear{from{opacity:0}to{opacity:1}}
+@keyframes goalModalPop{from{opacity:0;transform:translateY(15px) scale(.96)}to{opacity:1;transform:none}}
+@media(max-width:800px){.invest-goal-modal-form{grid-template-columns:repeat(2,minmax(0,1fr))}.invest-goal-modal-form .invest-goal-form-actions{grid-column:1/-1}}
+@media(max-width:550px){.invest-goal-modal-backdrop{padding:7px}.invest-goal-modal{max-height:96vh}.invest-goal-modal-head{padding:13px}.invest-goal-modal-head h3{font-size:18px}.invest-goal-modal-form{grid-template-columns:1fr;padding:13px!important}.invest-goal-modal-form .invest-goal-form-actions{grid-column:1/-1}.invest-goal-modal-footnote{padding:0 13px 14px}}
+@media(prefers-reduced-motion:reduce){.invest-goal-modal-backdrop,.invest-goal-modal{animation:none!important}}

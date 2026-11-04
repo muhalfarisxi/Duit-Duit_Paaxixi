@@ -193,17 +193,17 @@ if(goalCSS)goalCSS.href='./investment-goals.css?v=2';
       '<div><small>Setoran Minimum / Bulan*</small><strong>'+fmt(report.required)+'</strong></div>'+
       '<div><small>Rencana Dana Terkumpul*</small><strong>'+fmt(report.base)+'</strong></div>'+
       '<div class="'+(report.shortfall>0?'invest-goal-shortfall':'invest-goal-meets')+'"><small>'+(report.shortfall>0?'Kekurangan Target*':'Sisa Setelah Target*')+'</small><strong>'+fmt(report.shortfall||report.surplus)+'</strong></div></div>'+
+      (window.PAAX_OPPORTUNITY?.renderProperty(chosen.name,chosen.type,report.target)||'')+
       '<div class="invest-goal-allocation-head"><h4>Komposisi Alokasi yang Disarankan</h4><small>Total 100% · bukan instruksi beli otomatis</small></div>'+
       '<div class="invest-goal-stack">'+report.allocation.map(x=>'<span style="width:'+x.percent+'%;background:'+x.color+'" title="'+esc(x.name)+' '+x.percent+'%"></span>').join('')+'</div>'+
       '<div class="invest-goal-allocations">'+report.allocation.map(x=>'<div class="invest-goal-asset"><span class="invest-goal-asset-icon" style="background:'+x.color+'22">'+x.icon+'</span>'+
         '<div><strong>'+esc(x.name)+'</strong><small>'+esc(x.note)+'</small></div><b>'+x.percent+'%<small>'+fmt(x.monthly)+'/bulan</small></b></div>').join('')+'</div>'+
-      '<div class="invest-goal-watch"><div class="invest-goal-watch-icon">⏳</div><div><h4>Tidak Harus Beli Sekarang — Boleh Menunggu Peluang</h4>'+
-      '<p>'+(report.hasBond?'Porsi SBN / sukuk adalah <strong>alokasi sasaran</strong>, bukan perintah membeli seri yang tidak tersedia. ':
-        'Jangan mengejar produk yang belum jelas atau belum cocok. ')+
-      'Jika produk belum terbit, kupon/biayanya belum diketahui, atau jatuh temponya tidak sesuai, <strong>pantau dulu</strong> dan simpan dana sementara di pilihan likuid yang telah diperiksa risikonya. Tidak ada prediksi kapan peluang terbaik muncul.</p>'+
-      '<div class="invest-goal-watch-links">'+report.watch.map(x=>'<a href="'+x.url+'" target="_blank" rel="noopener noreferrer" title="'+esc(x.detail)+'">'+esc(x.title)+' ↗</a>').join('')+'</div></div></div>'+
-      '<div class="invest-goal-ai"><div class="invest-goal-ai-intro"><span>🧠</span><div><strong>Penjelasan AI untuk Tujuan Ini</strong>'+
-      '<small>Gemini menimbang rencana ini bersama kondisi arus kas, saldo, utang-piutang, aset yang telah dimiliki, dan peluang pasar yang tersedia. Persentase alokasi dasar tetap dihitung oleh sistem.</small></div>'+
+      '<div class="invest-goal-watch"><div class="invest-goal-watch-icon">📰</div><div><h4>Emiten IPO Mendatang — Hanya yang Terverifikasi</h4>'+
+      '<p>Nama emiten, tahap penawaran, dan jadwal ditampilkan bila e-IPO resmi berhasil dibaca. <strong>Tidak harus membeli.</strong> Jika data tidak tersedia, sistem tidak akan mengarang jadwal atau kandidat IPO.</p>'+
+      (window.PAAX_OPPORTUNITY?.renderIPO()||'<p>Memeriksa e-IPO resmi…</p>')+
+      '</div></div>'+
+      '<div class="invest-goal-ai"><div class="invest-goal-ai-intro"><span>🧠</span><div><strong>Analisis AI untuk '+esc(selectedLabel)+'</strong>'+
+      '<small>Gemini mengulas tujuan dan lokasi dalam judul, pembanding harga lokal jika tersedia, arus kas, portofolio, serta penawaran IPO resmi. Persentase dasar tetap dihitung sistem.</small></div>'+
       '<button type="button" data-invest-goal-ai '+(aiState?.busy?'disabled':'')+'>'+(aiState?.busy?'⏳ Menganalisis…':aiState?.result?'↻ Analisis Ulang':'✨ Jelaskan dengan AI')+'</button></div>'+
       (aiState?.error?'<div class="invest-goal-ai-error" role="alert">'+esc(aiState.error)+'</div>':'')+
       (aiState?.result?'<div class="invest-goal-ai-content"><h4>'+esc(aiState.result.headline)+'</h4><p>'+esc(aiState.result.summary)+'</p>'+
@@ -216,5 +216,23 @@ if(goalCSS)goalCSS.href='./investment-goals.css?v=2';
       '<p class="invest-goal-disclaimer">*Hitungan setoran tanpa asumsi keuntungan, tidak memasukkan pajak, biaya, atau inflasi. Target diisi sebagai kebutuhan nominal saat jatuh tempo. Reksa dana, obligasi, emas, dan saham tetap memiliki risiko. Siapkan dana darurat terpisah.</p></div>':'')+
       '</section>';
  }
+
+const opportunityScript=document.createElement('script');
+opportunityScript.src='./investment-opportunities.js?v=1';
+opportunityScript.onload=()=>{
+ if(!goalModalOpen)rerenderGoalOnly();
+ void window.PAAX_OPPORTUNITY?.loadIpo();
+};
+document.head.appendChild(opportunityScript);
+document.addEventListener('paax:ipo-updated',()=>{if(!goalModalOpen)rerenderGoalOnly();});
+document.addEventListener('click',event=>{
+ if(!event.target.closest?.('[data-paax-ipo-refresh]'))return;
+ event.preventDefault();event.stopImmediatePropagation();
+ void window.PAAX_OPPORTUNITY?.loadIpo(true);
+},true);
+const opportunityCss=document.createElement('link');
+opportunityCss.rel='stylesheet';opportunityCss.href='./investment-opportunities.css?v=1';
+document.head.appendChild(opportunityCss);
+
  window.PAAX_INVEST_GOALS={KINDS,ASSETS,plan,renderCard,addMonths};
 })();

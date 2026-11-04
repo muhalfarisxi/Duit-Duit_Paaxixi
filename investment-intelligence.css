@@ -58,3 +58,132 @@
 @media(max-width:800px){.invest-intel-market-grid{grid-template-columns:1fr}.invest-intel-head{align-items:flex-start}.invest-intel-stockrow{grid-template-columns:55px minmax(95px,1fr) 65px}.invest-intel-stockrow small{grid-column:2/-1;text-align:right}}
 @media(max-width:550px){.invest-intel-head{flex-direction:column}.invest-intel-refresh{align-self:flex-end}.invest-intel{padding:17px!important}.invest-intel-note-editor form{grid-template-columns:repeat(2,minmax(0,1fr))}.invest-intel-notes{grid-template-columns:1fr}.invest-intel-stock-block,.invest-intel-research{padding:12px}.invest-intel-watch-form button{padding:9px;font-size:11px}}
 @media(prefers-reduced-motion:reduce){.invest-intel-light.loading{animation:none}}
+
+
+/* IHSG price chart: full-height card, semantic market direction. */
+.invest-intel-index-wrap{padding:0!important;overflow:hidden}
+.invest-ihsg-panel{min-height:318px;display:flex;flex-direction:column;gap:0;padding:18px;
+ background:linear-gradient(145deg,#f8fbff,#eef5ff);transition:background .35s ease}
+.invest-ihsg-panel.invest-ihsg-up{background:linear-gradient(145deg,#f0fff7 0%,#e0f6eb 100%)}
+.invest-ihsg-panel.invest-ihsg-down{background:linear-gradient(145deg,#fff5f4 0%,#ffe8e9 100%)}
+.invest-ihsg-panel.invest-ihsg-flat{background:linear-gradient(145deg,#f6faff 0%,#eaf3ff 100%)}
+.invest-ihsg-panel .invest-intel-blockhead{margin-bottom:10px}
+.invest-ihsg-panel .invest-intel-index{font-size:clamp(25px,3.5vw,34px);font-weight:900}
+.invest-ihsg-up .invest-intel-index{color:#156d50}.invest-ihsg-down .invest-intel-index{color:#b44254}
+.invest-ihsg-panel .invest-intel-delta{font-size:12px;font-weight:900;margin:4px 0 2px}
+.invest-ihsg-panel .invest-intel-delta.down{color:#c04754}
+.invest-ihsg-panel .invest-intel-delta.up{color:#1e9471}
+.invest-ihsg-panel .invest-intel-delta.flat,.invest-ihsg-panel .invest-intel-delta.unknown{color:#6785a5}
+.invest-ihsg-panel .invest-ihsg-date{font-size:10px;color:#71869e}
+.invest-ihsg-modes{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin:14px 0 10px}
+.invest-ihsg-modes button{flex:1;min-width:60px;border-radius:11px;border:1px solid #d7e4f4;background:#ffffffa8;
+ color:#49688d;font:900 10px Nunito,sans-serif;padding:7px 9px;transition:background .16s,transform .16s}
+.invest-ihsg-modes button:hover{transform:translateY(-2px)}
+.invest-ihsg-modes button.active{color:#fff;background:#4875ad;border-color:#4875ad;box-shadow:0 6px 13px #2f64932d}
+.invest-ihsg-up .invest-ihsg-modes button.active{background:#16805c;border-color:#16805c}
+.invest-ihsg-down .invest-ihsg-modes button.active{background:#c45661;border-color:#c45661}
+.invest-ihsg-chart{margin-top:auto}
+.invest-ihsg-chart-meta{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:10px;font-weight:800;color:#69849f;margin-bottom:7px}
+.invest-ihsg-chart-meta strong{color:#6c89aa;font-size:11px}
+.invest-ihsg-chart-meta strong.up{color:#16805c}
+.invest-ihsg-chart-meta strong.down{color:#c34b5c}
+.invest-ihsg-chart svg{display:block;width:100%;height:clamp(130px,16vw,170px);overflow:visible}
+.invest-ihsg-time-labels{display:flex;justify-content:space-between;margin-top:4px;gap:8px;color:#8495aa;font-size:10px;font-weight:750}
+.invest-ihsg-empty{margin:auto 0;padding:35px 8px;text-align:center;color:#8099b1;font-size:11px;line-height:1.7}
+
+/* Automatic risk-aware Indonesia market analysis, placed below index/crypto. */
+.invest-market-advice{--advice-accent:#487ea4;position:relative;margin:4px 0 14px;border-radius:19px;
+ border:1px solid #d0e3f4;background:linear-gradient(135deg,#f1f8ff,#eaf3fc);
+ padding:19px 21px;box-shadow:0 8px 22px #15518a0d}
+.invest-market-advice-bear{--advice-accent:#bd5961;border-color:#f1d2d4;background:linear-gradient(135deg,#fff8f6,#ffeded)}
+.invest-market-advice-bull{--advice-accent:#228b6d;border-color:#cbe9da;background:linear-gradient(135deg,#f4fff8,#e8f7ee)}
+.invest-market-advice-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.invest-market-advice-eyebrow{font-size:10px;font-weight:950;letter-spacing:1.25px;color:var(--advice-accent)}
+.invest-market-advice-head h4{margin:7px 0 12px;font:900 clamp(15px,2vw,19px) Fredoka,Nunito,sans-serif;color:#275172}
+.invest-market-advice-bear .invest-market-advice-head h4{color:#a54955}
+.invest-market-advice-bull .invest-market-advice-head h4{color:#23765c}
+.invest-market-advice-tag{white-space:nowrap;color:var(--advice-accent);border:1px solid currentColor;border-radius:30px;padding:7px 10px;
+ font:850 10px Nunito,sans-serif;background:#ffffff9c}
+.invest-market-advice>h3{margin:1px 0 7px;font:900 17px Nunito,sans-serif;color:#254767}
+.invest-market-advice>p{color:#5a758b;font:700 12px/1.7 Nunito,sans-serif;max-width:920px}
+.invest-market-advice-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:17px 0}
+.invest-market-advice-actions>div{display:flex;gap:10px;padding:12px;border-radius:13px;border:1px solid #ffffffd9;
+ background:#ffffffb5;min-width:0}
+.invest-market-advice-no{font:900 11px Nunito,sans-serif;color:var(--advice-accent);border-radius:9px;
+ background:#ffffffcc;padding:5px 6px;height:28px;flex:none}
+.invest-market-advice-actions strong{display:block;font-size:12px;color:#325677;font-weight:900}
+.invest-market-advice-actions p{font-size:11px;line-height:1.65;color:#71869a;margin:5px 0 0}
+.invest-market-advice footer{display:flex;gap:10px 16px;flex-wrap:wrap;align-items:center;
+ padding-top:11px;border-top:1px solid #ffffffb5;color:#8698aa;font-size:10px;font-weight:750}
+.invest-market-advice footer a{margin-left:auto;color:var(--advice-accent);font-weight:850;text-decoration:none}
+.invest-market-advice footer a:hover{text-decoration:underline}
+
+/* BEI scrollable modal: input text is only a filter, never a manual ticker. */
+.invest-intel-open-catalog{width:100%;min-height:51px;display:flex;align-items:center;justify-content:center;gap:9px;
+ background:linear-gradient(110deg,#e7f7ef,#e4f1ff);border:1px solid #bfe4dc;border-radius:14px;
+ color:#276d73;font:950 13px Nunito,sans-serif;box-shadow:0 6px 17px #298c8922;
+ transition:transform .18s,box-shadow .18s}
+.invest-intel-open-catalog:hover{transform:translateY(-2px);box-shadow:0 10px 20px #298c8944}
+.invest-intel-open-catalog span{color:#368d73}
+.invest-catalog-backdrop{position:fixed;inset:0;z-index:2147481200;padding:22px;
+ display:grid;place-items:center;background:#071c39ac;backdrop-filter:blur(7px);
+ -webkit-backdrop-filter:blur(7px);animation:investCatalogVeil .2s ease}
+.invest-catalog-modal{width:min(100%,735px);max-height:min(90vh,900px);display:flex;flex-direction:column;
+ min-height:0;overflow:hidden;background:linear-gradient(155deg,#fff,#f4faff);
+ border:1px solid #c9e2fa;border-radius:23px;box-shadow:0 28px 95px #071a3f68;
+ animation:investCatalogPop .22s cubic-bezier(.2,1.1,.3,1)}
+.invest-catalog-head{display:flex;gap:13px;align-items:flex-start;padding:19px 21px 12px;
+ border-bottom:1px solid #e3ecfa}
+.invest-catalog-head>span{font-size:29px;flex:none;width:52px;height:52px;border-radius:16px;
+ background:linear-gradient(130deg,#d6f4ff,#e2ebff);display:grid;place-items:center}
+.invest-catalog-head>div{flex:1;min-width:0}
+.invest-catalog-head small{color:#3585a1;font-size:10px;font-weight:900;letter-spacing:1.2px}
+.invest-catalog-head h3{margin:4px 0 5px;color:#265585;font:900 19px Fredoka,Nunito,sans-serif}
+.invest-catalog-head p{margin:0;font-size:11px;line-height:1.6;color:#8295ac}
+.invest-catalog-head>button{border:0;background:#eaf3fb;color:#587799;border-radius:10px;padding:8px 11px;
+ font-size:17px;font-weight:850}
+.invest-catalog-tools{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;
+ padding:12px 20px 5px}
+.invest-catalog-tools input{min-width:0;border:1px solid #dae7f8;border-radius:11px;
+ padding:9px 12px;font-size:12px;font-weight:750;min-height:39px}
+.invest-catalog-tabs{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.invest-catalog-tabs button{border:1px solid #d1e1f1;background:#f8fbff;color:#6682a2;
+ padding:9px 11px;border-radius:11px;font:900 11px Nunito,sans-serif}
+.invest-catalog-tabs button.active{background:#2d72a4;border-color:#2d72a4;color:#fff}
+.invest-catalog-source{display:flex;align-items:center;flex-wrap:wrap;gap:5px 11px;margin:5px 20px 2px;
+ background:#eff7ff;border:1px solid #dbeaf8;border-radius:11px;padding:9px 11px;font-size:10px;color:#5f7893}
+.invest-catalog-source strong{color:#38668f;font-weight:900}
+.invest-catalog-source small{flex:1;min-width:170px;line-height:1.5}
+.invest-catalog-source a{color:#2577ad;font-weight:900;text-decoration:none}
+.invest-catalog-error{margin:7px 20px;color:#be5963;background:#fff1f1;border-radius:9px;padding:8px 10px;font-size:11px}
+.invest-catalog-count{padding:9px 21px;color:#738da8;font-size:11px;font-weight:850}
+.invest-catalog-list{flex:1;min-height:120px;max-height:min(52vh,520px);overflow:auto;padding:0 20px 8px;overscroll-behavior:contain}
+.invest-catalog-item{width:100%;display:flex;align-items:center;gap:12px;text-align:left;
+ min-height:60px;padding:10px 12px;border:1px solid #e1ebf6;border-radius:12px;
+ background:#fff;margin-bottom:7px;transition:background .15s,transform .15s}
+.invest-catalog-item:hover:not(:disabled){background:#edf9ff;transform:translateX(2px)}
+.invest-catalog-item.selected{background:#eef9f2;border-color:#d1eadc;opacity:.78;cursor:default}
+.invest-catalog-symbol{flex:none;min-width:104px;font:950 12px Nunito,sans-serif;color:#266394}
+.invest-catalog-name{flex:1;min-width:0}
+.invest-catalog-name strong{display:block;color:#365c84;font-size:11px;font-weight:900;white-space:normal}
+.invest-catalog-name small{display:block;color:#8fa0b4;font-size:10px;margin-top:3px}
+.invest-catalog-action{flex:none;font:900 11px Nunito,sans-serif;color:#288b77;white-space:nowrap}
+.invest-catalog-empty{text-align:center;padding:26px 15px;color:#8196b0;font-size:12px;line-height:1.7}
+.invest-catalog-bottom{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;
+ padding:12px 20px;border-top:1px solid #e3ebf6;background:#f8fbff}
+.invest-catalog-bottom small{flex:1;min-width:180px;line-height:1.5;font-size:10px;color:#8497ad}
+.invest-catalog-bottom button{border:1px solid #ccdfed;border-radius:10px;padding:9px 12px;
+ color:#376f94;background:#fff;font:850 11px Nunito,sans-serif}
+.invest-catalog-bottom button:last-child{color:#fff;background:#2e79a9;border-color:#2e79a9}
+@keyframes investCatalogVeil{from{opacity:0}to{opacity:1}}
+@keyframes investCatalogPop{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:900px){.invest-market-advice-actions{grid-template-columns:1fr}.invest-intel-market-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.invest-catalog-backdrop{padding:8px}.invest-catalog-modal{max-height:96vh;border-radius:18px}
+.invest-catalog-head{padding:13px}.invest-catalog-head>span{width:43px;height:43px;font-size:24px}
+.invest-catalog-head h3{font-size:16px}.invest-catalog-tools{grid-template-columns:1fr;padding:9px 12px}
+.invest-catalog-tabs button{flex:1}.invest-catalog-source{margin:5px 12px 0}.invest-catalog-count{padding:8px 12px}
+.invest-catalog-list{padding:0 12px}.invest-catalog-item{gap:7px}.invest-catalog-symbol{min-width:83px;font-size:11px}
+.invest-catalog-action{font-size:10px}.invest-catalog-bottom{padding:10px 12px}.invest-catalog-bottom small{min-width:100%}
+.invest-market-advice{padding:15px}.invest-market-advice-head{flex-wrap:wrap}.invest-market-advice-tag{font-size:9px}
+.invest-ihsg-panel{min-height:295px}.invest-ihsg-chart svg{height:150px}}
+@media(prefers-reduced-motion:reduce){.invest-catalog-modal,.invest-catalog-backdrop{animation:none!important}}

@@ -12326,6 +12326,13 @@ function investQty(raw){
 function investQtyFmt(q){
  return num(q).toLocaleString('id-ID',{maximumFractionDigits:8});
 }
+// Legacy investmentTrades.units stores shares; stock entry/display converts lots only.
+function investIsStock(asset){return asset?.type==='stock'}
+function investUiUnit(asset){return investIsStock(asset)?'lot':(INVEST_TYPES[asset?.type]||INVEST_TYPES.other).unit}
+function investUiQty(asset,qty){return investQtyFmt(investIsStock(asset)?num(qty)/100:qty)}
+function investStoredQty(asset,raw){const v=investQty(raw);return Number.isFinite(v)?v*(investIsStock(asset)?100:1):NaN}
+function investQtyNote(asset,qty){return investIsStock(asset)?' ('+investQtyFmt(qty)+' lembar)':''}
+function investPriceLocked(asset){return investMarketEligible(asset)&&asset?.priceSource==='otomatis'&&num(asset.price)>0}
 function investState(asset,cutoff=analysisToday(),trades=db.investmentTrades){
  const history=(trades||[]).filter(t=>t.assetId===asset.id&&t.date<=cutoff)
   .slice().sort((a,b)=>a.date.localeCompare(b.date)||String(a.createdAt||a.id).localeCompare(String(b.createdAt||b.id)));
@@ -12463,10 +12470,14 @@ function investUpdatePreview(form){
   target.textContent=paid?'Saldo rekening bertambah '+money(paid):'Isi hasil investasi bersih yang diterima.';
   return;
  }
- const units=investQty(form.elements.units?.value),price=positive(form.elements.unitPrice?.value),
-  fee=integer(form.elements.fee?.value||'0');
+ const asset=(db.investmentAssets||[]).find(a=>a.id===form.elements.assetId?.value);
+ const units=investStoredQty(asset,form.elements.units?.value);
+ const grossPrice=!!form.elements.gross;
+ const price=grossPrice?(Number.isFinite(units)&&units>0?positive(form.elements.gross?.value)/units:NaN)
+                    :positive(form.elements.unitPrice?.value);
+ const fee=integer(form.elements.fee?.value||'0');
  if(!Number.isFinite(units)||!price||!Number.isFinite(fee)||fee<0){
-  target.textContent='Isi unit, harga per unit, dan biaya untuk menghitung total.';return;
+  target.textContent=grossPrice?'Isi lot/unit, nilai eksekusi aktual, dan biaya.':'Isi unit, harga transaksi, dan biaya.';return;
  }
  const amount=Math.round((units*price+(kind==='buy'?fee:-fee))*100)/100;
  target.textContent=!Number.isFinite(amount)||amount<=0?'Jumlah atau biaya tidak valid.':
@@ -12508,7 +12519,7 @@ function renderInvestmentModal(){
    </div><button type="submit" class="btn primary invest-form-submit">${editing?'✓ Simpan Perubahan':'＋ Tambah Aset'}</button></form>`;
  }else if(m.kind==='trade'){
   const kind=['buy','sell','payout'].includes(m.tradeType)?m.tradeType:'buy',info=INVEST_TYPES[asset.type]||INVEST_TYPES.other;
-  const holdings=investState(asset);
+  const holdings=investState(asset),lockedPrice=investPriceLocked(asset);
   heading=kind==='buy'?'Catat Pembelian':kind==='sell'?'Catat Penjualan':'Catat Hasil Investasi';
   intro=asset.name+' · '+(asset.symbol||info.name);
   form=`<div class="invest-trade-tabs" role="group" aria-label="Jenis transaksi investasi">
@@ -13233,8 +13244,9 @@ if(id==='invest-asset-form'){
    const prior=db.investmentPriceHistory?.[old.id]||{};
    if(db.investmentPriceHistory)db.investmentPriceHistory[old.id]=Object.fromEntries(Object.entries(prior).filter(([,v])=>v.source==='manual'));
    old.marketHistoryChecked='';
+   old.price=0;old.priceDate='';old.priceSource='';old.priceTimestamp='';
   }
-  Object.assign(old,{name,symbol,type,customType,note,autoPrice});
+  Object.assign(old,{name,symbol,type,customType,note,autoPrice:investPriceLocked(old)?true:autoPrice});
  }else db.investmentAssets.push({id:uid(),name,symbol,type,customType,note,autoPrice,price:0,priceDate:'',createdAt:new Date().toISOString()});
  investRememberValue();investFeed.lastCheck=0;if(!save())return;
  if(old){ui.investmentModal=null;render();toast('Instrumen investasi diperbarui.');}
@@ -13245,6 +13257,7 @@ if(id==='invest-asset-form'){
 if(id==='invest-price-form'){
  const asset=db.investmentAssets.find(a=>a.id===f.get('assetId'));
  const price=positive(f.get('price')),month=String(f.get('priceMonth')||'');
+ if(investPriceLocked(asset))return toast('Harga pasar tersinkron otomatis dan tidak dapat diedit.',true);
  if(!asset||!price||!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)||month>analysisToday().slice(0,7))
   return toast('Isi bulan dan harga rupiah dengan benar.',true);
  db.investmentPriceHistory=db.investmentPriceHistory||{};
@@ -13275,7 +13288,9 @@ if(id==='invest-trade-form'){
   amount=positive(f.get('amount'));
   if(!amount)return toast('Isi hasil investasi bersih yang diterima.',true);
  }else{
-  units=investQty(f.get('units'));unitPrice=positive(f.get('unitPrice'));
+  units=investStoredQty(asset,f.get('units'));
+  const grossActual=f.has('gross')?positive(f.get('gross')):null;
+  unitPrice=grossActual!==null?(Number.isFinite(units)&&units>0?grossActual/units:NaN):positive(f.get('unitPrice'));
   fee=integer(f.get('fee')||'0');
   if(!Number.isFinite(units)||!unitPrice||!Number.isFinite(fee)||fee<0)
    return toast('Periksa unit, harga, dan biaya investasi. Unit desimal gunakan koma.',true);
@@ -13285,7 +13300,7 @@ if(id==='invest-trade-form'){
    return toast('Nominal investasi tidak valid atau biaya jual terlalu besar.',true);
   if(type==='sell'){
    const owned=investState(asset,date).quantity;
-   if(owned<=0||units>owned+1e-10)return toast('Penjualan melebihi kepemilikan '+investQtyFmt(owned)+' unit.',true);
+   if(owned<=0||units>owned+1e-10)return toast('Penjualan melebihi kepemilikan '+investUiQty(asset,owned)+' '+investUiUnit(asset)+'.',true);
   }
   if(type==='buy'&&amount>num(balances()[accountId])+0.005)
    return toast('Saldo rekening tidak mencukupi pembelian '+money(amount)+'.',true);

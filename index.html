@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#102a4e">
-<meta name="paax-build" content="20261104-account-modal-sync-v14">
+<meta name="paax-build" content="20261104-streamlined-login-v15">
 <title>Duit-Duit Paaxixi | Catatan Keuangan Pribadi</title>
 <link rel="icon" type="image/png" sizes="64x64" href="./favicon-paaxixi.png?v=2">
 <link rel="apple-touch-icon" href="./profil-paaxixi.png?v=2">
@@ -7368,7 +7368,7 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 .account-editor-content .account-form-actions{margin-top:19px}
 .cloud-dialog-content .account-tools{border:0;background:none;border-radius:0;overflow:visible}
 .cloud-dialog-content .account-tools>summary{padding:0 0 14px;min-height:40px}
-.cloud-dialog-content .account-tools-body{padding:15px 0 0}
+.cloud-dialog-content .account-tools-body{padding:0;border-top:0;gap:21px}
 .cloud-dialog-content .account-tools-body section{min-width:0}
 .cloud-dialog-content .account-tools-buttons button{max-width:100%}
 @media(max-width:660px){.accounts-list-section .card-head{align-items:flex-start}.accounts-list-actions{width:100%;justify-content:space-between}.account-add-btn{font-size:12px;padding:9px 11px}.account-editor-backdrop,.cloud-dialog-backdrop{padding:8px}.account-editor-dialog,.cloud-dialog{max-height:calc(100dvh - 16px);border-radius:18px}.account-editor-head,.cloud-dialog-head{padding:14px}.account-editor-head strong,.cloud-dialog-head strong{font-size:20px}.account-editor-content,.cloud-dialog-content{padding:15px}}
@@ -12215,13 +12215,8 @@ function renderCloudDialog(){
  </div>`;
 }
 function renderAccountTools(){
- const c=cloud,notice=c.error?'⚠ Sinkronisasi bermasalah':c.pendingDecision?'⚠ Perlu keputusan':
-  c.signedIn&&c.ready?'✓ Tersinkron':c.configured?'◯ Belum login':'◯ Mode lokal';
- return `<details class="account-tools" open>
-  <summary><span class="account-tools-emoji">☁️</span><span class="account-tools-titles">
-    <strong>Status Cloud & Cadangan</strong><small>Periksa sinkronisasi sebelum mengelola cadangan</small></span>
-    <span class="account-tools-status">${notice}</span></summary>
-  <div class="account-tools-body">
+ const c=cloud;
+ return `<div class="account-tools-body">
    <section><h4>Sinkronisasi Cloud</h4>
     <p>${c.signedIn?c.pendingDecision?'Cloud kosong; tentukan sumber data.':
        c.ready?'Akun '+h(c.email)+' · sinkronisasi otomatis aktif.':'Menghubungkan Cloud.':
@@ -12244,8 +12239,7 @@ function renderAccountTools(){
      <button class="btn sm danger" data-action="reset">Hapus Semua Data</button>
     </div><p>Ekspor cadangan sebelum impor, reset, atau menimpa Cloud.</p>
    </section>
-  </div>
- </details>`;
+  </div>`;
 }
 
 /* #147 Investasi: harga IDR manual; transaksi aset terpisah dari konsumsi. */

@@ -1,0 +1,81 @@
+/* Paaxixi goal-based investment planner — component-scoped styling */
+.invest-goal-planner{padding:23px!important;border:1px solid #cddff2!important;background:linear-gradient(140deg,#fff 0%,#f8fcff 75%,#f1f9ff 100%)!important;overflow:hidden;position:relative}
+.invest-goal-planner:before{content:"";position:absolute;right:-110px;top:-125px;width:320px;height:290px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#dfefffc8 0%,transparent 70%)}
+.invest-goal-head,.invest-goal-heading,.invest-goal-market,.invest-goal-outcome-head,.invest-goal-allocation-head,.invest-goal-ai-intro{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.invest-goal-heading{justify-content:flex-start;align-items:flex-start}
+.invest-goal-heading>span{flex:none;font-size:27px;width:51px;height:51px;background:#eaf4ff;display:grid;place-items:center;border-radius:16px;box-shadow:0 6px 15px #408ac719;animation:goalFloat 4s ease-in-out infinite}
+.invest-goal-heading h3{margin:0 0 5px;color:#1c4476;font:800 clamp(18px,2vw,22px)/1.3 Fredoka,Nunito,sans-serif}
+.invest-goal-heading p{margin:0;color:#7086a4;font:650 12px/1.5 Nunito,sans-serif}
+.invest-goal-flag{flex:none;font:900 11px Nunito,sans-serif;color:#2a6a97;background:#e5f4ff;border:1px solid #c8e5fb;padding:8px 12px;border-radius:28px}
+.invest-goal-market{align-items:center;margin:18px 0 15px;padding:13px 15px;border:1px solid #dceafa;border-radius:16px;background:#f2f8ff}
+.invest-goal-market>div{display:grid;gap:3px;min-width:0}
+.invest-goal-market strong{font-size:12px;color:#335d8c}
+.invest-goal-market span{font-weight:850;color:#203f6e;font-size:13px;line-height:1.5}
+.invest-goal-market small{font-size:10px;color:#7690ac;line-height:1.5}
+.invest-goal-market button{border:1px solid #badbf5;color:#28618e;background:#fff;font-weight:900;border-radius:12px;padding:9px 12px;white-space:nowrap;transition:transform .18s}
+.invest-goal-market button:hover{transform:translateY(-2px)}
+.invest-goal-tabs{display:flex;align-items:center;gap:8px;overflow-x:auto;padding:3px 0 12px;scrollbar-width:thin}
+.invest-goal-tabs button{flex:none;max-width:245px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid #dce8f5;border-radius:13px;background:#fff;color:#4d6991;padding:10px 13px;font:850 12px Nunito,sans-serif}
+.invest-goal-tabs button.active{color:#fff;background:linear-gradient(120deg,#265d9d,#5d78bd);border-color:#356aa6;box-shadow:0 6px 15px #2c65b333}
+.invest-goal-tabs .invest-goal-new{border-style:dashed;border-color:#86b5da;color:#286e9c}
+.invest-goal-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px 13px;padding:17px;border:1px solid #dfeafa;background:#fff;border-radius:18px;box-shadow:0 6px 22px #163c700a}
+.invest-goal-form label{display:flex;flex-direction:column;gap:7px;min-width:0;font:800 11px Nunito,sans-serif;color:#597391}
+.invest-goal-form .field{border-color:#d7e5f5!important;min-height:43px;font:750 12px Nunito,sans-serif;border-radius:10px!important;width:100%;max-width:100%;min-width:0}
+.invest-goal-form .field:focus{border-color:#64a7e3!important;box-shadow:0 0 0 3px #d8eeff!important}
+.invest-goal-form-actions{align-self:end;display:flex;gap:7px;grid-column:span 2;align-items:center}
+.invest-goal-form-actions button{min-height:43px;border-radius:11px;padding:9px 12px;font:900 11px Nunito,sans-serif;transition:transform .18s;white-space:nowrap}
+.invest-goal-form-actions button:hover{transform:translateY(-2px)}
+.invest-goal-save{color:#fff;border:1px solid #1f739f;background:linear-gradient(120deg,#13889b,#2b61ac);box-shadow:0 7px 17px #2177a229}
+.invest-goal-remove{color:#ae545f;background:#fff6f6;border:1px solid #f1d1d4}
+.invest-goal-placeholder{text-align:center;padding:17px 10px 8px;color:#8192aa;font-size:12px}
+.invest-goal-placeholder span{font-size:25px}
+.invest-goal-error,.invest-goal-ai-error{padding:11px 13px;border-radius:12px;background:#fff4f3;color:#b34c52;border:1px solid #f1cbd1;font-size:12px;font-weight:750}
+.invest-goal-outcome{margin-top:17px;animation:goalReveal .34s ease both}
+.invest-goal-outcome-head{align-items:flex-start;margin-bottom:15px}
+.invest-goal-outcome-head small{font-weight:900;letter-spacing:1.1px;color:#3c8bb3;font-size:10px}
+.invest-goal-outcome-head h4{font:800 18px Fredoka,Nunito,sans-serif;color:#214e7b;margin:5px 0 6px}
+.invest-goal-outcome-head p{margin:0;font-size:12px;line-height:1.55;color:#657e9a}
+.invest-goal-outcome-head>span{flex:none;background:#e3f4e9;color:#328166;padding:7px 11px;border-radius:15px;font-weight:900;font-size:11px}
+.invest-goal-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0 19px}
+.invest-goal-metrics>div{border-radius:15px;padding:14px;background:#eef6ff;border:1px solid #d6e8fb;min-width:0}
+.invest-goal-metrics>div:nth-child(2){background:#ebf8f2;border-color:#d2ece1}
+.invest-goal-metrics>div:nth-child(3){background:#f5f3ff;border-color:#e3def9}
+.invest-goal-metrics>div.invest-goal-shortfall{background:#fff1ef;border-color:#f4d0c9}
+.invest-goal-metrics>div.invest-goal-meets{background:#ecf9f1;border-color:#cfecdb}
+.invest-goal-metrics small{display:block;color:#6685a3;font-weight:750;font-size:11px;line-height:1.45}
+.invest-goal-metrics strong{display:block;color:#23446b;font:900 clamp(14px,1.55vw,19px)/1.3 Nunito,sans-serif;overflow-wrap:anywhere;margin-top:6px}
+.invest-goal-allocation-head{align-items:baseline}.invest-goal-allocation-head h4{margin:0;font:800 16px Fredoka,Nunito,sans-serif;color:#244c7c}.invest-goal-allocation-head small{font:750 11px Nunito,sans-serif;color:#8597ac}
+.invest-goal-stack{display:flex;height:13px;overflow:hidden;gap:2px;border-radius:100px;background:#e4edf8;margin:13px 0}
+.invest-goal-stack span{display:block;min-width:1px;transition:width .55s ease}
+.invest-goal-allocations{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0 18px}
+.invest-goal-asset{display:flex;gap:10px;align-items:center;padding:12px;border:1px solid #e0eaf5;background:#fff;border-radius:14px;min-width:0}
+.invest-goal-asset-icon{flex:none;display:grid;place-items:center;width:37px;height:37px;border-radius:12px;font-size:19px}
+.invest-goal-asset>div{flex:1;min-width:0}
+.invest-goal-asset strong{color:#2a4a6f;display:block;font-size:12px;line-height:1.35}
+.invest-goal-asset small{display:block;color:#7b8ca3;font-size:10px;line-height:1.55;margin-top:4px}
+.invest-goal-asset b{text-align:right;flex:none;color:#2f6e9d;font:900 17px Nunito,sans-serif}
+.invest-goal-asset b small{font-weight:750;font-size:10px;color:#728baa;white-space:nowrap}
+.invest-goal-watch{display:flex;gap:12px;border:1px solid #e9d6b8;border-radius:17px;padding:17px;background:linear-gradient(135deg,#fffaf0,#fff5e5);color:#735c3d}
+.invest-goal-watch-icon{display:grid;place-items:center;flex:none;background:#fce7bd;border-radius:12px;width:41px;height:41px;font-size:23px}
+.invest-goal-watch h4{margin:0 0 6px;font:800 15px Fredoka,Nunito,sans-serif;color:#926837}
+.invest-goal-watch p{margin:0;font-size:12px;line-height:1.65;color:#826e52}
+.invest-goal-watch-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+.invest-goal-watch-links a{color:#986b31;border:1px solid #f1d7af;border-radius:20px;background:#fffdf8;padding:7px 10px;font:800 10px Nunito,sans-serif;text-decoration:none}
+.invest-goal-watch-links a:hover{text-decoration:underline}
+.invest-goal-ai{border:1px solid #dcd8f5;background:linear-gradient(135deg,#f8f5ff,#f1f8ff);border-radius:17px;padding:17px;margin:15px 0}
+.invest-goal-ai-intro{align-items:center}.invest-goal-ai-intro>span{font-size:27px}
+.invest-goal-ai-intro>div{flex:1;min-width:0}.invest-goal-ai-intro strong{display:block;color:#534d95;font:900 13px Nunito,sans-serif}
+.invest-goal-ai-intro small{display:block;color:#7d80a5;font-size:11px;line-height:1.5;margin-top:4px}
+.invest-goal-ai-intro button{border:1px solid #7168b6;background:#6965af;color:#fff;font-weight:850;font-size:11px;border-radius:11px;min-height:38px;padding:8px 13px;white-space:nowrap}
+.invest-goal-ai-content{padding:15px 16px;border-radius:14px;border:1px solid #ddd9f4;background:#fff;margin-top:15px;animation:goalReveal .3s ease both}
+.invest-goal-ai-content h4{color:#4f4f9e;font:800 16px Fredoka,Nunito,sans-serif;margin:0 0 6px}
+.invest-goal-ai-content>p,.invest-goal-ai-content section p{font-size:12px;line-height:1.6;color:#586987;margin:5px 0 9px}
+.invest-goal-ai-content h5{font:900 12px Nunito,sans-serif;color:#3e6794;margin:14px 0 6px}
+.invest-goal-ai-content>small{display:block;font-size:10px;color:#97a3b4;margin-top:13px}
+.invest-goal-ai-local{border-left:3px solid #aaa1ed;padding:8px 12px;font-size:12px;color:#696b98;line-height:1.6;margin:14px 0 0;background:#ffffff8c}
+.invest-goal-ai-privacy{margin:13px 0 0;font-size:10px;color:#8b96aa;line-height:1.55}
+.invest-goal-disclaimer{font-size:10px;line-height:1.65;color:#8795a8;margin:10px 0 0}
+@keyframes goalFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}@keyframes goalReveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:1080px){.invest-goal-form{grid-template-columns:repeat(2,minmax(0,1fr))}.invest-goal-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.invest-goal-planner{padding:17px!important}.invest-goal-head{align-items:flex-start}.invest-goal-flag{display:none}.invest-goal-heading>span{width:42px;height:42px;font-size:23px}.invest-goal-market{align-items:flex-start;flex-direction:column}.invest-goal-market button{align-self:flex-end}.invest-goal-form{grid-template-columns:1fr;padding:13px}.invest-goal-form-actions{grid-column:1;flex-wrap:wrap}.invest-goal-form-actions button{flex:1}.invest-goal-allocations{grid-template-columns:1fr}.invest-goal-metrics strong{font-size:clamp(13px,4.1vw,17px)}.invest-goal-ai-intro{flex-wrap:wrap}.invest-goal-ai-intro button{width:100%}.invest-goal-outcome-head>span{display:none}.invest-goal-watch{padding:13px}.invest-goal-watch-icon{width:35px;height:35px}.invest-goal-stack{height:11px}}
+@media(prefers-reduced-motion:reduce){.invest-goal-heading>span,.invest-goal-outcome,.invest-goal-ai-content{animation:none!important}}

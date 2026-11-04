@@ -7429,6 +7429,12 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 @media(max-width:700px){.invest-market-toolbar{padding:12px}.invest-period-body{padding:12px}.invest-period-row{align-items:flex-start;flex-direction:column}}
 @media(prefers-reduced-motion:reduce){.invest-market-dot.loading,.invest-period-dialog{animation:none!important}}
 
+.invest-auto-option{padding:13px;border:1px solid #cce1f6;border-radius:14px;background:linear-gradient(110deg,#f0f7ff,#f6fff9)}
+.invest-auto-option label{display:flex;align-items:center;gap:9px;color:#315d86;font:900 12px Nunito,sans-serif;cursor:pointer}
+.invest-auto-option label input{width:18px;height:18px;accent-color:#2f91a0;flex:none}
+.invest-auto-option label input:disabled{opacity:.5}
+.invest-auto-option small{display:block;margin-top:6px;color:#7893a9;font:750 10px/1.5 Nunito,sans-serif}
+
 </style>
 <link rel="stylesheet" href="./budget-ux.css?v=15">
 <link rel="stylesheet" href="./archive-reports.css?v=13">
@@ -7649,7 +7655,7 @@ function normalizeExpenseGroups(value){
  })()};
 }
 const expenseGroups=()=>db.expenseGroups;
-const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],budgetAdjustments:[],budgetBaseHistory:[],budgetInitialStates:{},debts:[],accountCorrections:[],investmentAssets:[],investmentTrades:[],investmentSnapshots:[],reports:{}});
+const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],budgetAdjustments:[],budgetBaseHistory:[],budgetInitialStates:{},debts:[],accountCorrections:[],investmentAssets:[],investmentTrades:[],investmentSnapshots:[],investmentPriceHistory:{},reports:{}});
 function load(){try{let v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.accounts)&&Array.isArray(v.categories)&&Array.isArray(v.transactions)&&Array.isArray(v.debts)&&v.budgets&&Array.isArray(v.budgetMoves))return normalizeExpenseGroups(v);}catch(e){}return fresh()}
 let db=load();db.reports=db.reports||{};
 let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,accountEditorOpen:false,accountAdjustId:null,cloudModalOpen:false,investmentModal:null,investmentFilter:'all',investmentGroup:'all',investmentTrendMode:'month',investmentTrendMonth:null,investmentHistoryCount:40,debtEditId:null,debtEditorOpen:false,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,budgetExpandedGroups:null,budgetDetailExpandedGroups:[],budgetEditExpandedGroups:[],budgetSection:'detail',comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,trendRangePopup:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupType:'receivable',debtPopupFilter:'open',incomeTrendMode:'month',incomeTrendFrom:'',incomeTrendTo:'',incomeTrendRangeOpen:false,incomePieMonth:null,incomeMonthMenuOpen:false,incomeFilter:{preset:'month',from:'',to:'',group:null},incomeTrendVisible:null,reportMonth:currentMonth()};
@@ -12491,6 +12497,13 @@ function renderInvestmentModal(){
      <input class="field" name="name" maxlength="85" value="${h(asset?.name||'')}" placeholder="Contoh: Bank Central Asia" required></div>
     <div class="form-field full"><label class="field-label">Catatan (Opsional)</label>
      <input class="field" name="note" maxlength="180" value="${h(asset?.note||'')}" placeholder="Platform atau informasi instrumen"></div>
+    <div class="form-field full invest-auto-option">
+     <label><input type="checkbox" name="autoPrice" value="yes"
+       ${(asset?.autoPrice!==false&&['stock','warrant','etf','dire','dinfra','eba','crypto'].includes(asset?.type||'stock'))?'checked':''}
+       ${['stock','warrant','etf','dire','dinfra','eba','crypto'].includes(asset?.type||'stock')?'':'disabled'}>
+       <span>⟳ Perbarui harga otomatis jika tersedia</span></label>
+     <small>Masukkan kode bursa, misalnya BBCA untuk BBCA.JK. Sumber harga publik dapat tertunda atau gagal. Aset nonbursa tetap menggunakan harga manual.</small>
+    </div>
    </div><button type="submit" class="btn primary invest-form-submit">${editing?'✓ Simpan Perubahan':'＋ Tambah Aset'}</button></form>`;
  }else if(m.kind==='trade'){
   const kind=['buy','sell','payout'].includes(m.tradeType)?m.tradeType:'buy',info=INVEST_TYPES[asset.type]||INVEST_TYPES.other;
@@ -12528,11 +12541,14 @@ function renderInvestmentModal(){
   form=`<form id="invest-price-form">
    <input type="hidden" name="assetId" value="${h(asset.id)}">
    <div class="invest-price-current">Harga sebelumnya <strong>${asset.price?money(asset.price):'Belum diisi'}</strong></div>
-   <div class="form-grid"><div class="form-field full">
-    <label class="field-label">Harga Terkini per ${(INVEST_TYPES[asset.type]||INVEST_TYPES.other).unit} (Rp)</label>
-    <input class="field" type="text" data-rupiah="1" inputmode="decimal" name="price"
-     value="${asset.price?fmtAmount(asset.price):''}" placeholder="Contoh: 150.000" required></div></div>
-   <p class="invest-field-help">Tidak mengambil harga otomatis dari bursa. Nilai pasar portofolio dihitung ulang dari harga ini.</p>
+   <div class="form-grid">
+    <div class="form-field"><label class="field-label">Bulan Harga</label>
+     <input class="field" type="month" name="priceMonth" max="${analysisToday().slice(0,7)}" value="${analysisToday().slice(0,7)}" required></div>
+    <div class="form-field"><label class="field-label">Harga per ${(INVEST_TYPES[asset.type]||INVEST_TYPES.other).unit} (Rp)</label>
+     <input class="field" type="text" data-rupiah="1" inputmode="decimal" name="price"
+      value="${asset.price?fmtAmount(asset.price):''}" placeholder="Contoh: 150.000" required></div>
+   </div>
+   <p class="invest-field-help">Bulan saat ini: harga terkini diganti dan mode otomatis dihentikan untuk aset ini. Bulan sebelumnya: hanya harga historis akhir bulan yang disimpan untuk grafik, tanpa mengubah nilai sekarang.</p>
    <button type="submit" class="btn primary invest-form-submit">✓ Simpan Harga</button>
   </form>`;
  }
@@ -13203,7 +13219,7 @@ if(id==='invest-asset-form'){
  const name=String(f.get('name')||'').trim().slice(0,85),
   symbol=String(f.get('symbol')||'').trim().toUpperCase().slice(0,28),
   type=String(f.get('type')||''),customType=type==='other'?String(f.get('customType')||'').trim().slice(0,60):'',
-  note=String(f.get('note')||'').trim().slice(0,180);
+  note=String(f.get('note')||'').trim().slice(0,180),autoPrice=f.get('autoPrice')==='yes';
  if(type==='other'&&!customType)return toast('Isi nama jenis investasi khusus terlebih dahulu.',true);
  if(!name||!INVEST_TYPES[type])return toast('Nama dan jenis instrumen harus diisi.',true);
  if(editId&&!old)return toast('Aset yang diedit tidak ditemukan.',true);
@@ -13211,8 +13227,14 @@ if(id==='invest-asset-form'){
   return toast('Jenis aset yang sudah memiliki transaksi tidak dapat diubah karena satuannya berbeda.',true);
  if(db.investmentAssets.some(a=>a.id!==editId&&a.name.toLowerCase()===name.toLowerCase()&&a.symbol===symbol))
   return toast('Instrumen yang sama sudah tercatat.',true);
- if(old)Object.assign(old,{name,symbol,type,customType,note});
- else db.investmentAssets.push({id:uid(),name,symbol,type,customType,note,price:0,priceDate:'',createdAt:new Date().toISOString()});
+ if(old){
+  if(old.symbol!==symbol||old.type!==type){
+   const prior=db.investmentPriceHistory?.[old.id]||{};
+   if(db.investmentPriceHistory)db.investmentPriceHistory[old.id]=Object.fromEntries(Object.entries(prior).filter(([,v])=>v.source==='manual'));
+   old.marketHistoryChecked='';
+  }
+  Object.assign(old,{name,symbol,type,customType,note,autoPrice});
+ }else db.investmentAssets.push({id:uid(),name,symbol,type,customType,note,autoPrice,price:0,priceDate:'',createdAt:new Date().toISOString()});
  investRememberValue();if(!save())return;
  if(old){ui.investmentModal=null;render();toast('Instrumen investasi diperbarui.');}
  else{const added=db.investmentAssets[db.investmentAssets.length-1];ui.investmentModal={kind:'trade',assetId:added.id,tradeType:'buy'};
@@ -13221,11 +13243,19 @@ if(id==='invest-asset-form'){
 }
 if(id==='invest-price-form'){
  const asset=db.investmentAssets.find(a=>a.id===f.get('assetId'));
- const price=positive(f.get('price'));
- if(!asset||!price)return toast('Isi harga pasar dalam rupiah dengan benar.',true);
- asset.price=price;asset.priceDate=analysisToday();
- investRememberValue();if(!save())return;
- ui.investmentModal=null;render();toast('Harga pasar diperbarui; nilai portofolio dihitung ulang.');return;
+ const price=positive(f.get('price')),month=String(f.get('priceMonth')||'');
+ if(!asset||!price||!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)||month>analysisToday().slice(0,7))
+  return toast('Isi bulan dan harga rupiah dengan benar.',true);
+ db.investmentPriceHistory=db.investmentPriceHistory||{};
+ (db.investmentPriceHistory[asset.id]||(db.investmentPriceHistory[asset.id]={}))[month]=
+  {price,source:'manual',asOf:month,symbol:asset.symbol||''};
+ if(month===analysisToday().slice(0,7)){
+  asset.price=price;asset.priceDate=analysisToday();asset.priceTimestamp=new Date().toISOString();
+  asset.priceSource='manual';asset.autoPrice=false;investRememberValue();
+ }
+ if(!save())return;
+ ui.investmentModal=null;render();toast(month===analysisToday().slice(0,7)?
+  'Harga terkini disimpan. Mode otomatis dimatikan agar angka manual tidak tertimpa.':'Harga historis '+monthFmt(month)+' tersimpan untuk trendline.');return;
 }
 if(id==='invest-trade-form'){
  const asset=db.investmentAssets.find(a=>a.id===f.get('assetId'));
@@ -13525,7 +13555,7 @@ async function saveReport(){
 
 function exportJSON(){let blob=new Blob([JSON.stringify({...db,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});let url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='duit-duit-paaxixi-cadangan-'+today()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),500);toast('File cadangan berhasil disiapkan.')}
 function validDb(o){return o&&Array.isArray(o.accounts)&&Array.isArray(o.transactions)&&Array.isArray(o.debts)&&Array.isArray(o.categories)&&Array.isArray(o.budgetMoves)&&o.budgets&&typeof o.budgets==='object'&&o.accounts.every(a=>a.id&&a.name&&Number.isFinite(Number(a.opening)))&&(!('accountCorrections' in o)||Array.isArray(o.accountCorrections)&&o.accountCorrections.every(a=>a&&typeof a.id==='string'&&typeof a.accountId==='string'&&typeof a.date==='string'&&['increase','decrease'].includes(a.type)&&Number(a.amount)>0))&&(!('investmentAssets' in o)||Array.isArray(o.investmentAssets)&&o.investmentAssets.every(a=>a&&typeof a.id==='string'&&typeof a.name==='string'&&['stock','crypto','gold','bond','fund','other'].includes(a.type)))&&(!('investmentTrades' in o)||Array.isArray(o.investmentTrades)&&o.investmentTrades.every(t=>t&&typeof t.id==='string'&&typeof t.assetId==='string'&&['buy','sell','payout'].includes(t.type)&&typeof t.date==='string'&&Number.isFinite(Number(t.amount))))&&(!('investmentSnapshots' in o)||Array.isArray(o.investmentSnapshots)&&o.investmentSnapshots.every(p=>p&&typeof p.date==='string'&&Number.isFinite(Number(p.value))))&&o.transactions.every(t=>t.id&&t.type&&t.date&&Number.isFinite(Number(t.amount)))&&o.debts.every(d=>d.id&&d.type&&d.person&&Number.isFinite(Number(d.amount))&&Array.isArray(d.settlements))&&(!('expenseGroups' in o)||Array.isArray(o.expenseGroups)&&o.expenseGroups.every(g=>g&&typeof g.id==='string'&&typeof g.name==='string'&&typeof g.color==='string'))}
-async function importJSON(file){if(!file)return;try{if(file.size>3*1024*1024)throw Error('File terlalu besar.');let obj=JSON.parse(await file.text());if(!validDb(obj))throw Error('Format cadangan tidak cocok.');if(!confirm('Impor akan MENGGANTI semua data keuangan dalam browser ini. Lanjutkan?'))return;db=normalizeExpenseGroups({version:2,accounts:obj.accounts,categories:obj.categories,expenseGroups:obj.expenseGroups,transactions:obj.transactions,budgets:obj.budgets,budgetMoves:obj.budgetMoves,debts:obj.debts,reports:obj.reports||{},budgetAdjustments:obj.budgetAdjustments,budgetBaseHistory:obj.budgetBaseHistory,budgetInitialStates:obj.budgetInitialStates,accountCorrections:obj.accountCorrections,investmentAssets:obj.investmentAssets,investmentTrades:obj.investmentTrades,investmentSnapshots:obj.investmentSnapshots});save();setView('dashboard');toast('Data berhasil dipulihkan.')}catch(e){toast('Gagal mengimpor: '+e.message,true)}finally{document.getElementById('import-file').value=''}}
+async function importJSON(file){if(!file)return;try{if(file.size>3*1024*1024)throw Error('File terlalu besar.');let obj=JSON.parse(await file.text());if(!validDb(obj))throw Error('Format cadangan tidak cocok.');if(!confirm('Impor akan MENGGANTI semua data keuangan dalam browser ini. Lanjutkan?'))return;db=normalizeExpenseGroups({version:2,accounts:obj.accounts,categories:obj.categories,expenseGroups:obj.expenseGroups,transactions:obj.transactions,budgets:obj.budgets,budgetMoves:obj.budgetMoves,debts:obj.debts,reports:obj.reports||{},budgetAdjustments:obj.budgetAdjustments,budgetBaseHistory:obj.budgetBaseHistory,budgetInitialStates:obj.budgetInitialStates,accountCorrections:obj.accountCorrections,investmentAssets:obj.investmentAssets,investmentTrades:obj.investmentTrades,investmentSnapshots:obj.investmentSnapshots,investmentPriceHistory:obj.investmentPriceHistory||{}});save();setView('dashboard');toast('Data berhasil dipulihkan.')}catch(e){toast('Gagal mengimpor: '+e.message,true)}finally{document.getElementById('import-file').value=''}}
 document.addEventListener('submit',e=>{if(e.target.closest('form')){e.preventDefault();handleForm(e.target)}});
 function goEditTx(id){openTxModal('expense',id)}
 function adjustCompositionPopup(){
@@ -14322,6 +14352,9 @@ document.addEventListener('change',e=>{let x=e.target;
  if(x.matches?.('#invest-asset-form select[name="type"]')){
   const row=x.form?.querySelector('[data-invest-custom-type]');
   if(row){row.hidden=x.value!=='other';const input=row.querySelector('input');if(input){input.required=x.value==='other';if(x.value==='other')input.focus({preventScroll:true});}}
+  const auto=x.form?.elements.autoPrice;
+  if(auto){const supported=['stock','warrant','etf','dire','dinfra','eba','crypto'].includes(x.value);
+   auto.disabled=!supported;auto.checked=supported;}
   return;
  }
 

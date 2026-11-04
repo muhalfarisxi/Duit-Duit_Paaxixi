@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#102a4e">
-<meta name="paax-build" content="20261104-goal-investment-v23">
+<meta name="paax-build" content="20261104-financial-analyst-ai-v24">
 <title>Duit-Duit Paaxixi | Catatan Keuangan Pribadi</title>
 <link rel="icon" type="image/png" sizes="64x64" href="./favicon-paaxixi.png?v=2">
 <link rel="apple-touch-icon" href="./profil-paaxixi.png?v=2">
@@ -9418,6 +9418,107 @@ function paaxAiText(value){
   .replace(/(?:\+62|62|0)8\d[\d -]{7,15}/g,'[nomor]')
   .replace(/https?:\/\/\S+/gi,'[tautan]').slice(0,65);
 }
+
+/* Safe, compact cross-module context for AI. No account names/IDs, personal
+   debt counterparties, raw transactions, brokerage accounts, or authentication data.
+   An unknown market price is NOT a zero valuation or an investment loss. */
+function paaxFinanceAiContext(){
+ const asOf=analysisToday(),month=asOf.slice(0,7),cashBalances=Object.values(balances()).map(v=>num(v));
+ const cash=cashBalances.reduce((s,v)=>s+v,0),negatives=cashBalances.filter(v=>v<0);
+ const activeDebts=db.debts.map(d=>({...d,outstanding:debtBalance(d)})).filter(d=>d.outstanding>0);
+ const dueSoon=activeDebts.filter(d=>d.dueDate&&d.dueDate<=paaxMonthLast(month)&&d.dueDate>=asOf);
+ const late=activeDebts.filter(d=>d.dueDate&&d.dueDate<asOf);
+ const monthRows=[];
+ for(let i=5;i>=0;i--){
+  const date=new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5,7))-1-i,1));
+  const m=date.toISOString().slice(0,7),records=db.transactions.filter(t=>t.date.slice(0,7)===m);
+  const income=records.filter(t=>t.type==='income').reduce((sum,t)=>sum+num(t.amount),0);
+  const expense=records.filter(t=>t.type==='expense').reduce((sum,t)=>sum+num(t.amount),0);
+  monthRows.push({month:m,income,expense,net:income-expense,
+   count:records.filter(t=>t.type==='income'||t.type==='expense').length,
+   partial:m===month});
+ }
+ const operating=monthRows.at(-1);
+ const availableBudget=expenses().map(c=>({set:effectiveBudget(c.id),spent:spentByCat(c.id)}))
+  .filter(x=>x.set>0);
+ const over=availableBudget.filter(x=>x.spent>x.set);
+ const goalPlans=(db.investmentGoals||[]).filter(g=>g&&g.due>=month).slice(0,8).map(g=>{
+  let remaining=null,minMonthly=null;
+  try{
+   const outcome=window.PAAX_INVEST_GOALS?.plan(g,asOf);
+   if(outcome){remaining=outcome.months;minMonthly=outcome.required;}
+  }catch(_){}
+  return {kind:String(g.type||'other').slice(0,24),monthsRemaining:remaining,
+   target:Math.max(0,num(g.target)),earmarkedStartingAmount:Math.max(0,num(g.initial)),
+   plannedMonthlySavings:Math.max(0,num(g.monthly)),requiredMonthlyWithoutReturns:minMonthly,
+   note:'Dana awal tujuan mungkin bagian dari saldo/portofolio; jangan jumlahkan dua kali.'};
+ });
+ return {asOf,currency:'IDR',scope:'KEUANGAN TOTAL, terpisah dari filter grafik pengeluaran',
+  liquidity:{balance:Math.round(cash),accountCount:cashBalances.length,
+   negativeAccountCount:negatives.length,negativeTotal:Math.round(negatives.reduce((v,n)=>v+n,0)),
+   note:'Saldo akun adalah total buku; bukan seluruhnya dana darurat atau dana tersedia untuk investasi.'},
+  liabilities:{payable:Math.round(activeDebts.filter(d=>d.type==='payable').reduce((v,d)=>v+d.outstanding,0)),
+   receivable:Math.round(activeDebts.filter(d=>d.type==='receivable').reduce((v,d)=>v+d.outstanding,0)),
+   overdueCount:late.length,dueSoonThisMonthCount:dueSoon.length,
+   note:'Piutang belum tentu segera tertagih; tanggal jatuh tempo tidak selalu tercatat.'},
+  cashFlow:{monthly:monthRows,currentMonth:operating,
+   note:'Pendapatan minus belanja rutin; transfer, jual-beli aset, pinjaman dan koreksi saldo tidak masuk arus kas operasional. Bulan berjalan belum lengkap.'},
+  budget:{month:ui.month,categoriesWithBudget:availableBudget.length,
+   allocated:Math.round(availableBudget.reduce((v,x)=>v+x.set,0)),
+   spent:Math.round(availableBudget.reduce((v,x)=>v+x.spent,0)),
+   overLimitPositions:over.length,overLimitAmount:Math.round(over.reduce((v,x)=>v+x.spent-x.set,0)),
+   note:ui.month===month?'Anggaran bulan berjalan':'Anggaran bulan pilihan pengguna; jangan campur dengan bulan berjalan.'},
+  goals:goalPlans,completeness:{transactionsCount:db.transactions.length,
+   note:'Catatan mungkin belum lengkap. Target dana dapat tumpang tindih dengan saldo dan investasi yang sudah dimiliki.'}};
+}
+function paaxPortfolioAiContext(){
+ const asOf=analysisToday(),listed=(db.investmentAssets||[]).map(asset=>({asset,...investState(asset)}));
+ const held=listed.filter(x=>x.quantity>0),missing=held.filter(x=>!(num(x.asset.price)>0));
+ const known=held.filter(x=>num(x.asset.price)>0);
+ const knownValue=known.reduce((sum,x)=>sum+x.market,0),knownCost=known.reduce((sum,x)=>sum+x.cost,0);
+ const complete=!missing.length;
+ const realized=listed.reduce((sum,x)=>sum+x.realized,0);
+ const payouts=listed.reduce((sum,x)=>sum+x.payout,0);
+ const groups=new Map();
+ for(const entry of held){
+  const asset=entry.asset,type=String(asset.type||'other').slice(0,40);
+  const agg=groups.get(type)||{type,marketValueKnown:0,openCost:0,missingPriceCount:0,positions:0};
+  agg.openCost+=entry.cost;agg.positions++;
+  if(num(asset.price)>0)agg.marketValueKnown+=entry.market;else agg.missingPriceCount++;
+  groups.set(type,agg);
+ }
+ const cleanSymbol=asset=>String(asset?.symbol||'').toUpperCase().replace(/[^A-Z0-9.^-]/g,'').slice(0,28);
+ const positions=held.sort((a,b)=>b.cost-a.cost).slice(0,15).map(x=>{
+  const a=x.asset,priced=num(a.price)>0,stale=a.priceDate?Date.parse(asOf+'T00:00:00Z')-Date.parse(a.priceDate+'T00:00:00Z')>8*86400000:null;
+  return {type:String(a.type||'other').slice(0,40),symbol:cleanSymbol(a)||null,
+   quantity:Math.round((a.type==='stock'?x.quantity/100:x.quantity)*1e6)/1e6,
+   quantityUnit:a.type==='stock'?'lot':(INVEST_TYPES[a.type]?.unit||'unit'),
+   openCost:Math.round(x.cost),unitPrice:priced?num(a.price):null,
+   priceUnit:a.type==='stock'?'lembar':(INVEST_TYPES[a.type]?.unit||'unit'),
+   knownMarketValue:priced?Math.round(x.market):null,
+   unrealizedProfitLoss:priced?Math.round(x.market-x.cost):null,
+   priceSource:priced?(a.priceSource==='otomatis'?'pasar publik (mungkin tertunda)':'manual'):'belum tersedia',
+   priceAsOf:priced?String(a.priceDate||'').slice(0,10):null,
+   staleQuote:stale,priceIsVerifiedLive:false};
+ });
+ return {asOf,currency:'IDR',
+  scope:'POSISI INVESTASI TERKINI tercatat, bukan angka historis dan bukan penilaian realtime terverifikasi',
+  summary:{heldPositions:held.length,pricedPositions:known.length,unpricedPositions:missing.length,
+   currentKnownValue:Math.round(knownValue),currentTotalMarketValue:complete?Math.round(knownValue):null,
+   investedCost:Math.round(held.reduce((sum,x)=>sum+x.cost,0)),
+   unrealizedProfitLoss:complete?Math.round(knownValue-knownCost):null,
+   realizedProfitLossAllTime:Math.round(realized),distributionsAllTime:Math.round(payouts),
+   concentrationLargestPositionPercent:complete&&knownValue>0?
+    Math.round(Math.max(...known.map(x=>x.market))/knownValue*1000)/10:null},
+  grouped:[...groups.values()].sort((a,b)=>b.openCost-a.openCost).slice(0,18)
+   .map(x=>({...x,openCost:Math.round(x.openCost),marketValueKnown:Math.round(x.marketValueKnown)})),
+  positions,coverageNote:missing.length?
+   'Harga beberapa posisi belum tersedia. Nilai pasar diketahui adalah PARSIAL. Jangan anggap posisi tanpa harga bernilai nol, jangan hitung persentase alokasi total/ROI portofolio yang tidak lengkap.':
+   'Cakupan harga lengkap pada posisi tercatat, tetapi harga dapat tertunda, manual, atau usang.',
+  historyNote:'Untung-rugi terealisasi/distribusi adalah sepanjang pencatatan, bukan hasil bulan ini. Jumlah unit saham dalam lot; harga dalam rupiah per lembar. Transaksi tidak otomatis mencerminkan stock split.',
+  marketSource:'Harga berasal dari catatan lokal dan/atau Yahoo Finance melalui proxy publik; tidak memverifikasi bursa langsung.'};
+}
+
 function paaxAiSummaryPayload(){
  const selected=expenseSelection(),dates=selected.dates,tx=selected.transactions;
  const categories=analysisCategories(),categoryRows=categories.map(c=>{
@@ -9458,7 +9559,8 @@ function paaxAiSummaryPayload(){
   totalHarian:[...byDate].sort((a,b)=>a[0].localeCompare(b[0])).slice(-35).map(([tanggal,total])=>({tanggal,total})),
   anggaranPerPos:budget,
   trenTerpilih:{mode:trend.mode,dari:trend.range.from,sampai:trend.range.to,
-   rentangDibatasi:trend.trimmed,periodik:trendTotals}
+   rentangDibatasi:trend.trimmed,periodik:trendTotals},
+  kesehatanKeuangan:paaxFinanceAiContext(),portofolioInvestasi:paaxPortfolioAiContext()
  };
 }
 
@@ -9662,7 +9764,7 @@ async function paaxAiOpenWhenReady(){
 function paaxAiMakeColumns(report){
  const columns=[
   {kind:'finding',icon:'📊',title:'Apa yang Terjadi?',items:report.findings,
-   fallback:'Data belum cukup untuk menyimpulkan perubahan pengeluaran.'},
+   fallback:'Data belum cukup untuk menyimpulkan kondisi keuangan atau portofolio.'},
   {kind:'check',icon:'🔎',title:'Perlu Diperiksa',items:report.checks,
    fallback:'Belum ada temuan khusus yang perlu diperiksa.'},
   {kind:'action',icon:'🎯',title:'Tindakan yang Disarankan',items:report.actions,
@@ -9682,7 +9784,7 @@ function renderPaaxixiSmartFinanceInsight(){
  const report=generated?saved.report:local;
  return `<section class="card paax-ai-strip" id="paax-ai-insight" aria-label="Insight keuangan">
    <div class="paax-ai-strip-info"><span class="paax-ai-strip-icon" aria-hidden="true">🧠</span>
-    <div><strong>Insight Keuangan</strong><small class="paax-ai-strip-status" title="${h(state.status)}">${h(state.status)}</small></div></div>
+    <div><strong>Insight Keuangan & Investasi</strong><small class="paax-ai-strip-status" title="${h(state.status)}">${h(state.status)}</small></div></div>
    <div class="paax-ai-strip-actions">
     <button type="button" class="paax-ai-open" data-paax-ai-open aria-haspopup="dialog" aria-busy="${state.loading?'true':'false'}" ${state.waiting?'disabled':''}>${paaxAiButtonMarkup(state)}</button>
     <button type="button" class="paax-ai-local-action" data-paax-ai-local ${state.localButton?'':'hidden'}>Lihat ringkasan lokal</button>
@@ -9691,7 +9793,7 @@ function renderPaaxixiSmartFinanceInsight(){
   ${paaxAiUi.open?`<dialog class="paax-ai-dialog" id="paax-ai-dialog" aria-labelledby="paax-ai-dialog-heading">
    <header class="paax-ai-dialog-header">
     <span class="paax-ai-dialog-icon" aria-hidden="true">🧠</span>
-    <div><h3 id="paax-ai-dialog-heading">Insight Keuangan</h3></div>
+    <div><h3 id="paax-ai-dialog-heading">Insight Keuangan & Investasi</h3></div>
     <button class="paax-ai-dialog-close" type="button" data-paax-ai-close aria-label="Tutup insight">✕</button>
    </header>
    <div class="paax-ai-dialog-body">
@@ -9713,7 +9815,7 @@ function renderPaaxixiSmartFinanceInsight(){
      <div class="paax-ai-context"><span>📆 ${h(local.period)}</span><span>🧩 ${h(local.scope)}</span></div>
     </div>
     <div class="paax-ai-popup-grid">${paaxAiMakeColumns(report)}</div>
-    <p class="paax-ai-privacy">🔒 Rekap angka dan kategori dikirim otomatis ke Gemini setelah filter berubah; detail transaksi dan rekening tidak dikirim. Hasil AI dapat keliru—periksa sebelum mengambil keputusan. Panggilan dibatasi untuk menjaga kuota.</p>
+    <p class="paax-ai-privacy">🔒 Hanya ringkasan saldo, arus kas, utang-piutang, tujuan, dan posisi investasi (kode instrumen publik, nilai agregat) yang dikirim ke Gemini; nama rekening, identitas pihak, dan transaksi mentah tidak dikirim. Analisis bukan rekomendasi dari penasihat berizin dan perlu verifikasi sumber pasar.</p>
    </div>
   </dialog>`:''}`;
 }
@@ -12763,6 +12865,7 @@ async function investGoalAnalyze(){
    target:plan.target,startingAmount:plan.initial,monthlySaving:plan.monthly,
    monthlyMinimum:plan.required,gap:plan.shortfall,
    allocation:plan.allocation.map(x=>({name:x.name,percent:x.percent,caveat:x.note})),
+   financialContext:paaxFinanceAiContext(),portfolioContext:paaxPortfolioAiContext(),
    market:investGoalUi.pulse?{value:investGoalUi.pulse.price,
     previousClose:investGoalUi.pulse.previousClose,asOf:investGoalUi.pulse.asOf}:null
   });
@@ -13035,6 +13138,12 @@ function reportAiPayload(r){
   anggaranPerPos:r.expenseBreakdown.filter(x=>x.budget>0).map(x=>({pos:x.label,batas:x.budget,terpakai:x.spent})).slice(0,30),
   trenTerpilih:{mode:'month',dari:r.trends[0]?.month,sampai:r.month,rentangDibatasi:false,
    periodik:r.trends.map(t=>({periode:t.month,total:t.expense}))},
+  portofolioInvestasiArsip:{basis:String(r.investment?.priceBasis||'Tidak diketahui').slice(0,115),
+   nilaiPasarSaatArsip:Math.round(num(r.investment?.market)),modalSaatArsip:Math.round(num(r.investment?.cost)),
+   jenisAktif:Array.isArray(r.investment?.assets)?r.investment.assets.length:0,
+   instrumen:(r.investment?.assets||[]).slice(0,15).map(a=>({jenis:String(a.type||'other').slice(0,48),
+    jumlahUnit:num(a.quantity),modal:Math.round(num(a.cost)),nilaiTercatat:Math.round(num(a.market))})),
+   catatan:'Ini snapshot laporan yang dibekukan saat arsip dibuat, bukan harga pasar historis terverifikasi. Jangan mencampur dengan portofolio sekarang.'},
   ringkasanTambahan:{arusKasBersih:r.net,saldoTotalRekening:r.balances.reduce((v,a)=>v+num(a.balance),0),
    nilaiPortofolio:r.investment.market,jumlahJenisAset:r.investment.assets.length,
    utangBelumLunas:r.debtSummary?.payable||0,piutangBelumKembali:r.debtSummary?.receivable||0,
@@ -15037,7 +15146,7 @@ document.addEventListener('visibilitychange',()=>{
 })();
 </script>
 <script src="./composition-pos-popup.js?v=3" defer></script>
-<script type="module" src="./ai-insight.js?v=6"></script>
+<script type="module" src="./ai-insight.js?v=7"></script>
 <script src="firebase-config.js"></script>
 <script type="module" src="cloud.js"></script>
 <script src="./budget-ux.js?v=13" defer></script>

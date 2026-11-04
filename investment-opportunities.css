@@ -1,0 +1,31 @@
+/* Contextual prices and official IPO status inside investment goals. */
+.invest-property-market{margin:16px 0 20px;background:linear-gradient(130deg,#f0f9ff,#ecf5ff);border:1px solid #d1e9fb;border-radius:17px;padding:16px}
+.invest-property-intro{display:flex;gap:11px;align-items:flex-start;flex-wrap:wrap}
+.invest-property-intro>span{width:43px;height:43px;flex:none;display:grid;place-items:center;background:#deefff;border-radius:13px;font-size:23px}
+.invest-property-intro>div{flex:1;min-width:190px}
+.invest-property-intro h4{font:900 15px Fredoka,Nunito,sans-serif;color:#2b6194;margin:0 0 5px}
+.invest-property-intro p{font:700 11px/1.55 Nunito,sans-serif;color:#6686a7;margin:0}
+.invest-property-intro>small{font:750 10px Nunito,sans-serif;color:#8ba2b8}
+.invest-property-prices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:14px 0}
+.invest-property-prices>a{display:flex;flex-direction:column;gap:6px;padding:13px;background:#ffffffd9;border:1px solid #d6e8f8;border-radius:14px;text-decoration:none;min-width:0}
+.invest-property-prices>a:hover{border-color:#8abbe7}
+.invest-property-prices small{font:750 10px Nunito,sans-serif;color:#718da6}
+.invest-property-prices strong{font:900 clamp(16px,2vw,20px) Nunito,sans-serif;color:#29699b;overflow-wrap:anywhere}
+.invest-property-prices span{font:700 10px/1.6 Nunito,sans-serif;color:#748aa5}
+.invest-property-market>p{font:700 11px/1.7 Nunito,sans-serif;color:#617d99;margin:11px 0}
+.invest-property-market>small{font:700 10px Nunito,sans-serif;color:#92a4b5}
+.invest-ipo-live{margin:14px 0 0;background:#fffdf7;border:1px solid #f2dfb9;border-radius:14px;padding:13px}
+.invest-ipo-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.invest-ipo-head strong{display:block;font:900 12px Nunito,sans-serif;color:#976d35}
+.invest-ipo-head small{display:block;font:750 10px Nunito,sans-serif;color:#a48d68;margin-top:5px}
+.invest-ipo-head button{font:900 11px Nunito,sans-serif;background:#fff5e6;color:#a4783e;border:1px solid #eecf9e;border-radius:11px;padding:9px 12px}
+.invest-ipo-live>p{font:750 11px/1.7 Nunito,sans-serif;color:#967d5d;margin:11px 0}
+.invest-ipo-live>a{display:inline-block;color:#a4783e;font:900 11px Nunito,sans-serif;text-decoration:none;margin:9px 0}
+.invest-ipo-live>a:hover{text-decoration:underline}
+.invest-ipo-live>small{display:block;font:700 10px/1.5 Nunito,sans-serif;color:#a39077;margin-top:5px}
+.invest-ipo-issuers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:13px}
+.invest-ipo-issuers>div{background:#fff;border:1px solid #efdaba;border-radius:11px;padding:10px;min-width:0}
+.invest-ipo-issuers strong{color:#99662b;font-size:13px;font-weight:900}
+.invest-ipo-issuers span{display:block;font:850 11px Nunito,sans-serif;color:#775b3d;margin:4px 0}
+.invest-ipo-issuers small{font:750 10px/1.55 Nunito,sans-serif;color:#a18e70}
+@media(max-width:720px){.invest-property-prices{grid-template-columns:1fr}.invest-ipo-issuers{grid-template-columns:1fr}}

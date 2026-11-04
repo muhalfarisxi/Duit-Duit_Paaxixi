@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#102a4e">
-<meta name="paax-build" content="20261104-investment-lookup-lot-v19">
+<meta name="paax-build" content="20261104-investment-quote-fix-v20">
 <title>Duit-Duit Paaxixi | Catatan Keuangan Pribadi</title>
 <link rel="icon" type="image/png" sizes="64x64" href="./favicon-paaxixi.png?v=2">
 <link rel="apple-touch-icon" href="./profil-paaxixi.png?v=2">
@@ -7524,7 +7524,7 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 <script src="./archive-reports.js?v=14"></script>
 <script src="./archive-print.js?v=2"></script>
 <script src="./month-picker.js?v=1"></script>
-<script src="./investment-market.js?v=4"></script>
+<script src="./investment-market.js?v=5"></script>
 <script>
 (()=>{'use strict';
 const KEY='arus-prototype-v1';
@@ -12724,7 +12724,7 @@ function renderInvestments(){
     ${investAllocationChart(all,p.market)}</section>
   </div>
   <section class="card invest-holdings">
-   <div class="invest-section-head"><div><h3>Daftar Investasi</h3><small>${all.length} instrumen · Harga diperbarui manual</small></div>
+   <div class="invest-section-head"><div><h3>Daftar Investasi</h3><small>${all.length} instrumen · Harga pasar otomatis jika didukung</small></div>
     <button class="btn sm" type="button" data-invest-open="asset">＋ Tambah Aset</button></div>
    <div class="invest-filter-panel">
     <div class="invest-filter-strip" role="group" aria-label="Filter kelompok investasi">

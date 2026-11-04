@@ -187,7 +187,7 @@ function renderPage(data){
  const investSubtitle=invest.unavailable?'Arsip lama · nilai tidak direkam':(invest.assets||[]).length+' jenis aset tercatat';
  return '<div class="archive-v2">'
   +'<div class="archive-intro"><div><span class="archive-kicker">✦ LAPORAN KEUANGAN BULANAN</span><h2>Rapor Keuangan <span>✦</span></h2><p>Ringkasan, grafik, dan analisis dalam satu laporan. Rincian transaksi ada di lampiran.</p></div><span class="archive-intro-ornament" aria-hidden="true">📊</span></div>'
-  +'<div class="archive-toolbar"><div class="archive-picker"><span>🗓️</span><label><small>Periode Laporan</small><input id="report-month" type="month" aria-label="Pilih bulan laporan" value="'+esc(sel)+'"></label></div><div class="archive-status '+(saved?'is-saved':'')+'"><span>'+(saved?'✓':'◌')+'</span><div><small>Status Bulan</small><strong>'+(saved?'Arsip tersimpan':'Pratinjau belum disimpan')+'</strong></div></div><div class="archive-toolbar-actions"><button class="btn teal archive-save-btn" data-action="save-report">'+(saved?'↻ Perbarui Arsip':'✦ Simpan Arsip')+'</button><button class="btn archive-pdf-btn" data-action="print-report" '+(saved?'':'disabled title="Simpan arsip sebelum mencetak laporan"')+'>🖨 Cetak / Simpan PDF Formal</button><button class="btn archive-quick-pdf-btn" data-action="quick-pdf" '+(saved?'':'disabled title="Simpan arsip sebelum mengunduh"')+'>⬇ Unduh PDF Langsung</button></div></div>'
+  +'<div class="archive-toolbar"><div class="archive-picker"><span>🗓️</span><label><small>Periode Laporan</small><input id="report-month" type="month" aria-label="Pilih bulan laporan" value="'+esc(sel)+'"></label></div><div class="archive-status '+(saved?'is-saved':'')+'"><span>'+(saved?'✓':'◌')+'</span><div><small>Status Bulan</small><strong>'+(saved?'Arsip tersimpan':'Pratinjau belum disimpan')+'</strong></div></div><div class="archive-toolbar-actions"><button class="btn teal archive-save-btn" data-action="save-report">'+(saved?'↻ Perbarui Arsip':'✦ Simpan Arsip')+'</button><button class="btn archive-pdf-btn" data-action="print-report" '+(saved?'':'disabled title="Simpan arsip sebelum mencetak laporan"')+'>🖨 Cetak / Simpan PDF</button></div></div>'
   +archiveHistoryStrip(months,sel)
   +'<div class="archive-summary-grid">'
   +card('💚','Pemasukan',r.income,'green','Uang masuk pada bulan ini')
@@ -200,7 +200,7 @@ function renderPage(data){
   +'<section class="archive-ai-panel">'+insightMarkup(r)+'</section>'
   +debtPreview(r)
   +'<section class="archive-panel archive-attachment"><div><h3>📋 Lampiran Transaksi</h3><span class="archive-mini-tag">Per tanggal · '+(r.transactions||[]).length+' transaksi</span></div>'+transactionsPreview(r)+'</section>'
-  +'<div class="archive-report-foot">✨ PDF formal menggunakan Times New Roman melalui dialog cetak browser; pilih "Simpan sebagai PDF". Kedua jenis PDF mencantumkan tanggal diarsipkan dan tanggal dicetak/diunduh (WIB), serta ringkasan, grafik, analisis, dan lampiran transaksi. '+(!saved?'Simpan arsip untuk membekukan angka laporan.':'')+'</div></div>';
+  +'<div class="archive-report-foot">Laporan PDF memuat ringkasan dan rincian transaksi berdasarkan arsip bulan ini, lengkap dengan waktu pengarsipan dan waktu pencetakan (WIB). '+(!saved?'Simpan arsip untuk membekukan angka laporan.':'')+'</div></div>';
 }
 /* Portable PDF 1.4 renderer (A4, warna vektor); PDF tetap dapat diunduh tanpa CDN. */
 function pdfReport(r){

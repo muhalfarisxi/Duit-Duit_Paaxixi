@@ -14,7 +14,7 @@
  function ticker(asset){
   if(!asset||asset.autoPrice===false)return null;
   const kind=String(asset.type||'').toLowerCase();
-  let symbol=String(asset.symbol||'').trim().toUpperCase().replace(/\\s+/g,'');
+  let symbol=String(asset.symbol||'').trim().toUpperCase().replace(/\s+/g,'');
   if(!symbol)return null;
   if(IDX_TYPES.has(kind)){
    if(symbol.endsWith('.JK'))symbol=symbol.slice(0,-3);

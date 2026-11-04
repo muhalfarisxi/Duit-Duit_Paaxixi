@@ -82,6 +82,7 @@ let indexPeriod='month',indexOverride=null,lastRenderedState=null,chartLoading=f
 const catalogState={open:false,busy:false,filter:'',kind:'all',data:null,error:''};
 function render(state={},watchlist=[],research=[],escape,format){
  lastRenderedState=state;
+ if(window.PAAX_FUNDAMENTALS)queueMicrotask(()=>void refreshFundamentals());
  const h=typeof escape==='function'?escape:(x=>String(x));
  const money=typeof format==='function'?format:MONEY;
  const intel=state.data||{},list=cleanWatchlist(watchlist);
@@ -119,23 +120,11 @@ function render(state={},watchlist=[],research=[],escape,format){
     '<small>'+h(quoteDate(x.asOf))+'</small></div>').join('')+'</div>':
     '<p class="invest-intel-empty">Belum ada harga instrumen yang berhasil diambil. Pilih instrumen dari katalog lalu perbarui data.</p>')+
   '<small class="invest-intel-footnote">Harga saham dapat tertunda. Tidak mencakup laporan fundamental atau target harga broker secara otomatis. Maksimal 8 kode pantauan. Harga saham/ETF berasal dari sumber publik dan dapat tertunda.</small></div>'+
-  '<div class="invest-intel-research"><div class="invest-intel-blockhead"><h4>📚 Sumber Riset untuk Diverifikasi</h4><small>Buka sumber dan cek tanggal datanya secara langsung</small></div>'+
-   '<div class="invest-intel-links">'+SOURCES.map(ref=>'<a href="'+safeLink(ref.url)+'" target="_blank" rel="noopener noreferrer" title="'+h(ref.detail)+'">'+ref.icon+' '+h(ref.name)+' ↗</a>').join('')+'</div>'+
-  '<details class="invest-intel-note-editor"><summary>✍️ Catat Hasil Riset Fundamental dari Stockbit / Ajaib</summary>'+
-  '<p>Stockbit dan Ajaib tidak tersambung lewat API di website ini. Salin angka penting dari riset yang kamu baca, sertakan sumber dan tanggalnya; AI akan memperlakukannya sebagai data manual yang belum terverifikasi secara independen.</p>'+
-  '<form id="invest-research-form"><label>Kode Saham<input class="field" name="symbol" maxlength="10" placeholder="BBCA" required></label>'+
-  '<label>Sumber<select class="field" name="source" required><option value="stockbit">Stockbit</option><option value="ajaib">Ajaib</option><option value="idx">BEI / IDX</option><option value="other">Lainnya</option></select></label>'+
-  '<label>Tanggal Data<input class="field" name="date" type="date" required max="'+h(new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()))+'"></label>'+
-  '<label>PER (x)<input class="field" name="per" type="number" step="0.01" min="-1000" max="10000" placeholder="Opsional"></label>'+
-  '<label>PBV (x)<input class="field" name="pbv" type="number" step="0.01" min="-1000" max="10000" placeholder="Opsional"></label>'+
-  '<label>ROE (%)<input class="field" name="roe" type="number" step="0.01" min="-1000" max="1000" placeholder="Opsional"></label>'+
-  '<label>Dividend Yield (%)<input class="field" name="yield" type="number" step="0.01" min="0" max="100" placeholder="Opsional"></label>'+
-  '<button type="submit">✦ Simpan Catatan Riset</button></form></details>'+
-  (notes.length?'<div class="invest-intel-notes">'+notes.map(x=>'<div><div><b>'+h(sym(x.symbol))+'</b><small>'+h(x.source.toUpperCase())+' · '+h(x.date)+' · input manual</small>'+
-   '<p>'+['per','pbv','roe','yield'].filter(key=>x[key]!==null&&x[key]!==undefined&&x[key]!=='').map(key=>h(key.toUpperCase())+' '+h(String(x[key]))+(key==='roe'||key==='yield'?'%':'x')).join(' · ')+'</p></div>'+
-   '<button type="button" data-market-note-delete="'+h(x.id)+'" title="Hapus catatan">×</button></div>').join('')+'</div>':'')+
-  '</div>'+
-  '<p class="invest-intel-disclaimer">🔒 Hanya simbol publik yang dikirim ke penyedia harga; daftar portofolio, rekening, dan transaksi pribadi tidak dikirim. Data otomatis dan catatan manual memiliki tingkat keandalan berbeda; status pasar berubah dan hasil historis tidak menjamin hasil masa depan.</p>'+
+  '<div id="invest-auto-fundamentals-slot">'+(window.PAAX_FUNDAMENTALS?.render(list)||'')+'</div>'+
+  '<details class="invest-intel-references"><summary>📚 Sumber Data & Cara Verifikasi</summary>'+
+  '<div class="invest-intel-links">'+SOURCES.map(ref=>'<a href="'+safeLink(ref.url)+'" target="_blank" rel="noopener noreferrer" title="'+h(ref.detail)+'">'+ref.icon+' '+h(ref.name)+' ↗</a>').join('')+'</div>'+
+  '<p>Rasio dievaluasi otomatis jika sumber publik mengizinkan. Stockbit dan Ajaib bukan API tersambung di Paaxixi. Nilai kosong tidak boleh ditafsirkan sebagai nol.</p></details>'+
+  '<p class="invest-intel-disclaimer">🔒 Penyedia data menerima kode emiten publik saja, tanpa identitas rekening. PER, PBV, ROE, dan dividen diambil bila tersedia; tanggal dan sumber dicantumkan. Analisis bukan jaminan harga maupun anjuran transaksi.</p>'+
   '</section>';
 }
 function aiContext(data,notes=[]){
@@ -157,6 +146,7 @@ function aiContext(data,notes=[]){
    previousClose:number(prices.index.previousClose),asOf:prices.index.timestamp||null,
    source:'Yahoo Finance publik (bukan data BEI berlisensi)',verifiedRealTime:false}:null,
   shares,crypto,research,
+  automaticFundamentals:window.PAAX_FUNDAMENTALS?.state?.records?.slice(0,8).map(x=>({symbol:x.symbol,per:x.per,pbv:x.pbv,roe:x.roe,dividendYield:x.dividendYield,source:x.source,asOf:x.sourceDate}))||[],
   dataLimitations:'Tidak ada feed API Stockbit/Ajaib. Catatan rasio adalah transkripsi pengguna; validasi sumber dan masa berlaku wajib. Kegagalan jaringan bukan sinyal beli/jual. Harga publik mungkin tertunda.'};
 }
 
@@ -192,6 +182,39 @@ function upgradeMarket(){
 }
 const insightReady=addScript('investment-index-insight.js?v=1',upgradeMarket);
 const catalogReady=addScript('investment-catalog.js?v=1');
+
+const fundamentalReady=addScript('investment-fundamentals.js?v=1',()=>{
+ const style=document.createElement('link');style.rel='stylesheet';style.href='./investment-fundamentals.css?v=1';
+ document.head.appendChild(style);
+ void refreshFundamentals(false);
+});
+function watchedFromPage(){
+ const items=[];
+ document.querySelectorAll('#invest-market-intelligence [data-market-watch-remove]').forEach(button=>{
+  const code=String(button.dataset.marketWatchRemove||'').trim().toUpperCase();
+  if(/^[A-Z0-9]{3,8}$/.test(code))items.push(code);
+ });
+ return [...new Set(items)];
+}
+function upgradeFundamentals(){
+ const slot=document.getElementById('invest-auto-fundamentals-slot');
+ if(!slot||!window.PAAX_FUNDAMENTALS)return;
+ slot.innerHTML=window.PAAX_FUNDAMENTALS.render(watchedFromPage());
+}
+async function refreshFundamentals(force=false){
+ if(!window.PAAX_FUNDAMENTALS)return;
+ const symbols=watchedFromPage();
+ upgradeFundamentals();
+ await window.PAAX_FUNDAMENTALS.getFundamentals(symbols,force);
+}
+document.addEventListener('paax:fundamentals-updated',upgradeFundamentals);
+document.addEventListener('click',event=>{
+ const button=event.target.closest?.('[data-invest-fundamental-refresh]');
+ if(!button)return;
+ event.preventDefault();event.stopImmediatePropagation();
+ void refreshFundamentals(true);
+},true);
+
 const quoteAdapterReady=addScript('investment-market.js?v=7',()=>{
  const panel=document.querySelector('#invest-market-intelligence');
  const btn=panel?.querySelector('[data-market-intel-refresh]');

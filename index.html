@@ -12610,7 +12610,7 @@ function renderInvestmentModal(){
     <div class="form-field full invest-auto-option">
      <label><input type="checkbox" name="autoPrice" value="yes"
        ${(asset?.autoPrice!==false&&['stock','warrant','etf','dire','dinfra','eba','crypto'].includes(asset?.type||'stock'))?'checked':''}
-       ${['stock','warrant','etf','dire','dinfra','eba','crypto'].includes(asset?.type||'stock')?'':'disabled'}>
+       ${(['stock','warrant','etf','dire','dinfra','eba','crypto'].includes(asset?.type||'stock')&&!investPriceLocked(asset))?'':'disabled'}>
        <span>⟳ Perbarui harga otomatis jika tersedia</span></label>
      <small>Instrumen BEI/ETF/kripto IDR yang berhasil ditemukan dapat menggunakan harga publik otomatis. Produk yang tidak tersedia di sumber harga tetap dicatat secara manual.</small>
     </div>
@@ -13344,13 +13344,14 @@ if(id==='invest-asset-form'){
  if(db.investmentAssets.some(a=>a.id!==editId&&a.name.toLowerCase()===name.toLowerCase()&&a.symbol===symbol))
   return toast('Instrumen yang sama sudah tercatat.',true);
  if(old){
+  const keepAutomatic=investPriceLocked(old);
   if(old.symbol!==symbol||old.type!==type){
    const prior=db.investmentPriceHistory?.[old.id]||{};
    if(db.investmentPriceHistory)db.investmentPriceHistory[old.id]=Object.fromEntries(Object.entries(prior).filter(([,v])=>v.source==='manual'));
    old.marketHistoryChecked='';
    old.price=0;old.priceDate='';old.priceSource='';old.priceTimestamp='';
   }
-  Object.assign(old,{name,symbol,type,customType,note,autoPrice:investPriceLocked(old)?true:autoPrice});
+  Object.assign(old,{name,symbol,type,customType,note,autoPrice:keepAutomatic?true:autoPrice});
  }else db.investmentAssets.push({id:uid(),name,symbol,type,customType,note,autoPrice,price:0,priceDate:'',createdAt:new Date().toISOString()});
  investRememberValue();investFeed.lastCheck=0;if(!save())return;
  if(old){ui.investmentModal=null;render();toast('Instrumen investasi diperbarui.');}
@@ -14479,7 +14480,8 @@ document.addEventListener('change',e=>{let x=e.target;
   if(row){row.hidden=x.value!=='other';const input=row.querySelector('input');if(input){input.required=x.value==='other';if(x.value==='other')input.focus({preventScroll:true});}}
   const auto=x.form?.elements.autoPrice;
   if(auto){const supported=['stock','warrant','etf','dire','dinfra','eba','crypto'].includes(x.value);
-   auto.disabled=!supported;auto.checked=supported;}
+   const original=db.investmentAssets.find(a=>a.id===x.form?.elements.editId?.value);
+   auto.disabled=!supported||(!!original&&investPriceLocked(original));auto.checked=supported;}
   return;
  }
 

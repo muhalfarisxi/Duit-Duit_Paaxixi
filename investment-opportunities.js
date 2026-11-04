@@ -73,7 +73,7 @@
   })().finally(()=>{request=null});
   return request;
  }
- function contextForGoal(name,type,target){
+ function contextForGoal(name,type,target,due=null){
   const region=extractRegion(name);
   const house=isHouse(name,type);
   const snapshot=house&&region&&houses[region]?houses[region]:null;
@@ -85,7 +85,7 @@
    note:snapshot?'Indikasi harga penawaran listing, bukan median transaksi resmi, tidak otomatis relevan untuk seluruh kecamatan atau tipe rumah. Nominal pada tanggal tujuan dapat berubah.':
     'Tidak ada pembanding harga lokal terverifikasi otomatis untuk wilayah ini; jangan mengarang median, gunakan riset listing aktual yang sejenis.'
   },
-  opportunities:verifiedOpportunities({name,type,target}).map(x=>({type:x.kind,name:x.name,status:x.status,estimatedDate:x.eventDate,source:x.source,sourceDate:x.sourceDate,url:x.url,suitability:x.fit,limitations:x.verifiedType})),
+  opportunities:verifiedOpportunities({name,type,target,due}).map(x=>({type:x.kind,name:x.name,status:x.status,estimatedDate:x.eventDate,source:x.source,sourceDate:x.sourceDate,url:x.url,suitability:x.fit,limitations:x.verifiedType})),
   ipo:{status:state.ipoStatus,asOf:state.checkedAt,offerings:state.ipos.map(x=>({
    symbol:x.symbol,name:x.name,status:x.status,
    source:IPO})),source:IPO,

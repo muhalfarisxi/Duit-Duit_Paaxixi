@@ -194,6 +194,18 @@
      'Untuk tujuan panjang pun harus ditimbang dengan kualitas usaha, valuasi, dan konsentrasi portofolio.',
     priority:near?6:6,verifiedType:'Tahap terbaca dari e-IPO, bukan jaminan IPO aktif saat ini'});
   }
+  if(!cards.some(x=>x.kind==='ipo')){
+   cards.push({id:'ipo-unknown',kind:'ipo',name:'IPO Saham — belum ada kandidat terkonfirmasi',
+    status:state.ipoStatus==='memeriksa'?'Sedang diverifikasi':
+     state.ipoStatus==='gagal-verifikasi'?'Sumber belum dapat diakses':'Belum ada nama terverifikasi',
+    statusCode:'watch',
+    eventDate:'Tanggal & emiten belum dapat dipastikan',
+    source:'e-IPO resmi',sourceDate:state.checkedAt||'belum diperiksa',
+    url:IPO,desc:'Sistem hanya menampilkan nama emiten jika tahap Offering, Book Building atau Waiting For Offering dapat dibaca dari e-IPO resmi. Tidak mengutip rumor atau tanggal dari situs staging.',
+    fit:near?'Tidak sesuai untuk dana tujuan rumah/nikah yang harus tersedia dalam waktu dekat.':
+     'Jika nantinya ada calon emiten resmi, teliti laporan keuangan, valuasi dan risiko sebelum mengambil keputusan.',
+    priority:7,verifiedType:'Kandidat belum dapat diverifikasi'});
+  }
   cards.sort((a,b)=>a.priority-b.priority);
   return cards;
  }

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#102a4e">
-<meta name="paax-build" content="20261104-investment-market-v17">
+<meta name="paax-build" content="20261104-investment-market-v18">
 <title>Duit-Duit Paaxixi | Catatan Keuangan Pribadi</title>
 <link rel="icon" type="image/png" sizes="64x64" href="./favicon-paaxixi.png?v=2">
 <link rel="apple-touch-icon" href="./profil-paaxixi.png?v=2">
@@ -7505,7 +7505,7 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 <script src="./archive-reports.js?v=14"></script>
 <script src="./archive-print.js?v=2"></script>
 <script src="./month-picker.js?v=1"></script>
-<script src="./investment-market.js?v=2"></script>
+<script src="./investment-market.js?v=3"></script>
 <script>
 (()=>{'use strict';
 const KEY='arus-prototype-v1';
@@ -13236,7 +13236,7 @@ if(id==='invest-asset-form'){
   }
   Object.assign(old,{name,symbol,type,customType,note,autoPrice});
  }else db.investmentAssets.push({id:uid(),name,symbol,type,customType,note,autoPrice,price:0,priceDate:'',createdAt:new Date().toISOString()});
- investRememberValue();if(!save())return;
+ investRememberValue();investFeed.lastCheck=0;if(!save())return;
  if(old){ui.investmentModal=null;render();toast('Instrumen investasi diperbarui.');}
  else{const added=db.investmentAssets[db.investmentAssets.length-1];ui.investmentModal={kind:'trade',assetId:added.id,tradeType:'buy'};
   render();toast('Aset ditambahkan. Catat pembelian pertamanya.');}

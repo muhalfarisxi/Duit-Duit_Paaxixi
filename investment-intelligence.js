@@ -83,7 +83,8 @@ function render(state={},watchlist=[],research=[],escape,format){
  const money=typeof format==='function'?format:MONEY;
  const intel=state.data||{},list=cleanWatchlist(watchlist);
  const notes=cleanResearch(research).slice().reverse().slice(0,6);
- const updated=intel.loadedAt?quoteDate(intel.loadedAt):'belum berhasil mengambil data';
+ const updated=intel.loadedAt?quoteDate(intel.loadedAt):'belum diperiksa';
+ const hasPrices=!!(intel.index||(intel.shares||[]).length||(intel.crypto||[]).length);
  const pct=v=>v===null?'—':(v>=0?'+':'')+v.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
  const values=(intel.shares||[]).map(item=>({...item,delta:change(item.price,item.previousClose)}));
  const error=(state.error||intel.errors?.length)?'Sebagian data tidak tersedia. Rencana tetap dapat digunakan; jangan menyimpulkan peluang pasar hanya dari harga yang hilang.':'';
@@ -91,8 +92,8 @@ function render(state={},watchlist=[],research=[],escape,format){
   '<header class="invest-intel-head"><div><span class="invest-intel-eyebrow">🔎 RADAR RISET & DATA PASAR</span>'+
   '<h3>Inteligensi Pasar untuk Rencana Investasi</h3><p>Harga terkini yang tersedia, sumber riset Stockbit dan Ajaib, serta data fundamental yang kamu verifikasi.</p></div>'+
   '<button class="invest-intel-refresh" type="button" data-market-intel-refresh '+(state.busy?'disabled':'')+'>'+(state.busy?'⏳ Mengambil Data…':'⟳ Perbarui Data')+'</button></header>'+
-  '<div class="invest-intel-status"><span class="invest-intel-light '+(state.busy?'loading':intel.loadedAt?'ready':'')+'"></span>'+
-  '<span>Data terakhir diambil: <strong>'+h(updated)+'</strong>. Harga saham melalui Yahoo Finance dan kripto melalui CoinGecko, bukan feed Stockbit/Ajaib. Data dapat tertunda.</span></div>'+
+  '<div class="invest-intel-status"><span class="invest-intel-light '+(state.busy?'loading':hasPrices?'ready':'')+'"></span>'+
+  '<span>Pemeriksaan sumber terakhir: <strong>'+h(updated)+'</strong>. '+(hasPrices?'Sebagian harga berhasil diambil. ':'Belum ada harga yang berhasil diambil. ')+'Harga saham melalui Yahoo Finance dan kripto melalui CoinGecko, bukan feed Stockbit/Ajaib. Data dapat tertunda.</span></div>'+
   (error?'<p class="invest-intel-notice" role="status">'+h(error)+'</p>':'')+
   '<div class="invest-intel-market-grid"><div class="invest-intel-block">'+
   '<div class="invest-intel-blockhead"><h4>📊 IHSG</h4><small>Indeks utama BEI · sumber publik</small></div>'+
@@ -103,7 +104,7 @@ function render(state={},watchlist=[],research=[],escape,format){
   '<div class="invest-intel-block"><div class="invest-intel-blockhead"><h4>🪙 Kripto Terbesar</h4><small>Peringkat kapitalisasi pasar, bukan rekomendasi</small></div>'+
   ((intel.crypto||[]).length?'<div class="invest-intel-quote-list">'+intel.crypto.map(item=>
    '<div><div><b>'+h(item.symbol)+'</b><small>'+h(item.name)+'</small></div><div><strong>'+money(item.price)+'</strong>'+
-   '<small class="'+(item.dayChange>=0?'up':'down')+'">'+pct(item.dayChange)+' · 24 jam</small></div></div>').join('')+'</div>':
+   '<small class="'+(item.dayChange>=0?'up':'down')+'">'+pct(item.dayChange)+' · 24 jam</small><small>Harga '+h(quoteDate(item.asOf))+'</small></div></div>').join('')+'</div>':
    '<p class="invest-intel-empty">Data kripto belum tersedia, kemungkinan dibatasi kuota atau jaringan.</p>')+'</div></div>'+
   '<div class="invest-intel-stock-block"><div class="invest-intel-blockhead"><h4>📈 Pantau Saham BEI</h4><small>Masukkan kode saham yang ingin dianalisis, bukan otomatis daftar rekomendasi beli</small></div>'+
   '<form id="market-watch-form" class="invest-intel-watch-form"><input class="field" name="symbol" autocomplete="off" maxlength="12" placeholder="Kode saham, contoh: BBCA" aria-label="Kode saham yang dipantau" required>'+
@@ -117,7 +118,7 @@ function render(state={},watchlist=[],research=[],escape,format){
     '<small>'+h(quoteDate(x.asOf))+'</small></div>').join('')+'</div>':
     '<p class="invest-intel-empty">Belum ada harga saham yang berhasil diambil. Tambahkan kode lalu pilih Perbarui Data.</p>')+
   '<small class="invest-intel-footnote">Harga saham dapat tertunda. Tidak mencakup laporan fundamental atau target harga broker secara otomatis. Maksimal 8 simbol pantauan termasuk aset saham yang dimiliki.</small></div>'+
-  '<div class="invest-intel-research"><div class="invest-intel-blockhead"><h4>📚 Sumber Riset Terverifikasi</h4><small>Buka sumber dan cek tanggal datanya secara langsung</small></div>'+
+  '<div class="invest-intel-research"><div class="invest-intel-blockhead"><h4>📚 Sumber Riset untuk Diverifikasi</h4><small>Buka sumber dan cek tanggal datanya secara langsung</small></div>'+
    '<div class="invest-intel-links">'+SOURCES.map(ref=>'<a href="'+safeLink(ref.url)+'" target="_blank" rel="noopener noreferrer" title="'+h(ref.detail)+'">'+ref.icon+' '+h(ref.name)+' ↗</a>').join('')+'</div>'+
   '<details class="invest-intel-note-editor"><summary>✍️ Catat Hasil Riset Fundamental dari Stockbit / Ajaib</summary>'+
   '<p>Stockbit dan Ajaib tidak tersambung lewat API di website ini. Salin angka penting dari riset yang kamu baca, sertakan sumber dan tanggalnya; AI akan memperlakukannya sebagai data manual yang belum terverifikasi secara independen.</p>'+

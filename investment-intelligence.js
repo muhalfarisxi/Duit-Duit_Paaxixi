@@ -78,7 +78,10 @@ async function loadMarket(watchlist=[],holdings=[],period='month'){
  result.errors=fail.slice(0,12);
  return result;
 }
+let indexPeriod='month',indexOverride=null,lastRenderedState=null,chartLoading=false;
+const catalogState={open:false,busy:false,filter:'',kind:'all',data:null,error:''};
 function render(state={},watchlist=[],research=[],escape,format){
+ lastRenderedState=state;
  const h=typeof escape==='function'?escape:(x=>String(x));
  const money=typeof format==='function'?format:MONEY;
  const intel=state.data||{},list=cleanWatchlist(watchlist);
@@ -96,16 +99,17 @@ function render(state={},watchlist=[],research=[],escape,format){
   '<span>Pemeriksaan sumber terakhir: <strong>'+h(updated)+'</strong>. '+(hasPrices?'Sebagian harga berhasil diambil. ':'Belum ada harga yang berhasil diambil. ')+'Harga saham melalui Yahoo Finance dan kripto melalui CoinGecko, bukan feed Stockbit/Ajaib. Data dapat tertunda.</span></div>'+
   (error?'<p class="invest-intel-notice" role="status">'+h(error)+'</p>':'')+
   '<div class="invest-intel-market-grid"><div class="invest-intel-block invest-intel-index-wrap">'+
-  (window.PAAX_MARKET_INSIGHT?.chartCard(intel.index,state.period||'month',state.busy)||
+  (window.PAAX_MARKET_INSIGHT?.chartCard(indexOverride||intel.index,indexPeriod,state.busy||chartLoading)||
    '<p class="invest-intel-empty">Grafik IHSG belum siap.</p>')+'</div>'+
   '<div class="invest-intel-block"><div class="invest-intel-blockhead"><h4>🪙 Kripto Terbesar</h4><small>Peringkat kapitalisasi pasar, bukan rekomendasi</small></div>'+
   ((intel.crypto||[]).length?'<div class="invest-intel-quote-list">'+intel.crypto.map(item=>
    '<div><div><b>'+h(item.symbol)+'</b><small>'+h(item.name)+'</small></div><div><strong>'+money(item.price)+'</strong>'+
    '<small class="'+(item.dayChange>=0?'up':'down')+'">'+pct(item.dayChange)+' · 24 jam</small><small>Harga '+h(quoteDate(item.asOf))+'</small></div></div>').join('')+'</div>':
    '<p class="invest-intel-empty">Data kripto belum tersedia, kemungkinan dibatasi kuota atau jaringan.</p>')+'</div></div>'+ 
-  (window.PAAX_MARKET_INSIGHT?.analysisCard(intel,state.busy)||'')+
+  (window.PAAX_MARKET_INSIGHT?.analysisCard({...intel,index:indexOverride||intel.index},state.busy||chartLoading)||'')+
   '<div class="invest-intel-stock-block"><div class="invest-intel-blockhead"><h4>📈 Pantau Instrumen Bursa</h4><small>Pilih saham atau ETF dari katalog bergulir; ini bukan rekomendasi beli.</small></div>'+
-  '<div class="invest-intel-watch-form"><button type="button" class="invest-intel-open-catalog" data-market-catalog-open>🏢 Buka Katalog Saham & ETF BEI <span aria-hidden="true">✦</span></button></div>'+
+  '<div class="invest-intel-watch-form"><button type="button" class="invest-intel-open-catalog" data-market-catalog-open>🏢 Buka Katalog Saham & ETF BEI <span aria-hidden="true">✦</span></button></div>'+ 
+  '<form id="market-watch-form" style="display:none" aria-hidden="true"><input type="hidden" name="symbol"></form>'+
   '<div class="invest-intel-watch-chips">'+(list.length?list.map(symbol=>
    '<span><b>'+h(symbol)+'</b><button type="button" data-market-watch-remove="'+h(symbol)+'" aria-label="Hapus pantauan '+h(symbol)+'">×</button></span>').join(''):
    '<small>Belum ada instrumen dipantau. Pilih dari katalog; aset yang telah dimiliki tetap dianalisis otomatis.</small>')+'</div>'+
@@ -155,5 +159,128 @@ function aiContext(data,notes=[]){
   shares,crypto,research,
   dataLimitations:'Tidak ada feed API Stockbit/Ajaib. Catatan rasio adalah transkripsi pengguna; validasi sumber dan masa berlaku wajib. Kegagalan jaringan bukan sinyal beli/jual. Harga publik mungkin tertunda.'};
 }
+
+/* Interactive add-ons are loaded from existing small modules. No modifications
+   to the 1 MB HTML needed, and the app's data/Cloud APIs remain authoritative. */
+const addScript=(src,done)=>{
+ if(src.includes('index-insight')&&window.PAAX_MARKET_INSIGHT){done?.();return Promise.resolve(true);}
+ if(src.includes('catalog')&&window.PAAX_INVEST_CATALOG){done?.();return Promise.resolve(true);}
+ return new Promise(resolve=>{
+  const script=document.createElement('script');script.src='./'+src;
+  script.onload=()=>{done?.();resolve(true)};
+  script.onerror=()=>resolve(false);
+  document.head.appendChild(script);
+ });
+};
+const link=document.querySelector('link[href*="investment-intelligence.css"]');
+if(link)link.href='./investment-intelligence.css?v=2';
+function shownIndex(){
+ return indexOverride||lastRenderedState?.data?.index||null;
+}
+function upgradeMarket(){
+ if(!window.PAAX_MARKET_INSIGHT||!lastRenderedState)return;
+ const card=document.querySelector('#invest-market-intelligence');
+ if(!card)return;
+ const graph=card.querySelector('.invest-intel-index-wrap');
+ if(graph)graph.innerHTML=window.PAAX_MARKET_INSIGHT.chartCard(shownIndex(),indexPeriod,
+  chartLoading||!!lastRenderedState.busy);
+ const html=window.PAAX_MARKET_INSIGHT.analysisCard(
+  {...(lastRenderedState.data||{}),index:shownIndex()},chartLoading||!!lastRenderedState.busy);
+ const existing=card.querySelector('.invest-market-advice');
+ if(existing)existing.outerHTML=html;
+ else card.querySelector('.invest-intel-market-grid')?.insertAdjacentHTML('afterend',html);
+}
+const insightReady=addScript('investment-index-insight.js?v=1',upgradeMarket);
+const catalogReady=addScript('investment-catalog.js?v=1');
+function watched(){
+ try{
+  const db=JSON.parse(localStorage.getItem('arus-prototype-v1')||'null');
+  return Array.isArray(db?.investmentWatchlist)?db.investmentWatchlist:[];
+ }catch(_){return [];}
+}
+function catalogMarkup(){
+ return window.PAAX_INVEST_CATALOG?.renderModal(catalogState.data,watched(),
+  catalogState.filter,catalogState.kind,catalogState.busy,catalogState.error)||'';
+}
+function patchCatalogList(){
+ const el=document.querySelector('#invest-catalog-backdrop');if(!el)return;
+ const template=document.createElement('template');template.innerHTML=catalogMarkup();
+ const newList=template.content.querySelector('.invest-catalog-list');
+ const oldList=el.querySelector('.invest-catalog-list');
+ if(newList&&oldList){const scroll=oldList.scrollTop;oldList.innerHTML=newList.innerHTML;oldList.scrollTop=scroll;}
+ const c=el.querySelector('.invest-catalog-count'),nc=template.content.querySelector('.invest-catalog-count');
+ if(c&&nc)c.textContent=nc.textContent;
+}
+function rerenderCatalog(){
+ document.querySelector('#invest-catalog-backdrop')?.remove();
+ if(!catalogState.open)return;
+ document.body.insertAdjacentHTML('beforeend',catalogMarkup());
+}
+function closeCatalog(){
+ catalogState.open=false;document.querySelector('#invest-catalog-backdrop')?.remove();
+ document.querySelector('[data-market-catalog-open]')?.focus({preventScroll:true});
+}
+async function openCatalog(force=false){
+ if(!(await catalogReady)||!window.PAAX_INVEST_CATALOG){return;}
+ catalogState.open=true;catalogState.busy=true;catalogState.error='';
+ if(!catalogState.data){catalogState.kind='all';catalogState.filter='';}
+ rerenderCatalog();document.querySelector('#invest-catalog-filter')?.focus({preventScroll:true});
+ try{
+  catalogState.data=await window.PAAX_INVEST_CATALOG.load(force);
+  if(!catalogState.data?.items?.length)
+   catalogState.error='Katalog saham belum berhasil dimuat. Pilihan ETF contoh masih tersedia; coba Perbarui Katalog atau kunjungi daftar resmi BEI.';
+ }catch(err){catalogState.error=String(err?.message||err).slice(0,160);}
+ finally{
+  catalogState.busy=false;
+  if(catalogState.open){rerenderCatalog();document.querySelector('#invest-catalog-filter')?.focus({preventScroll:true});}
+ }
+}
+async function chooseInstrument(code,kind){
+ const item=window.PAAX_INVEST_CATALOG?.getItem(code,kind,catalogState.data);
+ if(!item)return;
+ const form=document.getElementById('market-watch-form');
+ const input=form?.querySelector('input[name="symbol"]');
+ if(!input)return;
+ input.value=item.symbol;
+ if(typeof form.requestSubmit==='function')form.requestSubmit();
+ else form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
+ patchCatalogList();
+}
+async function setIndexPeriod(period){
+ if(!['month','quarter','year','fiveyear'].includes(period)||chartLoading||indexPeriod===period)return;
+ indexPeriod=period;chartLoading=true;upgradeMarket();
+ try{
+  const newData=await window.PAAX_INVEST_MARKET?.benchmark(period);
+  if(newData)indexOverride=newData;
+ }catch(err){
+  // Keep the last verified chart instead of inventing historical points.
+  indexOverride={...(shownIndex()||{}),series:[],period};
+ }finally{chartLoading=false;upgradeMarket();}
+}
+document.addEventListener('click',event=>{
+ if(event.target?.id==='invest-catalog-backdrop'&&catalogState.open){event.preventDefault();closeCatalog();return;}
+ const target=event.target.closest?.('[data-market-catalog-open],[data-market-catalog-close],[data-market-catalog-reload],[data-market-catalog-pick],[data-market-catalog-type],[data-market-index-period]');
+ if(!target)return;
+ event.preventDefault();event.stopImmediatePropagation();
+ if(target.hasAttribute('data-market-catalog-open')){void openCatalog();return;}
+ if(target.hasAttribute('data-market-catalog-close')){closeCatalog();return;}
+ if(target.hasAttribute('data-market-catalog-reload')){void openCatalog(true);return;}
+ if(target.dataset.marketCatalogType!==undefined){
+  if(!['all','stock','etf'].includes(target.dataset.marketCatalogType))return;
+  catalogState.kind=target.dataset.marketCatalogType;catalogState.filter='';
+  rerenderCatalog();document.querySelector('#invest-catalog-filter')?.focus({preventScroll:true});return;
+ }
+ if(target.dataset.marketCatalogPick!==undefined){void chooseInstrument(target.dataset.marketCatalogPick,target.dataset.marketCatalogKind);return;}
+ if(target.dataset.marketIndexPeriod!==undefined){void setIndexPeriod(target.dataset.marketIndexPeriod);return;}
+},true);
+document.addEventListener('input',event=>{
+ if(!catalogState.open||event.target?.id!=='invest-catalog-filter')return;
+ catalogState.filter=event.target.value.slice(0,60);patchCatalogList();
+},true);
+document.addEventListener('keydown',event=>{
+ if(!catalogState.open||event.key!=='Escape')return;
+ event.preventDefault();event.stopImmediatePropagation();closeCatalog();
+},true);
+
 window.PAAX_MARKET_INTEL={loadMarket,render,aiContext,cleanWatchlist,cleanResearch,SOURCES};
 })();

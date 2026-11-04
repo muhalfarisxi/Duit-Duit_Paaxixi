@@ -7387,6 +7387,48 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 @media(max-width:700px){.invest-filter-panel{display:grid;gap:10px}.invest-filter-panel .invest-filter-strip{flex-basis:auto}.invest-filter-select{width:100%;min-width:0}.invest-filter-panel .invest-filter-strip>button{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.invest-dialog [data-invest-custom-type]:not([hidden]){animation:none!important}}
 
+/* #162 Investasi: pembaruan pasar + grafik bulan/tahun interaktif. */
+.invest-market-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:13px 16px;border:1px solid #cadff4;border-radius:17px;background:linear-gradient(115deg,#f2f9ff,#f4fff9)}
+.invest-market-summary{display:flex;align-items:center;gap:12px;flex:1 1 340px}
+.invest-market-dot{width:12px;height:12px;flex:none;background:#b1c0cf;border-radius:50%;box-shadow:0 0 0 5px #c8d5e546}
+.invest-market-dot.ok{background:#229778;box-shadow:0 0 0 5px #22977825}
+.invest-market-dot.loading{background:#367ad2;animation:investPulse 1.1s ease infinite}
+@keyframes investPulse{50%{opacity:.4;transform:scale(.65)}}
+.invest-market-summary>div{display:grid;gap:4px}
+.invest-market-summary strong{font:900 13px Nunito,sans-serif;color:#24628f}
+.invest-market-summary small,.invest-market-error{font:750 10px/1.5 Nunito,sans-serif;color:#7590ab}
+.invest-market-error{width:100%;color:#bf5f70}
+.invest-trend-header{flex-wrap:wrap;gap:10px}
+.invest-trend-modes{display:flex;align-items:center;gap:5px;padding:4px;border:1px solid #d8e7f8;border-radius:12px;background:#f3f8ff}
+.invest-trend-modes button{min-height:34px;padding:7px 12px;border:1px solid transparent;border-radius:9px;background:transparent;font:900 11px Nunito,sans-serif;color:#5d7b9c}
+.invest-trend-modes button.active{background:#3276be;color:#fff;box-shadow:0 5px 12px #3276be30}
+.invest-chart-status{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:12px 0 9px}
+.invest-chart-status strong{font:650 21px Fredoka,Nunito,sans-serif;color:#2b69a0}
+.invest-chart-status small{font:750 10px Nunito,sans-serif;color:#7891aa}
+.invest-trend-scroll{max-width:100%;overflow-x:auto;scrollbar-width:thin;overscroll-behavior-x:contain;border:1px solid #e0e9f6;border-radius:13px;background:linear-gradient(160deg,#f4f9ff,#fff)}
+.invest-trend-scroll svg{display:block}
+.invest-history-point:hover,.invest-history-point:focus-visible{filter:drop-shadow(0 0 5px #4c96d4);outline:none}
+.invest-trend-foot{font:750 10px/1.55 Nunito,sans-serif;color:#7f96ae;margin:9px 0}
+.invest-period-backdrop{position:fixed;inset:0;z-index:7200;display:grid;place-items:center;padding:15px;background:#102947a6;backdrop-filter:blur(8px)}
+.invest-period-dialog{display:flex;flex-direction:column;width:min(670px,100%);max-height:90dvh;overflow:hidden;background:#fff;border:1px solid #d1e1f8;border-radius:22px;box-shadow:0 24px 70px #12365861;animation:investEnter .25s ease both}
+.invest-period-dialog>header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 20px;background:linear-gradient(130deg,#e8f4ff,#f2fffa);border-bottom:1px solid #d6e7f8}
+.invest-period-dialog>header small{font:900 10px Nunito,sans-serif;color:#6e91b0}
+.invest-period-dialog>header h3{margin:3px 0 0;color:#276090;font:650 22px Fredoka,Nunito,sans-serif}
+.invest-period-dialog>header button{width:37px;height:37px;border:1px solid #ccdcf1;border-radius:12px;background:#fff;color:#3d76ad;font-size:18px}
+.invest-period-body{display:grid;gap:10px;overflow-y:auto;padding:19px 20px}
+.invest-period-total{display:grid;gap:6px;padding:15px;border:1px solid #c9e1f5;border-radius:15px;background:linear-gradient(110deg,#eef8ff,#f0fcf7)}
+.invest-period-total strong{color:#2773a2;font:650 24px Fredoka,Nunito,sans-serif}
+.invest-period-total small{color:#6f8da8;font:750 11px/1.5 Nunito,sans-serif}
+.invest-period-body h4{margin:7px 0 0;color:#315a83;font:650 17px Fredoka,Nunito,sans-serif}
+.invest-period-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border-bottom:1px solid #deebf7}
+.invest-period-row>div{display:grid;gap:5px;min-width:0;flex:1}
+.invest-period-row strong{color:#24598a;font:900 12px Nunito,sans-serif}
+.invest-period-row small{color:#8195a9;font:750 10px/1.5 Nunito,sans-serif;overflow-wrap:anywhere}
+.invest-period-row>span{color:#23846e;font:900 12px Nunito,sans-serif;white-space:nowrap}
+.invest-period-row>span.missing{color:#ad8754}
+@media(max-width:700px){.invest-market-toolbar{padding:12px}.invest-period-body{padding:12px}.invest-period-row{align-items:flex-start;flex-direction:column}}
+@media(prefers-reduced-motion:reduce){.invest-market-dot.loading,.invest-period-dialog{animation:none!important}}
+
 </style>
 <link rel="stylesheet" href="./budget-ux.css?v=15">
 <link rel="stylesheet" href="./archive-reports.css?v=13">
@@ -12517,11 +12559,20 @@ function renderInvestments(){
  return `<div class="invest-dashboard">
   <section class="invest-hero">
    <div class="invest-hero-copy"><small>✦ PORTOFOLIO PAAXIXI</small><h2>Investasi Bertumbuh 🌱</h2>
-    <p>Pantau nilai aset dan keuntungan berdasarkan harga yang kamu masukkan.</p></div>
+    <p>Harga aset yang didukung mengikuti pasar secara berkala; lainnya menggunakan harga manual yang tercatat.</p></div>
    <div class="invest-hero-buttons">
     <button type="button" class="invest-primary-action" data-invest-open="asset">＋ Tambah Aset</button>
    </div><span class="invest-hero-art" aria-hidden="true">📈✨</span>
   </section>
+  <div class="invest-market-toolbar">
+   <div class="invest-market-summary"><span class="invest-market-dot ${investFeed.busy?'loading':investFeed.updated?'ok':''}"></span>
+    <div><strong>${investFeed.busy?'Mengambil harga terbaru...':investFeed.updated?'Harga pasar diperbarui':'Pembaruan Harga Pasar'}</strong>
+    <small>${p.items.filter(x=>investMarketEligible(x.asset)).length} instrumen berpotensi otomatis
+    ${investFeed.lastSuccess?' · Sukses '+h(new Date(investFeed.lastSuccess).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'}))+' WIB':''}.
+    Harga penyedia mungkin tertunda saat pasar buka/tutup.</small></div></div>
+   <button type="button" class="btn sm" data-invest-refresh ${investFeed.busy?'disabled':''}>⟳ Perbarui Harga</button>
+   ${investFeed.error?'<small class="invest-market-error">Sebagian harga gagal diambil; harga sebelumnya tidak diganti. '+h(investFeed.error)+'</small>':''}
+  </div>
   <div class="invest-kpis">
    <article class="invest-kpi invest-kpi-market"><span>Nilai Portofolio</span><strong>${money(p.market)}</strong><small>${p.active} aset dengan kepemilikan</small></article>
    <article class="invest-kpi invest-kpi-cost"><span>Modal Aset Aktif</span><strong>${money(p.cost)}</strong><small>Modal setelah penjualan</small></article>
@@ -12531,10 +12582,13 @@ function renderInvestments(){
     <small>Rekening + investasi + piutang − utang</small></article>
   </div>
   <div class="invest-charts">
-   <section class="card invest-trend-card"><div class="card-head"><div><h3>Perkembangan Nilai Portofolio</h3></div>
-    <span class="invest-chart-symbol" aria-hidden="true">📊</span></div>
+   <section class="card invest-trend-card"><div class="card-head invest-trend-header"><div><h3>Perkembangan Nilai Portofolio</h3></div>
+    <div class="invest-trend-modes" role="group" aria-label="Periode tren portofolio">
+     <button type="button" data-invest-trend-mode="month" aria-pressed="${ui.investmentTrendMode==='month'}" class="${ui.investmentTrendMode==='month'?'active':''}">Bulanan</button>
+     <button type="button" data-invest-trend-mode="year" aria-pressed="${ui.investmentTrendMode==='year'}" class="${ui.investmentTrendMode==='year'?'active':''}">Tahunan</button>
+    </div></div>
     ${investVisualSeries()}
-    <p class="invest-caption">Nilai tercatat pada hari pengisian; tidak menggunakan harga historis otomatis.</p></section>
+    <p class="invest-caption">Perhitungan dari jumlah unit dimiliki × harga akhir bulan. Klik titik untuk melihat instrumen dan nilai pada periode tersebut; harga yang hilang tidak diimputasi.</p></section>
    <section class="card invest-pie-card"><div class="card-head"><div><h3>Alokasi Aset</h3></div>
     <span class="invest-chart-symbol" aria-hidden="true">🧩</span></div>
     ${investAllocationChart(all,p.market)}</section>
@@ -12568,6 +12622,8 @@ function renderInvestments(){
        <div><small>Untung/rugi berjalan</small>${val(unrealized)}<small>${cost>0?(roi<0?'−':'+')+Math.abs(roi).toFixed(1).replace('.',',')+'% dari modal':'Belum ada modal aktif'}</small></div>
       </div>
       <div class="invest-asset-price-note">Harga: ${asset.priceDate?dateFmt(asset.priceDate):'Belum diperbarui'}
+       · ${asset.priceSource==='otomatis'?'Otomatis, data pasar bisa tertunda':'Manual / belum tersambung'}
+       ${asset.priceSource==='otomatis'&&num(asset.pricePrevClose)>0?' · '+(num(asset.price)-num(asset.pricePrevClose)>=0?'▲ ':'▼ ')+money(Math.abs(num(asset.price)-num(asset.pricePrevClose))):''}
        ${realized+payout?`<span> · Hasil terealisasi ${money(realized+payout)}</span>`:''}</div>
       <div class="invest-asset-buttons">
        <button type="button" data-invest-trade="buy:${h(asset.id)}">＋ Beli</button>
@@ -12599,6 +12655,7 @@ function renderInvestments(){
    ${(db.investmentTrades||[]).length>recent.length?`<button class="btn invest-load-more" type="button" data-invest-load-more>↓ Tampilkan 40 Riwayat Berikutnya</button>`:''}
   </section>
   ${renderInvestmentModal()}
+  ${renderInvestmentTrendPopup()}
  </div>`;
 }
 
@@ -13493,6 +13550,9 @@ document.addEventListener('pointerdown',event=>{
  if(ui.incomeMonthMenuOpen&&!event.target.closest('.income-month-picker')&&!event.target.closest('#income-month-menu'))dismissIncomeMonthMenu();
 });
 document.addEventListener('keydown',event=>{
+ const chartDot=event.target.closest?.('[data-invest-period]');
+ if(chartDot&&(event.key==='Enter'||event.key===' ')){event.preventDefault();ui.investmentTrendMonth=chartDot.dataset.investPeriod;render();return;}
+ if(ui.investmentTrendMonth&&event.key==='Escape'){event.preventDefault();ui.investmentTrendMonth=null;render();return;}
  if(ui.cloudModalOpen||ui.accountEditorOpen){
   const cloudActive=ui.cloudModalOpen,dialog=document.querySelector(cloudActive?'.cloud-dialog':'.account-editor-dialog');
   if(event.key==='Escape'){event.preventDefault();if(cloudActive)ui.cloudModalOpen=false;else{ui.accountEditorOpen=false;ui.accountEditId=null;}render();(cloudActive?document.getElementById('cloud-status'):document.querySelector('[data-account-new]'))?.focus({preventScroll:true});return;}
@@ -13647,9 +13707,19 @@ document.addEventListener('toggle',event=>{
  ui.budgetEditExpandedGroups=el.open?[...new Set([...old,id])]:old.filter(x=>x!==id);
 },true);
 document.addEventListener('click',async e=>{
- const investAction=e.target.closest?.('[data-invest-open],[data-invest-trade],[data-invest-price],[data-invest-edit],[data-invest-group],[data-invest-trade-kind],[data-invest-close],[data-invest-delete],[data-invest-delete-trade],[data-invest-load-more]');
+ const plot=e.target.closest?.('[data-invest-period]');
+ if(plot){ui.investmentTrendMonth=plot.dataset.investPeriod;render();document.querySelector('[data-invest-period-close]')?.focus({preventScroll:true});return;}
+ if(e.target.id==='invest-period-backdrop'){ui.investmentTrendMonth=null;render();return;}
+ const investAction=e.target.closest?.('[data-invest-open],[data-invest-trade],[data-invest-price],[data-invest-edit],[data-invest-group],[data-invest-trend-mode],[data-invest-refresh],[data-invest-period-close],[data-invest-trade-kind],[data-invest-close],[data-invest-delete],[data-invest-delete-trade],[data-invest-load-more]');
  if(investAction||e.target.id==='invest-modal-backdrop'){
   e.preventDefault();
+  if(investAction?.hasAttribute('data-invest-period-close')){ui.investmentTrendMonth=null;render();return;}
+  if(investAction?.hasAttribute('data-invest-refresh')){void investFetchMarket(true);return;}
+  if(investAction?.dataset.investTrendMode){
+   const mode=investAction.dataset.investTrendMode;
+   if(!['month','year'].includes(mode))return;
+   ui.investmentTrendMode=mode;render();document.querySelector('[data-invest-trend-mode="'+mode+'"]')?.focus({preventScroll:true});return;
+  }
   if(!investAction||investAction.hasAttribute('data-invest-close')){ui.investmentModal=null;render();return;}
   if(investAction.dataset.investGroup!==undefined){
    const group=investAction.dataset.investGroup;

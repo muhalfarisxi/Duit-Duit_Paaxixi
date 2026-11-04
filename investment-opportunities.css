@@ -29,3 +29,46 @@
 .invest-ipo-issuers span{display:block;font:850 11px Nunito,sans-serif;color:#775b3d;margin:4px 0}
 .invest-ipo-issuers small{font:750 10px/1.55 Nunito,sans-serif;color:#a18e70}
 @media(max-width:720px){.invest-property-prices{grid-template-columns:1fr}.invest-ipo-issuers{grid-template-columns:1fr}}
+
+/* Multi-asset opportunity radar: announced / available / already listed stay distinct. */
+.invest-goal-watch-multitype{background:linear-gradient(130deg,#f7fbff,#fff9ed)!important;border-color:#dfdfd5!important}
+.invest-goal-watch-multitype>div:last-child{min-width:0;flex:1}
+.invest-opportunities{padding:3px 0 0;min-width:0;width:100%}
+.invest-opportunities-heading{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.invest-opportunities-heading>div{flex:1;min-width:170px}
+.invest-opportunities-heading strong{display:block;font:900 13px Nunito,sans-serif;color:#345b79}
+.invest-opportunities-heading small{display:block;margin-top:5px;color:#8894a6;font:700 10px/1.6 Nunito,sans-serif}
+.invest-opportunities-heading button{flex:none;padding:9px 12px;border-radius:11px;border:1px solid #cde5f6;
+background:#fff;color:#2e739d;font:900 11px Nunito,sans-serif}
+.invest-opportunities-context{font:750 11px/1.65 Nunito,sans-serif;color:#687f93!important;margin:12px 0!important}
+.invest-opportunities-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.invest-opportunity-item{padding:13px 14px;background:#fff;border:1px solid #dde9f4;border-radius:14px;
+box-shadow:0 4px 13px #20467108;min-width:0;transition:transform .17s ease,box-shadow .17s ease}
+.invest-opportunity-item:hover{transform:translateY(-2px);box-shadow:0 7px 19px #20467116}
+.invest-opportunity-upcoming{background:linear-gradient(140deg,#f1faff,#e8f4ff);border-color:#b8dcee}
+.invest-opportunity-scheduled{background:#f0f8ff;border-color:#cdddef}
+.invest-opportunity-listed{background:#fff9ef;border-color:#eedebe}
+.invest-opportunity-available{background:#f0fcf6;border-color:#c8ebd6}
+.invest-opportunity-watch{background:#fffaf3;border-color:#eadfcf}
+.invest-opportunity-head{display:flex;align-items:flex-start;gap:9px}
+.invest-opportunity-head>span{display:grid;place-items:center;background:#ffffffde;border-radius:12px;
+width:36px;height:36px;flex:none;font-size:19px}
+.invest-opportunity-head>div{flex:1;min-width:0}
+.invest-opportunity-head small{display:block;font:900 10px Nunito,sans-serif;color:#6681a1;margin:1px 0 4px}
+.invest-opportunity-head strong{display:block;font:900 12px/1.5 Nunito,sans-serif;color:#345470}
+.invest-opportunity-label{display:inline-block;margin-top:10px;font:900 10px Nunito,sans-serif;border:1px solid #d7e3f2;
+background:#ffffffd1;color:#426f98;border-radius:100px;padding:5px 9px}
+.invest-opportunity-listed .invest-opportunity-label{color:#a67635;border-color:#e5d6bf}
+.invest-opportunity-available .invest-opportunity-label{color:#2c8e6c;border-color:#c9e9d6}
+.invest-opportunity-date{font:850 11px/1.65 Nunito,sans-serif;color:#567d97!important;margin:10px 0!important}
+.invest-opportunity-item>p{font:700 11px/1.65 Nunito,sans-serif;color:#687c90!important;margin:8px 0!important}
+.invest-opportunity-fit{background:#ffffff9c;border-left:3px solid #65ac9d;border-radius:8px;
+padding:9px 10px;color:#4c6b67!important}
+.invest-opportunity-footer{display:flex;gap:9px;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-top:11px}
+.invest-opportunity-footer small{min-width:0;flex:1;font:700 10px/1.5 Nunito,sans-serif;color:#8494a5}
+.invest-opportunity-footer a{font:900 10px Nunito,sans-serif;color:#327d9f;text-decoration:none;white-space:nowrap}
+.invest-opportunity-footer a:hover{text-decoration:underline}
+.invest-opportunities-fineprint{font:700 10px/1.7 Nunito,sans-serif;color:#9a8a76!important;margin:12px 0 0!important}
+@media(max-width:850px){.invest-opportunities-grid{grid-template-columns:1fr}}
+@media(max-width:540px){.invest-opportunities-heading button{width:100%}.invest-goal-watch-multitype{gap:9px;padding:11px}.invest-goal-watch-multitype>.invest-goal-watch-icon{display:none}}
+@media(prefers-reduced-motion:reduce){.invest-opportunity-item{transition:none}}

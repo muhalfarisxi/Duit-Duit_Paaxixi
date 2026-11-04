@@ -226,6 +226,10 @@ opportunityScript.onload=()=>{
 document.head.appendChild(opportunityScript);
 document.addEventListener('paax:ipo-updated',()=>{if(!goalModalOpen)rerenderGoalOnly();});
 document.addEventListener('click',event=>{
+ if(!event.target.closest?.('[data-nav="investments"]'))return;
+ setTimeout(()=>{void window.PAAX_OPPORTUNITY?.loadIpo();},150);
+},true);
+document.addEventListener('click',event=>{
  if(!event.target.closest?.('[data-paax-ipo-refresh]'))return;
  event.preventDefault();event.stopImmediatePropagation();
  void window.PAAX_OPPORTUNITY?.loadIpo(true);

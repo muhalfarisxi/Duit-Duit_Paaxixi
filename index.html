@@ -12456,6 +12456,73 @@ async function investFetchMarket(force=false){
  if(ui.view==='investments')render();
 }
 
+
+let investLookupTimer=null,investLookupToken=0,investLookupItems=[];
+function investLookupChange(input){
+ const form=input?.closest('#invest-asset-form');
+ if(!form)return;
+ clearTimeout(investLookupTimer);
+ const token=++investLookupToken,q=String(input.value||'').trim();
+ const status=form.querySelector('[data-invest-market-status]'),
+  results=form.querySelector('[data-invest-market-results]');
+ if(results){results.hidden=true;results.innerHTML='';}
+ investLookupItems=[];
+ if(q.length<2){if(status){status.classList.remove('error');status.textContent='Ketik minimal 2 karakter untuk mencari kode/nama saham BEI, ETF, atau kripto IDR.';}return;}
+ if(status){status.classList.remove('error');status.textContent='Mencari instrumen yang tersedia dari pasar...';}
+ investLookupTimer=setTimeout(async()=>{
+  try{
+   const provider=window.PAAX_INVEST_MARKET;
+   if(typeof provider?.search!=='function')throw Error('Fitur pencarian pasar belum tersedia.');
+   const items=await provider.search(q);
+   if(token!==investLookupToken||!form.isConnected||!input.isConnected)return;
+   investLookupItems=items;
+   if(!items.length){
+    if(status)status.textContent='Tidak ditemukan pada sumber pasar. Coba kode saham lain atau masukkan instrumen secara manual.';
+    return;
+   }
+   if(status)status.textContent=items.length+' instrumen pasar ditemukan. Klik salah satu untuk mengisi jenis, nama, dan kode otomatis.';
+   if(results){
+    results.innerHTML=items.map((item,i)=>{
+     const type=INVEST_TYPES[item.type]||INVEST_TYPES.other;
+     return '<button type="button" data-invest-market-pick="'+i+'"><span><strong>'+
+      h(item.name)+'</strong><small>'+h(item.symbol)+' · '+h(type.name)+'</small></span>'+
+      '<b>Pilih ↗</b></button>';
+    }).join('');
+    results.hidden=false;
+   }
+  }catch(error){
+   if(token!==investLookupToken||!form.isConnected)return;
+   if(status){status.classList.add('error');status.textContent='Pencarian pasar belum dapat diakses ('+String(error?.message||error)+'). Isi kode/nama secara manual atau coba lagi.';}
+  }
+ },380);
+}
+function investSelectMarketItem(button){
+ const index=Number(button.dataset.investMarketPick);
+ const item=Number.isInteger(index)?investLookupItems[index]:null;
+ const form=button.closest('#invest-asset-form');
+ if(!item||!form)return;
+ const old=(db.investmentAssets||[]).find(a=>a.id===form.elements.editId?.value);
+ if(old&&old.type!==item.type&&(db.investmentTrades||[]).some(t=>t.assetId===old.id)){
+  toast('Jenis instrumen yang sudah memiliki transaksi tidak dapat diganti. Tambahkan aset baru untuk jenis lain.',true);return;
+ }
+ investLookupToken++;clearTimeout(investLookupTimer);
+ const symbol=item.symbol.replace(/\\.JK$/,'').replace(/-IDR$/,'');
+ form.elements.type.value=item.type;
+ form.elements.symbol.value=symbol;
+ form.elements.name.value=item.name;
+ form.dataset.marketSelected=item.symbol;
+ const custom=form.querySelector('[data-invest-custom-type]');
+ if(custom){custom.hidden=true;const inp=custom.querySelector('input');if(inp){inp.required=false;}}
+ const auto=form.elements.autoPrice;
+ if(auto){auto.checked=true;auto.disabled=false;}
+ const status=form.querySelector('[data-invest-market-status]');
+ if(status){status.classList.remove('error');status.textContent='✓ '+item.symbol+' — '+item.name+'. Jenis '+(INVEST_TYPES[item.type]?.name||item.type)+' terpilih dari sumber pasar.';}
+ const input=form.querySelector('[data-invest-market-search]');
+ if(input)input.value=item.symbol+' · '+item.name;
+ const results=form.querySelector('[data-invest-market-results]');
+ if(results){results.hidden=true;results.innerHTML='';}
+ form.elements.name.focus({preventScroll:true});
+}
 function investAutoMaybeFetch(){
  if(ui.view!=='investments'||investFeed.busy||Date.now()-investFeed.lastCheck<120000)return;
  if(!(db.investmentAssets||[]).some(investMarketEligible))return;
@@ -13057,7 +13124,9 @@ function rupiahInputHandler(e){
  el.setSelectionRange(cursor,cursor);
 }
 document.addEventListener('input',rupiahInputHandler);
-document.addEventListener('input',e=>{const f=e.target.closest?.('#invest-trade-form');if(f)investUpdatePreview(f);});
+document.addEventListener('input',e=>{
+ if(e.target.matches?.('#invest-asset-form [data-invest-market-search]')){investLookupChange(e.target);return;}
+ if(e.target.matches?.('#invest-asset-form [name="symbol"]')){const form=e.target.form;if(form)delete form.dataset.marketSelected;}const f=e.target.closest?.('#invest-trade-form');if(f)investUpdatePreview(f);});
 document.addEventListener('input',event=>{
  if(event.target.id==='tx-search-input'){
   ui.txSearchQuery=event.target.value;
@@ -13266,7 +13335,7 @@ if(id==='invest-asset-form'){
  const name=String(f.get('name')||'').trim().slice(0,85),
   symbol=String(f.get('symbol')||'').trim().toUpperCase().slice(0,28),
   type=String(f.get('type')||''),customType=type==='other'?String(f.get('customType')||'').trim().slice(0,60):'',
-  note=String(f.get('note')||'').trim().slice(0,180),autoPrice=f.get('autoPrice')==='yes';
+  note=String(f.get('note')||'').trim().slice(0,180),autoPrice=f.get('autoPrice')==='yes'||!!form.dataset.marketSelected;
  if(type==='other'&&!customType)return toast('Isi nama jenis investasi khusus terlebih dahulu.',true);
  if(!name||!INVEST_TYPES[type])return toast('Nama dan jenis instrumen harus diisi.',true);
  if(editId&&!old)return toast('Aset yang diedit tidak ditemukan.',true);
@@ -13788,6 +13857,8 @@ document.addEventListener('toggle',event=>{
  ui.budgetEditExpandedGroups=el.open?[...new Set([...old,id])]:old.filter(x=>x!==id);
 },true);
 document.addEventListener('click',async e=>{
+ const picked=e.target.closest?.('[data-invest-market-pick]');
+ if(picked){e.preventDefault();investSelectMarketItem(picked);return;}
  const plot=e.target.closest?.('[data-invest-period]');
  if(plot){ui.investmentTrendMonth=plot.dataset.investPeriod;render();document.querySelector('[data-invest-period-close]')?.focus({preventScroll:true});return;}
  if(e.target.id==='invest-period-backdrop'){ui.investmentTrendMonth=null;render();return;}
@@ -14403,6 +14474,7 @@ document.addEventListener('change',e=>{let x=e.target;
   render();document.getElementById('invest-type-filter')?.focus({preventScroll:true});return;
  }
  if(x.matches?.('#invest-asset-form select[name="type"]')){
+  if(x.form)delete x.form.dataset.marketSelected;
   const row=x.form?.querySelector('[data-invest-custom-type]');
   if(row){row.hidden=x.value!=='other';const input=row.querySelector('input');if(input){input.required=x.value==='other';if(x.value==='other')input.focus({preventScroll:true});}}
   const auto=x.form?.elements.autoPrice;

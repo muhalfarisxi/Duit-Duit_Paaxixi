@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#102a4e">
-<meta name="paax-build" content="20261104-streamlined-login-v15">
+<meta name="paax-build" content="20261104-investment-catalog-v16">
 <title>Duit-Duit Paaxixi | Catatan Keuangan Pribadi</title>
 <link rel="icon" type="image/png" sizes="64x64" href="./favicon-paaxixi.png?v=2">
 <link rel="apple-touch-icon" href="./profil-paaxixi.png?v=2">
@@ -7374,6 +7374,19 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 @media(max-width:660px){.accounts-list-section .card-head{align-items:flex-start}.accounts-list-actions{width:100%;justify-content:space-between}.account-add-btn{font-size:12px;padding:9px 11px}.account-editor-backdrop,.cloud-dialog-backdrop{padding:8px}.account-editor-dialog,.cloud-dialog{max-height:calc(100dvh - 16px);border-radius:18px}.account-editor-head,.cloud-dialog-head{padding:14px}.account-editor-head strong,.cloud-dialog-head strong{font-size:20px}.account-editor-content,.cloud-dialog-content{padding:15px}}
 @media(prefers-reduced-motion:reduce){.account-editor-dialog,.cloud-dialog{animation:none!important}.account-add-btn,.account-editor-head>button,.cloud-dialog-head>button{transition:none!important}}
 
+/* #161 Filter investasi Indonesia: kelompok mudah dipindai, jenis spesifik dapat dipilih. */
+.invest-filter-panel{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.invest-filter-panel .invest-filter-strip{flex:1 1 720px;flex-wrap:wrap;overflow:visible;gap:7px;padding:0;scrollbar-width:none}
+.invest-filter-panel .invest-filter-strip>button{min-height:35px;padding:7px 10px;font-size:10.5px}
+.invest-filter-select{flex:0 1 275px;display:grid;gap:5px;min-width:min(220px,100%);font:900 11px Nunito,sans-serif;color:#456b93}
+.invest-filter-select select{width:100%;min-height:40px;border:1px solid #cbdcf4;border-radius:12px;padding:8px 31px 8px 11px;background-color:#fafdff;color:#2b5785;font:850 11px Nunito,sans-serif}
+.invest-filter-caption{margin:10px 0 16px;color:#8497ac;font:750 10px/1.5 Nunito,sans-serif}
+.invest-allocation-legend{max-height:228px;overflow-y:auto;scrollbar-width:thin}
+.invest-dialog [data-invest-custom-type][hidden]{display:none!important}
+.invest-dialog [data-invest-custom-type]:not([hidden]){animation:investEnter .2s ease both}
+@media(max-width:700px){.invest-filter-panel{display:grid;gap:10px}.invest-filter-panel .invest-filter-strip{flex-basis:auto}.invest-filter-select{width:100%;min-width:0}.invest-filter-panel .invest-filter-strip>button{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.invest-dialog [data-invest-custom-type]:not([hidden]){animation:none!important}}
+
 </style>
 <link rel="stylesheet" href="./budget-ux.css?v=15">
 <link rel="stylesheet" href="./archive-reports.css?v=13">
@@ -7596,7 +7609,7 @@ const expenseGroups=()=>db.expenseGroups;
 const fresh=()=>({version:2,accounts:[{id:'a-cash',name:'Tunai',type:'Tunai',opening:0}],categories:INIT_CATS.map(c=>({...c})),expenseGroups:DEFAULT_GROUPS.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],budgetAdjustments:[],budgetBaseHistory:[],budgetInitialStates:{},debts:[],accountCorrections:[],investmentAssets:[],investmentTrades:[],investmentSnapshots:[],reports:{}});
 function load(){try{let v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.accounts)&&Array.isArray(v.categories)&&Array.isArray(v.transactions)&&Array.isArray(v.debts)&&v.budgets&&Array.isArray(v.budgetMoves))return normalizeExpenseGroups(v);}catch(e){}return fresh()}
 let db=load();db.reports=db.reports||{};
-let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,accountEditorOpen:false,accountAdjustId:null,cloudModalOpen:false,investmentModal:null,investmentFilter:'all',investmentHistoryCount:40,debtEditId:null,debtEditorOpen:false,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,budgetExpandedGroups:null,budgetDetailExpandedGroups:[],budgetEditExpandedGroups:[],budgetSection:'detail',comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,trendRangePopup:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupType:'receivable',debtPopupFilter:'open',incomeTrendMode:'month',incomeTrendFrom:'',incomeTrendTo:'',incomeTrendRangeOpen:false,incomePieMonth:null,incomeMonthMenuOpen:false,incomeFilter:{preset:'month',from:'',to:'',group:null},incomeTrendVisible:null,reportMonth:currentMonth()};
+let ui={view:'dashboard',month:currentMonth(),showWelcomePopup:true,txType:'expense',txFilter:'all',txModalOpen:false,txHistoryOpen:false,txSearchOpen:false,txSearchQuery:'',debtFilter:'all',debtSelected:null,txEditId:null,accountEditId:null,accountEditorOpen:false,accountAdjustId:null,cloudModalOpen:false,investmentModal:null,investmentFilter:'all',investmentGroup:'all',investmentHistoryCount:40,debtEditId:null,debtEditorOpen:false,repayEditId:null,moveEditId:null,categoryEditId:null,budgetCategoryEditId:null,budgetCategoryGroup:null,expenseGroupEditId:null,budgetExpandedGroups:null,budgetDetailExpandedGroups:[],budgetEditExpandedGroups:[],budgetSection:'detail',comp:{preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,trendVisible:null,trendRangePopup:null,open:false,menu:null},reviewType:'expense',reviewOpenGroups:[],reviewPopup:null,debtPopupType:'receivable',debtPopupFilter:'open',incomeTrendMode:'month',incomeTrendFrom:'',incomeTrendTo:'',incomeTrendRangeOpen:false,incomePieMonth:null,incomeMonthMenuOpen:false,incomeFilter:{preset:'month',from:'',to:'',group:null},incomeTrendVisible:null,reportMonth:currentMonth()};
 let cloud={configured:false,signedIn:false,ready:false,email:'',busy:false,error:'',empty:false,pendingDecision:false};
 function syncBadge(){let b=document.getElementById('cloud-status');if(!b)return;
  b.className='cloud-state'+(cloud.signedIn&&cloud.ready&&!cloud.pendingDecision?' online':cloud.busy?' wait':'');
@@ -12442,8 +12455,8 @@ function renderInvestmentModal(){
 function renderInvestments(){
  const p=investSummary(),cash=Object.values(balances()).reduce((n,x)=>n+num(x),0);
  const debts=totalsDebt(),wealth=cash+p.market+debts.receivable-debts.payable;
- const filt=ui.investmentFilter||'all';
- const all=p.items,items=all.filter(x=>filt==='all'||x.asset.type===filt);
+ const filt=ui.investmentFilter||'all',activeGroup=ui.investmentGroup||'all';
+ const all=p.items,items=all.filter(x=>(activeGroup==='all'||investTypeGroup(x.asset.type)===activeGroup)&&(filt==='all'||x.asset.type===filt));
  const active=items.filter(x=>x.quantity>0),closed=items.filter(x=>x.quantity<=0);
  const sorted=[...active.sort((a,b)=>b.market-a.market),...closed];
  const realized=p.realized+p.payout;
@@ -12478,15 +12491,24 @@ function renderInvestments(){
   <section class="card invest-holdings">
    <div class="invest-section-head"><div><h3>Daftar Investasi</h3><small>${all.length} instrumen · Harga diperbarui manual</small></div>
     <button class="btn sm" type="button" data-invest-open="asset">＋ Tambah Aset</button></div>
-   <div class="invest-filter-strip" role="group" aria-label="Filter jenis investasi">
-    ${[['all','✦','Semua'],...Object.entries(INVEST_TYPES).map(([k,v])=>[k,v.emoji,v.name])].map(([k,emoji,text])=>
-     `<button type="button" data-invest-filter="${k}" class="${filt===k?'active':''}" aria-pressed="${filt===k?'true':'false'}">${emoji} ${text}</button>`).join('')}
+   <div class="invest-filter-panel">
+    <div class="invest-filter-strip" role="group" aria-label="Filter kelompok investasi">
+     ${[['all',{name:'Semua',emoji:'✦'}],...Object.entries(INVEST_GROUPS)].map(([key,g])=>
+       `<button type="button" data-invest-group="${key}" class="${activeGroup===key?'active':''}" aria-pressed="${activeGroup===key?'true':'false'}">${g.emoji} ${g.name}</button>`).join('')}
+    </div>
+    <label class="invest-filter-select"><span>Jenis Investasi</span>
+     <select class="field" id="invest-type-filter" aria-label="Filter jenis investasi">
+      <option value="all">${activeGroup==='all'?'Semua jenis investasi':'Semua jenis dalam kelompok'}</option>
+      ${investTypeOptions(filt,activeGroup)}
+     </select>
+    </label>
    </div>
+   <p class="invest-filter-caption">${Object.keys(INVEST_TYPES).length} jenis instrumen dalam ${Object.keys(INVEST_GROUPS).length} kelompok. Tambahkan jenis khusus bila belum tersedia. Kategori ini untuk pencatatan, bukan penilaian legalitas produk.</p>
    ${sorted.length?`<div class="invest-asset-grid">${sorted.map(({asset,quantity,cost,market,unrealized,realized,payout},i)=>{
      const info=INVEST_TYPES[asset.type]||INVEST_TYPES.other,live=quantity>0,roi=cost>0?unrealized/cost*100:0;
      return `<article class="invest-asset-card invest-type-${INVEST_TYPES[asset.type]?asset.type:'other'}" style="--invest-delay:${Math.min(i,10)*55}ms;--invest-accent:${info.color}">
       <div class="invest-asset-top"><span class="invest-asset-emoji" aria-hidden="true">${info.emoji}</span>
-       <div class="invest-asset-heading"><strong>${h(asset.name)}</strong><small>${h(asset.symbol||info.name)} · ${info.name}</small></div>
+       <div class="invest-asset-heading"><strong>${h(asset.name)}</strong><small>${h(asset.symbol||investTypeName(asset))} · ${h(investTypeName(asset))}</small></div>
        <span class="invest-asset-status ${live?'':'is-closed'}">${live?'Aktif':'Tidak ada unit'}</span></div>
       <div class="invest-asset-main"><small>Nilai Saat Ini</small><strong>${money(market)}</strong>
        <div class="invest-asset-units">${investQtyFmt(quantity)} ${info.unit} · ${asset.price?money(asset.price)+' / '+info.unit:'Harga belum diisi'}</div></div>
@@ -12506,9 +12528,9 @@ function renderInvestments(){
       </div>
      </article>`;
     }).join('')}</div>`:
-    `<div class="invest-empty"><span>🌿</span><strong>Belum Ada Investasi</strong>
-      <p>Tambahkan instrumen untuk mulai memantau portofolio.</p>
-      <button type="button" class="btn primary" data-invest-open="asset">＋ Tambah Instrumen</button></div>`}
+    `<div class="invest-empty"><span>🌿</span><strong>${all.length?'Tidak Ada Instrumen pada Filter Ini':'Belum Ada Investasi'}</strong>
+      <p>${all.length?'Pilih Semua atau kelompok investasi lainnya untuk melihat instrumen.':'Tambahkan instrumen untuk mulai memantau portofolio.'}</p>
+      ${all.length?'':'<button type="button" class="btn primary" data-invest-open="asset">＋ Tambah Instrumen</button>'}</div>`}
   </section>
   <section class="card invest-history"><div class="invest-section-head"><div><h3>Riwayat Investasi</h3>
    <small>Aliran dana investasi tidak dicampur dengan belanja rutin.</small></div>
@@ -13572,14 +13594,15 @@ document.addEventListener('toggle',event=>{
  ui.budgetEditExpandedGroups=el.open?[...new Set([...old,id])]:old.filter(x=>x!==id);
 },true);
 document.addEventListener('click',async e=>{
- const investAction=e.target.closest?.('[data-invest-open],[data-invest-trade],[data-invest-price],[data-invest-edit],[data-invest-filter],[data-invest-trade-kind],[data-invest-close],[data-invest-delete],[data-invest-delete-trade],[data-invest-load-more]');
+ const investAction=e.target.closest?.('[data-invest-open],[data-invest-trade],[data-invest-price],[data-invest-edit],[data-invest-group],[data-invest-trade-kind],[data-invest-close],[data-invest-delete],[data-invest-delete-trade],[data-invest-load-more]');
  if(investAction||e.target.id==='invest-modal-backdrop'){
   e.preventDefault();
   if(!investAction||investAction.hasAttribute('data-invest-close')){ui.investmentModal=null;render();return;}
-  if(investAction.dataset.investFilter!==undefined){
-   const filter=investAction.dataset.investFilter;
-   if(filter!=='all'&&!INVEST_TYPES[filter])return;
-   ui.investmentFilter=filter;render();document.querySelector('[data-invest-filter="'+filter+'"]')?.focus({preventScroll:true});return;
+  if(investAction.dataset.investGroup!==undefined){
+   const group=investAction.dataset.investGroup;
+   if(group!=='all'&&!INVEST_GROUPS[group])return;
+   ui.investmentGroup=group;ui.investmentFilter='all';
+   render();document.querySelector('[data-invest-group="'+group+'"]')?.focus({preventScroll:true});return;
   }
   if(investAction.dataset.investOpen!==undefined){
    ui.investmentModal={kind:'asset',assetId:null};render();
@@ -14166,6 +14189,18 @@ if(a==='cloud-empty'){if(!window.ARUS_CLOUD||!cloud.ready)return toast('Cloud be
 if(a==='cloud-upload'){if(!window.ARUS_CLOUD||!cloud.ready)return toast('Cloud belum siap.',true);if(confirm('PERHATIAN: Timpa seluruh data CLOUD dengan salinan browser saat ini? Ini mengganti data tersinkron di HP dan laptop. Pastikan sudah mencadangkan JSON!'))try{cloud.busy=true;syncBadge();await window.ARUS_CLOUD.replace(db);cloud.pendingDecision=false;cloud.empty=false;cloud.busy=false;syncBadge();toast('Data berhasil diunggah ke cloud.')}catch(e){cloud.busy=false;showError(e)}}
 return;}});
 document.addEventListener('change',e=>{let x=e.target;
+ if(x.id==='invest-type-filter'){
+  const type=x.value;
+  if(type!=='all'&&!INVEST_TYPES[type])return;
+  ui.investmentFilter=type;
+  if(type!=='all')ui.investmentGroup=investTypeGroup(type);
+  render();document.getElementById('invest-type-filter')?.focus({preventScroll:true});return;
+ }
+ if(x.matches?.('#invest-asset-form select[name="type"]')){
+  const row=x.form?.querySelector('[data-invest-custom-type]');
+  if(row){row.hidden=x.value!=='other';const input=row.querySelector('input');if(input){input.required=x.value==='other';if(x.value==='other')input.focus({preventScroll:true});}}
+  return;
+ }
 
  if(x.matches?.('#finance-editor-backdrop [data-finance-swatch]')){
   const hidden=document.querySelector('#finance-editor-backdrop [data-finance-color-value]');

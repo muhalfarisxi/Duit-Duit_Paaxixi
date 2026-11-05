@@ -164,6 +164,7 @@ function groupEditor(group){
   '<div class="ib-pos-list">'+cats.map(c=>'<article><span>💵</span><div><strong>'+safe(c.label)+'</strong><small>'+
    'Awal '+fmt(base(c.id))+' · Efektif '+fmt(effective(c.id))+' · Realisasi '+fmt(received(c.id))+'</small></div>'+
    '<button type="button" data-income-dialog="pos:'+safe(c.id)+'">Nama Pos</button>'+
+   '<button type="button" class="danger" data-income-remove-pos="'+safe(c.id)+'">Hapus</button>'+
    '<button type="button" class="primary" data-income-dialog="actions:'+safe(c.id)+'">'+
    (locked()?'✏️ Edit Pos':'📝 Isi Target Awal')+'</button></article>').join('')+
   (cats.length?'':'<div class="ib-empty">Tambah pos untuk mulai menetapkan target.</div>')+
@@ -337,6 +338,11 @@ async function submit(form){
    return notify('Pilih dua pos berbeda, nominal positif, dan alasan pengalihan.',true);
   const available=validEffective(from,editId);
   if(amount>available)return notify('Nominal melebihi target yang tersedia pada pos sumber ('+fmt(available)+').',true);
+  const affected=new Set([from,to,old?.from,old?.to].filter(Boolean));
+  for(const category of affected){
+   const simulated=validEffective(category,editId)+(category===to?amount:0)-(category===from?amount:0);
+   if(simulated<0)return notify('Perubahan membuat target efektif suatu pos negatif. Sesuaikan pengalihan lain terlebih dahulu.',true);
+  }
   const record={id:old?.id||id(),month:m,date:old?.date||today(),createdAt:old?.createdAt||stamp(),
    from,to,amount,note};
   db.incomeBudgetMoves=db.incomeBudgetMoves.filter(x=>x.id!==editId).concat(record);
@@ -405,6 +411,11 @@ async function remove(type,identifier){
  }else if(type==='move'||type==='adjust'){
   const collection=type==='move'?'incomeBudgetMoves':'incomeBudgetAdjustments',item=db[collection].find(x=>x.id===identifier);
   if(!item)return;
+  const affected=type==='move'?[item.from,item.to]:[item.categoryId];
+  for(const category of affected){
+   const rest=type==='move'?validEffective(category,item.id):validEffective(category,'',item.id);
+   if(rest<0)return notify('Riwayat ini masih diperlukan agar target efektif pos tetap tidak negatif. Koreksi target lain dahulu.',true);
+  }
   if(!(await confirmAction('Hapus Riwayat Anggaran Pemasukan?','Hapus '+(type==='move'?'pengalihan':'penyesuaian')+' '+fmt(item.amount)+'?')))return;
   db[collection]=db[collection].filter(x=>x.id!==identifier);
  }else return;
@@ -449,6 +460,14 @@ function intercept(event){
 function init(config){
  Object.assign(hooks,config);
  document.addEventListener('click',intercept,true);
+ document.addEventListener('toggle',event=>{
+  const el=event.target;
+  const key=el?.dataset?.incomeExpand;
+  if(!key)return;
+  const [kind,groupId]=key.split(':');
+  if(!expanded[kind])return;
+  if(el.open)expanded[kind].add(groupId);else expanded[kind].delete(groupId);
+ },true);
  document.addEventListener('submit',e=>{
   if(e.target?.id!=='income-budget-dialog-form')return;
   e.preventDefault();e.stopImmediatePropagation();void submit(e.target);

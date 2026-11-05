@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#102a4e">
-<meta name="paax-build" content="20261105-dual-income-expense-budget-v32">
+<meta name="paax-build" content="20261105-dual-income-expense-budget-v33">
 <title>Duit-Duit Paaxixi | Catatan Keuangan Pribadi</title>
 <link rel="icon" type="image/png" sizes="64x64" href="./favicon-paaxixi.png?v=2">
 <link rel="apple-touch-icon" href="./profil-paaxixi.png?v=2">
@@ -7537,9 +7537,9 @@ dialog.pax-calendar-dialog::backdrop{background:#091e3e9e;
 <script src="./month-picker.js?v=1"></script>
 <script src="./investment-market.js?v=6"></script>
 <script src="./investment-goals.js?v=2"></script>
-<script src="./investment-intelligence.js?v=5"></script>
+<script src="./investment-intelligence.js?v=6"></script>
 <link rel="stylesheet" href="./budget-income.css?v=1">
-<script src="./budget-income.js?v=1"></script>
+<script src="./budget-income.js?v=2"></script>
 <script>
 (()=>{'use strict';
 const KEY='arus-prototype-v1';
@@ -11913,29 +11913,6 @@ function renderBudgetAdjustmentSection(){
  ${budgetHistoryRows('adjustment')}
  </section>`;
 }
-function renderIncomeCategoryManager(){
- const selected=db.categories.find(c=>c.id===ui.categoryEditId&&c.kind==='income');
- const items=incomes();
- return `<details class="budget-income-manager" ${selected?'open':''}>
-  <summary><span aria-hidden="true">💸</span><span><strong>Pos Pemasukan</strong><small>${items.length} kategori</small></span></summary>
-  <div class="budget-income-manager-body">
-   <form id="category-form">
-    <input type="hidden" name="kind" value="income"><input type="hidden" name="editId" value="${h(selected?.id||'')}">
-    <div class="form-grid">
-     <div class="form-field"><label class="field-label">Kelompok</label><select name="group" class="field">
-      ${['BPS','Fastlink','Lainnya'].map(g=>`<option value="${g}" ${selected?.group===g?'selected':''}>${g}</option>`).join('')}</select></div>
-     <div class="form-field"><label class="field-label">Nama Pos Pemasukan</label>
-      <input name="label" class="field" maxlength="70" value="${h(selected?.label||'')}" placeholder="Contoh: Bonus" required></div>
-    </div>
-    <div class="form-actions"><button type="submit" class="btn teal">${selected?'✓ Simpan Pos':'＋ Tambah Pos Pemasukan'}</button>
-     ${selected?'<button type="button" class="btn" data-action="cancel-category-edit">Batal</button>':''}</div>
-   </form>
-   <div class="budget-income-items">${items.map(c=>`<div><span><strong>${h(c.label)}</strong><small>${h(c.group)}</small></span>
-      <button class="btn sm" type="button" data-edit-category="${h(c.id)}">Edit</button>
-      <button class="btn sm danger" type="button" data-delete-category="${h(c.id)}">Hapus</button></div>`).join('')}</div>
-  </div>
- </details>`;
-}
 function renderBudgets(){
  const type=ui.budgetKind==='income'?'income':'expense';
  const variants=[
@@ -13398,86 +13375,7 @@ function saveDeletedTransaction(){
  document.querySelector('#tx-search-backdrop #tx-search-input, #review-modal-backdrop [data-review-close], #tx-history-backdrop [data-close-tx-history]')?.focus({preventScroll:true});
 }
 function setView(view){closeBudgetFlowDialog(false);if(view==='transactions'){openTxHistory();return;}if(ui.view!==view){closeFinanceEditor();ui.reviewPopup=null;reviewPopupHistory=[];}ui.txModalOpen=false;ui.txEditId=null;ui.txHistoryOpen=false;ui.txSearchOpen=false;ui.txSearchQuery='';ui.debtEditorOpen=false;ui.debtEditId=null;ui.debtSelected=null;ui.repayEditId=null;ui.comp.menu=null;ui.accountEditorOpen=false;ui.accountEditId=null;ui.cloudModalOpen=false;if(!['dashboard','review','budgets','debts','reports','accounts','investments'].includes(view))return;ui.investmentModal=null;ui.investmentTrendMonth=null;ui.view=view;render();window.scrollTo({top:0,behavior:'smooth'})}
-async function demo(){
- if(cloud.signedIn){toast('Keluar dari akun cloud sebelum memuat simulasi.',true);return}
- const lastMonth=currentMonth();
- const firstMonthDate=new Date(Number(lastMonth.slice(0,4)),Number(lastMonth.slice(5,7))-24,1);
- const firstMonth=dateISO(firstMonthDate).slice(0,7);
- const warning='Muat data SIMULASI 24 bulan ('+monthFmt(firstMonth)+' – '+monthFmt(lastMonth)+')? Ini akan MENGGANTI seluruh data di browser ini. Data lama akan dicadangkan secara lokal terlebih dahulu. Lanjutkan?';
- if(!(await paaxConfirm({title:'Muat Data Simulasi?',message:warning,confirmText:'Ya, Muat Simulasi',icon:'🧪',warning:true})))return;
- const before=db;
- const hasOldData=before.transactions.length||before.debts.length||Object.keys(before.budgets||{}).length||(before.budgetAdjustments||[]).length||Object.keys(before.reports||{}).length||before.accounts.length>1||(before.investmentAssets||[]).length>0||(before.investmentTrades||[]).length>0;
- if(hasOldData){
-  try{localStorage.setItem('arus-cadangan-sebelum-demo',JSON.stringify(before))}
-  catch(e){toast('Gagal mencadangkan data lama. Ekspor JSON dahulu sebelum memuat simulasi.',true);return}
- }
- db=fresh();
- db.accounts=[
-  {id:'a-cash',name:'Tunai (Simulasi)',type:'Tunai',opening:1200000},
-  {id:'a-bank',name:'Bank Contoh (Simulasi)',type:'Bank',opening:10500000},
-  {id:'a-wallet',name:'E-Wallet (Simulasi)',type:'E-Wallet',opening:550000}
- ];
- const baseBudgets=[900000,1750000,580000,210000,420000,190000,440000,250000,420000,320000,190000,240000];
- const stamp=new Date().toISOString();
- const add=(date,type,amount,categoryId,title,accountId='a-bank',toAccountId)=>db.transactions.push({
-  id:uid(),date,type,amount,categoryId,title,accountId,toAccountId,
-  createdAt:stamp,note:'Data contoh / simulasi (bukan transaksi asli)'
- });
- const inc=(index,slot,step=10000)=>((index*7+slot*3)%6)*step;
- for(let i=0;i<24;i++){
-  const date=new Date(firstMonthDate.getFullYear(),firstMonthDate.getMonth()+i,1);
-  const m=dateISO(date).slice(0,7),years=Math.floor(i/12);
-  const lastDay=new Date(date.getFullYear(),date.getMonth()+1,0).getDate();
-  const cap=m===lastMonth?Math.min(lastDay,Number(today().slice(8))):lastDay;
-  const at=day=>m+'-'+String(Math.min(day,cap)).padStart(2,'0');
-  const addAt=(day,type,amount,categoryId,title,accountId='a-bank',toAccountId)=>add(at(day),type,amount,categoryId,title,accountId,toAccountId);
-  expenses().forEach((category,index)=>{
-   db.budgets[m+'|'+category.id]=baseBudgets[index]+((i%6===0&&index===1)?50000:0);
-  });
-  addAt(2,'income',4200000+years*300000+inc(i,1,20000),'c14','Gaji bulanan (simulasi)');
-  addAt(4,'income',2750000+years*180000+inc(i,2,25000),'c15','Tunjangan bulanan (simulasi)');
-  addAt(7,'income',430000+inc(i,3,25000),'c16','Uang makan bulanan (simulasi)');
-  if(i%3===0)addAt(9,'income',1300000+inc(i,4,100000),'c13','Dividen triwulanan (simulasi)');
-  if(i%4===2)addAt(18,'income',250000+inc(i,5,40000),'c17','Tambahan lembur (simulasi)');
-  if(i%7===3)addAt(26,'income',175000+inc(i,6,30000),'c18','Pemasukan sampingan (simulasi)','a-cash');
-  addAt(3,'transfer',340000,null,'Tarik tunai bulanan (simulasi)','a-bank','a-cash');
-  addAt(5,'transfer',480000,null,'Top up dompet digital (simulasi)','a-bank','a-wallet');
-  addAt(1,'expense',850000+years*25000,'c1','Sewa tempat tinggal (simulasi)');
-  [3,7,11,15,19,23,27].forEach((day,j)=>addAt(day,'expense',170000+inc(i,j+8,15000),'c2',
-   ['Belanja bahan masak','Makan siang & malam','Belanja pasar','Belanja kebutuhan dapur','Makan harian','Belanja mingguan','Belanja kebutuhan pokok'][j]+' (simulasi)'));
-  [4,12,20,28].forEach((day,j)=>addAt(day,'expense',75000+inc(i,j+17,10000),'c3',
-   ['Bensin kendaraan','Ongkos transportasi','Bensin & parkir','Transport akhir bulan'][j]+' (simulasi)'));
-  [6,13,21,26].forEach((day,j)=>addAt(day,'expense',55000+inc(i,j+24,10000),'c7',
-   ['Jajan sore','Ngopi bersama teman','Camilan','Jajan akhir pekan'][j]+' (simulasi)','a-wallet'));
-  [9,24].forEach((day,j)=>addAt(day,'expense',65000+inc(i,j+31,5000),'c4',
-   (j?'Laundry mingguan kedua':'Laundry mingguan')+' (simulasi)','a-cash'));
-  addAt(10,'expense',100000+inc(i,35,10000),'c6','Infaq rutin (simulasi)');
-  addAt(14,'expense',(i%7===4?580000:230000)+inc(i,36,20000),'c5','Bantuan keluarga (simulasi)');
-  addAt(17,'expense',125000+inc(i,37,15000),'c8','Perawatan diri (simulasi)');
-  addAt(22,'expense',(i%8===5?920000:140000)+inc(i,38,25000),'c9','Hiburan & self reward (simulasi)');
-  addAt(8,'expense',155000+inc(i,39,5000),'c11','Paket internet (simulasi)');
-  if(i%3!==2)addAt(25,'expense',75000+inc(i,40,35000),'c10','Obat / biaya kesehatan (simulasi)');
-  if(i%2===0)addAt(16,'expense',60000+inc(i,41,30000),'c12','Kebutuhan tak terduga (simulasi)');
-  if(i===17)db.budgetMoves.push({id:uid(),month:m,date:at(10),from:'c12',to:'c7',amount:90000});
- }
- const debtDate=(index,day)=>{
-  const d=new Date(firstMonthDate.getFullYear(),firstMonthDate.getMonth()+index,1);
-  const m=dateISO(d).slice(0,7),limit=m===lastMonth?Number(today().slice(8)):new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
-  return m+'-'+String(Math.min(day,limit)).padStart(2,'0');
- };
- db.debts=[
-  {id:uid(),type:'receivable',person:'Teman A (Simulasi)',amount:300000,date:debtDate(5,8),accountId:'a-cash',note:'Piutang contoh yang sudah lunas',settlements:[{id:uid(),date:debtDate(6,12),amount:300000,accountId:'a-cash'}]},
-  {id:uid(),type:'payable',person:'Kerabat B (Simulasi)',amount:750000,date:debtDate(14,7),accountId:'a-bank',note:'Utang contoh dengan cicilan',settlements:[{id:uid(),date:debtDate(15,6),amount:300000,accountId:'a-bank'},{id:uid(),date:debtDate(16,6),amount:450000,accountId:'a-bank'}]},
-  {id:uid(),type:'payable',person:'Kerabat C (Simulasi)',amount:600000,date:debtDate(22,9),accountId:'a-bank',note:'Contoh utang yang belum lunas',settlements:[{id:uid(),date:debtDate(23,5),amount:200000,accountId:'a-bank'}]},
-  {id:uid(),type:'receivable',person:'Teman D (Simulasi)',amount:450000,date:debtDate(23,10),accountId:'a-cash',note:'Contoh piutang belum lunas',settlements:[]}
- ];
- ui.month=lastMonth;
- ui.reportMonth=lastMonth;
- ui.comp={...ui.comp,preset:'month',from:'',to:'',groups:null,categories:null,breakdown:'group',trend:'day',trendFrom:'',trendTo:'',trendLabels:true,open:false,menu:null};
- if(!save()){db=before;return}
- setView('dashboard');
- toast('Simulasi 24 bulan dimuat ('+monthFmt(firstMonth)+' – '+monthFmt(lastMonth)+'). Coba filter Semua Data untuk tren Tahunan!');
-}
+function demo(){toast('Modul simulasi 8 tahun belum tersedia. Segarkan halaman.',true);}
 function parseAmount(value){
  const raw=String(value??'').trim();
  if(!/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/.test(raw))return NaN;

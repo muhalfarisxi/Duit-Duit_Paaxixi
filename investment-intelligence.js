@@ -183,7 +183,7 @@ function upgradeMarket(){
 
 /* Comprehensive, long-range fictional dataset. Load separately so current
    production data remains untouched until the user explicitly confirms. */
-const demoReady=addScript('demo-comprehensive.js?v=2',()=>{
+const demoReady=addScript('demo-comprehensive.js?v=3',()=>{
  const css=document.createElement('link');
  css.rel='stylesheet';css.href='./demo-comprehensive.css?v=1';
  document.head.appendChild(css);

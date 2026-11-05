@@ -81,6 +81,18 @@ function metrics(categories=rows()){
  return {original,added,reduced,transfers,target,actual,difference:actual-target,
   percent:target>0?Math.round(actual/target*100):0};
 }
+
+function allowChanges(){
+ const cloud=hooks.get?.()?.cloud;
+ if(cloud?.pendingDecision){
+  notify('Pilih Unggah Data Lokal atau Mulai Cloud Kosong sebelum mengubah target.',true);return false;
+ }
+ if(cloud?.signedIn&&!cloud?.ready){
+  notify('Tunggu hingga sinkronisasi cloud selesai.',true);return false;
+ }
+ return true;
+}
+
 function persist(message){
  if(hooks.save?.()===false){notify('Gagal menyimpan perubahan anggaran pemasukan.',true);return false;}
  rerender();if(message)notify(message);return true;
@@ -261,8 +273,11 @@ function dialogMarkup(kind,identifier,extra){
   description='Kelompok mempermudah pengelompokan target dan grafik pemasukan.';
   fields='<input type="hidden" name="editId" value="'+safe(group?.id||'')+'">'+
    field('Nama Kelompok',txt('name',group?.name||'','Contoh: Pekerjaan Sampingan',55))+
-   field('Warna Kelompok','<div class="ib-color-palette">'+palette.map((p,i)=>
-    '<label style="--group-color:'+p.color+'"><input type="radio" name="color" value="'+p.color+'" '+
+   field('Warna Kelompok','<div class="ib-color-palette">'+
+    (group?.color&&!palette.some(p=>p.color.toLowerCase()===group.color.toLowerCase())?
+     '<label style="--group-color:'+safe(group.color)+'"><input type="radio" name="color" value="'+safe(group.color)+
+     '" checked><span aria-hidden="true"></span><small>Warna saat ini</small></label>':'')+
+    palette.map(p=>'<label style="--group-color:'+p.color+'"><input type="radio" name="color" value="'+p.color+'" '+
     ((group?.color||palette[0].color)===p.color?'checked':'')+'>'+
     '<span aria-hidden="true"></span><small>'+p.name+'</small></label>').join('')+'</div>');
  }else if(kind==='pos'){
@@ -307,7 +322,7 @@ function validEffective(idItem,excludingMove='',excludingAdjustment=''){
 }
 async function submit(form){
  const formdata=new FormData(form),kind=String(formdata.get('action')||''),db=d(),m=month();
- if(!db||view()!=='budgets')return;
+ if(!db||view()!=='budgets'||!allowChanges())return;
  const amount=readMoney(formdata.get('amount')),validCategory=id=>rows().some(c=>c.id===id);
  let message='Perubahan anggaran pemasukan disimpan.';
  if(kind==='base'){
@@ -392,7 +407,7 @@ async function confirmAction(title,message,confirmText='Ya, Lanjutkan'){
  return !!(await hooks.confirm?.({title,message,confirmText,icon:'💚',warning:true}));
 }
 async function remove(type,identifier){
- const db=d();if(!db)return;
+ const db=d();if(!db||!allowChanges())return;
  if(type==='group'){
   const group=groups().find(g=>g.id===identifier);if(!group)return;
   if(rows().some(x=>x.group===group.name))return notify('Kelompok masih memiliki pos. Pindahkan atau hapus posnya terlebih dahulu.',true);
@@ -422,6 +437,7 @@ async function remove(type,identifier){
  persist('Catatan anggaran pemasukan berhasil dihapus.');
 }
 async function establish(){
+ if(!allowChanges())return;
  if(locked())return notify('Target bulan ini sudah ditetapkan.');
  const x=metrics();
  if(x.original<=0)return notify('Isi setidaknya satu target pemasukan awal terlebih dahulu.',true);

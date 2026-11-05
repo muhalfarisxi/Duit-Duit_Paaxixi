@@ -52,7 +52,13 @@ function build({asOf=todayWib(),months=96}={}){
  if(!/^\d{4}-\d{2}-\d{2}$/.test(asOf)||months<24||months>120)throw Error('Periode simulasi tidak valid.');
  const latest=asOf.slice(0,7),first=monthShift(latest,-months+1);
  const data={version:2,accounts:accounts.map(x=>({...x})),categories:baseCategories.map((c,i)=>({id:'c'+(i+1),label:c[0],group:c[1],kind:c[2]})),
-  expenseGroups:groups.map(g=>({...g})),transactions:[],budgets:{},budgetMoves:[],budgetAdjustments:[],budgetBaseHistory:[],
+  expenseGroups:groups.map(g=>({...g})),
+  incomeGroups:[{id:'sim-income-bps',name:'BPS',color:'#22956f'},
+   {id:'sim-income-fastlink',name:'Fastlink',color:'#159d92'},
+   {id:'sim-income-other',name:'Lainnya',color:'#7e9b55'}],
+  incomeBudgets:{},incomeBudgetMoves:[],incomeBudgetAdjustments:[],
+  incomeBudgetBaseHistory:[],incomeBudgetInitialStates:{},
+  transactions:[],budgets:{},budgetMoves:[],budgetAdjustments:[],budgetBaseHistory:[],
   budgetInitialStates:{},debts:[],accountCorrections:[],investmentAssets:[],investmentTrades:[],
   investmentSnapshots:[],investmentPriceHistory:{},investmentGoals:[],investmentWatchlist:['BBCA','BBRI','TLKM','XKGS'],
   investmentResearch:[],reports:{},
@@ -78,10 +84,44 @@ function build({asOf=todayWib(),months=96}={}){
   c22:480000,c23:220000,c24:300000,c25:330000,c26:160000
  };
  const expCats=data.categories.filter(c=>c.kind==='expense');
+ const incCats=data.categories.filter(c=>c.kind==='income');
+ const incomeTargets={
+  c13:220000,c14:4000000,c15:2220000,c16:550000,c17:180000,c18:300000,
+  c19:0,c20:360000,c27:225000
+ };
  for(let i=0;i<months;i++){
   const m=monthShift(first,i),yr=Math.floor(i/12),monthNum=Number(m.slice(5,7));
   const active=m===latest?Number(asOf.slice(8)):dayLast(m);
   const budgetDraft=i===months-1||i===months-14;
+  data.incomeBudgetInitialStates[m]={status:budgetDraft?'draft':'locked',
+   lockedAt:budgetDraft?'':stampIso(sec(m,1))};
+  for(const c of incCats){
+   if(c.id==='c18'&&i%9===0)continue; // intentionally without an income target
+   const base=round((incomeTargets[c.id]||0)*(1+yr*.045)+
+    (c.id==='c19'&&(monthNum===4||monthNum===12)?2450000+yr*100000:0));
+   data.incomeBudgets[m+'|'+c.id]=base;
+   if(i%8===0&&['c14','c15'].includes(c.id)){
+    data.incomeBudgetBaseHistory.push({id:id('income-history'),month:m,date:sec(m,1),
+     createdAt:stampIso(sec(m,1)),categoryId:c.id,categoryLabel:c.label,
+     previous:Math.max(0,base-100000),next:base,note:'Perbaikan proyeksi bulanan • simulasi',
+     correction:!budgetDraft});
+   }
+  }
+  if(!budgetDraft&&i%4===0){
+   data.incomeBudgetMoves.push({id:id('income-move'),month:m,date:sec(m,6),
+    createdAt:stampIso(sec(m,6)),from:'c15',to:'c17',amount:55000,
+    note:'Alih target estimasi antara tunjangan dan lembur • simulasi'});
+  }
+  if(!budgetDraft&&i%6===2){
+   data.incomeBudgetAdjustments.push({id:id('income-adjust'),month:m,date:sec(m,8),
+    createdAt:stampIso(sec(m,8)),categoryId:'c20',type:'increase',amount:220000,
+    note:'Perkiraan honor tambahan • simulasi'});
+  }
+  if(!budgetDraft&&i%7===4){
+   data.incomeBudgetAdjustments.push({id:id('income-adjust'),month:m,date:sec(m,9),
+    createdAt:stampIso(sec(m,9)),categoryId:'c27',type:'decrease',amount:80000,
+    note:'Target jasa sampingan diturunkan • simulasi'});
+  }
   data.budgetInitialStates[m]={status:budgetDraft?'draft':'locked',
    lockedAt:budgetDraft?'':stampIso(sec(m,1)),legacy:false};
   for(const c of expCats){
@@ -315,8 +355,14 @@ function build({asOf=todayWib(),months=96}={}){
    .reduce((n,x)=>n+(x.to===id?x.amount:0)-(x.from===id?x.amount:0),0);
   const expenseBreakdown=expCats.map(c=>({label:c.label,group:c.group,budget:budOf(c.id),
    spent:sum(monthTx.filter(t=>t.categoryId===c.id),'expense')}));
-  const incomeBreakdown=data.categories.filter(c=>c.kind==='income').map(c=>({label:c.label,group:c.group,
-   received:sum(monthTx.filter(t=>t.categoryId===c.id),'income')}));
+  const incomeBreakdown=data.categories.filter(c=>c.kind==='income').map(c=>({
+    label:c.label,group:c.group,
+    target:(data.incomeBudgets[month+'|'+c.id]||0)+
+     data.incomeBudgetMoves.filter(x=>x.month===month).reduce((n,x)=>n+(x.to===c.id?x.amount:0)-(x.from===c.id?x.amount:0),0)+
+     data.incomeBudgetAdjustments.filter(x=>x.month===month&&x.categoryId===c.id)
+      .reduce((n,x)=>n+(x.type==='increase'?1:-1)*x.amount,0),
+    received:sum(monthTx.filter(t=>t.categoryId===c.id),'income')
+   }));
   const trends=Array.from({length:6},(_,idx)=>{
    const m=monthShift(month,-5+idx);const x=data.transactions.filter(t=>t.date.slice(0,7)===m);
    return {month:m,income:sum(x,'income'),expense:sum(x,'expense')};
@@ -415,6 +461,19 @@ function validate(db,asOf=todayWib()){
  for(const t of db.investmentTrades){
   if(t.date>asOf||!assetIds.has(t.assetId)||!accountIds.has(t.accountId)||
      !['buy','sell','payout'].includes(t.type))throw Error('Transaksi investasi contoh tidak konsisten.');
+ }
+ if(!Object.values(db.incomeBudgetInitialStates||{}).some(x=>x.status==='draft')||
+    !Object.values(db.incomeBudgetInitialStates||{}).some(x=>x.status==='locked')||
+    !Object.keys(db.incomeBudgets||{}).length)
+   throw Error('Contoh target pemasukan belum lengkap.');
+ for(const category of db.categories.filter(c=>c.kind==='income')){
+  for(const m of new Set(Object.keys(db.incomeBudgets).map(k=>k.slice(0,7)))){
+   const base=Number(db.incomeBudgets[m+'|'+category.id]||0);
+   const net=base+db.incomeBudgetMoves.filter(x=>x.month===m).reduce((n,x)=>n+(x.to===category.id?x.amount:0)-(x.from===category.id?x.amount:0),0)+
+    db.incomeBudgetAdjustments.filter(x=>x.month===m&&x.categoryId===category.id)
+     .reduce((n,x)=>n+(x.type==='increase'?1:-1)*x.amount,0);
+   if(net<0)throw Error('Target efektif pemasukan simulasi negatif.');
+  }
  }
  if(!Object.values(db.budgetInitialStates).some(x=>x.status==='draft')||
     !Object.values(db.budgetInitialStates).some(x=>x.status==='locked'))

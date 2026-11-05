@@ -180,6 +180,16 @@ function upgradeMarket(){
  if(existing)existing.outerHTML=html;
  else card.querySelector('.invest-intel-market-grid')?.insertAdjacentHTML('afterend',html);
 }
+
+/* Comprehensive, long-range fictional dataset. Load separately so current
+   production data remains untouched until the user explicitly confirms. */
+const demoReady=addScript('demo-comprehensive.js?v=1',()=>{
+ const css=document.createElement('link');
+ css.rel='stylesheet';css.href='./demo-comprehensive.css?v=1';
+ document.head.appendChild(css);
+ void addScript('demo-comprehensive-ui.js?v=1');
+});
+
 const insightReady=addScript('investment-index-insight.js?v=1',upgradeMarket);
 const catalogReady=addScript('investment-catalog.js?v=1');
 

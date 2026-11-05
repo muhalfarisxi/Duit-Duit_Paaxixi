@@ -32,7 +32,7 @@ const baseCategories=[
 const accounts=[
  {id:'a-cash',name:'Dompet Tunai (SIMULASI)',type:'Tunai',opening:1800000},
  {id:'a-bank',name:'Bank Utama (SIMULASI)',type:'Bank',opening:43000000},
- {id:'a-savings',name:'Bank Tabungan (SIMULASI)',type:'Bank',opening:70000000},
+ {id:'a-savings',name:'Bank Tabungan (SIMULASI)',type:'Bank',opening:125000000},
  {id:'a-wallet',name:'Dompet Digital (SIMULASI)',type:'E-Wallet',opening:1500000},
  {id:'a-second',name:'Bank Cadangan (SIMULASI)',type:'Bank',opening:24000000}
 ];
